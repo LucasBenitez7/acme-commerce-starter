@@ -1,20 +1,78 @@
-# Node/PNPM
-node_modules
-.pnpm-store
+# --- Monorepo (Turborepo + Next + PNPM) ---
 
-# Build caches
-.turbo
+# Package managers
+**/node_modules/
+.pnpm-store/
 
-# Next
-.next
-out
+# Build / outputs
+**/dist/
+**/build/
+**/out/
+**/.next/
+**/dist-ssr/
+**/.turbo/
+**/.nx/cache/
+**/.vite/
+**/.parcel-cache/
+**/.cache/
+**/.tmp/
+**/temp/
+**/storybook-static/
 
-# Env
+# Vercel (links locales por app)
+**/.vercel/
+
+# Logs y diagnósticos
+logs/
+**/*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Testing / E2E
+**/coverage/
+**/.nyc_output/
+**/.vitest/
+**/test-results/
+**/playwright-report/
+**/.cypress/
+**/.cypress-cache/
+
+# TypeScript
+**/*.tsbuildinfo
+# OJO: no ignores next-env.d.ts; se comitea
+
+# Variables de entorno (solo plantillas al repo)
 .env
 .env.*
 !.env.example
+!.env.template
+!.env.local.example
 
-# OS/Editor
+# Datos locales / DBs
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+postgres-data/
+mongo-data/
+docker-data/
+
+# Prisma
+# Mantén prisma/schema.prisma y prisma/migrations en el repo
+**/src/generated/prisma/
+
+# Editores / SO
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 .DS_Store
-.vscode
-.idea
+Thumbs.db
+desktop.ini
