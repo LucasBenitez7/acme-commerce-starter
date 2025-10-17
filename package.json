@@ -16,7 +16,8 @@
       "@tailwindcss/oxide",
       "unrs-resolver",
       "@prisma/client",
-      "prisma"
+      "prisma",
+      "@prisma/engines"
     ]
   },
   "keywords": [],
