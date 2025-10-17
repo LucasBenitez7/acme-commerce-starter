@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
 			{ protocol: "https", hostname: "cdn.lsbstack.com" },
 		],
 	},
-	experimental: { ppr: true },
+	// experimental: { ppr: true },
 };
 
 export default nextConfig;
