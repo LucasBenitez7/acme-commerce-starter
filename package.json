@@ -1,7 +1,7 @@
 {
   "name": "acme-commerce-starter",
   "version": "0.1.0",
-  "packageManager": "pnpm@9.12.0",
+  "packageManager": "pnpm@10.18.3",
   "private": true,
   "scripts": {
     "dev": "turbo run dev --parallel",
@@ -10,6 +10,15 @@
     "typecheck": "turbo run typecheck",
     "format": "prettier --write ."
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "sharp",
+      "@tailwindcss/oxide",
+      "unrs-resolver",
+      "@prisma/client",
+      "prisma"
+    ]
+  },
   "keywords": [],
   "author": "Lucas",
   "license": "ISC",
@@ -17,6 +26,7 @@
     "@types/node": "^24.8.1",
     "eslint": "^9.37.0",
     "prettier": "^3.6.2",
+    "prisma": "^6.17.1",
     "turbo": "^2.5.8",
     "typescript": "^5.9.3"
   }
