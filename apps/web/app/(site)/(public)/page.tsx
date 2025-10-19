@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { canonicalFromSearchParams } from "@/lib/seo";
 
-type SP = Promise<Record<string, string | string[] | undefined>>;
+export type SP = Promise<Record<string, string | string[] | undefined>>;
 const PER_PAGE = 8;
 
 export async function generateMetadata({
