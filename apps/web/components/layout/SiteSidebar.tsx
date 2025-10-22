@@ -1,6 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+
+import { cn } from "@/lib/utils";
 
 const CATEGORIES = [
   { slug: "remeras", label: "Remeras" },
@@ -10,6 +13,9 @@ const CATEGORIES = [
 ];
 
 export default function SiteSidebar() {
+  const sp = useSearchParams();
+  const activeCat = sp.get("cat") ?? "";
+
   return (
     <aside>
       <div className="pl-8">
@@ -17,20 +23,29 @@ export default function SiteSidebar() {
           Categorías
         </h2>
         <ul className="mt-2 space-y-2 text-sm">
-          {CATEGORIES.map((c) => (
-            <li key={c.slug}>
-              <Link
-                href={`/?cat=${c.slug}`}
-                className="block rounded ml-2 hover:bg-neutral-100"
-              >
-                {c.label}
-              </Link>
-            </li>
-          ))}
+          {CATEGORIES.map((c) => {
+            const isActive = c.slug === activeCat;
+
+            return (
+              <li key={c.slug}>
+                {/* Importante: sin `page` → resetea a 1 */}
+                <Link
+                  href={`/?cat=${c.slug}`}
+                  prefetch={false}
+                  aria-current={isActive ? "page" : undefined}
+                  className={cn(
+                    "block rounded ml-2 px-2 py-1 hover:bg-neutral-100",
+                    isActive && "bg-neutral-200 font-medium",
+                  )}
+                >
+                  {c.label}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </div>
-
-      {/* aquí más secciones (tallas, precio, etc.) cuando quieras */}
+      {/* más secciones (tallas, precio, etc.) cuando quieras */}
     </aside>
   );
 }

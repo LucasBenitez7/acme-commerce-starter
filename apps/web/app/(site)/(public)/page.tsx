@@ -69,6 +69,11 @@ export default async function HomePage({ searchParams }: { searchParams: SP }) {
         <div>
           <h1 className="text-2xl font-semibold">Catálogo</h1>
           <p className="text-sm text-neutral-500">Página {page}</p>
+          {cat ? (
+            <p className="text-sm text-neutral-500">
+              Categoría: <span className="font-medium">{String(cat)}</span>
+            </p>
+          ) : null}
         </div>
         <div className="hidden lg:flex items-center gap-2">
           <Button asChild variant="outline" disabled={page <= 1}>
