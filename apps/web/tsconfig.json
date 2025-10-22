@@ -3,9 +3,13 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+<<<<<<< HEAD
       "@/*": ["*"],
       "@/components/*": ["components/*"],
       "@/lib/*": ["lib/*"]
+=======
+      "@/*": ["./*"]
+>>>>>>> bcf862b (chore: sync development → main (Fase 1 DX) (#3))
     },
     "incremental": true,
     "jsx": "preserve",
@@ -16,10 +20,14 @@
     ]
   },
   "include": ["**/*.ts", "**/*.tsx", "next-env.d.ts", ".next/types/**/*.ts"],
+<<<<<<< HEAD
   "exclude": [
     "node_modules",
     "eslint.config.*",
     "postcss.config.*",
     "tailwind.config.*"
   ]
+=======
+  "exclude": ["node_modules"]
+>>>>>>> bcf862b (chore: sync development → main (Fase 1 DX) (#3))
 }

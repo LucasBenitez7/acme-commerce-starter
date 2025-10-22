@@ -1,9 +1,16 @@
 // apps/web/eslint.config.mjs
+<<<<<<< HEAD
 import { defineConfig, globalIgnores } from "eslint/config";
 import tsParser from "@typescript-eslint/parser";
 import nextPlugin from "@next/eslint-plugin-next";
 import importPlugin from "eslint-plugin-import";
 import prettier from "eslint-config-prettier/flat";
+=======
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+import { FlatCompat } from "@eslint/eslintrc";
+import eslintConfigPrettier from "eslint-config-prettier";
+>>>>>>> bcf862b (chore: sync development → main (Fase 1 DX) (#3))
 
 export default defineConfig([
   // 0) Ignorados globales
@@ -16,6 +23,7 @@ export default defineConfig([
     "eslint.config.*",
   ]),
 
+<<<<<<< HEAD
   // 1) Parser para TS/TSX
   {
     files: ["**/*.{ts,tsx}"],
@@ -28,6 +36,74 @@ export default defineConfig([
       },
     },
   },
+=======
+const compat = new FlatCompat({
+  baseDirectory: __dirname,
+});
+
+const eslintConfig = [
+  // Base Next.js + TypeScript (tu config original)
+  ...compat.extends("next/core-web-vitals", "next/typescript"),
+
+  // Ignorados
+  {
+    ignores: [
+      "node_modules/**",
+      ".next/**",
+      "out/**",
+      "build/**",
+      "next-env.d.ts",
+      // evita que el editor lintée la propia config
+      "eslint.config.*",
+    ],
+  },
+
+  // Reglas y settings para import/* (sin volver a registrar el plugin)
+  {
+    files: ["**/*.{ts,tsx,js,jsx}"],
+    settings: {
+      // útil si activas no-unresolved o similares
+      "import/resolver": {
+        typescript: { project: "./tsconfig.json" },
+        node: { extensions: [".js", ".jsx", ".ts", ".tsx"] },
+      },
+    },
+    rules: {
+      "import/order": [
+        "error",
+        {
+          "newlines-between": "always",
+          alphabetize: { order: "asc", caseInsensitive: true },
+          groups: [
+            "builtin",
+            "external",
+            "internal",
+            "parent",
+            "sibling",
+            "index",
+            "object",
+            "type",
+          ],
+          pathGroups: [
+            {
+              pattern: "@/components/**",
+              group: "internal",
+              position: "before",
+            },
+            { pattern: "@/lib/**", group: "internal", position: "before" },
+          ],
+          pathGroupsExcludedImportTypes: ["builtin"],
+        },
+      ],
+      "import/no-duplicates": "error",
+      "import/newline-after-import": ["error", { count: 1 }],
+    },
+  },
+
+  // Desactiva choques con Prettier
+  eslintConfigPrettier,
+];
+>>>>>>> bcf862b (chore: sync development → main (Fase 1 DX) (#3))
 
   // 2) JS/JSX
   {
