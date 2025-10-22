@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [development, main]
+  push:
+    branches: [main]
+
+# Evita jobs superpuestos del mismo PR
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # (Opcional) Cache de Turbo para acelerar builds/lints
+      - name: Restore Turbo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
+      - name: Install deps
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm -w lint
+
+      - name: Typecheck
+        run: pnpm -w typecheck
+
+      # (Opcional) Build si quieres asegurar que compila
+      # - name: Build
+      #   run: pnpm -w build
