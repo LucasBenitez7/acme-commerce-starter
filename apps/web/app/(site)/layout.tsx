@@ -1,7 +1,9 @@
-import type { ReactNode } from "react";
-import Header from "../../components/layout/Header";
-import Footer from "../../components/layout/Footer";
 import { Container } from "@/components/ui/container";
+
+import Footer from "../../components/layout/Footer";
+import Header from "../../components/layout/Header";
+
+import type { ReactNode } from "react";
 
 export default function SiteLayout({ children }: { children: ReactNode }) {
   return (
