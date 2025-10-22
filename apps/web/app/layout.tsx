@@ -1,6 +1,9 @@
 // apps/web/app/layout.tsx
-import type { Metadata, Viewport } from "next";
 import "./globals.css";
+
+import { fontMono, fontSans } from "./fonts";
+
+import type { Metadata, Viewport } from "next";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const siteName = "LSB Store";
@@ -40,8 +43,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es" className="h-full">
-      <body className="min-h-dvh bg-background text-foreground">
+    <html
+      lang="es"
+      className={`h-full ${fontSans.variable} ${fontMono.variable}`}
+    >
+      <body className="min-h-dvh bg-background text-foreground font-sans">
         {children}
       </body>
     </html>
