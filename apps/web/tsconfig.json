@@ -3,7 +3,9 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["*"],
+      "@/components/*": ["components/*"],
+      "@/lib/*": ["lib/*"]
     },
     "incremental": true,
     "jsx": "preserve",
@@ -14,5 +16,10 @@
     ]
   },
   "include": ["**/*.ts", "**/*.tsx", "next-env.d.ts", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "eslint.config.*",
+    "postcss.config.*",
+    "tailwind.config.*"
+  ]
 }
