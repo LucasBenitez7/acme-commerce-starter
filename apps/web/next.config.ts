@@ -10,6 +10,9 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "cdn.lsbstack.com" },
     ],
   },
+  eslint: {
+    ignoreDuringBuilds: true, // quita el warning en `next build`
+  },
   // experimental: { ppr: true },
 };
 

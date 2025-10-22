@@ -1,77 +1,64 @@
-// apps/web/eslint.config.mjs
-import { dirname } from "node:path";
-import { fileURLToPath } from "node:url";
-import { FlatCompat } from "@eslint/eslintrc";
-import eslintConfigPrettier from "eslint-config-prettier";
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextPlugin from "@next/eslint-plugin-next";
+import tsParser from "@typescript-eslint/parser";
+import importPlugin from "eslint-plugin-import";
+import prettier from "eslint-config-prettier/flat";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+export default defineConfig([
+	// Reglas de Next (core-web-vitals)
+	nextPlugin.configs["core-web-vitals"],
 
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
+	// TS/JS + reglas de imports
+	{
+		files: ["**/*.{ts,tsx,js,jsx}"],
+		languageOptions: {
+			parser: tsParser,
+			parserOptions: {
+				ecmaVersion: "latest",
+				sourceType: "module",
+				ecmaFeatures: { jsx: true },
+			},
+		},
+		plugins: { import: importPlugin },
+		rules: {
+			"import/order": [
+				"error",
+				{
+					"newlines-between": "always",
+					alphabetize: { order: "asc", caseInsensitive: true },
+					groups: [
+						"builtin",
+						"external",
+						"internal",
+						"parent",
+						"sibling",
+						"index",
+						"object",
+						"type",
+					],
+					pathGroups: [
+						{
+							pattern: "@/components/**",
+							group: "internal",
+							position: "before",
+						},
+						{ pattern: "@/lib/**", group: "internal", position: "before" },
+					],
+					pathGroupsExcludedImportTypes: ["builtin"],
+				},
+			],
+			"import/no-duplicates": "error",
+			"import/newline-after-import": ["error", { count: 1 }],
+		},
+	},
 
-const eslintConfig = [
-  // Base Next.js + TypeScript (tu config original)
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
-
-  // Ignorados
-  {
-    ignores: [
-      "node_modules/**",
-      ".next/**",
-      "out/**",
-      "build/**",
-      "next-env.d.ts",
-      // evita que el editor lintée la propia config
-      "eslint.config.*",
-    ],
-  },
-
-  // Reglas y settings para import/* (sin volver a registrar el plugin)
-  {
-    files: ["**/*.{ts,tsx,js,jsx}"],
-    settings: {
-      // útil si activas no-unresolved o similares
-      "import/resolver": {
-        typescript: { project: "./tsconfig.json" },
-        node: { extensions: [".js", ".jsx", ".ts", ".tsx"] },
-      },
-    },
-    rules: {
-      "import/order": [
-        "error",
-        {
-          "newlines-between": "always",
-          alphabetize: { order: "asc", caseInsensitive: true },
-          groups: [
-            "builtin",
-            "external",
-            "internal",
-            "parent",
-            "sibling",
-            "index",
-            "object",
-            "type",
-          ],
-          pathGroups: [
-            {
-              pattern: "@/components/**",
-              group: "internal",
-              position: "before",
-            },
-            { pattern: "@/lib/**", group: "internal", position: "before" },
-          ],
-          pathGroupsExcludedImportTypes: ["builtin"],
-        },
-      ],
-      "import/no-duplicates": "error",
-      "import/newline-after-import": ["error", { count: 1 }],
-    },
-  },
-
-  // Desactiva choques con Prettier
-  eslintConfigPrettier,
-];
-
-export default eslintConfig;
+	// Ignorados + Prettier
+	globalIgnores([
+		".next/**",
+		"out/**",
+		"build/**",
+		"node_modules/**",
+		"next-env.d.ts",
+	]),
+	prettier,
+]);
