@@ -13,10 +13,7 @@ concurrency:
 
 jobs:
   checks:
-<<<<<<< HEAD
     name: checks
-=======
->>>>>>> bcf862b (chore: sync development → main (Fase 1 DX) (#3))
     runs-on: ubuntu-latest
     permissions:
       contents: read
