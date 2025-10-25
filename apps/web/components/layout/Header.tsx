@@ -107,9 +107,8 @@ export default function Header({ categories }: { categories: Cat[] }) {
         </Link>
         <div className="flex items-center gap-1">
           <Link href="/cart" className="hover:underline">
-            Carrito
+            Cesta (1)
           </Link>
-          <MdShoppingCart size={16} />
         </div>
         <Link href="/account" className="hover:underline">
           Cuenta
