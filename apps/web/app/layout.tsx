@@ -47,9 +47,7 @@ export default function RootLayout({
       lang="es"
       className={`h-full ${fontSans.variable} ${fontMono.variable}`}
     >
-      <body className="min-h-dvh bg-background text-foreground font-sans">
-        {children}
-      </body>
+      <body className="min-h-dvh text-foreground font-sans">{children}</body>
     </html>
   );
 }

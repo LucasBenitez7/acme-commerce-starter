@@ -3,6 +3,7 @@
 import { Menu, XIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { MdShoppingCart } from "react-icons/md";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -16,9 +17,11 @@ import {
 
 import SiteSidebar from "./SiteSidebar";
 
+export type Cat = { slug: string; label: string };
+
 // const verBox = "border-2 border-solid border-red-700";
 
-export default function Header() {
+export default function Header({ categories }: { categories: Cat[] }) {
   const [open, setOpen] = useState(false);
 
   const handlePointerOut: React.PointerEventHandler<HTMLDivElement> = (e) => {
@@ -32,8 +35,9 @@ export default function Header() {
 
     if (document.contains(rt)) setOpen(false);
   };
+
   return (
-    <header className="mx-auto w-full sm:px-6 lg:px-8 sticky top-0  border-b bg-white h-14 grid grid-cols-[1fr_auto_1fr] items-center">
+    <header className="mx-auto w-full sm:px-6 lg:px-8 sticky top-0 border-b bg-white h-14 grid grid-cols-[1fr_auto_1fr] items-center">
       <div className="justify-self-start">
         <Sheet open={open} onOpenChange={setOpen}>
           {/* Abrir Menu */}
@@ -62,8 +66,8 @@ export default function Header() {
             onEscapeKeyDown={() => setOpen(false)}
           >
             <div className="overflow-y-auto h-full focus:outline-none">
-              <SheetHdr className="flex flex-row justify-between h-14 items-center pl-8 pr-4 border-b border-b-neutral-300">
-                <SheetTitle>Aqui ira algo</SheetTitle>
+              <SheetHdr className="flex flex-row justify-between h-14 items-center pl-5 pr-2 border-b border-b-neutral-300">
+                <SheetTitle>Categorias</SheetTitle>
                 {/* Cerrar Menu */}
                 <SheetClose asChild>
                   <Button
@@ -83,7 +87,7 @@ export default function Header() {
                 </SheetClose>
               </SheetHdr>
               <div>
-                <SiteSidebar />
+                <SiteSidebar categories={categories} />
               </div>
             </div>
           </SheetContent>
@@ -97,13 +101,16 @@ export default function Header() {
         Logo + lsbstack • shop
       </Link>
 
-      <nav className="justify-self-end flex items-center gap-4 text-sm">
+      <nav className="justify-self-end flex items-center gap-3 text-sm">
         <Link href="/" className="hover:underline">
-          Catálogo
+          Buscar
         </Link>
-        <Link href="/cart" className="hover:underline">
-          Carrito
-        </Link>
+        <div className="flex items-center gap-1">
+          <Link href="/cart" className="hover:underline">
+            Carrito
+          </Link>
+          <MdShoppingCart size={16} />
+        </div>
         <Link href="/account" className="hover:underline">
           Cuenta
         </Link>
