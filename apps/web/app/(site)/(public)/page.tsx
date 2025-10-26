@@ -61,31 +61,12 @@ export default async function HomePage({ searchParams }: { searchParams: SP }) {
     prisma.product.count(),
   ]);
 
-  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
-  const prevPage = Math.max(1, page - 1);
-  const nextPage = Math.min(totalPages, page + 1);
-
-  const qsPrev = new URLSearchParams({ page: String(prevPage) });
-  const qsNext = new URLSearchParams({ page: String(nextPage) });
-
-  /*const qsPrev = new URLSearchParams(
-		cat
-			? { cat: String(cat), page: String(prevPage) }
-			: { page: String(prevPage) }
-	);
-	const qsNext = new URLSearchParams(
-		cat
-			? { cat: String(cat), page: String(nextPage) }
-			: { page: String(nextPage) }
-	);*/
-
   return (
     <section>
       <header className="flex justify-between w-full items-center border-b">
         <div>
           <h1 className="text-xl font-semibold capitalize">Home</h1>
         </div>
-
         <div className="flex text-sm items-center gap-2 hover:cursor-pointer">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -158,25 +139,6 @@ export default async function HomePage({ searchParams }: { searchParams: SP }) {
           );
         })}
       </div>
-
-      <nav
-        aria-label="Paginación"
-        className="flex items-center justify-end gap-2"
-      >
-        <p className="text-sm text-neutral-500">
-          Página {page} de {totalPages}
-        </p>
-        <Button asChild variant="outline" disabled={page <= 1}>
-          <Link href={`/?${qsPrev.toString()}`} rel="prev">
-            Anterior
-          </Link>
-        </Button>
-        <Button asChild disabled={page >= totalPages}>
-          <Link href={`/?${qsNext.toString()}`} rel="next">
-            Siguiente
-          </Link>
-        </Button>
-      </nav>
     </section>
   );
 }

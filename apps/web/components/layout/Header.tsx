@@ -99,7 +99,7 @@ export default function Header({ categories }: { categories: Cat[] }) {
         Logo + lsbstack • shop
       </Link>
 
-      <nav className="justify-self-end flex items-center gap-2 text-base">
+      <nav className="justify-self-end flex items-center gap-1 text-base">
         <div className="flex items-center gap-1 border-b border-neutral-500">
           <Search
             className=" 
@@ -112,7 +112,7 @@ export default function Header({ categories }: { categories: Cat[] }) {
             className="hover:outline-none active:outline-none focus:outline-none px-1"
           />
         </div>
-        <div className="flex items-center p-1 ml-1">
+        <div className="flex items-center p-1 ml-2">
           <Link href="/account">
             <UserRound
               className=" 
@@ -120,6 +120,11 @@ export default function Header({ categories }: { categories: Cat[] }) {
 								focus:outline-none active:outline-none hover:cursor-pointer 
 							"
             />
+          </Link>
+        </div>
+        <div className="flex items-center p-1">
+          <Link href="/favoritos">
+            <Heart size={20} strokeWidth={2} />
           </Link>
         </div>
         <div className="flex items-center p-1">
@@ -143,12 +148,6 @@ export default function Header({ categories }: { categories: Cat[] }) {
             </svg>
           </Link>
         </div>
-        <div className="flex items-center p-1">
-          <Link href="/favoritos">
-            <Heart size={20} strokeWidth={2} />
-          </Link>
-        </div>
-
         <div className="flex items-center p-1">
           <Link href="/admin">Admin</Link>
         </div>
