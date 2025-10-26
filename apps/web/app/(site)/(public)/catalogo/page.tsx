@@ -12,7 +12,8 @@ import { canonicalFromSearchParams } from "@/lib/seo";
 import type { Metadata } from "next";
 
 export const revalidate = 60;
-export type SP = Promise<Record<string, string | string[] | undefined>>;
+
+type SP = Promise<Record<string, string | string[] | undefined>>;
 const PER_PAGE = 12;
 
 export async function generateMetadata({
@@ -22,13 +23,24 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const sp = (await searchParams) ?? {};
   const canonical = canonicalFromSearchParams({
-    pathname: "/",
+    pathname: "/catalogo",
     searchParams: sp,
-    keep: ["cat"],
+    keep: [],
   });
 
   return {
+    title: "Todas las prendas",
+    description: "Explora todo nuestro catálogo.",
     alternates: { canonical },
+    openGraph: {
+      title: "Todas las prendas",
+      description: "Explora todo nuestro catálogo.",
+    },
+    twitter: {
+      card: "summary",
+      title: "Todas las prendas",
+      description: "Explora todo nuestro catálogo.",
+    },
   };
 }
 
@@ -38,12 +50,20 @@ function toNumber(v: string | string[] | undefined, fallback = 1) {
   return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
 }
 
-export default async function HomePage({ searchParams }: { searchParams: SP }) {
+const makePageHref = (base: string, p: number) =>
+  p <= 1 ? base : `${base}?page=${p}`;
+
+export default async function CatalogoPage({
+  searchParams,
+}: {
+  searchParams: SP;
+}) {
   const sp = (await searchParams) ?? {};
   const page = Math.max(1, toNumber(sp.page, 1));
+
   const [items, total] = await Promise.all([
     prisma.product.findMany({
-      orderBy: [{ createdAt: "desc" }, { id: "desc" }], // nuevos primero
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: PER_PAGE,
       skip: (page - 1) * PER_PAGE,
       select: {
@@ -52,7 +72,7 @@ export default async function HomePage({ searchParams }: { searchParams: SP }) {
         priceCents: true,
         currency: true,
         images: {
-          orderBy: [{ sort: "asc" }, { id: "asc" }], // portada = sort 0
+          orderBy: [{ sort: "asc" }, { id: "asc" }],
           take: 1,
           select: { url: true },
         },
@@ -64,28 +84,15 @@ export default async function HomePage({ searchParams }: { searchParams: SP }) {
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
   const prevPage = Math.max(1, page - 1);
   const nextPage = Math.min(totalPages, page + 1);
-
-  const qsPrev = new URLSearchParams({ page: String(prevPage) });
-  const qsNext = new URLSearchParams({ page: String(nextPage) });
-
-  /*const qsPrev = new URLSearchParams(
-		cat
-			? { cat: String(cat), page: String(prevPage) }
-			: { page: String(prevPage) }
-	);
-	const qsNext = new URLSearchParams(
-		cat
-			? { cat: String(cat), page: String(nextPage) }
-			: { page: String(nextPage) }
-	);*/
+  const prevHref = makePageHref("/catalogo", prevPage);
+  const nextHref = makePageHref("/catalogo", nextPage);
 
   return (
     <section>
       <header className="flex justify-between w-full items-center border-b">
         <div>
-          <h1 className="text-xl font-semibold capitalize">Home</h1>
+          <h1 className="text-xl font-semibold">Todas las prendas</h1>
         </div>
-
         <div className="flex text-sm items-center gap-2 hover:cursor-pointer">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -167,12 +174,12 @@ export default async function HomePage({ searchParams }: { searchParams: SP }) {
           Página {page} de {totalPages}
         </p>
         <Button asChild variant="outline" disabled={page <= 1}>
-          <Link href={`/?${qsPrev.toString()}`} rel="prev">
+          <Link href={prevHref} rel="prev">
             Anterior
           </Link>
         </Button>
         <Button asChild disabled={page >= totalPages}>
-          <Link href={`/?${qsNext.toString()}`} rel="next">
+          <Link href={nextHref} rel="next">
             Siguiente
           </Link>
         </Button>

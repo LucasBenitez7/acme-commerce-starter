@@ -1,34 +1,52 @@
 import { Heart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/format";
-import { canonicalFromSearchParams } from "@/lib/seo";
 
 import type { Metadata } from "next";
 
 export const revalidate = 60;
-export type SP = Promise<Record<string, string | string[] | undefined>>;
+
+type Params = { slug: string };
+type SP = Promise<Record<string, string | string[] | undefined>>;
 const PER_PAGE = 12;
 
 export async function generateMetadata({
-  searchParams,
+  params,
 }: {
-  searchParams: SP;
+  params: Params;
 }): Promise<Metadata> {
-  const sp = (await searchParams) ?? {};
-  const canonical = canonicalFromSearchParams({
-    pathname: "/",
-    searchParams: sp,
-    keep: ["cat"],
+  const { slug } = params;
+  const cat = await prisma.category.findUnique({
+    where: { slug },
+    select: { name: true },
   });
 
+  if (!cat) {
+    return { title: "Categoría no encontrada" };
+  }
+
+  const title = cat.name;
+
   return {
-    alternates: { canonical },
+    title,
+    description: `Productos de ${title}.`,
+    alternates: { canonical: `/cat/${slug}` },
+    openGraph: {
+      title,
+      description: `Descubre ${title} en nuestra tienda.`,
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description: `Descubre ${title} en nuestra tienda.`,
+    },
   };
 }
 
@@ -38,12 +56,31 @@ function toNumber(v: string | string[] | undefined, fallback = 1) {
   return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
 }
 
-export default async function HomePage({ searchParams }: { searchParams: SP }) {
+const makePageHref = (base: string, p: number) =>
+  p <= 1 ? base : `${base}?page=${p}`;
+
+export default async function CategoryPage({
+  params,
+  searchParams,
+}: {
+  params: Params;
+  searchParams: SP;
+}) {
+  const { slug } = params;
   const sp = (await searchParams) ?? {};
   const page = Math.max(1, toNumber(sp.page, 1));
+
+  const cat = await prisma.category.findUnique({
+    where: { slug },
+    select: { id: true, name: true, slug: true },
+  });
+
+  if (!cat) notFound();
+
   const [items, total] = await Promise.all([
     prisma.product.findMany({
-      orderBy: [{ createdAt: "desc" }, { id: "desc" }], // nuevos primero
+      where: { categoryId: cat.id },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: PER_PAGE,
       skip: (page - 1) * PER_PAGE,
       select: {
@@ -52,40 +89,31 @@ export default async function HomePage({ searchParams }: { searchParams: SP }) {
         priceCents: true,
         currency: true,
         images: {
-          orderBy: [{ sort: "asc" }, { id: "asc" }], // portada = sort 0
+          orderBy: [{ sort: "asc" }, { id: "asc" }],
           take: 1,
           select: { url: true },
         },
       },
     }),
-    prisma.product.count(),
+    prisma.product.count({ where: { categoryId: cat.id } }),
   ]);
 
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
   const prevPage = Math.max(1, page - 1);
   const nextPage = Math.min(totalPages, page + 1);
 
-  const qsPrev = new URLSearchParams({ page: String(prevPage) });
-  const qsNext = new URLSearchParams({ page: String(nextPage) });
-
-  /*const qsPrev = new URLSearchParams(
-		cat
-			? { cat: String(cat), page: String(prevPage) }
-			: { page: String(prevPage) }
-	);
-	const qsNext = new URLSearchParams(
-		cat
-			? { cat: String(cat), page: String(nextPage) }
-			: { page: String(nextPage) }
-	);*/
+  const base = `/cat/${slug}`;
+  const prevHref = makePageHref(base, prevPage);
+  const nextHref = makePageHref(base, nextPage);
 
   return (
     <section>
       <header className="flex justify-between w-full items-center border-b">
         <div>
-          <h1 className="text-xl font-semibold capitalize">Home</h1>
+          <h1 className="text-xl font-semibold capitalize">
+            {String(cat.name)}
+          </h1>
         </div>
-
         <div className="flex text-sm items-center gap-2 hover:cursor-pointer">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -118,7 +146,6 @@ export default async function HomePage({ searchParams }: { searchParams: SP }) {
                   />
                 </Link>
               </div>
-
               <div className="flex flex-col text-sm border-b border-l border-r">
                 <CardHeader className="flex justify-between items-center px-2 py-2">
                   <CardTitle className="font-medium">
@@ -158,7 +185,6 @@ export default async function HomePage({ searchParams }: { searchParams: SP }) {
           );
         })}
       </div>
-
       <nav
         aria-label="Paginación"
         className="flex items-center justify-end gap-2"
@@ -167,12 +193,12 @@ export default async function HomePage({ searchParams }: { searchParams: SP }) {
           Página {page} de {totalPages}
         </p>
         <Button asChild variant="outline" disabled={page <= 1}>
-          <Link href={`/?${qsPrev.toString()}`} rel="prev">
+          <Link href={prevHref} rel="prev">
             Anterior
           </Link>
         </Button>
         <Button asChild disabled={page >= totalPages}>
-          <Link href={`/?${qsNext.toString()}`} rel="next">
+          <Link href={nextHref} rel="next">
             Siguiente
           </Link>
         </Button>

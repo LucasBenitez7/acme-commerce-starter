@@ -10,7 +10,7 @@ import Header from "../../components/layout/Header";
 const getCategories = unstable_cache(
   async () => {
     return prisma.category.findMany({
-      orderBy: { name: "asc" },
+      orderBy: { sort: "asc" },
       select: { slug: true, name: true },
     });
   },
