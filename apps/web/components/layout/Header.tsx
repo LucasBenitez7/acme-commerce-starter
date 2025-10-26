@@ -19,8 +19,6 @@ import SiteSidebar from "./SiteSidebar";
 
 export type Cat = { slug: string; label: string };
 
-// const verBox = "border-2 border-solid border-red-700";
-
 export default function Header({ categories }: { categories: Cat[] }) {
   const [open, setOpen] = useState(false);
 
@@ -37,16 +35,15 @@ export default function Header({ categories }: { categories: Cat[] }) {
   };
 
   return (
-    <header className="mx-auto w-full sm:px-6 lg:px-8 sticky top-0 border-b bg-white h-14 grid grid-cols-[1fr_auto_1fr] items-center">
+    <header className="mx-auto w-full px-6 sm:px-4 sticky top-0 border-b h-14 grid grid-cols-[1fr_auto_1fr] items-center bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/50">
       <div className="justify-self-start">
         <Sheet open={open} onOpenChange={setOpen}>
           {/* Abrir Menu */}
           <SheetTrigger asChild>
-            <Button
-              variant="ghost"
-              className="hover:cursor-pointer"
+            <span
               aria-label="Abrir menú"
               title="Abrir menú"
+              className="hover:cursor-pointer"
             >
               <Menu
                 strokeWidth={2.5}
@@ -55,7 +52,7 @@ export default function Header({ categories }: { categories: Cat[] }) {
 								focus:outline-none active:outline-none hover:cursor-pointer 
 								"
               />
-            </Button>
+            </span>
           </SheetTrigger>
 
           <SheetContent
@@ -66,12 +63,11 @@ export default function Header({ categories }: { categories: Cat[] }) {
             onEscapeKeyDown={() => setOpen(false)}
           >
             <div className="overflow-y-auto h-full focus:outline-none">
-              <SheetHdr className="flex flex-row justify-between h-14 items-center pl-5 pr-2 border-b border-b-neutral-300">
+              <SheetHdr className="flex flex-row justify-between h-14 items-center px-5  border-b">
                 <SheetTitle>Categorias</SheetTitle>
                 {/* Cerrar Menu */}
                 <SheetClose asChild>
-                  <Button
-                    variant="ghost"
+                  <span
                     className="hover:cursor-pointer"
                     aria-label="Cerrar menú"
                     title="Cerrar menú"
@@ -83,7 +79,7 @@ export default function Header({ categories }: { categories: Cat[] }) {
 											focus:outline-none active:outline-none hover:cursor-pointer 
 											"
                     />
-                  </Button>
+                  </span>
                 </SheetClose>
               </SheetHdr>
               <div>

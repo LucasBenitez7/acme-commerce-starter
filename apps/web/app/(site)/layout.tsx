@@ -22,7 +22,7 @@ export default async function SiteLayout({
   const categories = cats.map((c) => ({ slug: c.slug, label: c.name }));
 
   return (
-    <div className="flex min-h-dvh flex-col bg-background text-neutral-900">
+    <div className="flex min-h-dvh flex-col bg-background">
       <Header categories={categories} />
       <div className="flex-1">
         <Container className="py-6 lg:py-8">

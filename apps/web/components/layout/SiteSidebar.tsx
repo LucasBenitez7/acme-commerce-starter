@@ -13,7 +13,7 @@ export default function SiteSidebar({ categories }: { categories: Cat[] }) {
 
   return (
     <aside>
-      <div className="pl-7">
+      <div className="px-7">
         <ul className="mt-3 space-y-3 text-sm">
           {categories.map((c) => {
             const isActive = c.slug === activeCat;

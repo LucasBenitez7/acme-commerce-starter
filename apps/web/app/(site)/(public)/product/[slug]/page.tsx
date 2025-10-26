@@ -11,14 +11,16 @@ import type { Metadata } from "next";
 
 export const revalidate = 60;
 
-type Params = Promise<{ slug: string }>;
+// ✅ params es objeto plano
+type Params = { slug: string };
 
 export async function generateMetadata({
   params,
 }: {
   params: Params;
 }): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug } = params;
+
   const product = await prisma.product.findUnique({
     where: { slug },
     select: {
@@ -28,7 +30,9 @@ export async function generateMetadata({
     },
   });
 
-  if (!product) return { title: "Producto no encontrado" };
+  if (!product) {
+    return { title: "Producto no encontrado" };
+  }
 
   const title = product.name;
   const description =
@@ -40,6 +44,7 @@ export async function generateMetadata({
     description,
     alternates: { canonical: `/product/${slug}` },
     openGraph: {
+      // Next no admite "product" en type — lo movemos a `other`
       title,
       description,
       images: [{ url: og }],
@@ -57,7 +62,7 @@ export async function generateMetadata({
 }
 
 export default async function ProductPage({ params }: { params: Params }) {
-  const { slug } = await params;
+  const { slug } = params;
 
   const p = await prisma.product.findUnique({
     where: { slug },
@@ -163,4 +168,30 @@ export default async function ProductPage({ params }: { params: Params }) {
       />
     </section>
   );
+}
+
+/**
+ * Pre-generación de slugs con guardia de entorno:
+ * - Si no hay DATABASE_URL o apunta a localhost/127.0.0.1, devolvemos [] para no romper en Vercel.
+ */
+export async function generateStaticParams() {
+  const db = process.env.DATABASE_URL ?? "";
+  const isLocal = !db || db.includes("localhost") || db.includes("127.0.0.1");
+
+  if (isLocal) {
+    // En build remoto sin DB accesible: no pre-generar
+    return [];
+  }
+
+  try {
+    const rows = await prisma.product.findMany({
+      select: { slug: true },
+      take: 1000,
+      orderBy: { createdAt: "desc" },
+    });
+    return rows.map(({ slug }) => ({ slug }));
+  } catch {
+    // Si falla por cualquier razón en build, mejor no bloquear la build
+    return [];
+  }
 }

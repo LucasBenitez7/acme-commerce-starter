@@ -82,8 +82,6 @@ export default async function HomePage({ searchParams }: { searchParams: SP }) {
   });
 
   return (
-    // border-2 border-solid border-red-700
-
     <section>
       <header className="flex justify-between w-full items-center border-b">
         <div>
@@ -102,10 +100,12 @@ export default async function HomePage({ searchParams }: { searchParams: SP }) {
       <div className="grid gap-x-1 gap-y-15 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 my-6">
         {items.map((p) => (
           <div key={p.slug} className="overflow-hidden">
-            <div className="aspect-[4/5] bg-neutral-100" aria-hidden />
+            <div className="aspect-[3/4] bg-neutral-100" aria-hidden />
             <div className="flex flex-col text-sm border-b">
               <CardHeader className="flex justify-between items-center px-2 py-2">
-                <CardTitle className="font-medium">{p.name}</CardTitle>
+                <CardTitle className="font-medium">
+                  <Link href={`/product/${p.slug}`}>{p.name}</Link>
+                </CardTitle>
                 <Heart size={14} strokeWidth={2} />
               </CardHeader>
               <CardContent className="flex flex-col gap-2 px-2 pb-2">
