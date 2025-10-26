@@ -1,6 +1,5 @@
 // apps/web/app/layout.tsx
 import "./globals.css";
-
 import { fontMono, fontSans } from "./fonts";
 
 import type { Metadata, Viewport } from "next";
@@ -27,13 +26,20 @@ export const metadata: Metadata = {
     title: siteName,
     description,
     locale: "es_ES",
-    images: [{ url: "/og.jpg" }],
+    images: [
+      {
+        url: "/og/default.jpg",
+        width: 1200,
+        height: 630,
+        alt: `${siteName} — portada`,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: siteName,
     description,
-    images: ["/og.jpg"],
+    images: ["/og/default.jpg"],
   },
 };
 

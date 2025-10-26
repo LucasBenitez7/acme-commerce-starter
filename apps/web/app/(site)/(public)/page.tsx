@@ -1,4 +1,5 @@
 import { Heart } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { MdAddShoppingCart } from "react-icons/md";
 
@@ -6,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { prisma } from "@/lib/db";
+import { formatPrice } from "@/lib/format";
 import { canonicalFromSearchParams } from "@/lib/seo";
 
 import type { Metadata } from "next";
@@ -47,7 +49,7 @@ export default async function HomePage({ searchParams }: { searchParams: SP }) {
   const [items, total] = await Promise.all([
     prisma.product.findMany({
       where,
-      orderBy: { createdAt: "asc" },
+      orderBy: { createdAt: "desc" },
       take: PER_PAGE,
       skip: (page - 1) * PER_PAGE,
       select: {
@@ -55,6 +57,11 @@ export default async function HomePage({ searchParams }: { searchParams: SP }) {
         name: true,
         priceCents: true,
         currency: true,
+        images: {
+          orderBy: { sort: "desc" },
+          take: 1,
+          select: { url: true },
+        },
       },
     }),
     prisma.product.count({ where }),
@@ -75,12 +82,6 @@ export default async function HomePage({ searchParams }: { searchParams: SP }) {
       : { page: String(nextPage) },
   );
 
-  const fmt = new Intl.NumberFormat("es-ES", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 2,
-  });
-
   return (
     <section>
       <header className="flex justify-between w-full items-center border-b">
@@ -92,35 +93,47 @@ export default async function HomePage({ searchParams }: { searchParams: SP }) {
           )}
         </div>
 
-        <div className="justify-self-end text-sm items-center">
+        <div className="text-sm items-center">
           <p>Ordenar y Filtrar</p>
         </div>
       </header>
 
       <div className="grid gap-x-1 gap-y-15 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 my-6">
-        {items.map((p) => (
-          <div key={p.slug} className="overflow-hidden">
-            <div className="aspect-[3/4] bg-neutral-100" aria-hidden />
-            <div className="flex flex-col text-sm border-b">
-              <CardHeader className="flex justify-between items-center px-2 py-2">
-                <CardTitle className="font-medium">
-                  <Link href={`/product/${p.slug}`}>{p.name}</Link>
-                </CardTitle>
-                <Heart size={14} strokeWidth={2} />
-              </CardHeader>
-              <CardContent className="flex flex-col gap-2 px-2 pb-2">
-                <p className="text-sm text-neutral-500">
-                  {fmt.format(p.priceCents / 100)}
-                </p>
-                <p>c1 c2 c3</p>
-                <div className="flex justify-between items-center">
-                  <p>talla</p>
-                  <MdAddShoppingCart />
-                </div>
-              </CardContent>
+        {items.map((p) => {
+          const img = p.images[0]?.url ?? "/og/default-products.jpg";
+          return (
+            <div key={p.slug} className="overflow-hidden">
+              <div className="aspect-[3/4] relative bg-neutral-100">
+                <Image
+                  src={img}
+                  alt={p.name}
+                  fill
+                  sizes="(max-width: 1280px) 50vw, 25vw"
+                  className="object-cover"
+                />
+              </div>
+
+              <div className="flex flex-col text-sm border-b border-l border-r">
+                <CardHeader className="flex justify-between items-center px-2 py-2">
+                  <CardTitle className="font-medium">
+                    <Link href={`/product/${p.slug}`}>{p.name}</Link>
+                  </CardTitle>
+                  <Heart size={18} strokeWidth={2} />
+                </CardHeader>
+                <CardContent className="flex flex-col gap-2 px-2 pb-2">
+                  <p className="text-sm text-neutral-600">
+                    {formatPrice(p.priceCents, p.currency ?? "EUR")}
+                  </p>
+                  <p>c1 c2 c3 c4</p>
+                  <div className="flex justify-between items-center">
+                    <p className="capitalize">Talla</p>
+                    <MdAddShoppingCart size={20} />
+                  </div>
+                </CardContent>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <nav
@@ -131,12 +144,12 @@ export default async function HomePage({ searchParams }: { searchParams: SP }) {
           Página {page} de {totalPages}
         </p>
         <Button asChild variant="outline" disabled={page <= 1}>
-          <Link href={`/?${qsPrev.toString()}`} prefetch={false} rel="prev">
+          <Link href={`/?${qsPrev.toString()}`} rel="prev">
             Anterior
           </Link>
         </Button>
         <Button asChild disabled={page >= totalPages}>
-          <Link href={`/?${qsNext.toString()}`} prefetch={false} rel="next">
+          <Link href={`/?${qsNext.toString()}`} rel="next">
             Siguiente
           </Link>
         </Button>

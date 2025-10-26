@@ -3,9 +3,7 @@
 import { Menu, XIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { MdShoppingCart } from "react-icons/md";
 
-import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetClose,
@@ -35,7 +33,7 @@ export default function Header({ categories }: { categories: Cat[] }) {
   };
 
   return (
-    <header className="mx-auto w-full px-6 sm:px-4 sticky top-0 border-b h-14 grid grid-cols-[1fr_auto_1fr] items-center bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/50">
+    <header className="mx-auto w-full px-6 sm:px-8 z-50 sticky top-0 border-b h-14 grid grid-cols-[1fr_auto_1fr] items-center bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/50">
       <div className="justify-self-start">
         <Sheet open={open} onOpenChange={setOpen}>
           {/* Abrir Menu */}
@@ -97,21 +95,20 @@ export default function Header({ categories }: { categories: Cat[] }) {
         Logo + lsbstack • shop
       </Link>
 
-      <nav className="justify-self-end flex items-center gap-3 text-sm">
-        <Link href="/" className="hover:underline">
-          Buscar
-        </Link>
-        <div className="flex items-center gap-1">
-          <Link href="/cart" className="hover:underline">
-            Cesta (1)
-          </Link>
+      <nav className="justify-self-end flex items-center gap-5 text-sm">
+        <div className="flex items-center gap-1 hover:border-b border-neutral-500 py-1">
+          <Link href="/">Buscar</Link>
         </div>
-        <Link href="/account" className="hover:underline">
-          Cuenta
-        </Link>
-        <Link href="/admin" className="hover:underline">
-          Admin
-        </Link>
+
+        <div className="flex items-center gap-1 hover:border-b border-neutral-500 py-1">
+          <Link href="/account">Mi Cuenta</Link>
+        </div>
+        <div className="flex items-center gap-1 hover:border-b border-neutral-500 py-1">
+          <Link href="/cart">Cesta (1)</Link>
+        </div>
+        <div className="flex items-center gap-1 hover:border-b border-neutral-500 py-1">
+          <Link href="/admin">Admin</Link>
+        </div>
       </nav>
     </header>
   );

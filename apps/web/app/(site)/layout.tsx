@@ -1,3 +1,5 @@
+import { unstable_cache } from "next/cache";
+
 import { Container } from "@/components/ui/container";
 
 import { prisma } from "@/lib/db";
@@ -5,7 +7,16 @@ import { prisma } from "@/lib/db";
 import Footer from "../../components/layout/Footer";
 import Header from "../../components/layout/Header";
 
-export const revalidate = 60;
+const getCategories = unstable_cache(
+  async () => {
+    return prisma.category.findMany({
+      orderBy: { name: "asc" },
+      select: { slug: true, name: true },
+    });
+  },
+  ["header-categories"],
+  { revalidate: 60 },
+);
 
 import type { ReactNode } from "react";
 
@@ -14,11 +25,7 @@ export default async function SiteLayout({
 }: {
   children: ReactNode;
 }) {
-  const cats = await prisma.category.findMany({
-    orderBy: { name: "asc" },
-    select: { slug: true, name: true },
-  });
-
+  const cats = await getCategories();
   const categories = cats.map((c) => ({ slug: c.slug, label: c.name }));
 
   return (

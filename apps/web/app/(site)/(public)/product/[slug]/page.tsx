@@ -6,27 +6,27 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
 import { prisma } from "@/lib/db";
+import { formatPrice } from "@/lib/format";
 
 import type { Metadata } from "next";
 
 export const revalidate = 60;
 
-// ✅ params es objeto plano
-type Params = { slug: string };
+type Params = Promise<{ slug: string }>;
 
 export async function generateMetadata({
   params,
 }: {
   params: Params;
 }): Promise<Metadata> {
-  const { slug } = params;
+  const { slug } = await params;
 
   const product = await prisma.product.findUnique({
     where: { slug },
     select: {
       name: true,
       description: true,
-      images: { select: { url: true }, orderBy: { sort: "asc" } },
+      images: { select: { url: true }, orderBy: { sort: "desc" } },
     },
   });
 
@@ -37,17 +37,17 @@ export async function generateMetadata({
   const title = product.name;
   const description =
     product.description?.slice(0, 140) || "Detalle del producto";
-  const og = product.images[0]?.url ?? "/og.jpg";
+
+  const og = product.images[0]?.url ?? "/og/product-fallback.jpg";
 
   return {
     title,
     description,
     alternates: { canonical: `/product/${slug}` },
     openGraph: {
-      // Next no admite "product" en type — lo movemos a `other`
       title,
       description,
-      images: [{ url: og }],
+      images: [{ url: og, width: 1200, height: 630, alt: title }],
     },
     twitter: {
       card: "summary_large_image",
@@ -62,26 +62,28 @@ export async function generateMetadata({
 }
 
 export default async function ProductPage({ params }: { params: Params }) {
-  const { slug } = params;
+  const { slug } = await params;
 
   const p = await prisma.product.findUnique({
     where: { slug },
     include: {
-      images: { orderBy: { sort: "asc" } },
+      images: { orderBy: { sort: "desc" } },
       category: { select: { slug: true, name: true } },
     },
   });
 
   if (!p) notFound();
 
-  const fmt = new Intl.NumberFormat("es-ES", {
-    style: "currency",
-    currency: p.currency || "EUR",
-    maximumFractionDigits: 2,
-  });
-
-  const imgMain = p.images[0]?.url ?? "https://placehold.co/800x1000";
+  const imgMain = p.images[0]?.url ?? "/og/default-products.jpg";
   const thumbs = p.images.length > 0 ? p.images : [{ url: imgMain }];
+
+  const site = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const imageMainAbs =
+    p.images[0]?.url ?? new URL("/og/product-fallback.jpg", site).toString();
+  const imageListAbs = p.images.length
+    ? p.images.map((i) => i.url)
+    : [imageMainAbs];
+  const productUrlAbs = new URL(`/product/${p.slug}`, site).toString();
 
   return (
     <section className="space-y-6">
@@ -93,7 +95,6 @@ export default async function ProductPage({ params }: { params: Params }) {
       </nav>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Galería simple */}
         <div>
           <div className="aspect-[4/5] relative bg-neutral-100">
             <Image
@@ -125,7 +126,7 @@ export default async function ProductPage({ params }: { params: Params }) {
         <div className="space-y-4">
           <h1 className="text-2xl font-semibold">{p.name}</h1>
           <p className="text-lg text-neutral-800">
-            {fmt.format(p.priceCents / 100)}
+            {formatPrice(p.priceCents, p.currency ?? "EUR")}
           </p>
 
           <Separator />
@@ -154,7 +155,7 @@ export default async function ProductPage({ params }: { params: Params }) {
             "@type": "Product",
             name: p.name,
             description: p.description,
-            image: p.images.map((i) => i.url),
+            image: imageListAbs,
             category: p.category.name,
             offers: {
               "@type": "Offer",
@@ -162,7 +163,7 @@ export default async function ProductPage({ params }: { params: Params }) {
               priceCurrency: p.currency || "EUR",
               availability: "https://schema.org/InStock",
             },
-            url: `/product/${p.slug}`,
+            url: productUrlAbs,
           }),
         }}
       />
@@ -179,7 +180,6 @@ export async function generateStaticParams() {
   const isLocal = !db || db.includes("localhost") || db.includes("127.0.0.1");
 
   if (isLocal) {
-    // En build remoto sin DB accesible: no pre-generar
     return [];
   }
 
@@ -191,7 +191,6 @@ export async function generateStaticParams() {
     });
     return rows.map(({ slug }) => ({ slug }));
   } catch {
-    // Si falla por cualquier razón en build, mejor no bloquear la build
     return [];
   }
 }
