@@ -4,13 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "db:migrate": "dotenv -e .env.local -- prisma migrate dev",
     "db:deploy": "dotenv -e .env.local -- prisma migrate deploy",
-    "db:generate": "dotenv -e .env.local -- prisma generate",
+    "db:generate": "prisma generate",
     "db:studio": "dotenv -e .env.local -- prisma studio",
     "db:seed": "dotenv -e .env.local -- tsx prisma/seed.ts",
     "db:reset": "dotenv -e .env.local -- prisma migrate reset --force && dotenv -e .env.local -- tsx prisma/seed.ts"
