@@ -12,6 +12,15 @@ import { formatPrice } from "@/lib/format";
 import type { ParamsSlug, ProductListItem, SP } from "@/types/catalog";
 import type { Metadata } from "next";
 
+type ProductRow = {
+  id: string;
+  slug: string;
+  name: string;
+  priceCents: number;
+  currency: string | null;
+  images: { url: string }[];
+};
+
 export const revalidate = 60;
 
 const PER_PAGE = 12;
@@ -94,7 +103,7 @@ export default async function CategoryPage({
     prisma.product.count({ where: { categoryId: cat.id } }),
   ]);
 
-  const items = rows.map((r) => ({
+  const items = rows.map((r: ProductRow) => ({
     id: r.id,
     slug: r.slug,
     name: r.name,
@@ -126,7 +135,7 @@ export default async function CategoryPage({
       </header>
 
       <div className="grid gap-x-1 gap-y-15 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 my-6">
-        {items.map((p) => {
+        {items.map((p: ProductListItem) => {
           const img = p.thumbnail ?? "/og/default-products.jpg";
           return (
             <div key={p.slug} className="overflow-hidden">

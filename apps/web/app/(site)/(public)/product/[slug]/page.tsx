@@ -108,7 +108,7 @@ export default async function ProductPage({ params }: { params: ParamsSlug }) {
           </div>
 
           <div className="mt-3 grid grid-cols-4 gap-2">
-            {thumbs.map((img, i: number) => (
+            {thumbs.map((img: { url: string }, i: number) => (
               <div key={i} className="aspect-[4/5] relative bg-neutral-100">
                 <Image
                   src={img.url}
@@ -189,7 +189,7 @@ export async function generateStaticParams() {
       take: 1000,
       orderBy: { createdAt: "desc" },
     });
-    return rows.map(({ slug }) => ({ slug }));
+    return rows.map((r: { slug: string }) => ({ slug: r.slug }));
   } catch {
     return [];
   }

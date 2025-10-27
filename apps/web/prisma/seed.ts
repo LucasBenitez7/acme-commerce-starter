@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { type Prisma, PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -58,7 +58,7 @@ function makeProducts(): SeedProduct[] {
 async function main() {
   console.log("Seeding…");
 
-  await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     // 1) Upsert categorías con 'sort' según índice
     const cats: Record<string, string> = {};
     for (const [index, c] of CATEGORIES.entries()) {
@@ -71,7 +71,7 @@ async function main() {
     }
 
     // 1.1) Reasignar productos de categorías sintéticas (si existen) y luego borrarlas
-    const syntheticSlugs = ["ver-todos", "todas-las-prendas"];
+    const syntheticSlugs: string[] = ["ver-todos", "todas-las-prendas"];
     const synthetic = await tx.category.findMany({
       where: { slug: { in: syntheticSlugs } },
       select: { id: true },
@@ -97,7 +97,7 @@ async function main() {
     }
 
     // 2) Productos (upsert por slug). En update no tocamos imágenes.
-    const products = makeProducts();
+    const products: SeedProduct[] = makeProducts();
 
     for (const p of products) {
       const categoryId = cats[p.categorySlug];
@@ -118,11 +118,13 @@ async function main() {
           currency: "EUR",
           categoryId,
           images: {
-            create: p.images.map((img) => ({
-              url: img.url,
-              alt: img.alt,
-              sort: img.sort,
-            })),
+            create: p.images.map(
+              (img: { url: string; alt: string; sort: number }) => ({
+                url: img.url,
+                alt: img.alt,
+                sort: img.sort,
+              }),
+            ),
           },
         },
       });

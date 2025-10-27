@@ -26,10 +26,12 @@ export default async function SiteLayout({
   children: ReactNode;
 }) {
   const cats = await getCategories();
-  const categories: CategoryLink[] = cats.map((c) => ({
-    slug: c.slug,
-    label: c.name,
-  }));
+  const categories: CategoryLink[] = cats.map(
+    (c: { slug: string; name: string }) => ({
+      slug: c.slug,
+      label: c.name,
+    }),
+  );
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
