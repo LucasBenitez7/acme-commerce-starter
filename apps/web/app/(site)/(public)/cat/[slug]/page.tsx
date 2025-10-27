@@ -13,7 +13,7 @@ import type { Metadata } from "next";
 
 export const revalidate = 60;
 
-type Params = { slug: string };
+type Params = Promise<{ slug: string }>;
 type SP = Promise<Record<string, string | string[] | undefined>>;
 const PER_PAGE = 12;
 
@@ -22,7 +22,7 @@ export async function generateMetadata({
 }: {
   params: Params;
 }): Promise<Metadata> {
-  const { slug } = params;
+  const { slug } = await params;
   const cat = await prisma.category.findUnique({
     where: { slug },
     select: { name: true },
@@ -66,7 +66,7 @@ export default async function CategoryPage({
   params: Params;
   searchParams: SP;
 }) {
-  const { slug } = params;
+  const { slug } = await params;
   const sp = (await searchParams) ?? {};
   const page = Math.max(1, toNumber(sp.page, 1));
 
