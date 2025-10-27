@@ -1,11 +1,13 @@
 import { unstable_cache } from "next/cache";
 
+import Footer from "@/components/layout/Footer";
+import Header from "@/components/layout/Header";
 import { Container } from "@/components/ui/container";
 
 import { prisma } from "@/lib/db";
 
-import Footer from "../../components/layout/Footer";
-import Header from "../../components/layout/Header";
+import type { CategoryLink } from "@/types/catalog";
+import type { ReactNode } from "react";
 
 const getCategories = unstable_cache(
   async () => {
@@ -18,15 +20,16 @@ const getCategories = unstable_cache(
   { revalidate: 60 },
 );
 
-import type { ReactNode } from "react";
-
 export default async function SiteLayout({
   children,
 }: {
   children: ReactNode;
 }) {
   const cats = await getCategories();
-  const categories = cats.map((c) => ({ slug: c.slug, label: c.name }));
+  const categories: CategoryLink[] = cats.map((c) => ({
+    slug: c.slug,
+    label: c.name,
+  }));
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">

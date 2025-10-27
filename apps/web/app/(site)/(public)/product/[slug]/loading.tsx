@@ -11,7 +11,7 @@ export default function Loading() {
         <div>
           <Skeleton className="aspect-[4/5] w-full" />
           <div className="mt-3 grid grid-cols-4 gap-2">
-            {Array.from({ length: 4 }).map((_, i) => (
+            {Array.from({ length: 4 }).map((_, i: number) => (
               <Skeleton key={i} className="aspect-[4/5] w-full" />
             ))}
           </div>
@@ -21,7 +21,7 @@ export default function Loading() {
           <Skeleton className="h-7 w-56" />
           <Skeleton className="h-5 w-32" />
           <div className="space-y-2">
-            {Array.from({ length: 3 }).map((_, i) => (
+            {Array.from({ length: 3 }).map((_, i: number) => (
               <Skeleton key={i} className="h-4 w-full" />
             ))}
           </div>

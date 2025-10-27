@@ -8,10 +8,10 @@ import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/format";
 import { canonicalFromSearchParams } from "@/lib/seo";
 
+import type { ProductListItem, SP } from "@/types/catalog";
 import type { Metadata } from "next";
 
 export const revalidate = 60;
-export type SP = Promise<Record<string, string | string[] | undefined>>;
 const PER_PAGE = 12;
 
 export async function generateMetadata({
@@ -31,34 +31,28 @@ export async function generateMetadata({
   };
 }
 
-function toNumber(v: string | string[] | undefined, fallback = 1) {
-  if (!v) return fallback;
-  const n = Number(Array.isArray(v) ? v[0] : v);
-  return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
-}
+export default async function HomePage() {
+  const rows = await prisma.product.findMany({
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      priceCents: true,
+      currency: true,
+      images: { select: { url: true }, take: 1 },
+    },
+    orderBy: { createdAt: "desc" },
+    take: PER_PAGE,
+  });
 
-export default async function HomePage({ searchParams }: { searchParams: SP }) {
-  const sp = (await searchParams) ?? {};
-  const page = Math.max(1, toNumber(sp.page, 1));
-  const [items, total] = await Promise.all([
-    prisma.product.findMany({
-      orderBy: [{ createdAt: "desc" }, { id: "desc" }], // nuevos primero
-      take: PER_PAGE,
-      skip: (page - 1) * PER_PAGE,
-      select: {
-        slug: true,
-        name: true,
-        priceCents: true,
-        currency: true,
-        images: {
-          orderBy: [{ sort: "asc" }, { id: "asc" }], // portada = sort 0
-          take: 1,
-          select: { url: true },
-        },
-      },
-    }),
-    prisma.product.count(),
-  ]);
+  const items = rows.map((r) => ({
+    id: r.id,
+    slug: r.slug,
+    name: r.name,
+    priceCents: r.priceCents,
+    currency: r.currency ?? "EUR",
+    thumbnail: r.images[0]?.url ?? null,
+  })) satisfies ProductListItem[];
 
   return (
     <section>
@@ -84,7 +78,7 @@ export default async function HomePage({ searchParams }: { searchParams: SP }) {
 
       <div className="grid gap-x-1 gap-y-15 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 my-6">
         {items.map((p) => {
-          const img = p.images[0]?.url ?? "/og/default-products.jpg";
+          const img = p.thumbnail ?? "/og/default-products.jpg";
           return (
             <div key={p.slug} className="overflow-hidden">
               <div className="aspect-[3/4] relative bg-neutral-100">

@@ -8,16 +8,15 @@ import { Separator } from "@/components/ui/separator";
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/format";
 
+import type { ParamsSlug, ProductImage } from "@/types/catalog";
 import type { Metadata } from "next";
 
 export const revalidate = 60;
 
-type Params = Promise<{ slug: string }>;
-
 export async function generateMetadata({
   params,
 }: {
-  params: Params;
+  params: ParamsSlug;
 }): Promise<Metadata> {
   const { slug } = await params;
 
@@ -61,7 +60,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function ProductPage({ params }: { params: Params }) {
+export default async function ProductPage({ params }: { params: ParamsSlug }) {
   const { slug } = await params;
 
   const p = await prisma.product.findUnique({
@@ -75,12 +74,13 @@ export default async function ProductPage({ params }: { params: Params }) {
   if (!p) notFound();
 
   const imgMain = p.images[0]?.url ?? "/og/default-products.jpg";
-  const thumbs = p.images.length > 0 ? p.images : [{ url: imgMain }];
+  const thumbs: ProductImage[] =
+    p.images.length > 0 ? p.images : [{ url: imgMain }];
 
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
   const imageMainAbs =
     p.images[0]?.url ?? new URL("/og/product-fallback.jpg", site).toString();
-  const imageListAbs = p.images.length
+  const imageListAbs: string[] = p.images.length
     ? p.images.map((i) => i.url)
     : [imageMainAbs];
   const productUrlAbs = new URL(`/product/${p.slug}`, site).toString();
@@ -108,7 +108,7 @@ export default async function ProductPage({ params }: { params: Params }) {
           </div>
 
           <div className="mt-3 grid grid-cols-4 gap-2">
-            {thumbs.map((img, i) => (
+            {thumbs.map((img, i: number) => (
               <div key={i} className="aspect-[4/5] relative bg-neutral-100">
                 <Image
                   src={img.url}

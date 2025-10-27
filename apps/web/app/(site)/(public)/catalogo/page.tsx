@@ -9,11 +9,11 @@ import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/format";
 import { canonicalFromSearchParams } from "@/lib/seo";
 
+import type { ProductListItem, SP } from "@/types/catalog";
 import type { Metadata } from "next";
 
 export const revalidate = 60;
 
-type SP = Promise<Record<string, string | string[] | undefined>>;
 const PER_PAGE = 12;
 
 export async function generateMetadata({
@@ -61,12 +61,13 @@ export default async function CatalogoPage({
   const sp = (await searchParams) ?? {};
   const page = Math.max(1, toNumber(sp.page, 1));
 
-  const [items, total] = await Promise.all([
+  const [rows, total] = await Promise.all([
     prisma.product.findMany({
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: PER_PAGE,
       skip: (page - 1) * PER_PAGE,
       select: {
+        id: true,
         slug: true,
         name: true,
         priceCents: true,
@@ -81,9 +82,19 @@ export default async function CatalogoPage({
     prisma.product.count(),
   ]);
 
+  const items = rows.map((r) => ({
+    id: r.id,
+    slug: r.slug,
+    name: r.name,
+    priceCents: r.priceCents,
+    currency: r.currency ?? "EUR",
+    thumbnail: r.images[0]?.url ?? null,
+  })) satisfies ProductListItem[];
+
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
   const prevPage = Math.max(1, page - 1);
   const nextPage = Math.min(totalPages, page + 1);
+
   const prevHref = makePageHref("/catalogo", prevPage);
   const nextHref = makePageHref("/catalogo", nextPage);
 
@@ -94,24 +105,14 @@ export default async function CatalogoPage({
           <h1 className="text-xl font-semibold">Todas las prendas</h1>
         </div>
         <div className="flex text-sm items-center gap-2 hover:cursor-pointer">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="1em"
-            height="1em"
-            viewBox="0 0 16 16"
-          >
-            <path
-              fill="currentColor"
-              d="M6 1a3 3 0 0 0-2.83 2H0v2h3.17a3.001 3.001 0 0 0 5.66 0H16V3H8.83A3 3 0 0 0 6 1M5 4a1 1 0 1 1 2 0a1 1 0 0 1-2 0m5 5a3 3 0 0 0-2.83 2H0v2h7.17a3.001 3.001 0 0 0 5.66 0H16v-2h-3.17A3 3 0 0 0 10 9m-1 3a1 1 0 1 1 2 0a1 1 0 0 1-2 0"
-            />
-          </svg>
+          {/* … icon + label … */}
           <p>Ordenar y Filtrar</p>
         </div>
       </header>
 
       <div className="grid gap-x-1 gap-y-15 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 my-6">
         {items.map((p) => {
-          const img = p.images[0]?.url ?? "/og/default-products.jpg";
+          const img = p.thumbnail ?? "/og/default-products.jpg";
           return (
             <div key={p.slug} className="overflow-hidden">
               <div className="aspect-[3/4] relative bg-neutral-100">
@@ -135,30 +136,9 @@ export default async function CatalogoPage({
                 </CardHeader>
                 <CardContent className="flex flex-col gap-2 px-2 pb-2">
                   <p className="text-sm text-neutral-600">
-                    {formatPrice(p.priceCents, p.currency ?? "EUR")}
+                    {formatPrice(p.priceCents, p.currency)}
                   </p>
                   <p>c1 c2 c3 c4</p>
-                  <div className="flex justify-between items-center">
-                    <p className="capitalize">Talla</p>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="22px"
-                      height="22px"
-                      viewBox="0 0 24 24"
-                      className="hover:cursor-pointer"
-                    >
-                      <g
-                        fill="none"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                      >
-                        <path d="M12.5 21H8.574a3 3 0 0 1-2.965-2.544l-1.255-8.152A2 2 0 0 1 6.331 8H17.67a2 2 0 0 1 1.977 2.304l-.263 1.708M16 19h6m-3-3v6" />
-                        <path d="M9 11V6a3 3 0 0 1 6 0v5" />
-                      </g>
-                    </svg>
-                  </div>
                 </CardContent>
               </div>
             </div>
