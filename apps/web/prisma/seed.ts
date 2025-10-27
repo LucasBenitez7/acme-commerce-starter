@@ -13,10 +13,6 @@ const CATEGORIES = [
   { slug: "zapatillas", name: "Zapatillas" },
 ] as const;
 
-function euros(n: number) {
-  return Math.round(n * 100);
-}
-
 type SeedProduct = {
   slug: string;
   name: string;
@@ -25,6 +21,10 @@ type SeedProduct = {
   categorySlug: string;
   images: Array<{ url: string; alt: string; sort: number }>;
 };
+
+function euros(n: number) {
+  return Math.round(n * 100);
+}
 
 function makeProducts(): SeedProduct[] {
   const base: SeedProduct[] = [];

@@ -37,7 +37,7 @@ export default function SiteSidebar({ categories }: { categories: Cat[] }) {
             </Link>
           </li>
 
-          {categories.map((c) => {
+          {categories.map((c: Cat) => {
             const isActive = c.slug === activeCat;
             return (
               <li key={c.slug}>
