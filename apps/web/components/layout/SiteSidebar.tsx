@@ -5,27 +5,18 @@ import { useSearchParams } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 
-const CATEGORIES = [
-  { slug: "remeras", label: "Remeras" },
-  { slug: "pantalones", label: "Pantalones" },
-  { slug: "camperas", label: "Camperas" },
-  { slug: "zapatillas", label: "Zapatillas" },
-];
+export type Cat = { slug: string; label: string };
 
-export default function SiteSidebar() {
+export default function SiteSidebar({ categories }: { categories: Cat[] }) {
   const sp = useSearchParams();
   const activeCat = sp.get("cat") ?? "";
 
   return (
     <aside>
-      <div className="pl-8">
-        <h2 className="text-sm font-medium text-neutral-500 mt-2">
-          Categorías
-        </h2>
-        <ul className="mt-2 space-y-2 text-sm">
-          {CATEGORIES.map((c) => {
+      <div className="px-7">
+        <ul className="mt-3 space-y-3 text-sm">
+          {categories.map((c) => {
             const isActive = c.slug === activeCat;
-
             return (
               <li key={c.slug}>
                 {/* Importante: sin `page` → resetea a 1 */}
@@ -34,7 +25,7 @@ export default function SiteSidebar() {
                   prefetch={false}
                   aria-current={isActive ? "page" : undefined}
                   className={cn(
-                    "block rounded ml-2 px-2 py-1 hover:bg-neutral-100",
+                    "block rounded hover:bg-neutral-100",
                     isActive && "bg-neutral-200 font-medium",
                   )}
                 >

@@ -7,6 +7,7 @@
 /* Mapea tokens semánticos para Tailwind v4 */
 @theme inline {
   --color-background: var(--background);
+  --color-secu: var(--secu);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
@@ -44,6 +45,7 @@
   --radius-xl: calc(var(--radius) + 4px);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
+  --border: var(--ver-box);
 }
 
 /* Tus variables base (puedes mantener las que ya tenías) */
@@ -55,6 +57,7 @@
   --input: oklch(0.929 0.013 255.508);
   --ring: oklch(0.704 0.04 256.788);
   --background: oklch(1 0 0);
+  --secu: oklch(53.824% 0.00006 271.152);
   --foreground: oklch(0.129 0.042 264.695);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.129 0.042 264.695);
@@ -80,6 +83,7 @@
   --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
   --sidebar-border: oklch(0.929 0.013 255.508);
   --sidebar-ring: oklch(0.704 0.04 256.788);
+  --ver-box: border-solid border-2 border-red-700;
 }
 
 .dark {
