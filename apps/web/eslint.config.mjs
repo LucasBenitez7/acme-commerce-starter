@@ -1,6 +1,7 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextPlugin from "@next/eslint-plugin-next";
 import tsParser from "@typescript-eslint/parser";
+import tsPlugin from "@typescript-eslint/eslint-plugin";
 import importPlugin from "eslint-plugin-import";
 import prettier from "eslint-config-prettier/flat";
 
@@ -19,7 +20,10 @@ export default defineConfig([
         ecmaFeatures: { jsx: true },
       },
     },
-    plugins: { import: importPlugin },
+    plugins: {
+      import: importPlugin,
+      "@typescript-eslint": tsPlugin,
+    },
     rules: {
       "import/order": [
         "error",
@@ -43,12 +47,18 @@ export default defineConfig([
               position: "before",
             },
             { pattern: "@/lib/**", group: "internal", position: "before" },
+            { pattern: "@/**", group: "internal", position: "before" },
           ],
-          pathGroupsExcludedImportTypes: ["builtin"],
+          pathGroupsExcludedImportTypes: ["builtin", "type"],
         },
       ],
       "import/no-duplicates": "error",
       "import/newline-after-import": ["error", { count: 1 }],
+
+      "@typescript-eslint/consistent-type-imports": [
+        "error",
+        { prefer: "type-imports", fixStyle: "separate-type-imports" },
+      ],
     },
   },
 
