@@ -72,7 +72,7 @@ async function main() {
 
     // 1.1) Reasignar productos de categorías sintéticas (si existen) y luego borrarlas
     const syntheticSlugs: string[] = ["ver-todos", "todas-las-prendas"];
-    const synthetic = await tx.category.findMany({
+    const synthetic: Array<{ id: string }> = await tx.category.findMany({
       where: { slug: { in: syntheticSlugs } },
       select: { id: true },
     });

@@ -78,11 +78,9 @@ export default async function ProductPage({ params }: { params: ParamsSlug }) {
     p.images.length > 0 ? p.images : [{ url: imgMain }];
 
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  const imageMainAbs =
-    p.images[0]?.url ?? new URL("/og/product-fallback.jpg", site).toString();
-  const imageListAbs: string[] = p.images.length
-    ? p.images.map((i) => i.url)
-    : [imageMainAbs];
+  const imageListAbs = thumbs.map((img) =>
+    img.url.startsWith("http") ? img.url : new URL(img.url, site).toString(),
+  );
   const productUrlAbs = new URL(`/product/${p.slug}`, site).toString();
 
   return (
