@@ -1,9 +1,7 @@
 import { Heart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { MdAddShoppingCart } from "react-icons/md";
 
-import { Button } from "@/components/ui/button";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { prisma } from "@/lib/db";
