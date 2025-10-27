@@ -89,7 +89,7 @@ export default async function ProductPage({ params }: { params: Params }) {
     <section className="space-y-6">
       <nav className="text-sm text-neutral-500">
         <Link href="/">Inicio</Link> <span aria-hidden>›</span>{" "}
-        <Link href={`/?cat=${p.category.slug}`}>{p.category.name}</Link>{" "}
+        <Link href={`/cat/${p.category.slug}`}>{p.category.name}</Link>{" "}
         <span aria-hidden>›</span>{" "}
         <span className="text-neutral-800">{p.name}</span>
       </nav>
