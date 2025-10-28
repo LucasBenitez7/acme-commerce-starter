@@ -11,9 +11,6 @@
     "format": "prettier --write .",
     "prepare": "husky"
   },
-  "prisma": {
-    "schema": "apps/web/prisma/schema.prisma"
-  },
   "lint-staged": {
     "apps/web/**/*.{ts,tsx,js,jsx}": [
       "pnpm -C apps/web exec eslint --fix --max-warnings=0 --no-warn-ignored",
