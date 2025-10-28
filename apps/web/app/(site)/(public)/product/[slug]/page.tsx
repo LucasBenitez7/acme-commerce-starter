@@ -8,16 +8,18 @@ import { Separator } from "@/components/ui/separator";
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/format";
 
+import type { ParamsSlug, ProductImage } from "@/types/catalog";
 import type { Metadata } from "next";
 
-export const revalidate = 60;
-
-type Params = Promise<{ slug: string }>;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
+export const runtime = "nodejs";
 
 export async function generateMetadata({
   params,
 }: {
-  params: Params;
+  params: ParamsSlug;
 }): Promise<Metadata> {
   const { slug } = await params;
 
@@ -61,7 +63,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function ProductPage({ params }: { params: Params }) {
+export default async function ProductPage({ params }: { params: ParamsSlug }) {
   const { slug } = await params;
 
   const p = await prisma.product.findUnique({
@@ -75,21 +77,20 @@ export default async function ProductPage({ params }: { params: Params }) {
   if (!p) notFound();
 
   const imgMain = p.images[0]?.url ?? "/og/default-products.jpg";
-  const thumbs = p.images.length > 0 ? p.images : [{ url: imgMain }];
+  const thumbs: ProductImage[] =
+    p.images.length > 0 ? p.images : [{ url: imgMain }];
 
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  const imageMainAbs =
-    p.images[0]?.url ?? new URL("/og/product-fallback.jpg", site).toString();
-  const imageListAbs = p.images.length
-    ? p.images.map((i) => i.url)
-    : [imageMainAbs];
+  const imageListAbs = thumbs.map((img) =>
+    img.url.startsWith("http") ? img.url : new URL(img.url, site).toString(),
+  );
   const productUrlAbs = new URL(`/product/${p.slug}`, site).toString();
 
   return (
     <section className="space-y-6">
       <nav className="text-sm text-neutral-500">
         <Link href="/">Inicio</Link> <span aria-hidden>›</span>{" "}
-        <Link href={`/?cat=${p.category.slug}`}>{p.category.name}</Link>{" "}
+        <Link href={`/cat/${p.category.slug}`}>{p.category.name}</Link>{" "}
         <span aria-hidden>›</span>{" "}
         <span className="text-neutral-800">{p.name}</span>
       </nav>
@@ -108,7 +109,7 @@ export default async function ProductPage({ params }: { params: Params }) {
           </div>
 
           <div className="mt-3 grid grid-cols-4 gap-2">
-            {thumbs.map((img, i) => (
+            {thumbs.map((img: { url: string }, i: number) => (
               <div key={i} className="aspect-[4/5] relative bg-neutral-100">
                 <Image
                   src={img.url}
@@ -189,7 +190,7 @@ export async function generateStaticParams() {
       take: 1000,
       orderBy: { createdAt: "desc" },
     });
-    return rows.map(({ slug }) => ({ slug }));
+    return rows.map((r: { slug: string }) => ({ slug: r.slug }));
   } catch {
     return [];
   }

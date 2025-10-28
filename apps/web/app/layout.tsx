@@ -1,4 +1,3 @@
-// apps/web/app/layout.tsx
 import "./globals.css";
 import { fontMono, fontSans } from "./fonts";
 

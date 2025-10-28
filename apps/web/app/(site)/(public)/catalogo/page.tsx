@@ -2,6 +2,7 @@ import { Heart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
+import { Button } from "@/components/ui/button";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { prisma } from "@/lib/db";
@@ -34,29 +35,64 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const sp = (await searchParams) ?? {};
   const canonical = canonicalFromSearchParams({
-    pathname: "/",
+    pathname: "/catalogo",
     searchParams: sp,
-    keep: ["cat"],
+    keep: [],
   });
 
   return {
+    title: "Todas las prendas",
+    description: "Explora todo nuestro catálogo.",
     alternates: { canonical },
+    openGraph: {
+      title: "Todas las prendas",
+      description: "Explora todo nuestro catálogo.",
+    },
+    twitter: {
+      card: "summary",
+      title: "Todas las prendas",
+      description: "Explora todo nuestro catálogo.",
+    },
   };
 }
 
-export default async function HomePage() {
-  const rows = await prisma.product.findMany({
-    select: {
-      id: true,
-      slug: true,
-      name: true,
-      priceCents: true,
-      currency: true,
-      images: { select: { url: true }, take: 1 },
-    },
-    orderBy: { createdAt: "desc" },
-    take: PER_PAGE,
-  });
+function toNumber(v: string | string[] | undefined, fallback = 1) {
+  if (!v) return fallback;
+  const n = Number(Array.isArray(v) ? v[0] : v);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
+}
+
+const makePageHref = (base: string, p: number) =>
+  p <= 1 ? base : `${base}?page=${p}`;
+
+export default async function CatalogoPage({
+  searchParams,
+}: {
+  searchParams: SP;
+}) {
+  const sp = (await searchParams) ?? {};
+  const page = Math.max(1, toNumber(sp.page, 1));
+
+  const [rows, total] = await Promise.all([
+    prisma.product.findMany({
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: PER_PAGE,
+      skip: (page - 1) * PER_PAGE,
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        priceCents: true,
+        currency: true,
+        images: {
+          orderBy: [{ sort: "asc" }, { id: "asc" }],
+          take: 1,
+          select: { url: true },
+        },
+      },
+    }),
+    prisma.product.count(),
+  ]);
 
   const items = rows.map((r: ProductRow) => ({
     id: r.id,
@@ -67,24 +103,21 @@ export default async function HomePage() {
     thumbnail: r.images[0]?.url ?? null,
   })) satisfies ProductListItem[];
 
+  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+  const prevPage = Math.max(1, page - 1);
+  const nextPage = Math.min(totalPages, page + 1);
+
+  const prevHref = makePageHref("/catalogo", prevPage);
+  const nextHref = makePageHref("/catalogo", nextPage);
+
   return (
     <section>
       <header className="flex justify-between w-full items-center border-b">
         <div>
-          <h1 className="text-xl font-semibold capitalize">Home</h1>
+          <h1 className="text-xl font-semibold">Todas las prendas</h1>
         </div>
         <div className="flex text-sm items-center gap-2 hover:cursor-pointer">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="1em"
-            height="1em"
-            viewBox="0 0 16 16"
-          >
-            <path
-              fill="currentColor"
-              d="M6 1a3 3 0 0 0-2.83 2H0v2h3.17a3.001 3.001 0 0 0 5.66 0H16V3H8.83A3 3 0 0 0 6 1M5 4a1 1 0 1 1 2 0a1 1 0 0 1-2 0m5 5a3 3 0 0 0-2.83 2H0v2h7.17a3.001 3.001 0 0 0 5.66 0H16v-2h-3.17A3 3 0 0 0 10 9m-1 3a1 1 0 1 1 2 0a1 1 0 0 1-2 0"
-            />
-          </svg>
+          {/* … icon + label … */}
           <p>Ordenar y Filtrar</p>
         </div>
       </header>
@@ -115,36 +148,34 @@ export default async function HomePage() {
                 </CardHeader>
                 <CardContent className="flex flex-col gap-2 px-2 pb-2">
                   <p className="text-sm text-neutral-600">
-                    {formatPrice(p.priceCents, p.currency ?? "EUR")}
+                    {formatPrice(p.priceCents, p.currency)}
                   </p>
                   <p>c1 c2 c3 c4</p>
-                  <div className="flex justify-between items-center">
-                    <p className="capitalize">Talla</p>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="22px"
-                      height="22px"
-                      viewBox="0 0 24 24"
-                      className="hover:cursor-pointer"
-                    >
-                      <g
-                        fill="none"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                      >
-                        <path d="M12.5 21H8.574a3 3 0 0 1-2.965-2.544l-1.255-8.152A2 2 0 0 1 6.331 8H17.67a2 2 0 0 1 1.977 2.304l-.263 1.708M16 19h6m-3-3v6" />
-                        <path d="M9 11V6a3 3 0 0 1 6 0v5" />
-                      </g>
-                    </svg>
-                  </div>
                 </CardContent>
               </div>
             </div>
           );
         })}
       </div>
+
+      <nav
+        aria-label="Paginación"
+        className="flex items-center justify-end gap-2"
+      >
+        <p className="text-sm text-neutral-500">
+          Página {page} de {totalPages}
+        </p>
+        <Button asChild variant="outline" disabled={page <= 1}>
+          <Link href={prevHref} rel="prev">
+            Anterior
+          </Link>
+        </Button>
+        <Button asChild disabled={page >= totalPages}>
+          <Link href={nextHref} rel="next">
+            Siguiente
+          </Link>
+        </Button>
+      </nav>
     </section>
   );
 }

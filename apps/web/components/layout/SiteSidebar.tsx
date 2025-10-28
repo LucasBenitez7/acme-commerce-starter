@@ -1,31 +1,53 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 
-export type Cat = { slug: string; label: string };
+type Cat = { slug: string; label: string };
 
 export default function SiteSidebar({ categories }: { categories: Cat[] }) {
   const sp = useSearchParams();
-  const activeCat = sp.get("cat") ?? "";
+  const pathname = usePathname();
+
+  const fromPath = pathname?.startsWith("/cat/")
+    ? (pathname.split("/")[2] ?? "")
+    : "";
+  const fromQuery = sp.get("cat") ?? "";
+  const activeCat = fromPath || fromQuery || "";
+  const isAllActive = pathname === "/catalogo";
 
   return (
     <aside>
-      <div className="px-7">
+      <div className="pl-7">
         <ul className="mt-3 space-y-3 text-sm">
-          {categories.map((c) => {
+          {/* Enlace sintético arriba de todo */}
+          <li key="all">
+            <Link
+              href="/catalogo"
+              prefetch={false}
+              aria-current={isAllActive ? "page" : undefined}
+              className={cn(
+                "block rounded px-2 py-1 hover:bg-neutral-100",
+                isAllActive && "bg-neutral-200 font-medium",
+              )}
+            >
+              Todas las prendas
+            </Link>
+          </li>
+
+          {categories.map((c: Cat) => {
             const isActive = c.slug === activeCat;
             return (
               <li key={c.slug}>
-                {/* Importante: sin `page` → resetea a 1 */}
+                {/* Canonical de categoría */}
                 <Link
-                  href={`/?cat=${c.slug}`}
+                  href={`/cat/${c.slug}`}
                   prefetch={false}
                   aria-current={isActive ? "page" : undefined}
                   className={cn(
-                    "block rounded hover:bg-neutral-100",
+                    "block rounded px-2 py-1 hover:bg-neutral-100",
                     isActive && "bg-neutral-200 font-medium",
                   )}
                 >
@@ -36,7 +58,6 @@ export default function SiteSidebar({ categories }: { categories: Cat[] }) {
           })}
         </ul>
       </div>
-      {/* más secciones (tallas, precio, etc.) cuando quieras */}
     </aside>
   );
 }

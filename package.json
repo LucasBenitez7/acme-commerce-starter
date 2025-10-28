@@ -27,7 +27,8 @@
       "unrs-resolver",
       "@prisma/client",
       "prisma",
-      "@prisma/engines"
+      "@prisma/engines",
+      "esbuild"
     ]
   },
   "keywords": [],
