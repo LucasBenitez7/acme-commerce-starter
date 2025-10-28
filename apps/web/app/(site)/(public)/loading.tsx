@@ -18,7 +18,7 @@ export default function LoadingPublic() {
       <Separator />
 
       <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
-        {Array.from({ length: 8 }).map((_, i) => (
+        {Array.from({ length: 8 }).map((_, i: number) => (
           <div key={i} className="overflow-hidden rounded-lg border">
             <Skeleton className="aspect-[4/5] w-full" />
             <div className="p-4 space-y-2">

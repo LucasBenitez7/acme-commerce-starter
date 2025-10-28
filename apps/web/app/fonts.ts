@@ -1,4 +1,3 @@
-// apps/web/app/fonts.ts
 import { Geist, Geist_Mono } from "next/font/google";
 
 export const fontSans = Geist({

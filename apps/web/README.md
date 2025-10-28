@@ -1,36 +1,222 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# acme-commerce-starter
 
-## Getting Started
+Monorepo de e‑commerce (Next.js 15 + Tailwind v4 + Prisma + PostgreSQL) con PNPM + Turborepo, CI en GitHub Actions y despliegue en Vercel.
 
-First, run the development server:
+> **Stack principal**: Next.js (App Router), TypeScript, Tailwind CSS v4, Prisma ORM, PostgreSQL, Redis, Meilisearch, PNPM Workspaces, Turborepo, ESLint (flat), Prettier, Husky + lint‑staged.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## 🚀 Características
+
+- **Monorepo PNPM + Turborepo**: apps y paquetes escalables (`apps/web`, `packages/*`).
+- **Next.js 15 (App Router)** con React 19.
+- **Tailwind v4** + utilidades de UI.
+- **Prisma ORM** con **PostgreSQL** (Docker Compose) y migraciones versionadas.
+- **Redis** y **Meilisearch** listos en `docker-compose.yml`.
+- **Calidad de código**: ESLint (flat), Prettier, Husky + lint‑staged (pre‑commit).
+- **CI**: flujo de checks en GitHub Actions.
+- **Vercel**: producción en `main` y previsualizaciones en `development` (ajustable).
+
+---
+
+## 📦 Requisitos
+
+- **Node.js 22.x**
+- **PNPM 10.x**
+- **Docker Desktop** + **Docker Compose**
+- **Git**
+
+---
+
+## 📁 Estructura
+
+```
+.
+├─ apps/
+│  └─ web/
+│     ├─ app/
+│     ├─ components/
+│     ├─ lib/
+│     ├─ prisma/
+│     │  ├─ migrations/
+│     │  ├─ schema.prisma
+│     │  └─ .env          # (local, NO se comitea)
+│     ├─ public/
+│     ├─ eslint.config.mjs
+│     ├─ next.config.ts
+│     ├─ package.json
+│     └─ tsconfig.json
+├─ packages/               # (futuro @acme/*)
+├─ .github/workflows/ci.yml
+├─ docker-compose.yml
+├─ pnpm-workspace.yaml
+├─ tsconfig.base.json
+└─ package.json
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## ⚙️ Configuración de entorno
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 1) Variables de entorno (local)
 
-## Learn More
+**Fuente de verdad local**: `apps/web/.env.local`
+**Plantilla**: `apps/web/.env.example`
 
-To learn more about Next.js, take a look at the following resources:
+Ejemplo mínimo:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```ini
+# apps/web/.env.local
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+APP_ENV=development
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# DB (coincide con docker-compose: 5433)
+DATABASE_URL=postgresql://postgres:postgres@localhost:5433/lsbstack
 
-## Deploy on Vercel
+# Redis / Meili (opcionales)
+REDIS_URL=redis://localhost:6379
+MEILI_HOST=http://localhost:7700
+MEILI_MASTER_KEY=meili_master_key
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# Opcional
+NEXT_PUBLIC_ADMIN_URL=http://localhost:3000/admin
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+> **Producción/CI**: variables definidas en el proveedor (Vercel/GitHub Actions). **No** se suben `.env` al repo.
+
+### 2) Servicios de desarrollo
+
+Arranca Postgres (y opcionalmente Redis/Meili):
+
+```bash
+# solo DB
+docker compose up -d db
+# o todo
+docker compose up -d
+```
+
+Comprueba estado:
+
+```bash
+docker compose ps
+```
+
+---
+
+## 🗄️ Prisma + Base de datos
+
+Usamos `dotenv-cli` para que Prisma cargue **.env.local**. Scripts disponibles en `apps/web/package.json`:
+
+```jsonc
+{
+  "scripts": {
+    "db:migrate": "dotenv -e .env.local -- prisma migrate dev",
+    "db:deploy": "dotenv -e .env.local -- prisma migrate deploy",
+    "db:generate": "dotenv -e .env.local -- prisma generate",
+    "db:studio": "dotenv -e .env.local -- prisma studio",
+    "db:reset": "dotenv -e .env.local -- prisma migrate reset",
+  },
+}
+```
+
+Comandos típicos:
+
+```bash
+# aplicar cambios del schema en dev
+pnpm -C apps/web run db:migrate --name <nombre>
+
+# ver tablas y datos
+pnpm -C apps/web run db:studio
+
+# regenerar cliente tras cambios de schema
+pnpm -C apps/web run db:generate
+
+# reset de DB (cuidado: borra datos)
+pnpm -C apps/web run db:reset
+```
+
+> Las migraciones se versionan en `apps/web/prisma/migrations/` y **sí** se comitean.
+
+---
+
+## ▶️ Ejecutar en local
+
+Desde la raíz del repo:
+
+```bash
+# instalar dependencias del monorepo
+pnpm install
+
+# levantar servicios (DB al menos)
+docker compose up -d db
+
+# dev solo para web
+pnpm dev --filter web
+# o todo (si hubiera más apps)
+pnpm dev
+```
+
+Abrir: [http://localhost:3000](http://localhost:3000)
+
+---
+
+## 🧹 Calidad de código
+
+- **Lint** (root): `pnpm -w lint`
+- **Typecheck** (root): `pnpm -w typecheck`
+- **Prettier** (root): `pnpm format`
+
+### Husky + lint‑staged
+
+Hook recomendado en `.husky/pre-commit`:
+
+```sh
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+pnpm exec lint-staged
+```
+
+`lint-staged` está configurado en `package.json` (raíz) para ejecutar ESLint/Prettier solo sobre archivos staged.
+
+---
+
+## 🤖 CI/CD
+
+- **GitHub Actions**: workflow `ci.yml` ejecuta checks en PRs y pushes.
+- **Vercel**: producción en `main` y previsualizaciones (preview) configurables (p. ej. `development`).
+
+---
+
+## 🔧 Troubleshooting
+
+- **`Could not resolve @prisma/client`**: instala y genera **en el paquete que contiene el schema**:
+
+  ```bash
+  pnpm -C apps/web add @prisma/client prisma -D
+  pnpm -C apps/web exec prisma generate
+  ```
+
+- **`P1012 Environment variable not found: DATABASE_URL`**: asegúrate de tener `apps/web/.env.local` y usa scripts con `dotenv-cli` (o crea `apps/web/prisma/.env` local).
+- **VS Code: SchemaStore `ECONNRESET`**: añade `$schema` en `tsconfig.json` y `tsconfig.base.json`:
+
+  ```json
+  { "$schema": "https://json.schemastore.org/tsconfig", ... }
+  ```
+
+---
+
+## 🗺️ Roadmap corto
+
+- [ ] Autenticación (login/registro) y roles (admin/usuario).
+- [ ] Rutas protegidas + panel admin.
+- [ ] Favoritos, pedidos/ordenes del usuario.
+- [ ] Seed inicial (categorías/productos demo).
+- [ ] Búsqueda con Meilisearch.
+- [ ] Integración pagos / impuestos por región.
+
+---
+
+## 📜 Licencia
+
+ISC © Lucas

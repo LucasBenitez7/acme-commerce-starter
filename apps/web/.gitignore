@@ -3,6 +3,5 @@
 out
 dist
 .vercel
-next-env.d.ts
 *.tsbuildinfo
 /generated/prisma
