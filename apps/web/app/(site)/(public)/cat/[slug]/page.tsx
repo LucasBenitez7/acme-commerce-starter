@@ -12,6 +12,11 @@ import { formatPrice } from "@/lib/format";
 import type { ParamsSlug, ProductListItem, SP } from "@/types/catalog";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
+export const runtime = "nodejs";
+
 type ProductRow = {
   id: string;
   slug: string;
@@ -20,8 +25,6 @@ type ProductRow = {
   currency: string | null;
   images: { url: string }[];
 };
-
-export const revalidate = 60;
 
 const PER_PAGE = 12;
 

@@ -11,7 +11,10 @@ import { formatPrice } from "@/lib/format";
 import type { ParamsSlug, ProductImage } from "@/types/catalog";
 import type { Metadata } from "next";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
+export const runtime = "nodejs";
 
 export async function generateMetadata({
   params,
