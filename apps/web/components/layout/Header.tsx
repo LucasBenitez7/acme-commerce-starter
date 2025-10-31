@@ -1,8 +1,10 @@
 "use client";
 
-import { Heart, Search, UserRound, XIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { FaSearch } from "react-icons/fa";
+import { FaUser, FaHeart, FaBagShopping } from "react-icons/fa6";
+import { RiMenu2Line, RiCloseLine } from "react-icons/ri";
 
 import {
   Sheet,
@@ -38,23 +40,17 @@ export default function Header({ categories }: { categories: Cat[] }) {
         <Sheet open={open} onOpenChange={setOpen}>
           {/* Abrir Menu */}
           <SheetTrigger asChild>
-            <span
+            <RiMenu2Line
               aria-label="Abrir menú"
               title="Abrir menú"
-              className="hover:cursor-pointer"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="22px"
-                height="22px"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  fill="currentColor"
-                  d="M3 4h18v2H3zm0 7h12v2H3zm0 7h18v2H3z"
-                />
-              </svg>
-            </span>
+              className="
+                size-[20px]
+                focus:outline-none 
+                active:outline-none 
+                hover:cursor-pointer 
+                stroke-1
+              "
+            />
           </SheetTrigger>
 
           <SheetContent
@@ -65,23 +61,21 @@ export default function Header({ categories }: { categories: Cat[] }) {
             onEscapeKeyDown={() => setOpen(false)}
           >
             <div className="overflow-y-auto h-full focus:outline-none">
-              <SheetHdr className="flex flex-row justify-between h-14 items-center px-5  border-b">
+              <SheetHdr className="flex flex-row justify-between h-16 items-center px-5  border-b">
                 <SheetTitle>Categorias</SheetTitle>
                 {/* Cerrar Menu */}
                 <SheetClose asChild>
-                  <span
-                    className="hover:cursor-pointer"
+                  <RiCloseLine
                     aria-label="Cerrar menú"
                     title="Cerrar menú"
-                  >
-                    <XIcon
-                      strokeWidth={2.5}
-                      className="
-											size-[18px]
-											focus:outline-none active:outline-none hover:cursor-pointer 
-											"
-                    />
-                  </span>
+                    className="
+											size-[20px]
+											focus:outline-none 
+                      active:outline-none 
+                      hover:cursor-pointer 
+                      stroke-1
+										"
+                  />
                 </SheetClose>
               </SheetHdr>
               <div>
@@ -99,24 +93,20 @@ export default function Header({ categories }: { categories: Cat[] }) {
         Logo + lsbstack • shop
       </Link>
 
-      <nav className="justify-self-end flex items-center gap-1 text-base">
+      <nav className="justify-self-end flex items-center gap-2 text-base">
         <div className="flex items-center gap-1 border-b border-neutral-500">
-          <Search
-            className=" 
-							size-[22px]
-						"
-          />
+          <FaSearch className="size-[18px]" />
           <input
             type="search"
             placeholder="Buscar"
-            className="hover:outline-none active:outline-none focus:outline-none px-1"
+            className="hover:outline-none active:outline-none focus:outline-none px-1 max-lg:w-[100px] w-[200px]"
           />
         </div>
         <div className="flex items-center p-1 ml-2">
           <Link href="/account">
-            <UserRound
+            <FaUser
               className=" 
-								size-[22px]
+								size-[20px]
 								focus:outline-none active:outline-none hover:cursor-pointer 
 							"
             />
@@ -124,28 +114,21 @@ export default function Header({ categories }: { categories: Cat[] }) {
         </div>
         <div className="flex items-center p-1">
           <Link href="/favoritos">
-            <Heart size={20} strokeWidth={2} />
+            <FaHeart
+              className=" 
+								size-[20px]
+							"
+            />
           </Link>
         </div>
         <div className="flex items-center p-1">
           <Link href="/cart">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="22px"
-              height="22px"
-              viewBox="0 0 24 24"
-            >
-              <g
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-              >
-                <path d="M6.331 8H17.67a2 2 0 0 1 1.977 2.304l-1.255 8.152A3 3 0 0 1 15.426 21H8.574a3 3 0 0 1-2.965-2.544l-1.255-8.152A2 2 0 0 1 6.331 8" />
-                <path d="M9 11V6a3 3 0 0 1 6 0v5" />
-              </g>
-            </svg>
+            <FaBagShopping
+              className="
+                size-[20px]
+                focus:outline-none active:outline-none hover:cursor-pointer 
+              "
+            />
           </Link>
         </div>
         <div className="flex items-center p-1">

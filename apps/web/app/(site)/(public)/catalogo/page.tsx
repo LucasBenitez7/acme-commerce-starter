@@ -1,6 +1,6 @@
-import { Heart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { FaRegHeart } from "react-icons/fa6";
 
 import { Button } from "@/components/ui/button";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -144,7 +144,7 @@ export default async function CatalogoPage({
                   <CardTitle className="font-medium">
                     <Link href={`/product/${p.slug}`}>{p.name}</Link>
                   </CardTitle>
-                  <Heart size={20} strokeWidth={2} />
+                  <FaRegHeart size={20} strokeWidth={2} />
                 </CardHeader>
                 <CardContent className="flex flex-col gap-2 px-2 pb-2">
                   <p className="text-sm text-neutral-600">
