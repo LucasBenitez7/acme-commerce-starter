@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FaRegHeart } from "react-icons/fa6";
+import { HiOutlineShoppingBag } from "react-icons/hi2";
 
 import { CardContent, CardHeader, CardTitle, Button } from "@/components/ui";
 
@@ -153,18 +154,22 @@ export default async function CategoryPage({
                 </Link>
               </div>
 
-              <div className="flex flex-col text-sm border-b border-l border-r">
+              <div className="flex flex-col text-sm">
                 <CardHeader className="flex justify-between items-center px-2 py-2">
                   <CardTitle className="font-medium">
                     <Link href={`/product/${p.slug}`}>{p.name}</Link>
                   </CardTitle>
-                  <FaRegHeart size={20} strokeWidth={2} />
+                  <FaRegHeart className="size-[20px]" />
                 </CardHeader>
                 <CardContent className="flex flex-col gap-2 px-2 pb-2">
                   <p className="text-sm text-neutral-600">
-                    {formatPrice(p.priceCents, p.currency)}
+                    {formatPrice(p.priceCents, p.currency ?? "EUR")}
                   </p>
                   <p>c1 c2 c3 c4</p>
+                  <div className="flex justify-between items-center">
+                    <p>talla</p>
+                    <HiOutlineShoppingBag className="stroke-2 size-[20px]" />
+                  </div>
                 </CardContent>
               </div>
             </div>

@@ -143,7 +143,7 @@ export default async function CatalogoPage({
                   <CardTitle className="font-medium">
                     <Link href={`/product/${p.slug}`}>{p.name}</Link>
                   </CardTitle>
-                  <FaRegHeart size={20} strokeWidth={2} />
+                  <FaRegHeart className="size-[20px]" />
                 </CardHeader>
                 <CardContent className="flex flex-col gap-2 px-2 pb-2">
                   <p className="text-sm text-neutral-600">

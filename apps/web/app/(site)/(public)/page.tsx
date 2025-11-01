@@ -99,11 +99,11 @@ export default async function HomePage() {
               </div>
 
               <div className="flex flex-col text-sm">
-                <CardHeader className="flex justify-between items-center px-2 py-2">
+                <CardHeader className="flex justify-between items-center p-2">
                   <CardTitle className="font-medium">
                     <Link href={`/product/${p.slug}`}>{p.name}</Link>
                   </CardTitle>
-                  <FaRegHeart size={20} strokeWidth={2} />
+                  <FaRegHeart className="size-[20px]" />
                 </CardHeader>
                 <CardContent className="flex flex-col gap-2 px-2 pb-2">
                   <p className="text-sm text-neutral-600">
@@ -112,7 +112,7 @@ export default async function HomePage() {
                   <p>c1 c2 c3 c4</p>
                   <div className="flex justify-between items-center">
                     <p>talla</p>
-                    <HiOutlineShoppingBag size={20} strokeWidth={2} />
+                    <HiOutlineShoppingBag className="stroke-2 size-[20px]" />
                   </div>
                 </CardContent>
               </div>
