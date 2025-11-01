@@ -1,8 +1,7 @@
 import { unstable_cache } from "next/cache";
 
-import Footer from "@/components/layout/Footer";
-import Header from "@/components/layout/Header";
-import { Container } from "@/components/ui/container";
+import { Header, Footer } from "@/components/layout";
+import { Container } from "@/components/ui";
 
 import { prisma } from "@/lib/db";
 

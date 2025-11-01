@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { FaSearch } from "react-icons/fa";
-import { FaUser, FaHeart, FaBagShopping } from "react-icons/fa6";
+import { FaRegUser, FaRegHeart } from "react-icons/fa6";
+import { HiOutlineShoppingBag } from "react-icons/hi2";
+import { IoSearch } from "react-icons/io5";
 import { RiMenu2Line, RiCloseLine } from "react-icons/ri";
 
 import {
@@ -13,7 +14,7 @@ import {
   SheetHeader as SheetHdr,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet";
+} from "@/components/ui";
 
 import SiteSidebar from "./SiteSidebar";
 
@@ -44,11 +45,11 @@ export default function Header({ categories }: { categories: Cat[] }) {
               aria-label="Abrir menú"
               title="Abrir menú"
               className="
-                size-[20px]
+                size-[21px]
                 focus:outline-none 
                 active:outline-none 
                 hover:cursor-pointer 
-                stroke-1
+                stroke-[0.5px]
               "
             />
           </SheetTrigger>
@@ -69,11 +70,11 @@ export default function Header({ categories }: { categories: Cat[] }) {
                     aria-label="Cerrar menú"
                     title="Cerrar menú"
                     className="
-											size-[20px]
+											size-[21px]
 											focus:outline-none 
                       active:outline-none 
                       hover:cursor-pointer 
-                      stroke-1
+                      stroke-[0.5px]
 										"
                   />
                 </SheetClose>
@@ -86,16 +87,13 @@ export default function Header({ categories }: { categories: Cat[] }) {
         </Sheet>
       </div>
 
-      <Link
-        href="/"
-        className="justify-self-center font-semibold tracking-tight"
-      >
-        Logo + lsbstack • shop
+      <Link href="/" className="justify-self-center text-2xl font-semibold">
+        Logo lsb
       </Link>
 
       <nav className="justify-self-end flex items-center gap-2 text-base">
         <div className="flex items-center gap-1 border-b border-neutral-500">
-          <FaSearch className="size-[18px]" />
+          <IoSearch className="size-[22px]" />
           <input
             type="search"
             placeholder="Buscar"
@@ -104,7 +102,7 @@ export default function Header({ categories }: { categories: Cat[] }) {
         </div>
         <div className="flex items-center p-1 ml-2">
           <Link href="/account">
-            <FaUser
+            <FaRegUser
               className=" 
 								size-[20px]
 								focus:outline-none active:outline-none hover:cursor-pointer 
@@ -114,18 +112,19 @@ export default function Header({ categories }: { categories: Cat[] }) {
         </div>
         <div className="flex items-center p-1">
           <Link href="/favoritos">
-            <FaHeart
+            <FaRegHeart
               className=" 
-								size-[20px]
+								size-[21px]
 							"
             />
           </Link>
         </div>
         <div className="flex items-center p-1">
           <Link href="/cart">
-            <FaBagShopping
+            <HiOutlineShoppingBag
               className="
-                size-[20px]
+                stroke-2
+                size-[21px]
                 focus:outline-none active:outline-none hover:cursor-pointer 
               "
             />

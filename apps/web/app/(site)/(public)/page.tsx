@@ -1,9 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
-import { FaRegHeart, FaBagShopping } from "react-icons/fa6";
+import { FaRegHeart } from "react-icons/fa6";
+import { HiOutlineShoppingBag } from "react-icons/hi2";
 import { VscSettings } from "react-icons/vsc";
 
-import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui";
 
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/format";
@@ -74,13 +75,13 @@ export default async function HomePage() {
         <div>
           <h1 className="text-xl font-semibold capitalize">Home</h1>
         </div>
-        <div className="flex text-sm items-center gap-2 hover:cursor-pointer">
-          <VscSettings size={20} strokeWidth={1} />
-          <p>Ordenar y Filtrar</p>
+        <div className="flex items-center gap-2 hover:cursor-pointer">
+          <VscSettings className="stroke-[0.5px] size-[20px]" />
+          <p className=" text-sm">Ordenar y Filtrar</p>
         </div>
       </header>
 
-      <div className="grid gap-x-1 gap-y-15 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 my-6">
+      <div className="grid gap-x-1 gap-y-10 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 my-6">
         {items.map((p: ProductListItem) => {
           const img = p.thumbnail ?? "/og/default-products.jpg";
           return (
@@ -97,7 +98,7 @@ export default async function HomePage() {
                 </Link>
               </div>
 
-              <div className="flex flex-col text-sm border-b border-l border-r">
+              <div className="flex flex-col text-sm">
                 <CardHeader className="flex justify-between items-center px-2 py-2">
                   <CardTitle className="font-medium">
                     <Link href={`/product/${p.slug}`}>{p.name}</Link>
@@ -110,8 +111,8 @@ export default async function HomePage() {
                   </p>
                   <p>c1 c2 c3 c4</p>
                   <div className="flex justify-between items-center">
-                    <p className="capitalize">Talla</p>
-                    <FaBagShopping size={20} strokeWidth={2} />
+                    <p>talla</p>
+                    <HiOutlineShoppingBag size={20} strokeWidth={2} />
                   </div>
                 </CardContent>
               </div>

@@ -2,8 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { FaRegHeart } from "react-icons/fa6";
 
-import { Button } from "@/components/ui/button";
-import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardHeader, CardTitle, Button } from "@/components/ui";
 
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/format";
