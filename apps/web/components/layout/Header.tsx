@@ -28,6 +28,34 @@ export default function Header({ categories }: { categories: Cat[] }) {
 
   useLockBodyScroll(open);
 
+  const handlePointerLeaveHeader: React.PointerEventHandler<HTMLElement> = (
+    e,
+  ) => {
+    if (e.pointerType !== "mouse") return;
+
+    const el = document.elementFromPoint(
+      e.clientX,
+      e.clientY,
+    ) as Element | null;
+    const sheetEl = document.getElementById("site-sidebar");
+    const headerEl = safeRef.current;
+
+    // Si no hay elemento o no estamos sobre header ni sheet → cerrar
+    if (!el) {
+      setOpen(false);
+      return;
+    }
+
+    // Si seguimos dentro del header (o algún hijo), no cierres
+    if (headerEl && headerEl.contains(el)) return;
+
+    // Si entramos al sidebar, no cierres
+    if (sheetEl && sheetEl.contains(el)) return;
+
+    // En cualquier otro sitio (overlay/body, fuera de header y sheet) → cerrar
+    setOpen(false);
+  };
+
   const handlePointerLeaveSheet: React.PointerEventHandler<HTMLDivElement> = (
     e,
   ) => {
@@ -48,6 +76,7 @@ export default function Header({ categories }: { categories: Cat[] }) {
     <>
       <header
         ref={safeRef}
+        onPointerLeave={handlePointerLeaveHeader}
         className="mx-auto w-full z-[80] sticky top-0 border-b h-16 grid grid-cols-[auto_1fr] px-6 items-center bg-white"
       >
         <div className="flex items-center h-full content-center">
