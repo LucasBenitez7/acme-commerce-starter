@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { FaRegUser, FaRegHeart } from "react-icons/fa6";
 import { HiOutlineShoppingBag } from "react-icons/hi2";
 import { IoSearch } from "react-icons/io5";
@@ -25,6 +26,12 @@ export type Cat = { slug: string; label: string };
 export default function Header({ categories }: { categories: Cat[] }) {
   const [open, setOpen] = useState(false);
   const safeRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
+  const search = useSearchParams();
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname, search?.toString()]);
 
   useLockBodyScroll(open);
 
@@ -72,11 +79,23 @@ export default function Header({ categories }: { categories: Cat[] }) {
     setOpen(false);
   };
 
+  const handleAnyNavClickCapture: React.MouseEventHandler<HTMLElement> = (
+    e,
+  ) => {
+    const target = e.target as HTMLElement | null;
+    const anchor = target?.closest<HTMLAnchorElement>("a[href]");
+    if (!anchor) return;
+    if (anchor.getAttribute("target") === "_blank") return;
+    if (anchor.dataset.keepOpen === "true") return;
+    setOpen(false);
+  };
+
   return (
     <>
       <header
         ref={safeRef}
         onPointerLeave={handlePointerLeaveHeader}
+        onClickCapture={handleAnyNavClickCapture}
         className="mx-auto w-full z-[80] sticky top-0 border-b h-16 grid grid-cols-[auto_1fr] px-6 items-center bg-white"
       >
         <div className="flex items-center h-full content-center">
@@ -100,6 +119,7 @@ export default function Header({ categories }: { categories: Cat[] }) {
               side="left"
               className="w-[min(360px,92vw)] sm:w-[360px] lg:w-[400px] outline-none top-16"
               onPointerLeave={handlePointerLeaveSheet}
+              onClickCapture={handleAnyNavClickCapture}
               onInteractOutside={(e) => {
                 const t = e.target as Node | null;
                 if (t && safeRef.current?.contains(t)) {
