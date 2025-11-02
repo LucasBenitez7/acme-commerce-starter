@@ -73,7 +73,7 @@ export default async function HomePage() {
     <section>
       <header className="flex justify-between w-full items-center border-b">
         <div>
-          <h1 className="text-xl font-semibold capitalize">Home</h1>
+          <h1 className="text-2xl font-semibold capitalize">Home</h1>
         </div>
         <div className="flex items-center gap-2 hover:cursor-pointer">
           <VscSettings className="stroke-[0.5px] size-[20px]" />
