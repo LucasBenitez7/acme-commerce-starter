@@ -78,7 +78,7 @@ export default function Header({ categories }: { categories: Cat[] }) {
         ref={safeRef}
         onPointerLeave={handlePointerLeaveHeader}
         onClickCapture={handleAnyNavClickCapture}
-        className="mx-auto w-full z-[80] sticky top-0 border-b h-16 grid grid-cols-[auto_1fr] items-center bg-white px-6 "
+        className="mx-auto w-full z-[80] sticky top-0 h-[4rem] grid grid-cols-[auto_1fr] items-center bg-white px-6"
       >
         <div className="flex items-center h-full content-center">
           <Sheet open={open} onOpenChange={setOpen} modal={false}>
@@ -107,7 +107,7 @@ export default function Header({ categories }: { categories: Cat[] }) {
               onEscapeKeyDown={() => setOpen(false)}
             >
               <div className="overflow-y-auto h-full focus:outline-none">
-                <div className="flex flex-col text-2xl py-4 pl-6 space-y-4">
+                <div className="flex flex-col text-2xl py-4 pl-6 space-y-4 ">
                   <SheetTitle>Novedaddes</SheetTitle>
                   <SheetTitle>Promociones</SheetTitle>
                   <SheetTitle>Lo mas vendido</SheetTitle>
@@ -124,7 +124,7 @@ export default function Header({ categories }: { categories: Cat[] }) {
         </div>
 
         {/*------------- NAV ------------- */}
-        <nav className="justify-self-end flex items-center gap-2 text-base">
+        <nav className="justify-self-end h-full flex items-center gap-2 text-base">
           <div className="hidden sm:flex items-center gap-1 border-b border-neutral-500">
             <IoSearch className="size-[20px]" />
             <input
@@ -144,8 +144,10 @@ export default function Header({ categories }: { categories: Cat[] }) {
             <HiOutlineShoppingBag className="stroke-2 size-[20px]" />
           </Link>
 
-          <div className="flex items-center p-1">
-            <Link href="/admin">Admin</Link>
+          <div className="flex items-center border-b-2 border-white">
+            <Link href="/admin" className="fx-underline-center py-1">
+              Admin
+            </Link>
           </div>
         </nav>
       </header>

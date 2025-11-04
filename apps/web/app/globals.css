@@ -131,3 +131,38 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .fx-underline-center {
+    position: relative;
+    text-decoration: none;
+    display: inline-block;
+    line-height: 1.5;
+    padding-bottom: 0px;
+  }
+  .fx-underline-center::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0px;
+    width: 0;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+    transition:
+      width 0.3s,
+      left 0.3s;
+  }
+  .fx-underline-center:hover::before,
+  .fx-underline-center:focus-visible::before,
+  .fx-underline-center[data-active="true"]::before {
+    width: 100%;
+    left: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fx-underline-center::before {
+      transition: none;
+    }
+  }
+}

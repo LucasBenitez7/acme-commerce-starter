@@ -20,8 +20,8 @@ export default function SiteSidebar({ categories }: { categories: Cat[] }) {
 
   return (
     <aside>
-      <div className="px-4">
-        <ul className="text-sm">
+      <div className="px-6">
+        <ul className="text-base">
           {/* Enlace sintético arriba de todo */}
           <li key="all">
             <Link
@@ -29,7 +29,7 @@ export default function SiteSidebar({ categories }: { categories: Cat[] }) {
               prefetch={false}
               aria-current={isAllActive ? "page" : undefined}
               className={cn(
-                "block rounded px-2 py-1 hover:bg-neutral-200",
+                "block fx-underline-center",
                 isAllActive && "bg-neutral-200 font-medium",
               )}
             >
@@ -47,7 +47,7 @@ export default function SiteSidebar({ categories }: { categories: Cat[] }) {
                   prefetch={false}
                   aria-current={isActive ? "page" : undefined}
                   className={cn(
-                    "block px-2 rounded py-1 my-1 hover:bg-neutral-200",
+                    "block py-2 fx-underline-center",
                     isActive && "bg-neutral-200 font-medium",
                   )}
                 >

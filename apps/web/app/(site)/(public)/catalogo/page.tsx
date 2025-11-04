@@ -138,7 +138,7 @@ export default async function CatalogoPage({
                 </Link>
               </div>
 
-              <div className="flex flex-col text-sm border-b border-l border-r">
+              <div className="flex flex-col text-sm">
                 <CardHeader className="flex justify-between items-center px-2 py-2">
                   <CardTitle className="font-medium">
                     <Link href={`/product/${p.slug}`}>{p.name}</Link>
