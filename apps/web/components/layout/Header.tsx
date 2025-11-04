@@ -7,7 +7,13 @@ import { FaRegUser, FaRegHeart } from "react-icons/fa6";
 import { HiOutlineShoppingBag } from "react-icons/hi2";
 import { IoSearch } from "react-icons/io5";
 
-import { Sheet, SheetContent, SheetTitle, BurgerButton } from "@/components/ui";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  BurgerButton,
+  Button,
+} from "@/components/ui";
 
 import useLockBodyScroll from "@/hooks/use-lock-body-scroll";
 
@@ -107,10 +113,16 @@ export default function Header({ categories }: { categories: Cat[] }) {
               onEscapeKeyDown={() => setOpen(false)}
             >
               <div className="overflow-y-auto h-full focus:outline-none">
-                <div className="flex flex-col text-2xl py-4 pl-6 space-y-4 ">
-                  <SheetTitle>Novedaddes</SheetTitle>
-                  <SheetTitle>Promociones</SheetTitle>
-                  <SheetTitle>Lo mas vendido</SheetTitle>
+                <div className="flex flex-col text-2xl pb-4 px-6">
+                  <SheetTitle className="hover:cursor-pointer py-2 w-max fx-underline-left">
+                    Novedades
+                  </SheetTitle>
+                  <SheetTitle className="hover:cursor-pointer py-2 w-max fx-underline-left">
+                    Promociones
+                  </SheetTitle>
+                  <SheetTitle className="hover:cursor-pointer py-2 w-max fx-underline-left">
+                    Lo mas vendido
+                  </SheetTitle>
                 </div>
                 <SiteSidebar categories={categories} />
               </div>
@@ -144,11 +156,11 @@ export default function Header({ categories }: { categories: Cat[] }) {
             <HiOutlineShoppingBag className="stroke-2 size-[20px]" />
           </Link>
 
-          <div className="flex items-center border-b-2 border-white">
-            <Link href="/admin" className="fx-underline-center py-1">
+          <Button variant={"outline"}>
+            <Link href="/admin" className="py-1">
               Admin
             </Link>
-          </div>
+          </Button>
         </nav>
       </header>
       <div

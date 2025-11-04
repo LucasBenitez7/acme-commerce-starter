@@ -11,8 +11,8 @@ type Props = {
 
 export function BurgerButton({ open, onToggle, controlsId, className }: Props) {
   const barBase = open
-    ? "absolute h-[2px]  rounded-md bg-slate-950 group-transition-[transform,opacity,background-color,filter] duration-400 transform-gpu motion-reduce:transition-none "
-    : "absolute h-[2px]  rounded-md bg-slate-950 group-transition-[transform,opacity,background-color,filter] duration-200 transform-gpu motion-reduce:transition-none ";
+    ? "absolute h-[0.170rem] rounded-md bg-slate-900 group-transition-[transform,opacity,background-color,filter] duration-400 transform-gpu motion-reduce:transition-none "
+    : "absolute h-[0.170rem] rounded-md bg-slate-900 group-transition-[transform,opacity,background-color,filter] duration-200 transform-gpu motion-reduce:transition-none ";
 
   return (
     <button

@@ -30,7 +30,7 @@ export default function SiteSidebar({ categories }: { categories: Cat[] }) {
               aria-current={isAllActive ? "page" : undefined}
               className={cn(
                 "block fx-underline-center",
-                isAllActive && "bg-neutral-200 font-medium",
+                isAllActive && "fx-underline-center-active",
               )}
             >
               Todas las prendas
@@ -48,7 +48,7 @@ export default function SiteSidebar({ categories }: { categories: Cat[] }) {
                   aria-current={isActive ? "page" : undefined}
                   className={cn(
                     "block py-2 fx-underline-center",
-                    isActive && "bg-neutral-200 font-medium",
+                    isActive && "fx-underline-center-active",
                   )}
                 >
                   {c.label}

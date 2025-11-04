@@ -127,7 +127,7 @@ export default async function CategoryPage({
     <section>
       <header className="flex justify-between w-full items-center border-b">
         <div>
-          <h1 className="text-2xl font-semibold capitalize">
+          <h1 className="text-2xl font-medium capitalize">
             {String(cat.name)}
           </h1>
         </div>

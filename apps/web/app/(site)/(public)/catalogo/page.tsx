@@ -113,7 +113,7 @@ export default async function CatalogoPage({
     <section>
       <header className="flex justify-between w-full items-center border-b">
         <div>
-          <h1 className="text-xl font-semibold">Todas las prendas</h1>
+          <h1 className="text-xl font-medium">Todas las prendas</h1>
         </div>
         <div className="flex text-sm items-center gap-2 hover:cursor-pointer">
           {/* … icon + label … */}
@@ -165,12 +165,12 @@ export default async function CatalogoPage({
           Página {page} de {totalPages}
         </p>
         <Button asChild variant="outline" disabled={page <= 1}>
-          <Link href={prevHref} rel="prev">
+          <Link href={prevHref} rel="prev" className="py-1">
             Anterior
           </Link>
         </Button>
         <Button asChild disabled={page >= totalPages}>
-          <Link href={nextHref} rel="next">
+          <Link href={nextHref} rel="next" className="py-1">
             Siguiente
           </Link>
         </Button>
