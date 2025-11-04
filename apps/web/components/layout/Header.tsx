@@ -8,14 +8,7 @@ import { HiOutlineShoppingBag } from "react-icons/hi2";
 import { IoSearch } from "react-icons/io5";
 import { RiMenu2Line, RiCloseLine } from "react-icons/ri";
 
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetHeader as SheetHdr,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui";
+import { Sheet, SheetContent, SheetTitle, BurgerButton } from "@/components/ui";
 
 import useLockBodyScroll from "@/hooks/use-lock-body-scroll";
 
@@ -47,19 +40,13 @@ export default function Header({ categories }: { categories: Cat[] }) {
     const sheetEl = document.getElementById("site-sidebar");
     const headerEl = safeRef.current;
 
-    // Si no hay elemento o no estamos sobre header ni sheet → cerrar
     if (!el) {
       setOpen(false);
       return;
     }
-
-    // Si seguimos dentro del header (o algún hijo), no cierres
     if (headerEl && headerEl.contains(el)) return;
-
-    // Si entramos al sidebar, no cierres
     if (sheetEl && sheetEl.contains(el)) return;
 
-    // En cualquier otro sitio (overlay/body, fuera de header y sheet) → cerrar
     setOpen(false);
   };
 
@@ -73,6 +60,7 @@ export default function Header({ categories }: { categories: Cat[] }) {
       e.clientY,
     ) as Element | null;
     const contentEl = e.currentTarget as HTMLElement;
+
     if (el && contentEl.contains(el)) return;
     if (el && safeRef.current && safeRef.current.contains(el)) return;
 
@@ -100,18 +88,12 @@ export default function Header({ categories }: { categories: Cat[] }) {
       >
         <div className="flex items-center h-full content-center">
           <Sheet open={open} onOpenChange={setOpen} modal={false}>
-            {/* Abrir Menu */}
-            <SheetTrigger asChild>
-              <button
-                type="button"
-                aria-label="Abrir menú"
-                aria-expanded={open}
-                aria-controls="site-sidebar"
-                className="inline-flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-transform hover:cursor-pointer"
-              >
-                <RiMenu2Line className="size-[20px]" />
-              </button>
-            </SheetTrigger>
+            <BurgerButton
+              open={open}
+              onToggle={() => setOpen((v) => !v)}
+              controlsId="site-sidebar"
+              className=""
+            />
 
             {/* Sidebar Content*/}
             <SheetContent
@@ -141,7 +123,7 @@ export default function Header({ categories }: { categories: Cat[] }) {
           </Sheet>
 
           {/*------------- LOGO ------------- */}
-          <Link href="/" className="px-6 text-2xl font-semibold">
+          <Link href="/" className="mx-4 px-2 text-3xl font-semibold">
             Logo lsb
           </Link>
         </div>

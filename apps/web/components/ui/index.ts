@@ -1,4 +1,5 @@
 export { Button, buttonVariants } from "./button";
+export { BurgerButton } from "./BurgerButton";
 
 export { Container } from "./container";
 
