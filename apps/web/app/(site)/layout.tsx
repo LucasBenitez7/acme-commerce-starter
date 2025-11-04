@@ -36,7 +36,7 @@ export default async function SiteLayout({
     <div className="flex min-h-dvh flex-col bg-background">
       <Header categories={categories} />
       <div className="flex-1">
-        <Container className="py-6 lg:py-8">
+        <Container className="py-6">
           <main>{children}</main>
         </Container>
       </div>

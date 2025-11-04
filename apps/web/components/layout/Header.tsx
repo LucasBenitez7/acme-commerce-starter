@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from "react";
 import { FaRegUser, FaRegHeart } from "react-icons/fa6";
 import { HiOutlineShoppingBag } from "react-icons/hi2";
 import { IoSearch } from "react-icons/io5";
-import { RiMenu2Line, RiCloseLine } from "react-icons/ri";
 
 import { Sheet, SheetContent, SheetTitle, BurgerButton } from "@/components/ui";
 
@@ -28,26 +27,30 @@ export default function Header({ categories }: { categories: Cat[] }) {
 
   useLockBodyScroll(open);
 
+  function inSafeZone(node: Element | null) {
+    const headerEl = safeRef.current;
+    const sheetEl = document.getElementById("site-sidebar");
+    return !!(node && (headerEl?.contains(node) || sheetEl?.contains(node)));
+  }
+
+  function closeIfOutside(x: number, y: number, related?: EventTarget | null) {
+    if (!open) return;
+    if (!related) return;
+
+    const el = document.elementFromPoint(x, y) as Element | null;
+
+    if (!el) return;
+    if (inSafeZone(el)) return;
+
+    setOpen(false);
+  }
+
   const handlePointerLeaveHeader: React.PointerEventHandler<HTMLElement> = (
     e,
   ) => {
     if (e.pointerType !== "mouse") return;
 
-    const el = document.elementFromPoint(
-      e.clientX,
-      e.clientY,
-    ) as Element | null;
-    const sheetEl = document.getElementById("site-sidebar");
-    const headerEl = safeRef.current;
-
-    if (!el) {
-      setOpen(false);
-      return;
-    }
-    if (headerEl && headerEl.contains(el)) return;
-    if (sheetEl && sheetEl.contains(el)) return;
-
-    setOpen(false);
+    closeIfOutside(e.clientX, e.clientY, e.relatedTarget);
   };
 
   const handlePointerLeaveSheet: React.PointerEventHandler<HTMLDivElement> = (
@@ -55,16 +58,7 @@ export default function Header({ categories }: { categories: Cat[] }) {
   ) => {
     if (e.pointerType !== "mouse") return;
 
-    const el = document.elementFromPoint(
-      e.clientX,
-      e.clientY,
-    ) as Element | null;
-    const contentEl = e.currentTarget as HTMLElement;
-
-    if (el && contentEl.contains(el)) return;
-    if (el && safeRef.current && safeRef.current.contains(el)) return;
-
-    setOpen(false);
+    closeIfOutside(e.clientX, e.clientY, e.relatedTarget);
   };
 
   const handleAnyNavClickCapture: React.MouseEventHandler<HTMLElement> = (
@@ -84,7 +78,7 @@ export default function Header({ categories }: { categories: Cat[] }) {
         ref={safeRef}
         onPointerLeave={handlePointerLeaveHeader}
         onClickCapture={handleAnyNavClickCapture}
-        className="mx-auto w-full z-[80] sticky top-0 border-b h-16 grid grid-cols-[auto_1fr] px-6 items-center bg-white"
+        className="mx-auto w-full z-[80] sticky top-0 border-b h-16 grid grid-cols-[auto_1fr] items-center bg-white px-6 "
       >
         <div className="flex items-center h-full content-center">
           <Sheet open={open} onOpenChange={setOpen} modal={false}>
@@ -99,7 +93,7 @@ export default function Header({ categories }: { categories: Cat[] }) {
             <SheetContent
               id="site-sidebar"
               side="left"
-              className="w-[min(360px,92vw)] sm:w-[360px] lg:w-[400px] outline-none top-16"
+              className="w-[min(360px,92vw)] sm:w-[360px] lg:w-[400px] outline-none"
               onPointerLeave={handlePointerLeaveSheet}
               onClickCapture={handleAnyNavClickCapture}
               onInteractOutside={(e) => {
@@ -113,9 +107,10 @@ export default function Header({ categories }: { categories: Cat[] }) {
               onEscapeKeyDown={() => setOpen(false)}
             >
               <div className="overflow-y-auto h-full focus:outline-none">
-                <div className="flex flex-col text-2xl py-4 space-y-4 pl-6">
+                <div className="flex flex-col text-2xl py-4 pl-6 space-y-4">
                   <SheetTitle>Novedaddes</SheetTitle>
                   <SheetTitle>Promociones</SheetTitle>
+                  <SheetTitle>Lo mas vendido</SheetTitle>
                 </div>
                 <SiteSidebar categories={categories} />
               </div>
@@ -128,43 +123,42 @@ export default function Header({ categories }: { categories: Cat[] }) {
           </Link>
         </div>
 
-        <div className="items-center bg-white h-full content-center">
-          {/*------------- NAV ------------- */}
-          <nav className="justify-self-end flex items-center gap-2 text-base">
-            <div className="flex items-center gap-1 border-b border-neutral-500">
-              <IoSearch className="size-[20px]" />
-              <input
-                type="search"
-                placeholder="Buscar"
-                className="hover:outline-none active:outline-none focus:outline-none px-1 max-lg:w-[100px] w-[200px]"
-              />
-            </div>
+        {/*------------- NAV ------------- */}
+        <nav className="justify-self-end flex items-center gap-2 text-base">
+          <div className="hidden sm:flex items-center gap-1 border-b border-neutral-500">
+            <IoSearch className="size-[20px]" />
+            <input
+              type="search"
+              placeholder="Buscar"
+              className="px-1 outline-none w-[200px]"
+            />
+          </div>
 
-            <Link href="/account" className="flex items-center p-1 ml-2">
-              <FaRegUser className="size-[20px]" />
-            </Link>
-            <Link href="/favoritos" className="flex items-center p-1">
-              <FaRegHeart className="size-[20px]" />
-            </Link>
-            <Link href="/cart" className="flex items-center p-1">
-              <HiOutlineShoppingBag className="stroke-2 size-[20px]" />
-            </Link>
+          <Link href="/account" className="flex items-center p-1 ml-2">
+            <FaRegUser className="size-[20px]" />
+          </Link>
+          <Link href="/favoritos" className="flex items-center p-1">
+            <FaRegHeart className="size-[20px]" />
+          </Link>
+          <Link href="/cart" className="flex items-center p-1">
+            <HiOutlineShoppingBag className="stroke-2 size-[20px]" />
+          </Link>
 
-            <div className="flex items-center p-1">
-              <Link href="/admin">Admin</Link>
-            </div>
-          </nav>
-        </div>
+          <div className="flex items-center p-1">
+            <Link href="/admin">Admin</Link>
+          </div>
+        </nav>
       </header>
-      {open && (
-        <>
-          {/* Overlay principal: todo el viewport debajo del header */}
-          <div
-            onClick={() => setOpen(false)}
-            className="fixed inset-x-0 bottom-0 top-16 bg-black/25"
-          />
-        </>
-      )}
+      <div
+        aria-hidden="true"
+        onClick={() => open && setOpen(false)}
+        className={`fixed inset-x-0 bottom-0 top-[var(--header-h)] z-[70] bg-black print:hidden
+              ${
+                open
+                  ? "opacity-30 motion-safe:transition-opacity duration-400 ease-out pointer-events-auto"
+                  : "opacity-0 motion-safe:transition-opacity duration-200 ease-out pointer-events-none"
+              }`}
+      ></div>
     </>
   );
 }
