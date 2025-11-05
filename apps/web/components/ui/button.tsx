@@ -5,23 +5,26 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-0 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-0 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-slate-300 focus-visible:border-[1px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/80",
+        default:
+          "bg-primary text-primary-foreground hover:bg-primary/80 transition-all duration-200 ease-in-out",
         destructive:
           "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20",
         outline:
-          "border border-slate-200 bg-background hover:bg-neutral-100 hover:border-slate-300  hover:text-accent-foreground transition-all",
+          "border border-slate-300 bg-background hover:bg-neutral-100 transition-all duration-200 ease-in-out",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost:
-          "hover:bg-accent hover:text-accent-foreground active:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+          "hover:bg-neutral-100 hover:text-accent-foreground active:text-accent-foreground transition-all duration-200 ease-in-out",
+        hovers:
+          "border border-white hover:border hover:border-slate-300 bg-background hover:bg-neutral-100 transition-all duration-200 ease-in-out",
+        link: "text-primary underline-offset-8 hover:underline",
       },
       size: {
-        default: "px-4",
+        default: "px-2",
         sm: "h-8 rounded-sm gap-1.5",
         lg: "h-10 rounded-sm",
         icon: "size-9",

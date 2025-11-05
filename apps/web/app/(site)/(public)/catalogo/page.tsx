@@ -165,12 +165,12 @@ export default async function CatalogoPage({
           Página {page} de {totalPages}
         </p>
         <Button asChild variant="outline" disabled={page <= 1}>
-          <Link href={prevHref} rel="prev" className="py-1">
+          <Link href={prevHref} rel="prev" className="py-2 px-4">
             Anterior
           </Link>
         </Button>
         <Button asChild disabled={page >= totalPages}>
-          <Link href={nextHref} rel="next" className="py-1">
+          <Link href={nextHref} rel="next" className="py-2 px-4">
             Siguiente
           </Link>
         </Button>
