@@ -113,17 +113,7 @@ export default function Header({ categories }: { categories: Cat[] }) {
               onEscapeKeyDown={() => setOpen(false)}
             >
               <div className="overflow-y-auto h-full focus:outline-none">
-                <div className="flex flex-col text-2xl pb-4 px-6">
-                  <SheetTitle className="hover:cursor-pointer py-2 w-max fx-underline-left">
-                    Novedades
-                  </SheetTitle>
-                  <SheetTitle className="hover:cursor-pointer py-2 w-max fx-underline-left">
-                    Promociones
-                  </SheetTitle>
-                  <SheetTitle className="hover:cursor-pointer py-2 w-max fx-underline-left">
-                    Lo mas vendido
-                  </SheetTitle>
-                </div>
+                <SheetTitle className="hidden">Menu</SheetTitle>
                 <SiteSidebar categories={categories} />
               </div>
             </SheetContent>
@@ -131,7 +121,10 @@ export default function Header({ categories }: { categories: Cat[] }) {
 
           {/*------------- LOGO ------------- */}
 
-          <Link href="/" className="mx-4 px-2 text-3xl font-semibold">
+          <Link
+            href="/"
+            className="focus:outline-none mx-4 px-2 text-3xl font-semibold"
+          >
             Logo lsb
           </Link>
         </div>
@@ -164,7 +157,7 @@ export default function Header({ categories }: { categories: Cat[] }) {
           </Button>
 
           <Button asChild variant={"outline"} className="text-base">
-            <Link href="/admin" className="py-1 px-3 text-base">
+            <Link href="/admin" className="px-3 text-base">
               Admin
             </Link>
           </Button>
