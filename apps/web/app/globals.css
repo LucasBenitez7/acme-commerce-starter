@@ -26,7 +26,7 @@
   --color-chart-5: var(--chart-5);
   --color-chart-4: var(--chart-4);
   --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
   --color-chart-1: var(--chart-1);
   --color-destructive: var(--destructive);
   --color-accent-foreground: var(--accent-foreground);
@@ -72,7 +72,7 @@
   --accent-foreground: oklch(0.208 0.042 265.755);
   --destructive: oklch(0.577 0.245 27.325);
   --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-1: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
@@ -84,7 +84,7 @@
   --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
   --sidebar-border: oklch(0.929 0.013 255.508);
   --sidebar-ring: oklch(0.704 0.04 256.788);
-  --ver-box: border-solid border-2 border-red-700;
+  --ver-box: border-solid border-1 border-red-700;
 }
 
 .dark {
@@ -107,7 +107,7 @@
   --accent-foreground: oklch(0.984 0.003 247.858);
   --destructive: oklch(0.704 0.191 22.216);
   --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-1: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
@@ -160,6 +160,187 @@
     background-repeat: no-repeat;
     background-position: left bottom;
     background-size: 100% 0.13rem;
-    transition: background-size 0.3s ease;
+    transition: background-size 0.2s ease;
+  }
+
+  /*------------- tip-derecha ------------- */
+  .tip-right {
+    position: relative;
+    display: inline-flex;
+    --tip-gap: 12px;
+  }
+
+  .tip-right::after {
+    content: attr(data-tip);
+    position: absolute;
+    top: 50%;
+    left: calc(100% + var(--tip-gap));
+    transform: translateY(-50%);
+    white-space: nowrap;
+    background: #f5f5f5;
+    color: var(--foreground);
+    font-size: 0.75rem;
+    line-height: 1;
+    padding: 0.375rem 0.5rem;
+    border-radius: 4px;
+    outline: 1px solid #cad5e2;
+    z-index: 60;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .tip-right::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: calc(100% + var(--tip-gap) - 3.4px);
+    transform: translateY(-50%) rotate(45deg);
+    width: 8px;
+    height: 8px;
+    border-radius: 1px;
+    background: #f5f5f5;
+    box-shadow: -1px 1px 0 0 #cad5e2;
+    z-index: 70;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .tip-right:hover::after,
+  .tip-right:hover::before {
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tip-right::after,
+    .tip-right::before {
+      transition: none;
+    }
+  }
+
+  /*------------- tip-abajo-derecha -------------*/
+  .tip-bottom-right {
+    position: relative;
+    display: inline-flex;
+    --tip-gap: 11px;
+  }
+
+  .tip-bottom-right::after {
+    content: attr(data-tip);
+    position: absolute;
+    left: 50%;
+    top: calc(100% + var(--tip-gap));
+    transform: translateX(-20%);
+    white-space: nowrap;
+    background: #f5f5f5;
+    color: var(--foreground);
+    font-size: 0.75rem;
+    line-height: 1;
+    padding: 0.375rem 0.5rem;
+    border-radius: 4px;
+    outline: 1px solid #cad5e2;
+    z-index: 60;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .tip-bottom-right::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: calc(100% + var(--tip-gap) - 3.3px);
+    transform: translateX(-50%) rotate(45deg);
+    width: 8px;
+    height: 8px;
+    border-radius: 1px;
+    background: #f5f5f5;
+    box-shadow: -1px -1px 0 0 #cad5e2;
+    z-index: 61;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .tip-bottom-right:hover::after,
+  .tip-bottom-right:hover::before {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tip-bottom-right::after,
+    .tip-bottom-right::before {
+      transition: none;
+    }
+  }
+
+  /*------------- tip-abajo -------------*/
+  .tip-bottom {
+    position: relative;
+    display: inline-flex;
+    --tip-gap: 11px;
+  }
+
+  .tip-bottom::after {
+    content: attr(data-tip);
+    position: absolute;
+    left: 50%;
+    top: calc(100% + var(--tip-gap));
+    transform: translateX(-20%);
+    white-space: nowrap;
+    background: #f5f5f5;
+    color: var(--foreground);
+    font-size: 0.75rem;
+    line-height: 1;
+    padding: 0.375rem 0.5rem;
+    border-radius: 4px;
+    outline: 1px solid #cad5e2;
+    z-index: 60;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .tip-bottom::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: calc(100% + var(--tip-gap) - 3.3px);
+    transform: translateX(-50%) rotate(45deg);
+    width: 8px;
+    height: 8px;
+    border-radius: 1px;
+    background: #f5f5f5;
+    box-shadow: -1px -1px 0 0 #cad5e2;
+    z-index: 61;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .tip-bottom:hover::after,
+  .tip-bottom:hover::before {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tip-bottom::after,
+    .tip-bottom::before {
+      transition: none;
+    }
+  }
+
+  @media (hover: none), (pointer: coarse), (max-width: 775px) {
+    .tip-right::before,
+    .tip-right::after,
+    .tip-left::before,
+    .tip-left::after,
+    .tip-bottom::before,
+    .tip-bottom::after {
+      content: none !important; /* los “apaga” por completo */
+    }
   }
 }

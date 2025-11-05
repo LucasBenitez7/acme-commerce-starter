@@ -84,9 +84,9 @@ export default function Header({ categories }: { categories: Cat[] }) {
         ref={safeRef}
         onPointerLeave={handlePointerLeaveHeader}
         onClickCapture={handleAnyNavClickCapture}
-        className="mx-auto w-full z-[80] sticky top-0 h-[4rem] grid grid-cols-[auto_1fr] items-center bg-white px-6"
+        className="mx-auto w-full z-[100] sticky top-0 h-[4rem] grid grid-cols-[1fr_auto_1fr] items-center bg-white px-6"
       >
-        <div className="flex items-center h-full content-center">
+        <div className="flex justify-self-start items-center h-full content-center">
           <Sheet open={open} onOpenChange={setOpen} modal={false}>
             <BurgerButton
               open={open}
@@ -118,16 +118,16 @@ export default function Header({ categories }: { categories: Cat[] }) {
               </div>
             </SheetContent>
           </Sheet>
-
-          {/*------------- LOGO ------------- */}
-
-          <Link
-            href="/"
-            className="focus:outline-none mx-4 px-2 text-3xl font-semibold"
-          >
-            Logo lsb
-          </Link>
         </div>
+
+        {/*------------- LOGO ------------- */}
+
+        <Link
+          href="/"
+          className="flex justify-self-center focus:outline-none mx-2 px-2 text-3xl font-semibold"
+        >
+          Logo lsb
+        </Link>
 
         {/*------------- NAV ------------- */}
         <nav className="justify-self-end h-full flex items-center gap-1 text-base">

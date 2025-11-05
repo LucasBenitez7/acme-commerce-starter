@@ -24,7 +24,7 @@ export default function SiteSidebar({ categories }: { categories: Cat[] }) {
   return (
     <aside>
       <div className="px-6 flex flex-col">
-        <div className="flex flex-col pb-4 pt-1 space-y-2">
+        <div className="flex flex-col pb-4 space-y-2">
           <Link
             href="/novedades"
             prefetch={false}
