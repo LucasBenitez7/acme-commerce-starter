@@ -130,8 +130,8 @@ export default function Header({ categories }: { categories: Cat[] }) {
         </Link>
 
         {/*------------- NAV ------------- */}
-        <nav className="justify-self-end h-full flex items-center gap-1 text-base">
-          <div className="hidden sm:flex items-center gap-1 mx-2 border-b border-neutral-500">
+        <nav className="justify-self-end h-full flex items-center gap-2 text-base">
+          <div className="hidden sm:flex items-center gap-1 border-b border-neutral-500">
             <IoSearch className="size-[20px]" />
             <input
               type="search"
@@ -140,21 +140,26 @@ export default function Header({ categories }: { categories: Cat[] }) {
             />
           </div>
 
-          <Button asChild variant={"hovers"}>
-            <Link href="/account" className="flex items-center px-1 py-[6px]">
-              <FaRegUser className="size-[20px]" />
-            </Link>
-          </Button>
-          <Button asChild variant={"hovers"}>
-            <Link href="/favoritos" className="flex items-center px-1 py-[6px]">
-              <FaRegHeart className="size-[20px]" />
-            </Link>
-          </Button>
-          <Button asChild variant={"hovers"}>
-            <Link href="/cart" className="flex items-center px-1 py-[6px]">
-              <HiOutlineShoppingBag className="stroke-2 size-[20px]" />
-            </Link>
-          </Button>
+          <div className="flex gap-1">
+            <Button asChild variant={"hovers"}>
+              <Link href="/account" className="flex items-center px-1 py-[6px]">
+                <FaRegUser className="size-[20px]" />
+              </Link>
+            </Button>
+            <Button asChild variant={"hovers"}>
+              <Link
+                href="/favoritos"
+                className="flex items-center px-1 py-[6px]"
+              >
+                <FaRegHeart className="size-[20px]" />
+              </Link>
+            </Button>
+            <Button asChild variant={"hovers"}>
+              <Link href="/cart" className="flex items-center px-1 py-[6px]">
+                <HiOutlineShoppingBag className="stroke-2 size-[20px]" />
+              </Link>
+            </Button>
+          </div>
 
           <Button asChild variant={"outline"} className="text-base">
             <Link href="/admin" className="px-3 text-base">

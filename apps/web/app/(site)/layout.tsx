@@ -1,42 +1,22 @@
-import { unstable_cache } from "next/cache";
-
 import { Header, Footer } from "@/components/layout";
 import { Container } from "@/components/ui";
 
-import { prisma } from "@/lib/db";
+import { getHeaderCategories } from "@/lib/server/categories";
 
-import type { CategoryLink } from "@/types/catalog";
 import type { ReactNode } from "react";
-
-const getCategories = unstable_cache(
-  async () => {
-    return prisma.category.findMany({
-      orderBy: { sort: "asc" },
-      select: { slug: true, name: true },
-    });
-  },
-  ["header-categories"],
-  { revalidate: 60 },
-);
 
 export default async function SiteLayout({
   children,
 }: {
   children: ReactNode;
 }) {
-  const cats = await getCategories();
-  const categories: CategoryLink[] = cats.map(
-    (c: { slug: string; name: string }) => ({
-      slug: c.slug,
-      label: c.name,
-    }),
-  );
+  const categories = await getHeaderCategories();
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
       <Header categories={categories} />
       <div className="flex-1">
-        <Container className="py-6">
+        <Container>
           <main>{children}</main>
         </Container>
       </div>

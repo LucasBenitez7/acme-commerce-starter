@@ -1,4 +1,3 @@
-// apps/web/lib/format.ts
 export function formatPrice(
   priceCents: number,
   currency: string = "EUR",
