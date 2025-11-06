@@ -1,157 +1,133 @@
 "use client";
 
-import { Heart, Search, UserRound, XIcon } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { FaRegUser, FaRegHeart } from "react-icons/fa6";
+import { HiOutlineShoppingBag } from "react-icons/hi2";
+import { IoSearch } from "react-icons/io5";
 
 import {
   Sheet,
-  SheetClose,
   SheetContent,
-  SheetHeader as SheetHdr,
   SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+  BurgerButton,
+  Button,
+} from "@/components/ui";
 
-import SiteSidebar from "./SiteSidebar";
+import { useAutoCloseOnRouteChange } from "@/hooks/use-auto-close-on-route-change";
+import { useLockBodyScroll } from "@/hooks/use-lock-body-scroll";
+import { useSheetSafety } from "@/hooks/use-sheet-safety";
 
-export type Cat = { slug: string; label: string };
+import { SiteSidebar } from "./SiteSidebar";
 
-export default function Header({ categories }: { categories: Cat[] }) {
+import type { CategoryLink } from "@/types/catalog";
+
+const SHEET_ID = "site-sidebar";
+
+export function Header({ categories }: { categories: CategoryLink[] }) {
   const [open, setOpen] = useState(false);
+  const safeRef = useRef<HTMLDivElement>(null);
 
-  const handlePointerOut: React.PointerEventHandler<HTMLDivElement> = (e) => {
-    if (e.pointerType !== "mouse") return;
-    const contentEl = e.currentTarget;
-    const rt = e.relatedTarget as Node | null;
+  useLockBodyScroll(open);
+  useAutoCloseOnRouteChange(open, () => setOpen(false));
 
-    if (!rt) return;
-
-    if (contentEl.contains(rt)) return;
-
-    if (document.contains(rt)) setOpen(false);
-  };
+  const {
+    handlePointerLeaveHeader,
+    handlePointerLeaveSheet,
+    handleAnyNavClickCapture,
+    onInteractOutside,
+  } = useSheetSafety({ open, setOpen, safeRef, sheetId: SHEET_ID });
 
   return (
-    <header className="mx-auto w-full px-6 sm:px-8 z-50 sticky top-0 border-b h-16 grid grid-cols-[1fr_auto_1fr] items-center bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/50">
-      <div className="justify-self-start">
-        <Sheet open={open} onOpenChange={setOpen}>
-          {/* Abrir Menu */}
-          <SheetTrigger asChild>
-            <span
-              aria-label="Abrir menú"
-              title="Abrir menú"
-              className="hover:cursor-pointer"
+    <>
+      <header
+        ref={safeRef}
+        onPointerLeave={handlePointerLeaveHeader}
+        onClickCapture={handleAnyNavClickCapture}
+        className="mx-auto w-full z-[100] sticky top-0 h-[4rem] grid grid-cols-[1fr_auto_1fr] items-center bg-white px-6"
+      >
+        <div className="flex justify-self-start items-center h-full content-center">
+          <Sheet open={open} onOpenChange={setOpen} modal={false}>
+            <BurgerButton
+              open={open}
+              onToggle={() => setOpen((v) => !v)}
+              controlsId={SHEET_ID}
+              aria-disabled={open}
+            />
+            <SheetContent
+              id={SHEET_ID}
+              side="left"
+              className="w-[min(360px,92vw)] sm:w-[360px] lg:w-[400px] outline-none"
+              onPointerLeave={handlePointerLeaveSheet}
+              onClickCapture={handleAnyNavClickCapture}
+              onInteractOutside={onInteractOutside}
+              onEscapeKeyDown={() => setOpen(false)}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="22px"
-                height="22px"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  fill="currentColor"
-                  d="M3 4h18v2H3zm0 7h12v2H3zm0 7h18v2H3z"
-                />
-              </svg>
-            </span>
-          </SheetTrigger>
-
-          <SheetContent
-            side="left"
-            className="z-[60] w-[min(360px,92vw)] sm:w-[360px] lg:w-[400px] outline-none"
-            onPointerOut={handlePointerOut}
-            onInteractOutside={() => setOpen(false)}
-            onEscapeKeyDown={() => setOpen(false)}
-          >
-            <div className="overflow-y-auto h-full focus:outline-none">
-              <SheetHdr className="flex flex-row justify-between h-14 items-center px-5  border-b">
-                <SheetTitle>Categorias</SheetTitle>
-                {/* Cerrar Menu */}
-                <SheetClose asChild>
-                  <span
-                    className="hover:cursor-pointer"
-                    aria-label="Cerrar menú"
-                    title="Cerrar menú"
-                  >
-                    <XIcon
-                      strokeWidth={2.5}
-                      className="
-											size-[18px]
-											focus:outline-none active:outline-none hover:cursor-pointer 
-											"
-                    />
-                  </span>
-                </SheetClose>
-              </SheetHdr>
-              <div>
+              <div className="overflow-y-auto h-full focus:outline-none">
+                <SheetTitle className="hidden">Menu</SheetTitle>
                 <SiteSidebar categories={categories} />
               </div>
-            </div>
-          </SheetContent>
-        </Sheet>
-      </div>
-
-      <Link
-        href="/"
-        className="justify-self-center font-semibold tracking-tight"
-      >
-        Logo + lsbstack • shop
-      </Link>
-
-      <nav className="justify-self-end flex items-center gap-1 text-base">
-        <div className="flex items-center gap-1 border-b border-neutral-500">
-          <Search
-            className=" 
-							size-[22px]
-						"
-          />
-          <input
-            type="search"
-            placeholder="Buscar"
-            className="hover:outline-none active:outline-none focus:outline-none px-1"
-          />
+            </SheetContent>
+          </Sheet>
         </div>
-        <div className="flex items-center p-1 ml-2">
-          <Link href="/account">
-            <UserRound
-              className=" 
-								size-[22px]
-								focus:outline-none active:outline-none hover:cursor-pointer 
-							"
+
+        {/*------------- LOGO ------------- */}
+        <Link
+          href="/"
+          className="flex justify-self-center focus:outline-none mx-2 px-2 text-3xl font-semibold"
+        >
+          Logo lsb
+        </Link>
+
+        {/*------------- NAV ------------- */}
+        <nav className="justify-self-end h-full flex items-center gap-2 text-base">
+          <div className="hidden sm:flex items-center gap-1 border-b border-neutral-500">
+            <IoSearch className="size-[20px]" />
+            <input
+              type="search"
+              placeholder="Buscar"
+              className="px-1 outline-none w-[200px]"
             />
-          </Link>
-        </div>
-        <div className="flex items-center p-1">
-          <Link href="/favoritos">
-            <Heart size={20} strokeWidth={2} />
-          </Link>
-        </div>
-        <div className="flex items-center p-1">
-          <Link href="/cart">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="22px"
-              height="22px"
-              viewBox="0 0 24 24"
-            >
-              <g
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
+          </div>
+
+          <div className="flex gap-1">
+            <Button asChild variant={"hovers"}>
+              <Link href="/account" className="flex items-center px-1 py-[6px]">
+                <FaRegUser className="size-[20px]" />
+              </Link>
+            </Button>
+            <Button asChild variant={"hovers"}>
+              <Link
+                href="/favoritos"
+                className="flex items-center px-1 py-[6px]"
               >
-                <path d="M6.331 8H17.67a2 2 0 0 1 1.977 2.304l-1.255 8.152A3 3 0 0 1 15.426 21H8.574a3 3 0 0 1-2.965-2.544l-1.255-8.152A2 2 0 0 1 6.331 8" />
-                <path d="M9 11V6a3 3 0 0 1 6 0v5" />
-              </g>
-            </svg>
-          </Link>
-        </div>
-        <div className="flex items-center p-1">
-          <Link href="/admin">Admin</Link>
-        </div>
-      </nav>
-    </header>
+                <FaRegHeart className="size-[20px]" />
+              </Link>
+            </Button>
+            <Button asChild variant={"hovers"}>
+              <Link href="/cart" className="flex items-center px-1 py-[6px]">
+                <HiOutlineShoppingBag className="stroke-2 size-[20px]" />
+              </Link>
+            </Button>
+          </div>
+
+          <Button asChild variant={"outline"} className="text-base">
+            <Link href="/admin" className="px-3 text-base">
+              Admin
+            </Link>
+          </Button>
+        </nav>
+      </header>
+      <div
+        aria-hidden="true"
+        onClick={() => open && setOpen(false)}
+        className={`fixed inset-x-0 bottom-0 top-[var(--header-h)] z-[70] bg-black print:hidden
+              ${
+                open
+                  ? "opacity-30 motion-safe:transition-opacity duration-400 ease-out pointer-events-auto"
+                  : "opacity-0 motion-safe:transition-opacity duration-200 ease-out pointer-events-none"
+              }`}
+      ></div>
+    </>
   );
 }

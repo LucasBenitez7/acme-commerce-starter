@@ -1,54 +1,80 @@
 "use client";
-
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 
-type Cat = { slug: string; label: string };
+import type { CategoryLink } from "@/types/catalog";
 
-export default function SiteSidebar({ categories }: { categories: Cat[] }) {
-  const sp = useSearchParams();
+export function SiteSidebar({ categories }: { categories: CategoryLink[] }) {
   const pathname = usePathname();
+  const sp = useSearchParams();
 
-  const fromPath = pathname?.startsWith("/cat/")
-    ? (pathname.split("/")[2] ?? "")
-    : "";
-  const fromQuery = sp.get("cat") ?? "";
-  const activeCat = fromPath || fromQuery || "";
-  const isAllActive = pathname === "/catalogo";
+  const [, section = "", sub = ""] = pathname.split("/");
+
+  const catFromPath = section === "cat" ? sub : "";
+  const catFromQuery = sp.get("cat") ?? "";
+  const currentCat = catFromPath || catFromQuery;
+
+  const isNovedades = pathname === "/novedades";
+  const isPromociones = pathname === "/promociones";
+  const isCatalogoAll = section === "catalogo" && !currentCat;
 
   return (
     <aside>
-      <div className="pl-7">
-        <ul className="mt-3 space-y-3 text-sm">
+      <div className="px-6 flex flex-col">
+        <div className="flex flex-col pb-4 space-y-2">
+          <Link
+            href="/novedades"
+            prefetch={false}
+            aria-current={isNovedades ? "page" : undefined}
+            className={cn(
+              "fx-underline-anim w-max text-2xl font-medium pt-1",
+              isNovedades && "fx-underline-anim-active",
+            )}
+          >
+            Novedades
+          </Link>
+          <Link
+            href="/promociones"
+            prefetch={false}
+            aria-current={isPromociones ? "page" : undefined}
+            className={cn(
+              "fx-underline-anim w-max text-2xl font-medium pt-1",
+              isPromociones && "fx-underline-anim-active",
+            )}
+          >
+            Promociones
+          </Link>
+        </div>
+
+        <ul className="h-full text-base space-y-2">
           {/* Enlace sintético arriba de todo */}
           <li key="all">
             <Link
               href="/catalogo"
               prefetch={false}
-              aria-current={isAllActive ? "page" : undefined}
+              aria-current={isCatalogoAll ? "page" : undefined}
               className={cn(
-                "block rounded px-2 py-1 hover:bg-neutral-100",
-                isAllActive && "bg-neutral-200 font-medium",
+                "fx-underline-anim",
+                isCatalogoAll && "fx-underline-anim-active",
               )}
             >
               Todas las prendas
             </Link>
           </li>
 
-          {categories.map((c: Cat) => {
-            const isActive = c.slug === activeCat;
+          {categories.map((c: CategoryLink) => {
+            const isActive = currentCat === c.slug;
             return (
               <li key={c.slug}>
-                {/* Canonical de categoría */}
                 <Link
                   href={`/cat/${c.slug}`}
                   prefetch={false}
                   aria-current={isActive ? "page" : undefined}
                   className={cn(
-                    "block rounded px-2 py-1 hover:bg-neutral-100",
-                    isActive && "bg-neutral-200 font-medium",
+                    "fx-underline-anim",
+                    isActive && "fx-underline-anim-active",
                   )}
                 >
                   {c.label}

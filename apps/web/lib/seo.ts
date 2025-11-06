@@ -1,14 +1,9 @@
-// Utilidades SEO
 export type RawSearchParams = Record<string, string | string[] | undefined>;
 
 export function pickFirst(value?: string | string[]) {
   return Array.isArray(value) ? value[0] : (value ?? undefined);
 }
 
-/**
- * Construye una canonical relativa combinando pathname + subset de searchParams.
- * Ejemplo: keep=['cat'] → /?cat=remeras (sin page)
- */
 export function canonicalFromSearchParams(opts: {
   pathname?: string;
   searchParams: RawSearchParams;
