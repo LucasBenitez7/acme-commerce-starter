@@ -7,12 +7,17 @@ export default function NotFound() {
       <p className="mt-2 text-neutral-600">
         Puede que el enlace esté roto o la página haya sido movida.
       </p>
-      <div className="mt-6 flex items-center justify-center gap-3">
-        <Link href="/" className="underline">
+      <div className="mt-6 flex items-center justify-center gap-6">
+        <Link
+          href="/"
+          className="py-2 px-4 font-medium rounded-sm border border-slate-300 bg-background hover:bg-neutral-100"
+        >
           Volver al inicio
         </Link>
-        <span>·</span>
-        <Link href="/catalogo" className="underline">
+        <Link
+          href="/catalogo"
+          className="py-2 px-4 font-medium rounded-sm border border-slate-300 bg-foreground text-background hover:bg-slate-800"
+        >
           Ir al catálogo
         </Link>
       </div>
