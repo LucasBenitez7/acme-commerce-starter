@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { Button } from "@/components/ui";
+import { Button, PendingLink } from "@/components/ui";
 
 import { makePageHref } from "@/lib/catalog/pagination";
 
@@ -27,14 +27,14 @@ export function PaginationNav({
         Página {page} de {totalPages}
       </p>
       <Button asChild variant="outline" disabled={page <= 1}>
-        <Link href={prevHref} rel="prev" className="px-4 py-2">
+        <PendingLink href={prevHref} rel="prev" className="px-4 py-2">
           Anterior
-        </Link>
+        </PendingLink>
       </Button>
       <Button asChild disabled={page >= totalPages}>
-        <Link href={nextHref} rel="next" className="px-4 py-2">
+        <PendingLink href={nextHref} rel="next" className="px-4 py-2">
           Siguiente
-        </Link>
+        </PendingLink>
       </Button>
     </nav>
   );

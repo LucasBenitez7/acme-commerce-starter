@@ -52,9 +52,8 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
               open={open}
               onToggle={() => setOpen((v) => !v)}
               controlsId={SHEET_ID}
+              aria-disabled={open}
             />
-
-            {/* Sidebar Content*/}
             <SheetContent
               id={SHEET_ID}
               side="left"
@@ -73,7 +72,6 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
         </div>
 
         {/*------------- LOGO ------------- */}
-
         <Link
           href="/"
           className="flex justify-self-center focus:outline-none mx-2 px-2 text-3xl font-semibold"
