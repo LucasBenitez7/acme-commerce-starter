@@ -1,13 +1,12 @@
 "use client";
-
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 
-type Cat = { slug: string; label: string };
+import type { CategoryLink } from "@/types/catalog";
 
-export default function SiteSidebar({ categories }: { categories: Cat[] }) {
+export function SiteSidebar({ categories }: { categories: CategoryLink[] }) {
   const pathname = usePathname();
   const sp = useSearchParams();
 
@@ -65,7 +64,7 @@ export default function SiteSidebar({ categories }: { categories: Cat[] }) {
             </Link>
           </li>
 
-          {categories.map((c: Cat) => {
+          {categories.map((c: CategoryLink) => {
             const isActive = currentCat === c.slug;
             return (
               <li key={c.slug}>

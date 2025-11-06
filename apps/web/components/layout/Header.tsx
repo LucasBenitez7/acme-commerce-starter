@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { FaRegUser, FaRegHeart } from "react-icons/fa6";
 import { HiOutlineShoppingBag } from "react-icons/hi2";
 import { IoSearch } from "react-icons/io5";
@@ -15,68 +14,29 @@ import {
   Button,
 } from "@/components/ui";
 
-import useLockBodyScroll from "@/hooks/use-lock-body-scroll";
+import { useAutoCloseOnRouteChange } from "@/hooks/use-auto-close-on-route-change";
+import { useLockBodyScroll } from "@/hooks/use-lock-body-scroll";
+import { useSheetSafety } from "@/hooks/use-sheet-safety";
 
-import SiteSidebar from "./SiteSidebar";
+import { SiteSidebar } from "./SiteSidebar";
 
-export type Cat = { slug: string; label: string };
+import type { CategoryLink } from "@/types/catalog";
 
-export default function Header({ categories }: { categories: Cat[] }) {
+const SHEET_ID = "site-sidebar";
+
+export function Header({ categories }: { categories: CategoryLink[] }) {
   const [open, setOpen] = useState(false);
   const safeRef = useRef<HTMLDivElement>(null);
-  const pathname = usePathname();
-  const search = useSearchParams();
-
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname, search?.toString()]);
 
   useLockBodyScroll(open);
+  useAutoCloseOnRouteChange(open, () => setOpen(false));
 
-  function inSafeZone(node: Element | null) {
-    const headerEl = safeRef.current;
-    const sheetEl = document.getElementById("site-sidebar");
-    return !!(node && (headerEl?.contains(node) || sheetEl?.contains(node)));
-  }
-
-  function closeIfOutside(x: number, y: number, related?: EventTarget | null) {
-    if (!open) return;
-    if (!related) return;
-
-    const el = document.elementFromPoint(x, y) as Element | null;
-
-    if (!el) return;
-    if (inSafeZone(el)) return;
-
-    setOpen(false);
-  }
-
-  const handlePointerLeaveHeader: React.PointerEventHandler<HTMLElement> = (
-    e,
-  ) => {
-    if (e.pointerType !== "mouse") return;
-
-    closeIfOutside(e.clientX, e.clientY, e.relatedTarget);
-  };
-
-  const handlePointerLeaveSheet: React.PointerEventHandler<HTMLDivElement> = (
-    e,
-  ) => {
-    if (e.pointerType !== "mouse") return;
-
-    closeIfOutside(e.clientX, e.clientY, e.relatedTarget);
-  };
-
-  const handleAnyNavClickCapture: React.MouseEventHandler<HTMLElement> = (
-    e,
-  ) => {
-    const target = e.target as HTMLElement | null;
-    const anchor = target?.closest<HTMLAnchorElement>("a[href]");
-    if (!anchor) return;
-    if (anchor.getAttribute("target") === "_blank") return;
-    if (anchor.dataset.keepOpen === "true") return;
-    setOpen(false);
-  };
+  const {
+    handlePointerLeaveHeader,
+    handlePointerLeaveSheet,
+    handleAnyNavClickCapture,
+    onInteractOutside,
+  } = useSheetSafety({ open, setOpen, safeRef, sheetId: SHEET_ID });
 
   return (
     <>
@@ -91,25 +51,17 @@ export default function Header({ categories }: { categories: Cat[] }) {
             <BurgerButton
               open={open}
               onToggle={() => setOpen((v) => !v)}
-              controlsId="site-sidebar"
-              className=""
+              controlsId={SHEET_ID}
             />
 
             {/* Sidebar Content*/}
             <SheetContent
-              id="site-sidebar"
+              id={SHEET_ID}
               side="left"
               className="w-[min(360px,92vw)] sm:w-[360px] lg:w-[400px] outline-none"
               onPointerLeave={handlePointerLeaveSheet}
               onClickCapture={handleAnyNavClickCapture}
-              onInteractOutside={(e) => {
-                const t = e.target as Node | null;
-                if (t && safeRef.current?.contains(t)) {
-                  e.preventDefault();
-                  return;
-                }
-                setOpen(false);
-              }}
+              onInteractOutside={onInteractOutside}
               onEscapeKeyDown={() => setOpen(false)}
             >
               <div className="overflow-y-auto h-full focus:outline-none">

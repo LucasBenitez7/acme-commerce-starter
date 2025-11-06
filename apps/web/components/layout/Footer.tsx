@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { Container } from "@/components/ui";
 
-export default function Footer() {
+export function Footer() {
   return (
     <footer className="border-t">
       <Container className="py-8 text-sm text-neutral-600 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">

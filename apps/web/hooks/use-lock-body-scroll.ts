@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-function useLockBodyScroll(locked: boolean) {
+export function useLockBodyScroll(locked: boolean) {
   useEffect(() => {
     if (!locked) return;
 
@@ -18,5 +18,3 @@ function useLockBodyScroll(locked: boolean) {
     };
   }, [locked]);
 }
-
-export default useLockBodyScroll;
