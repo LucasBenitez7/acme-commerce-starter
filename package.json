@@ -43,5 +43,9 @@
     "prisma": "^6.17.1",
     "turbo": "^2.5.8",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.10.1",
+    "react-redux": "^9.2.0"
   }
 }
