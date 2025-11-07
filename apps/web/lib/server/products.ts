@@ -54,3 +54,34 @@ export async function fetchProductsPage({
   ]);
   return { rows, total };
 }
+
+export async function getProductMetaBySlug(slug: string) {
+  if (!slug) return null;
+  return prisma.product.findUnique({
+    where: { slug },
+    select: {
+      name: true,
+      description: true,
+      images: { select: { url: true }, orderBy: { sort: "desc" } },
+    },
+  });
+}
+
+export async function getProductFullBySlug(slug: string) {
+  if (!slug) return null;
+  return prisma.product.findUnique({
+    where: { slug },
+    include: {
+      images: { orderBy: { sort: "desc" } },
+      category: { select: { slug: true, name: true } },
+    },
+  });
+}
+
+export async function getProductSlugs(limit = 1000) {
+  return prisma.product.findMany({
+    select: { slug: true },
+    take: limit,
+    orderBy: { createdAt: "desc" },
+  });
+}
