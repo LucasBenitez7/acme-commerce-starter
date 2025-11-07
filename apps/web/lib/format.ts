@@ -1,16 +1,10 @@
+import { formatMinor, parseCurrency } from "@/lib/currency";
+
 export function formatPrice(
-  priceCents: number,
+  amountMinor: number,
   currency: string = "EUR",
-  locale: string = "es-ES",
+  locale?: string,
 ) {
-  const amount = (priceCents ?? 0) / 100;
-  try {
-    return new Intl.NumberFormat(locale, {
-      style: "currency",
-      currency,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  } catch {
-    return `${amount.toFixed(2)} ${currency}`;
-  }
+  // parseCurrency normaliza a "EUR" | "PYG"
+  return formatMinor(amountMinor ?? 0, parseCurrency(currency), locale);
 }

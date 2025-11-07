@@ -9,13 +9,15 @@ export type ProductImage = {
   sort?: number;
 };
 
+export type SupportedCurrency = "EUR" | "PYG";
+
 // DTO para listas (home, /catalogo, /cat/[slug])
 export type ProductListItem = {
   id: string;
   slug: string;
   name: string;
   priceCents: number;
-  currency: string;
+  currency: SupportedCurrency;
   thumbnail: string | null;
 };
 
