@@ -8,7 +8,7 @@ import {
 
 import { rowsToListItems } from "@/lib/catalog/mapping";
 import { PER_PAGE, parsePage } from "@/lib/catalog/pagination";
-import { prisma } from "@/lib/db";
+import { getCategoryBySlug } from "@/lib/server/categories";
 import { fetchProductsPage } from "@/lib/server/products";
 
 import type { ParamsSlug, SP } from "@/types/catalog";
@@ -29,10 +29,7 @@ export default async function CategoryPage({
   const sp = (await searchParams) ?? {};
   const page = Math.max(1, parsePage(sp.page, 1));
 
-  const cat = await prisma.category.findUnique({
-    where: { slug },
-    select: { id: true, name: true },
-  });
+  const cat = await getCategoryBySlug(slug);
   if (!cat) notFound();
 
   const { rows, total } = await fetchProductsPage({

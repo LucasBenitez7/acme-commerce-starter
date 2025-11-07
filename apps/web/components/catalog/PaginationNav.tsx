@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { Button, PendingLink } from "@/components/ui";
 
 import { makePageHref } from "@/lib/catalog/pagination";
