@@ -3,6 +3,7 @@ import Link from "next/link";
 import { FaRegHeart } from "react-icons/fa6";
 import { HiOutlineShoppingBag } from "react-icons/hi2";
 
+import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui";
 
 import { formatPrice } from "@/lib/format";
@@ -47,6 +48,7 @@ export function ProductCard({
             <div className="flex items-center justify-between">
               <p>talla</p>
               <HiOutlineShoppingBag className="size-[20px] stroke-2" />
+              <AddToCartButton slug={item.slug} />
             </div>
           )}
         </CardContent>

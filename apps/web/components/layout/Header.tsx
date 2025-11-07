@@ -14,9 +14,12 @@ import {
   Button,
 } from "@/components/ui";
 
+import { useAppSelector } from "@/hooks/use-app-selector";
 import { useAutoCloseOnRouteChange } from "@/hooks/use-auto-close-on-route-change";
 import { useLockBodyScroll } from "@/hooks/use-lock-body-scroll";
+import { useMounted } from "@/hooks/use-mounted";
 import { useSheetSafety } from "@/hooks/use-sheet-safety";
+import { selectCartTotalQty } from "@/store/cart.selectors";
 
 import { SiteSidebar } from "./SiteSidebar";
 
@@ -27,6 +30,8 @@ const SHEET_ID = "site-sidebar";
 export function Header({ categories }: { categories: CategoryLink[] }) {
   const [open, setOpen] = useState(false);
   const safeRef = useRef<HTMLDivElement>(null);
+  const mounted = useMounted();
+  const total = useAppSelector(selectCartTotalQty);
 
   useLockBodyScroll(open);
   useAutoCloseOnRouteChange(open, () => setOpen(false));
@@ -109,6 +114,14 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
                 <HiOutlineShoppingBag className="stroke-2 size-[20px]" />
               </Link>
             </Button>
+            {mounted && total > 0 && (
+              <span
+                aria-label={`Cantidad en carrito: ${total}`}
+                className="absolute right-4 top-4  inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-xs font-medium text-primary-foreground"
+              >
+                {total}
+              </span>
+            )}
           </div>
 
           <Button asChild variant={"outline"} className="text-base">
