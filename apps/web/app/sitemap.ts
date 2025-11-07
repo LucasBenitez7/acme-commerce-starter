@@ -10,6 +10,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "daily",
       priority: 1,
     },
-    // Cuando sumemos más páginas, agrégalas aquí.
   ];
 }
