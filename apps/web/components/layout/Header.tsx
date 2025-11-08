@@ -6,6 +6,7 @@ import { FaRegUser, FaRegHeart } from "react-icons/fa6";
 import { HiOutlineShoppingBag } from "react-icons/hi2";
 import { IoSearch } from "react-icons/io5";
 
+import { CartButtonWithSheet } from "@/components/cart/CartButtonWithSheet";
 import {
   Sheet,
   SheetContent,
@@ -96,12 +97,12 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
           </div>
 
           <div className="flex gap-1">
-            <Button asChild variant={"hovers"}>
+            <Button asChild variant={"hovers"} aria-label="Cuenta">
               <Link href="/account" className="flex items-center px-1 py-[6px]">
-                <FaRegUser className="size-[20px]" />
+                <FaRegUser className="size-[20]" />
               </Link>
             </Button>
-            <Button asChild variant={"hovers"}>
+            <Button asChild variant={"hovers"} aria-label="Favoritos">
               <Link
                 href="/favoritos"
                 className="flex items-center px-1 py-[6px]"
@@ -109,19 +110,8 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
                 <FaRegHeart className="size-[20px]" />
               </Link>
             </Button>
-            <Button asChild variant={"hovers"}>
-              <Link href="/cart" className="flex items-center px-1 py-[6px]">
-                <HiOutlineShoppingBag className="stroke-2 size-[20px]" />
-              </Link>
-            </Button>
-            {mounted && total > 0 && (
-              <span
-                aria-label={`Cantidad en carrito: ${total}`}
-                className="absolute right-4 top-4  inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-xs font-medium text-primary-foreground"
-              >
-                {total}
-              </span>
-            )}
+
+            <CartButtonWithSheet />
           </div>
 
           <Button asChild variant={"outline"} className="text-base">
