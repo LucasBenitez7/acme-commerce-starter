@@ -5,8 +5,19 @@ export const MINOR_UNITS: Record<SupportedCurrency, number> = {
   PYG: 0,
 } as const;
 
+const RAW = process.env.NEXT_PUBLIC_DEFAULT_CURRENCY;
 export const DEFAULT_CURRENCY: SupportedCurrency =
-  process.env.NEXT_PUBLIC_DEFAULT_CURRENCY === "PYG" ? "PYG" : "EUR";
+  RAW === "PYG" ? "PYG" : "EUR";
+if (
+  process.env.NODE_ENV !== "production" &&
+  RAW &&
+  RAW !== "PYG" &&
+  RAW !== "EUR"
+) {
+  console.warn(
+    `[currency] NEXT_PUBLIC_DEFAULT_CURRENCY="${RAW}" no es válida. Usando ${DEFAULT_CURRENCY}. Permitidas: EUR | PYG.`,
+  );
+}
 
 export const LOCALE_BY_CURRENCY: Record<SupportedCurrency, string> = {
   EUR: "es-ES",
