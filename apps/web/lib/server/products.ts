@@ -62,7 +62,10 @@ export async function getProductMetaBySlug(slug: string) {
     select: {
       name: true,
       description: true,
-      images: { select: { url: true }, orderBy: { sort: "desc" } },
+      images: {
+        select: { url: true },
+        orderBy: [{ sort: "asc" }, { id: "asc" }],
+      },
     },
   });
 }
@@ -72,7 +75,9 @@ export async function getProductFullBySlug(slug: string) {
   return prisma.product.findUnique({
     where: { slug },
     include: {
-      images: { orderBy: { sort: "desc" } },
+      images: {
+        orderBy: [{ sort: "asc" }, { id: "asc" }],
+      },
       category: { select: { slug: true, name: true } },
     },
   });

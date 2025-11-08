@@ -9,7 +9,7 @@ export function rowsToListItems(rows: ProductRow[]): ProductListItem[] {
     slug: r.slug,
     name: r.name,
     priceCents: r.priceCents,
-    currency: parseCurrency(r.currency ?? DEFAULT_CURRENCY),
+    currency: DEFAULT_CURRENCY,
     thumbnail: r.images[0]?.url ?? null,
   }));
 }

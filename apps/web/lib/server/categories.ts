@@ -17,14 +17,19 @@ export const getHeaderCategories = unstable_cache(
   { revalidate: 60 },
 );
 
-export const getCategoryBySlug = unstable_cache(
-  async (slug: string) => {
-    if (!slug) return null;
-    return prisma.category.findUnique({
-      where: { slug },
-      select: { id: true, name: true, slug: true },
-    });
-  },
-  ["category-by-slug@v1"],
-  { revalidate: 60 },
-);
+export async function getCategoryBySlug(slug: string) {
+  if (!slug) return null;
+
+  const cached = unstable_cache(
+    async () => {
+      return prisma.category.findUnique({
+        where: { slug },
+        select: { id: true, name: true, slug: true },
+      });
+    },
+    ["category-by-slug@v1", slug], // ← clave única por slug
+    { revalidate: 60 },
+  );
+
+  return cached();
+}

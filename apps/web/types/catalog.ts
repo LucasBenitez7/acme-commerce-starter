@@ -1,3 +1,5 @@
+import type { SupportedCurrency } from "@/lib/currency";
+
 export type CategoryLink = {
   slug: string;
   label: string;
@@ -9,9 +11,7 @@ export type ProductImage = {
   sort?: number;
 };
 
-export type SupportedCurrency = "EUR" | "PYG";
-
-// DTO para listas (home, /catalogo, /cat/[slug])
+// DTO para listas
 export type ProductListItem = {
   id: string;
   slug: string;
@@ -28,7 +28,7 @@ export type ProductDetail = {
   name: string;
   description: string | null;
   priceCents: number;
-  currency: string;
+  currency: SupportedCurrency;
   images: ProductImage[];
   category: { slug: string; name: string };
 };
