@@ -6,7 +6,7 @@ import { HiOutlineShoppingBag } from "react-icons/hi2";
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui";
 
-import { formatPrice } from "@/lib/format";
+import { formatMinor, DEFAULT_CURRENCY } from "@/lib/currency";
 
 import type { ProductListItem } from "@/types/catalog";
 
@@ -37,18 +37,26 @@ export function ProductCard({
           <CardTitle className="font-medium">
             <Link href={`/product/${item.slug}`}>{item.name}</Link>
           </CardTitle>
-          <FaRegHeart className="size-[20px]" />
+          <FaRegHeart className="size-[20px]" aria-hidden="true" />
         </CardHeader>
         <CardContent className="flex flex-col gap-2 px-2 pb-2">
           <p className="text-sm text-neutral-600">
-            {formatPrice(item.priceCents, item.currency ?? "EUR")}
+            {formatMinor(item.priceCents, DEFAULT_CURRENCY)}
           </p>
           <p>c1 c2 c3 c4</p>
           {showCartRow && (
             <div className="flex items-center justify-between">
               <p>talla</p>
               <HiOutlineShoppingBag className="size-[20px] stroke-2" />
-              <AddToCartButton slug={item.slug} />
+              <AddToCartButton
+                slug={item.slug}
+                details={{
+                  slug: item.slug,
+                  name: item.name,
+                  priceMinor: item.priceCents,
+                  imageUrl: img,
+                }}
+              />
             </div>
           )}
         </CardContent>
