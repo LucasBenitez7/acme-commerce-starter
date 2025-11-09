@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { FaRegUser, FaRegHeart } from "react-icons/fa6";
-import { HiOutlineShoppingBag } from "react-icons/hi2";
 import { IoSearch } from "react-icons/io5";
 
 import { CartButtonWithSheet } from "@/components/cart/CartButtonWithSheet";
@@ -15,12 +14,9 @@ import {
   Button,
 } from "@/components/ui";
 
-import { useAppSelector } from "@/hooks/use-app-selector";
 import { useAutoCloseOnRouteChange } from "@/hooks/use-auto-close-on-route-change";
 import { useLockBodyScroll } from "@/hooks/use-lock-body-scroll";
-import { useMounted } from "@/hooks/use-mounted";
 import { useSheetSafety } from "@/hooks/use-sheet-safety";
-import { selectCartTotalQty } from "@/store/cart.selectors";
 
 import { SiteSidebar } from "./SiteSidebar";
 
@@ -31,8 +27,6 @@ const SHEET_ID = "site-sidebar";
 export function Header({ categories }: { categories: CategoryLink[] }) {
   const [open, setOpen] = useState(false);
   const safeRef = useRef<HTMLDivElement>(null);
-  const mounted = useMounted();
-  const total = useAppSelector(selectCartTotalQty);
 
   useLockBodyScroll(open);
   useAutoCloseOnRouteChange(open, () => setOpen(false));
@@ -95,30 +89,34 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
               className="px-1 outline-none w-[200px]"
             />
           </div>
-
           <div className="flex gap-1">
-            <Button asChild variant={"hovers"} aria-label="Cuenta">
-              <Link href="/account" className="flex items-center px-1 py-[6px]">
-                <FaRegUser className="size-[20]" />
+            <Button asChild variant={"hovers"}>
+              <Link
+                href="/account"
+                className="flex items-center"
+                aria-label="Cuenta"
+              >
+                <FaRegUser className="size-[24px]" aria-hidden="true" />
               </Link>
             </Button>
-            <Button asChild variant={"hovers"} aria-label="Favoritos">
+            <Button asChild variant={"hovers"}>
               <Link
                 href="/favoritos"
-                className="flex items-center px-1 py-[6px]"
+                className="flex items-center"
+                aria-label="Favoritos"
               >
-                <FaRegHeart className="size-[20px]" />
+                <FaRegHeart className="size-[24px]" aria-hidden="true" />
               </Link>
             </Button>
 
             <CartButtonWithSheet />
           </div>
 
-          <Button asChild variant={"outline"} className="text-base">
-            <Link href="/admin" className="px-3 text-base">
-              Admin
-            </Link>
-          </Button>
+          {/* <Button asChild variant={"outline"} className="text-base">
+						<Link href="/admin" className="px-3 py-2 text-base">
+							Admin
+						</Link>
+					</Button> */}
         </nav>
       </header>
       <div

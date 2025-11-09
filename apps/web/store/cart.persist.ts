@@ -38,10 +38,22 @@ export function readFromLocalStorage(): CartItemMini[] {
 }
 
 export function writeEverywhere(items: CartItemMini[]) {
+  const encoded = encodeURIComponent(encodeCookie(items));
+
   if (typeof document !== "undefined") {
-    const val = encodeURIComponent(encodeCookie(items));
-    document.cookie = `${CART_COOKIE_NAME}=${val}; Max-Age=${CART_COOKIE_MAX_AGE}; Path=/; SameSite=Lax`;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "";
+    const isProd = process.env.NODE_ENV === "production";
+    const isHttps =
+      (typeof window !== "undefined" &&
+        window.location.protocol === "https:") ||
+      siteUrl.startsWith("https");
+
+    const secure = isProd && isHttps ? "; Secure" : "";
+    document.cookie =
+      `${CART_COOKIE_NAME}=${encoded}; ` +
+      `Max-Age=${CART_COOKIE_MAX_AGE}; Path=/; SameSite=Lax${secure}`;
   }
+
   if (typeof window !== "undefined") {
     try {
       window.localStorage.setItem(CART_LS_KEY, encodeCookie(items));

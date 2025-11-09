@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
-import { HiOutlineShoppingBag } from "react-icons/hi2";
+import { CgClose } from "react-icons/cg";
+import { FiShoppingBag } from "react-icons/fi";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,7 +27,7 @@ export function CartButtonWithSheet() {
   const { rows, subtotalMinor } = useCartView();
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={setOpen} modal={true}>
       <SheetTrigger asChild>
         <Button
           asChild
@@ -38,9 +39,14 @@ export function CartButtonWithSheet() {
           aria-controls="cart-sheet"
         >
           <div className="relative flex items-center px-1 py-[6px] hover:cursor-pointer">
-            <HiOutlineShoppingBag className="stroke-2 size-[20px]" />
-            {total > 0 && (
-              <span className="absolute right-0 bottom-0 inline-flex size-[16px] items-center justify-center rounded-full bg-primary p-1 text-xs font-light text-primary-foreground">
+            <FiShoppingBag className="size-[24px]" />
+            {total > 0 && total < 100 && (
+              <span className="absolute top-[14px] h-[12px] w-[14px] inline-flex items-center justify-center rounded-xs bg-white p-1 text-[12px] font-bold text-primary">
+                {total}
+              </span>
+            )}
+            {total > 99 && (
+              <span className="absolute top-[14px] h-[12px] w-[14px] inline-flex items-center justify-center rounded-xs bg-white p-1 text-[10px] font-bold text-primary">
                 {total}
               </span>
             )}
@@ -48,9 +54,20 @@ export function CartButtonWithSheet() {
           </div>
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="mt-16 w-96 max-w-[95vw]">
-        <SheetHeader>
-          <SheetTitle>Tu carrito</SheetTitle>
+      <SheetContent
+        id="cart-sheet"
+        side="right"
+        className="w-96 max-w-[95vw] z-[100] px-4"
+      >
+        <SheetHeader className="grid grid-cols-[1fr_auto] items-center h-[var(--header-h)] border-b">
+          <SheetTitle className="px-4 justify-self-center rounded-sm text-[20px] font-medium">
+            Cesta
+          </SheetTitle>
+          <CgClose
+            aria-label="cerrar cesta"
+            className="size-[30px] p-[4px] stroke-1 text-xs hover:cursor-pointer border border-white hover:border hover:border-slate-300 bg-background hover:bg-neutral-100 rounded-sm transition-all duration-200 ease-in-out"
+            onClick={() => setOpen(false)}
+          />
         </SheetHeader>
 
         <div className="mt-2 space-y-3">
@@ -133,10 +150,10 @@ export function CartButtonWithSheet() {
             </div>
             <div className="mt-3 flex gap-2">
               <Button className="flex-1" aria-label="Ir al carrito" disabled>
-                Ver carrito
+                Ver Cesta
               </Button>
               <Button className="flex-1" aria-label="Proceder al pago" disabled>
-                Checkout
+                Tramitar pedido
               </Button>
             </div>
           </div>
