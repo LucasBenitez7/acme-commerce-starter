@@ -15,7 +15,7 @@ export default function CartPage() {
   const dispatch = useAppDispatch();
 
   return (
-    <main className="px-4 max-w-[1400px] mx-auto p-6">
+    <main className="py-6 max-w-[1400px] mx-auto">
       <h1 className="mb-4 mx-2 text-2xl font-semibold">Cesta</h1>
 
       {rows.length === 0 ? (
@@ -23,8 +23,8 @@ export default function CartPage() {
           Tu carrito está vacío.
         </p>
       ) : (
-        <div className="flex flex-row justify-between gap-4">
-          <div className="flex-2 border rounded-lb max-w-4xl px-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_minmax(320px,480px)]">
+          <div className="border rounded-lb px-4">
             {rows.map((r) => {
               const d = r.detail;
               const lineTotalMinor = (d?.priceMinor ?? 0) * r.qty;
@@ -34,13 +34,13 @@ export default function CartPage() {
                   key={r.slug}
                   className="grid grid-cols-[auto_1fr_auto] items-center gap-4 border-b py-6"
                 >
-                  <div className="h-auto w-auto shrink-0 bg-muted">
+                  <div className="h-52 w-36 shrink-0 bg-muted">
                     {d?.imageUrl && (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={d.imageUrl}
-                        alt=""
-                        className="h-50 w-35 object-cover"
+                        alt={d?.name ?? r.slug}
+                        className="h-full w-full object-cover"
                       />
                     )}
                   </div>
@@ -121,9 +121,9 @@ export default function CartPage() {
           </div>
 
           {rows.length > 0 && (
-            <div className="flex flex-col flex-1 p-4 max-w-2xl h-max border rounded-lb">
+            <aside className="h-max border rounded-lb p-4">
               <div className="flex items-center justify-between text-lg font-medium">
-                <span>Total</span>
+                <span>Subtotal</span>
                 <span>{formatMinor(subtotalMinor, DEFAULT_CURRENCY)}</span>
               </div>
               <div className="mt-3 flex gap-6">
@@ -142,7 +142,7 @@ export default function CartPage() {
                   Tramitar pedido
                 </button>
               </div>
-            </div>
+            </aside>
           )}
         </div>
       )}

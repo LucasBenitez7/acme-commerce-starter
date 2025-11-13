@@ -54,18 +54,18 @@ export function CartButtonWithSheet() {
                 className="absolute bottom-[12px] h-[4px] bg-transparent inline-flex items-center justify-center text-[10px] font-extrabold text-primary"
                 aria-live="polite"
               >
-                {badgeText}
+                <span aria-hidden="true">{badgeText}</span>
+                <span className="sr-only">{`Productos en la cesta: ${total}`}</span>
               </span>
             )}
-            <span className="sr-only">Carrito</span>
+            <span className="sr-only">Cesta</span>
           </div>
         </Button>
       </SheetTrigger>
       <SheetContent
         id="cart-sheet"
         side="right"
-        aria-labelledby={titleId}
-        className="w-[450px] lg:w-max-[450px] sm:-w-full z-[100]"
+        className="w-[min(100vw,450px)] sm:-w-full z-[100] p-0"
       >
         <div className="flex h-full flex-col">
           <SheetHeader className="shrink-0 border-b px-4">
@@ -76,7 +76,7 @@ export function CartButtonWithSheet() {
               <SheetClose asChild>
                 <button
                   aria-label="Cerrar cesta"
-                  className="p-[4px] text-sm hover:cursor-pointer border border-white hover:border hover:border-slate-300 focus:outline-none bg-background hover:bg-neutral-100 rounded-lb transition-all duration-200 ease-in-out"
+                  className="p-[4px] text-sm hover:cursor-pointer border border-white  hover:border-slate-300 focus:outline-none bg-background hover:bg-neutral-100 rounded-lb transition-all duration-200 ease-in-out"
                 >
                   <CgClose className="size-[20px] stroke-[0.4px]" />
                 </button>
@@ -100,7 +100,7 @@ export function CartButtonWithSheet() {
                   className="grid grid-cols-[auto_1fr_auto] items-center gap-4 px-4 py-6 border-b"
                 >
                   <div
-                    className="h-auto w-auto shrink-0 bg-muted"
+                    className="h-52 w-36 shrink-0 bg-muted"
                     aria-hidden="true"
                   >
                     {d?.imageUrl && (
@@ -108,7 +108,7 @@ export function CartButtonWithSheet() {
                       <img
                         src={d.imageUrl}
                         alt=""
-                        className="h-50 w-35 object-cover"
+                        className="h-full w-full object-cover"
                       />
                     )}
                   </div>
@@ -177,15 +177,14 @@ export function CartButtonWithSheet() {
                     <button
                       type="button"
                       className="hover:cursor-pointer"
-                      aria-label="Quitar del carrito"
-                      onClick={() => dispatch(removeItem({ slug: r.slug }))}
+                      aria-label="Agregar a favoritos"
                     >
                       <FaRegHeart className="size-[20px]" />
                     </button>
                     <button
                       type="button"
                       className="hover:cursor-pointer pb-2"
-                      aria-label="Quitar del carrito"
+                      aria-label="Quitar de la cesta"
                       onClick={() => dispatch(removeItem({ slug: r.slug }))}
                     >
                       <FaRegTrashCan className="size-[20px] text-slate-700 hover:text-primary" />
@@ -199,7 +198,7 @@ export function CartButtonWithSheet() {
           {rows.length > 0 && (
             <div className="shrink-0 py-6 px-4">
               <div className="flex items-center justify-between text-base font-medium">
-                <span>Total</span>
+                <span>Subtotal</span>
                 <span>{formatMinor(subtotalMinor, DEFAULT_CURRENCY)}</span>
               </div>
               <div className="mt-3 flex gap-6">
