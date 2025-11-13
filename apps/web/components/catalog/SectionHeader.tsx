@@ -10,11 +10,7 @@ export function SectionHeader({
   rightSlot?: ReactNode;
 }) {
   return (
-    <header
-      data-aria-hidden="true"
-      aria-hidden="true"
-      className="mt-6 mb-0 flex w-full items-center justify-between"
-    >
+    <header className="mt-6 mb-0 flex w-full items-center justify-between">
       <h1 className="text-xl font-medium capitalize">{title}</h1>
       {rightSlot ?? (
         <button type="button" className="flex items-center gap-2">

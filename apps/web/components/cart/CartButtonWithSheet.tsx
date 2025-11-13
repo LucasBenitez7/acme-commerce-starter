@@ -19,7 +19,9 @@ import { formatMinor, DEFAULT_CURRENCY } from "@/lib/currency";
 
 import { useAppDispatch } from "@/hooks/use-app-dispatch";
 import { useAppSelector } from "@/hooks/use-app-selector";
+import { useAutoCloseOnRouteChange } from "@/hooks/use-auto-close-on-route-change";
 import { useCartView } from "@/hooks/use-cart-view";
+import { useMounted } from "@/hooks/use-mounted";
 import { selectCartTotalQty } from "@/store/cart.selectors";
 import { setQty, removeItem } from "@/store/cart.slice";
 
@@ -28,13 +30,29 @@ export function CartButtonWithSheet() {
   const total = useAppSelector(selectCartTotalQty);
   const dispatch = useAppDispatch();
   const { rows, subtotalMinor } = useCartView();
-
-  const titleId = "cart-sheet-title";
+  const mounted = useMounted();
+  useAutoCloseOnRouteChange(open, () => setOpen(false));
 
   const badgeText = total > 9 ? "9+" : String(total);
 
+  if (!mounted) {
+    return (
+      <Button
+        variant="hovers"
+        type="button"
+        aria-label="cesta"
+        className="tip-bottom"
+        data-tip="Cesta"
+      >
+        <div className="relative flex items-center px-1 py-[6px]">
+          <HiOutlineShoppingBag strokeWidth={2} className="size-[24px]" />
+        </div>
+      </Button>
+    );
+  }
+
   return (
-    <Sheet open={open} onOpenChange={setOpen} modal={true}>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button
           asChild
@@ -65,7 +83,8 @@ export function CartButtonWithSheet() {
       <SheetContent
         id="cart-sheet"
         side="right"
-        className="w-[min(100vw,450px)] sm:-w-full z-[100] p-0"
+        overlayClassName="z-[180] bg-black/60 pointer-events-auto"
+        className="z-[190] w-[min(100vw,450px)] sm:-w-full p-0"
       >
         <div className="flex h-full flex-col">
           <SheetHeader className="shrink-0 border-b px-4">
@@ -208,7 +227,9 @@ export function CartButtonWithSheet() {
                   aria-label="Ir al carrito"
                   variant={"outline"}
                 >
-                  <Link href="/cart">Ir al carrito</Link>
+                  <SheetClose asChild>
+                    <Link href="/cart">Ir al carrito</Link>
+                  </SheetClose>
                 </Button>
                 <button
                   className="flex-1 py-2 px-2 rounded-lb text-sm text-white bg-green-600 hover:cursor-pointer hover:bg-green-700 transition-all duration-200 ease-in-out"
