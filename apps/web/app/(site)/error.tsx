@@ -23,7 +23,7 @@ export default function Error({
         <button
           type="button"
           onClick={() => reset()}
-          className="hover:cursor-pointer py-2 px-4 font-medium rounded-sm border border-slate-300 bg-background hover:bg-neutral-100"
+          className="hover:cursor-pointer py-2 px-4 font-medium rounded-lb border border-slate-300 bg-background hover:bg-neutral-100"
         >
           Reintentar
         </button>

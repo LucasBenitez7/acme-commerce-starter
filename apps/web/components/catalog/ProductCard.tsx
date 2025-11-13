@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FaRegHeart } from "react-icons/fa6";
-import { HiOutlineShoppingBag } from "react-icons/hi2";
 
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui";
@@ -37,7 +36,10 @@ export function ProductCard({
           <CardTitle className="font-medium">
             <Link href={`/product/${item.slug}`}>{item.name}</Link>
           </CardTitle>
-          <FaRegHeart className="size-[20px]" aria-hidden="true" />
+          <FaRegHeart
+            className="size-[20px] hover:cursor-pointer"
+            aria-hidden="true"
+          />
         </CardHeader>
         <CardContent className="flex flex-col gap-2 px-2 pb-2">
           <p className="text-sm text-neutral-600">
@@ -47,7 +49,6 @@ export function ProductCard({
           {showCartRow && (
             <div className="flex items-center justify-between">
               <p>talla</p>
-              <HiOutlineShoppingBag className="size-[20px] stroke-2" />
               <AddToCartButton
                 slug={item.slug}
                 details={{

@@ -44,7 +44,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
         ref={safeRef}
         onPointerLeave={handlePointerLeaveHeader}
         onClickCapture={handleAnyNavClickCapture}
-        className="mx-auto w-full z-[100] sticky top-0 h-[4rem] grid grid-cols-[1fr_auto_1fr] items-center bg-white px-6"
+        className="mx-auto w-full z-[100] sticky top-0 h-[var(--header-h)] grid grid-cols-[1fr_auto_1fr] items-center bg-white px-6"
       >
         <div className="flex justify-self-start items-center h-full content-center">
           <Sheet open={open} onOpenChange={setOpen} modal={false}>
@@ -80,7 +80,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
         </Link>
 
         {/*------------- NAV ------------- */}
-        <nav className="justify-self-end h-full flex items-center gap-2 text-base">
+        <nav className="justify-self-end h-full flex items-center gap-2 text-sm">
           <div className="hidden sm:flex items-center gap-1 border-b border-neutral-500">
             <IoSearch className="size-[20px]" />
             <input
@@ -90,22 +90,32 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
             />
           </div>
           <div className="flex gap-1">
-            <Button asChild variant={"hovers"}>
+            <Button
+              asChild
+              variant={"hovers"}
+              className="tip-bottom"
+              data-tip="Mi Cuenta"
+            >
               <Link
                 href="/account"
                 className="flex items-center"
                 aria-label="Cuenta"
               >
-                <FaRegUser className="size-[24px]" aria-hidden="true" />
+                <FaRegUser className="size-[20px]" aria-hidden="true" />
               </Link>
             </Button>
-            <Button asChild variant={"hovers"}>
+            <Button
+              asChild
+              variant={"hovers"}
+              className="tip-bottom"
+              data-tip="Favoritos"
+            >
               <Link
                 href="/favoritos"
                 className="flex items-center"
                 aria-label="Favoritos"
               >
-                <FaRegHeart className="size-[24px]" aria-hidden="true" />
+                <FaRegHeart className="size-[20px]" aria-hidden="true" />
               </Link>
             </Button>
 
@@ -113,7 +123,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
           </div>
 
           {/* <Button asChild variant={"outline"} className="text-base">
-						<Link href="/admin" className="px-3 py-2 text-base">
+						<Link href="/admin" className="px-3 text-base">
 							Admin
 						</Link>
 					</Button> */}

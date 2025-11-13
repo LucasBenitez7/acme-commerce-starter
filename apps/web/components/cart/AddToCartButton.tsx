@@ -1,5 +1,5 @@
 "use client";
-import { Button } from "@/components/ui/button";
+import { HiOutlineShoppingBag } from "react-icons/hi2";
 
 import { upsertDetails, type CartItemDetails } from "@/lib/cart-details";
 
@@ -22,8 +22,18 @@ export function AddToCartButton({
   };
 
   return (
-    <Button type="button" onClick={onClick}>
-      Añadir al carrito
-    </Button>
+    <button
+      type="button"
+      onClick={onClick}
+      className="hover:cursor-pointer text-slate-800 hover:text-primary transition-all duration-200 ease-in-out relative"
+    >
+      <HiOutlineShoppingBag strokeWidth={2} className="size-[22px]" />
+      <span
+        className="absolute top-[-1px] h-[0px] right-[6px] bg-transparent text-lg font-semibold"
+        aria-live="polite"
+      >
+        +
+      </span>
+    </button>
   );
 }

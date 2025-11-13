@@ -1,11 +1,14 @@
 "use client";
+import Link from "next/link";
 import { useState } from "react";
 import { CgClose } from "react-icons/cg";
-import { FiShoppingBag } from "react-icons/fi";
+import { FaRegHeart, FaRegTrashCan } from "react-icons/fa6";
+import { HiOutlineShoppingBag } from "react-icons/hi2";
 
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetHeader,
   SheetTitle,
@@ -26,6 +29,10 @@ export function CartButtonWithSheet() {
   const dispatch = useAppDispatch();
   const { rows, subtotalMinor } = useCartView();
 
+  const titleId = "cart-sheet-title";
+
+  const badgeText = total > 9 ? "9+" : String(total);
+
   return (
     <Sheet open={open} onOpenChange={setOpen} modal={true}>
       <SheetTrigger asChild>
@@ -33,21 +40,21 @@ export function CartButtonWithSheet() {
           asChild
           variant={"hovers"}
           type="button"
-          aria-label="ver cesta"
+          aria-label="cesta"
           aria-haspopup="dialog"
           aria-expanded={open}
           aria-controls="cart-sheet"
+          className="tip-bottom"
+          data-tip="Cesta"
         >
           <div className="relative flex items-center px-1 py-[6px] hover:cursor-pointer">
-            <FiShoppingBag className="size-[24px]" />
-            {total > 0 && total < 100 && (
-              <span className="absolute top-[14px] h-[12px] w-[14px] inline-flex items-center justify-center rounded-xs bg-white p-1 text-[12px] font-bold text-primary">
-                {total}
-              </span>
-            )}
-            {total > 99 && (
-              <span className="absolute top-[14px] h-[12px] w-[14px] inline-flex items-center justify-center rounded-xs bg-white p-1 text-[10px] font-bold text-primary">
-                {total}
+            <HiOutlineShoppingBag strokeWidth={2} className="size-[24px]" />
+            {total > 0 && (
+              <span
+                className="absolute bottom-[12px] h-[4px] bg-transparent inline-flex items-center justify-center text-[10px] font-extrabold text-primary"
+                aria-live="polite"
+              >
+                {badgeText}
               </span>
             )}
             <span className="sr-only">Carrito</span>
@@ -57,107 +64,163 @@ export function CartButtonWithSheet() {
       <SheetContent
         id="cart-sheet"
         side="right"
-        className="w-96 max-w-[95vw] z-[100] px-4"
+        aria-labelledby={titleId}
+        className="w-[450px] lg:w-max-[450px] sm:-w-full z-[100]"
       >
-        <SheetHeader className="grid grid-cols-[1fr_auto] items-center h-[var(--header-h)] border-b">
-          <SheetTitle className="px-4 justify-self-center rounded-sm text-[20px] font-medium">
-            Cesta
-          </SheetTitle>
-          <CgClose
-            aria-label="cerrar cesta"
-            className="size-[30px] p-[4px] stroke-1 text-xs hover:cursor-pointer border border-white hover:border hover:border-slate-300 bg-background hover:bg-neutral-100 rounded-sm transition-all duration-200 ease-in-out"
-            onClick={() => setOpen(false)}
-          />
-        </SheetHeader>
+        <div className="flex h-full flex-col">
+          <SheetHeader className="shrink-0 border-b px-4">
+            <div className="flex flex-row justify-between items-center h-[var(--header-h)]">
+              <SheetTitle className="text-center rounded-lb text-xl font-medium">
+                Cesta
+              </SheetTitle>
+              <SheetClose asChild>
+                <button
+                  aria-label="Cerrar cesta"
+                  className="p-[4px] text-sm hover:cursor-pointer border border-white hover:border hover:border-slate-300 focus:outline-none bg-background hover:bg-neutral-100 rounded-lb transition-all duration-200 ease-in-out"
+                >
+                  <CgClose className="size-[20px] stroke-[0.4px]" />
+                </button>
+              </SheetClose>
+            </div>
+          </SheetHeader>
 
-        <div className="mt-2 space-y-3">
-          {rows.length === 0 && (
-            <p className="text-sm text-muted-foreground">
-              Tu carrito está vacío.
-            </p>
-          )}
+          <div className="flex-1 overflow-y-auto">
+            {rows.length === 0 && (
+              <p className="flex text-sm items-center justify-center h-full text-muted-foreground">
+                Tu carrito está vacío.
+              </p>
+            )}
 
-          {rows.map((r) => {
-            const d = r.detail;
-            return (
-              <div key={r.slug} className="flex items-center gap-3">
+            {rows.map((r) => {
+              const d = r.detail;
+              const lineTotalMinor = (d?.priceMinor ?? 0) * r.qty;
+              return (
                 <div
-                  className="h-12 w-12 shrink-0 rounded bg-muted"
-                  aria-hidden="true"
+                  key={r.slug}
+                  className="grid grid-cols-[auto_1fr_auto] items-center gap-4 px-4 py-6 border-b"
                 >
-                  {d?.imageUrl && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={d.imageUrl}
-                      alt=""
-                      className="h-12 w-12 rounded object-cover"
-                    />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="truncate text-sm font-medium">
-                    {d?.name ?? r.slug}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {d ? formatMinor(d.priceMinor, DEFAULT_CURRENCY) : "—"}
-                  </div>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    aria-label="Restar unidad"
-                    onClick={() =>
-                      dispatch(
-                        setQty({ slug: r.slug, qty: Math.max(0, r.qty - 1) }),
-                      )
-                    }
+                  <div
+                    className="h-auto w-auto shrink-0 bg-muted"
+                    aria-hidden="true"
                   >
-                    −
-                  </Button>
-                  <span className="w-6 text-center text-sm" aria-live="polite">
-                    {r.qty}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    aria-label="Sumar unidad"
-                    onClick={() =>
-                      dispatch(setQty({ slug: r.slug, qty: r.qty + 1 }))
-                    }
-                  >
-                    +
-                  </Button>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Quitar del carrito"
-                  onClick={() => dispatch(removeItem({ slug: r.slug }))}
-                >
-                  ✕
-                </Button>
-              </div>
-            );
-          })}
-        </div>
+                    {d?.imageUrl && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={d.imageUrl}
+                        alt=""
+                        className="h-50 w-35 object-cover"
+                      />
+                    )}
+                  </div>
 
-        {rows.length > 0 && (
-          <div className="mt-6 border-t pt-4">
-            <div className="flex items-center justify-between text-sm">
-              <span>Subtotal</span>
-              <span>{formatMinor(subtotalMinor, DEFAULT_CURRENCY)}</span>
-            </div>
-            <div className="mt-3 flex gap-2">
-              <Button className="flex-1" aria-label="Ir al carrito" disabled>
-                Ver Cesta
-              </Button>
-              <Button className="flex-1" aria-label="Proceder al pago" disabled>
-                Tramitar pedido
-              </Button>
-            </div>
+                  <div className="flex flex-col justify-between min-w-0 h-full py-1">
+                    <div className="flex flex-col gap-2">
+                      <div className="truncate text-sm font-medium">
+                        {d?.name ?? r.slug}
+                      </div>
+                      <div className="text-xs flex gap-2 mb-2">
+                        <span className="border-r pr-2 uppercase">S</span>
+                        <span>Marrón</span>
+                      </div>
+                      <div
+                        className={
+                          r.qty > 1
+                            ? "text-xs font-medium text-muted-foreground"
+                            : "text-xs font-medium"
+                        }
+                      >
+                        {d ? formatMinor(d.priceMinor, DEFAULT_CURRENCY) : "—"}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center border rounded-lb">
+                        <button
+                          className="text-base hover:cursor-pointer px-3 py-1  hover:bg-neutral-100"
+                          aria-label="Restar unidad"
+                          onClick={() =>
+                            dispatch(
+                              setQty({
+                                slug: r.slug,
+                                qty: Math.max(0, r.qty - 1),
+                              }),
+                            )
+                          }
+                        >
+                          −
+                        </button>
+                        <span
+                          className="px-2 py-1 text-center text-sm font-medium"
+                          aria-live="polite"
+                        >
+                          {r.qty}
+                        </span>
+                        <button
+                          className="text-base hover:cursor-pointer px-3 py-1 hover:bg-neutral-100"
+                          aria-label="Sumar unidad"
+                          onClick={() =>
+                            dispatch(setQty({ slug: r.slug, qty: r.qty + 1 }))
+                          }
+                        >
+                          +
+                        </button>
+                      </div>
+                      {r.qty > 1 && (
+                        <div className="text-right text-sm font-medium tabular-nums">
+                          {formatMinor(lineTotalMinor, DEFAULT_CURRENCY)}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col justify-between h-full items-center px-1 py-1">
+                    <button
+                      type="button"
+                      className="hover:cursor-pointer"
+                      aria-label="Quitar del carrito"
+                      onClick={() => dispatch(removeItem({ slug: r.slug }))}
+                    >
+                      <FaRegHeart className="size-[20px]" />
+                    </button>
+                    <button
+                      type="button"
+                      className="hover:cursor-pointer pb-2"
+                      aria-label="Quitar del carrito"
+                      onClick={() => dispatch(removeItem({ slug: r.slug }))}
+                    >
+                      <FaRegTrashCan className="size-[20px] text-slate-700 hover:text-primary" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        )}
+
+          {rows.length > 0 && (
+            <div className="shrink-0 py-6 px-4">
+              <div className="flex items-center justify-between text-base font-medium">
+                <span>Total</span>
+                <span>{formatMinor(subtotalMinor, DEFAULT_CURRENCY)}</span>
+              </div>
+              <div className="mt-3 flex gap-6">
+                <Button
+                  asChild
+                  className="flex-1 py-2 hover:cursor-pointer"
+                  aria-label="Ir al carrito"
+                  variant={"outline"}
+                >
+                  <Link href="/cart">Ir al carrito</Link>
+                </Button>
+                <button
+                  className="flex-1 py-2 px-2 rounded-lb text-sm text-white bg-green-600 hover:cursor-pointer hover:bg-green-700 transition-all duration-200 ease-in-out"
+                  aria-label="Proceder al pago"
+                >
+                  Tramitar pedido
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </SheetContent>
     </Sheet>
   );
