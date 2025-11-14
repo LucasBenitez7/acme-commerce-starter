@@ -39,7 +39,7 @@ export default function CartPage() {
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={d.imageUrl}
-                        alt={d?.name ?? r.slug}
+                        alt={d.name}
                         className="h-full w-full object-cover"
                       />
                     )}

@@ -126,7 +126,7 @@ export function CartButtonWithSheet() {
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={d.imageUrl}
-                        alt=""
+                        alt={d.name}
                         className="h-full w-full object-cover"
                       />
                     )}

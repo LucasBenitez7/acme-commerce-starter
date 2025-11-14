@@ -67,8 +67,7 @@ export default async function ProductPage({ params }: { params: ParamsSlug }) {
   if (!p) notFound();
 
   const imgMain = p.images[0]?.url ?? "/og/default-products.jpg";
-  const thumbs: ProductImage[] =
-    p.images.length > 0 ? p.images : [{ url: imgMain }];
+  const thumbs = p.images;
 
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
   const imageListAbs = Array.from(

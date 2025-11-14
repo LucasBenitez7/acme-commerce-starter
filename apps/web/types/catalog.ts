@@ -7,7 +7,7 @@ export type CategoryLink = {
 
 export type ProductImage = {
   url: string;
-  alt?: string | null;
+  alt: string;
   sort?: number;
 };
 
@@ -26,7 +26,7 @@ export type ProductDetail = {
   id: string;
   slug: string;
   name: string;
-  description: string | null;
+  description: string;
   priceCents: number;
   currency: SupportedCurrency;
   images: ProductImage[];
