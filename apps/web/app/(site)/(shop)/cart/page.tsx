@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FaRegTrashCan } from "react-icons/fa6";
 
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,9 @@ import { setQty, removeItem } from "@/store/cart.slice";
 export default function CartPage() {
   const { rows, subtotalMinor } = useCartView();
   const dispatch = useAppDispatch();
+  const router = useRouter();
+
+  const hasItems = rows.length > 0;
 
   return (
     <main className="py-6 max-w-[1400px] mx-auto">
@@ -136,8 +140,14 @@ export default function CartPage() {
                   <Link href="/catalogo">Seguir comprando</Link>
                 </Button>
                 <button
+                  type="button"
                   className="flex-1 py-2 px-2 rounded-lb text-sm text-white bg-green-600 hover:cursor-pointer hover:bg-green-700 transition-all duration-200 ease-in-out"
                   aria-label="Proceder al pago"
+                  disabled={!hasItems}
+                  onClick={() => {
+                    if (!hasItems) return;
+                    router.push("/checkout");
+                  }}
                 >
                   Tramitar pedido
                 </button>

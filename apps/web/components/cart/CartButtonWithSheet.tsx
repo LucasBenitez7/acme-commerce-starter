@@ -231,12 +231,15 @@ export function CartButtonWithSheet() {
                     <Link href="/cart">Ir al carrito</Link>
                   </SheetClose>
                 </Button>
-                <button
-                  className="flex-1 py-2 px-2 rounded-lb text-sm text-white bg-green-600 hover:cursor-pointer hover:bg-green-700 transition-all duration-200 ease-in-out"
-                  aria-label="Proceder al pago"
-                >
-                  Tramitar pedido
-                </button>
+                <SheetClose asChild>
+                  <Link
+                    href="/checkout"
+                    className="flex-1 py-2 px-2 rounded-lb text-sm text-white bg-green-600 hover:cursor-pointer hover:bg-green-700 transition-all duration-200 ease-in-out text-center"
+                    aria-label="Proceder al pago"
+                  >
+                    Tramitar pedido
+                  </Link>
+                </SheetClose>
               </div>
             </div>
           )}
