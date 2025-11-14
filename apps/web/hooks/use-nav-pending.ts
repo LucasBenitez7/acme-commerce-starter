@@ -10,14 +10,13 @@ export function useNavPending() {
   const [clicked, setClicked] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  // Cuando cambia la ruta o la query, liberamos el bloqueo
   useEffect(() => {
     if (clicked) setClicked(false);
   }, [pathname, search?.toString(), clicked]);
 
   const navigate = useCallback(
     (href: string, opts?: { replace?: boolean; scroll?: boolean }) => {
-      if (isPending || clicked) return; // ya hay navegación en curso
+      if (isPending || clicked) return;
       setClicked(true);
       startTransition(() => {
         const scroll = opts?.scroll ?? true;
