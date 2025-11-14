@@ -1,5 +1,6 @@
 import "server-only";
 
+import { parseCurrency, type SupportedCurrency } from "@/lib/currency";
 import { prisma } from "@/lib/db";
 
 export type CartLineInput = {
@@ -17,20 +18,17 @@ export type OrderItemDraft = {
 };
 
 export type OrderDraft = {
-  currency: string;
+  currency: SupportedCurrency;
   items: OrderItemDraft[];
   totalMinor: number;
 };
 
 /**
- * Devuelve la moneda del sitio.
- * Para este starter usamos NEXT_PUBLIC_DEFAULT_CURRENCY
- * y, si los productos tienen currency, comprobamos que coincida.
+ * Devuelve la moneda del sitio, asegurándote de que siempre sea
+ * un SupportedCurrency ("EUR" | "PYG").
  */
-function getSiteCurrency() {
-  const envCurrency = process.env.NEXT_PUBLIC_DEFAULT_CURRENCY;
-  // Fallback razonable para desarrollo si no está el env
-  return envCurrency ?? "EUR";
+function getSiteCurrency(): SupportedCurrency {
+  return parseCurrency(process.env.NEXT_PUBLIC_DEFAULT_CURRENCY);
 }
 
 /**
@@ -78,16 +76,22 @@ export async function buildOrderDraftFromCart(
       slug: true,
       name: true,
       priceCents: true,
-      currency: true,
+      currency: true, // string en Prisma
     },
   });
 
   const productsBySlug = new Map(products.map((p) => [p.slug, p]));
 
-  // Intentamos usar la currency de los productos; si no, usamos la del sitio.
   const siteCurrency = getSiteCurrency();
-  const firstCurrency = products[0]?.currency ?? siteCurrency;
-  const currency = firstCurrency || siteCurrency;
+
+  // Tomamos la currency del primer producto (si existe) y la normalizamos
+  // a SupportedCurrency. Si no hay productos, usamos la del sitio.
+  const firstCurrency: SupportedCurrency =
+    products.length > 0 && products[0].currency
+      ? parseCurrency(products[0].currency)
+      : siteCurrency;
+
+  const currency = firstCurrency;
 
   const items: OrderItemDraft[] = [];
 
