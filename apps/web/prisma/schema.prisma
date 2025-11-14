@@ -8,30 +8,31 @@ datasource db {
 }
 
 model Category {
-  id        String    @id @default(cuid())
-  slug      String    @unique
-  name      String
-  sort      Int       @default(0) 
-  products  Product[]
+  id       String    @id @default(cuid())
+  slug     String    @unique
+  name     String
+  sort     Int       @default(0)
+  products Product[]
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Product {
-  id          String        @id @default(cuid())
-  slug        String        @unique
+  id          String   @id @default(cuid())
+  slug        String   @unique
   name        String
   description String
-  priceCents  Int          
-  currency    String        @default("EUR")
+  priceCents  Int
+  currency    String   @default("EUR")
   categoryId  String
-  category    Category      @relation(fields: [categoryId], references: [id])
+  category    Category @relation(fields: [categoryId], references: [id])
 
-  images      ProductImage[]
+  images ProductImage[]
 
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  orderItems OrderItem[]
 
   @@index([categoryId])
 }
@@ -44,6 +45,59 @@ model ProductImage {
   productId String
   product   Product @relation(fields: [productId], references: [id])
 
-  // Evita duplicar el mismo "slot" de orden para un producto
   @@unique([productId, sort])
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  EXPIRED
+  CANCELLED
+}
+
+model Order {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  /// Email de contacto del pedido 
+  email String
+
+  /// Moneda del pedido en minor units
+  currency   String
+  totalMinor Int
+
+  /// Estado general del pedido
+  status OrderStatus @default(PENDING_PAYMENT)
+
+  /// Relación con items
+  items OrderItem[]
+
+  @@index([createdAt])
+  @@index([status, createdAt])
+}
+
+model OrderItem {
+  id String @id @default(cuid())
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  /// Snapshot del nombre en el momento del pedido
+  nameSnapshot String
+
+  /// Precio unitario (minor units) en el momento del pedido
+  priceMinorSnapshot Int
+
+  /// Cantidad pedida
+  quantity Int
+
+  /// Subtotal = priceMinorSnapshot * quantity
+  subtotalMinor Int
+
+  @@index([orderId])
+  @@index([productId])
 }
