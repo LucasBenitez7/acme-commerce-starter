@@ -4,7 +4,6 @@ import {
   SectionHeader,
 } from "@/components/catalog";
 
-import { rowsToListItems } from "@/lib/catalog/mapping";
 import { PER_PAGE, parsePage } from "@/lib/catalog/pagination";
 import { fetchProductsPage } from "@/lib/server/products";
 
@@ -24,7 +23,7 @@ export default async function CatalogoPage({
   const page = Math.max(1, parsePage(sp.page, 1));
 
   const { rows, total } = await fetchProductsPage({ page, perPage: PER_PAGE });
-  const items = rowsToListItems(rows);
+  const items = rows;
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
 
   return (
