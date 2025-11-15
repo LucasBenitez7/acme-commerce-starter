@@ -46,6 +46,12 @@ export async function createOrderAction(
   const city = String(formData.get("city") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
 
+  const paymentMethodRaw = String(
+    formData.get("paymentMethod") ?? "card",
+  ).trim();
+  // Preparado para el futuro (card | whatsapp | manual, etc.)
+  const paymentMethod = paymentMethodRaw === "card" ? "card" : "card";
+
   if (!isValidEmail(email)) {
     return { error: "Introduce un correo electrónico válido." };
   }
@@ -103,12 +109,10 @@ export async function createOrderAction(
     };
   }
 
-  // Si hemos llegado aquí, el pedido se creó OK
   cookieStore.set(CART_COOKIE_NAME, "", {
     path: "/",
     maxAge: 0,
   });
 
-  // 👇 MUY IMPORTANTE: esto va fuera del try/catch
   redirect(`/checkout/success?orderId=${order.id}`);
 }

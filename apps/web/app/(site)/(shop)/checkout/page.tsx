@@ -46,14 +46,25 @@ export default async function CheckoutPage() {
   const hasItems = orderDraft.items.length > 0;
 
   return (
-    <Container className="py-10 md:py-12">
-      <div className="mb-6 flex flex-col gap-2 md:mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
-          Checkout
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Revisa tu pedido y completa tus datos para tramitarlo.
-        </p>
+    <Container className="py-8 md:py-10">
+      {/* Header especial de checkout */}
+      <div className="mb-6 flex flex-col gap-3 rounded-lg border bg-muted/60 px-4 py-3 md:mb-8 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-lg font-semibold tracking-tight md:text-xl">
+            Finaliza tu compra
+          </h1>
+          <p className="text-xs text-muted-foreground md:text-sm">
+            Completa tus datos, elige el método de pago y revisa tu pedido.
+          </p>
+        </div>
+
+        <div className="text-[11px] text-muted-foreground md:text-xs">
+          <span className="font-medium">Checkout de prueba</span>
+          <span className="mx-1">·</span>
+          <span>
+            Los precios se recalculan desde la base de datos en cada pedido.
+          </span>
+        </div>
       </div>
 
       {!hasItems ? (
@@ -71,14 +82,14 @@ export default async function CheckoutPage() {
         </div>
       ) : (
         <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)]">
-          {/* Columna izquierda: formulario */}
+          {/* Columna izquierda: formulario multipaso */}
           <section className="space-y-4">
-            <h2 className="text-lg font-semibold">Datos de contacto y envío</h2>
+            <h2 className="text-lg font-semibold">Proceso de compra</h2>
             <CheckoutForm />
           </section>
 
-          {/* Columna derecha: resumen del pedido */}
-          <aside className="space-y-4 rounded-lg border bg-card p-4 sm:p-6">
+          {/* Columna derecha: resumen del pedido (sticky en desktop) */}
+          <aside className="h-max space-y-4 rounded-lg border bg-card p-4 sm:p-6 lg:sticky lg:top-24">
             <h2 className="text-lg font-semibold">Resumen del pedido</h2>
 
             <ul className="space-y-3 text-sm">
