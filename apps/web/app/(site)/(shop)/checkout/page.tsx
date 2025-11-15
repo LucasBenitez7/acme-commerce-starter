@@ -10,8 +10,6 @@ import {
   type CartLineInput,
 } from "@/lib/server/orders";
 
-import { createOrderAction } from "./actions";
-
 type CartCookieV1 = {
   v: 1;
   items: { s: string; q: number }[];
@@ -76,7 +74,7 @@ export default async function CheckoutPage() {
           {/* Columna izquierda: formulario */}
           <section className="space-y-4">
             <h2 className="text-lg font-semibold">Datos de contacto y envío</h2>
-            <CheckoutForm createOrder={createOrderAction} />
+            <CheckoutForm />
           </section>
 
           {/* Columna derecha: resumen del pedido */}

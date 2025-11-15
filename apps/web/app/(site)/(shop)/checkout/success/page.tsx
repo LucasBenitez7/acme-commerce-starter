@@ -8,13 +8,12 @@ import { formatMinor, parseCurrency } from "@/lib/currency";
 import { prisma } from "@/lib/db";
 
 type Props = {
-  searchParams: {
-    orderId?: string;
-  };
+  searchParams: Promise<{ orderId?: string }>;
 };
 
 export default async function CheckoutSuccessPage({ searchParams }: Props) {
-  const orderId = searchParams.orderId;
+  const sp = await searchParams;
+  const orderId = sp.orderId;
 
   if (!orderId) {
     redirect("/");
