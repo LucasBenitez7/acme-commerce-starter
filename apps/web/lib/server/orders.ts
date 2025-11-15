@@ -31,12 +31,6 @@ function getSiteCurrency(): SupportedCurrency {
   return parseCurrency(process.env.NEXT_PUBLIC_DEFAULT_CURRENCY);
 }
 
-/**
- * Lee el carrito (slug + qty), vuelve a leer productos desde la DB
- * y arma un "draft" de Order con items ya valorados.
- *
- * No crea el Order todavía; eso se hará en la acción de /checkout.
- */
 export async function buildOrderDraftFromCart(
   lines: CartLineInput[],
 ): Promise<OrderDraft> {
@@ -48,7 +42,7 @@ export async function buildOrderDraftFromCart(
     };
   }
 
-  // Normalizamos por si hay slugs duplicados en el array de entrada.
+  // Normaliza por si hay slugs duplicados en el array de entrada.
   const qtyBySlug = new Map<string, number>();
 
   for (const line of lines) {
@@ -76,7 +70,7 @@ export async function buildOrderDraftFromCart(
       slug: true,
       name: true,
       priceCents: true,
-      currency: true, // string en Prisma
+      currency: true,
     },
   });
 
@@ -84,8 +78,6 @@ export async function buildOrderDraftFromCart(
 
   const siteCurrency = getSiteCurrency();
 
-  // Tomamos la currency del primer producto (si existe) y la normalizamos
-  // a SupportedCurrency. Si no hay productos, usamos la del sitio.
   const firstCurrency: SupportedCurrency =
     products.length > 0 && products[0].currency
       ? parseCurrency(products[0].currency)

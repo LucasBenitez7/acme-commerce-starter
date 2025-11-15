@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useFormStatus } from "react-dom";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +15,25 @@ type FormState = {
   phone: string;
 };
 
-export function CheckoutForm() {
+type Props = {
+  createOrder: (formData: FormData) => void;
+};
+
+function SubmitButton({ disabledBase }: { disabledBase: boolean }) {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button
+      type="submit"
+      className="w-full md:w-auto"
+      disabled={disabledBase || pending}
+    >
+      {pending ? "Procesando pedido..." : "Realizar pedido"}
+    </Button>
+  );
+}
+
+export function CheckoutForm({ createOrder }: Props) {
   const [form, setForm] = useState<FormState>({
     fullName: "",
     email: "",
@@ -45,14 +64,8 @@ export function CheckoutForm() {
     }));
   }
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    // TODO (Paso 4): conectar con Server Action para crear el pedido real
-    // usando OrderDraft + datos del formulario.
-  }
-
   return (
-    <form className="space-y-6" onSubmit={handleSubmit} noValidate>
+    <form className="space-y-6" action={createOrder} noValidate>
       <div className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="fullName">Nombre completo</Label>
@@ -120,9 +133,7 @@ export function CheckoutForm() {
       </div>
 
       <div>
-        <Button type="submit" className="w-full md:w-auto" disabled={!isValid}>
-          Realizar pedido
-        </Button>
+        <SubmitButton disabledBase={!isValid} />
       </div>
 
       <p className="text-xs text-muted-foreground">
