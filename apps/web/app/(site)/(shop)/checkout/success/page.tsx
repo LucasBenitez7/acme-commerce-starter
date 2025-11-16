@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { ClearCartOnMount } from "@/components/checkout/ClearCartOnMount";
+import { ClearCartOnMount } from "@/components/checkout";
 import { Container } from "@/components/ui";
 
 import { formatMinor, parseCurrency } from "@/lib/currency";

@@ -6,24 +6,15 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { CART_COOKIE_NAME, parseCartCookie } from "@/lib/server/cart-cookie";
 import { buildOrderDraftFromCart } from "@/lib/server/orders";
+import {
+  isValidEmail,
+  isNonEmptyMin,
+  isValidPhone,
+} from "@/lib/validation/checkout";
 
 export type CheckoutActionState = {
   error?: string;
 };
-
-function isValidEmail(email: string): boolean {
-  if (!email) return false;
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-function isNonEmptyMin(text: string, min: number): boolean {
-  return text.trim().length >= min;
-}
-
-function isValidPhone(phone: string): boolean {
-  if (!phone) return true; // opcional
-  return /^[0-9+\s()-]{6,20}$/.test(phone);
-}
 
 export async function createOrderAction(
   prevState: CheckoutActionState,
@@ -46,10 +37,10 @@ export async function createOrderAction(
   const city = String(formData.get("city") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
 
+  // Preparado para el futuro (card | whatsapp | manual, etc.)
   const paymentMethodRaw = String(
     formData.get("paymentMethod") ?? "card",
   ).trim();
-  // Preparado para el futuro (card | whatsapp | manual, etc.)
   const paymentMethod = paymentMethodRaw === "card" ? "card" : "card";
 
   if (!isValidEmail(email)) {
