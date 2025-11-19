@@ -1,4 +1,5 @@
 "use client";
+import { Fragment } from "react";
 
 const STEPS = [
   { id: 1, label: "Envío" },
@@ -10,65 +11,72 @@ export type CheckoutStep = (typeof STEPS)[number]["id"];
 
 type Props = {
   currentStep: CheckoutStep;
-  maxStepReached: CheckoutStep;
   onStepClick?: (step: CheckoutStep) => void;
 };
 
-export function CheckoutStepper({
-  currentStep,
-  maxStepReached,
-  onStepClick,
-}: Props) {
+export function CheckoutStepper({ currentStep, onStepClick }: Props) {
   return (
     <nav
       aria-label="Progreso del checkout"
-      className="mb-4 rounded-lg border bg-muted/60 px-3 py-2.5 text-xs sm:text-sm"
+      className="flex mb-4 rounded-lb border px-3 py-4 text-xs sm:text-sm items-center justify-center bg-background"
     >
-      <ol className="flex items-center gap-3 sm:gap-4">
+      <ol className="flex w-full items-center gap-3 sm:gap-4">
         {STEPS.map((step, index) => {
           const isCurrent = step.id === currentStep;
-          const isCompleted = step.id < currentStep;
-          const isDisabled = step.id > maxStepReached;
+          const isPast = step.id < currentStep;
+          const isFuture = step.id > currentStep;
+
+          const canClick = !!onStepClick && isPast;
 
           const baseClasses =
-            "flex items-center gap-2 rounded-full px-2.5 py-1 transition-colors";
+            "flex items-center gap-2 rounded-lb font-medium px-2.5 py-1 transition-colors";
           const stateClasses = isCurrent
-            ? "bg-primary text-primary-foreground"
-            : isCompleted
-              ? "bg-primary/10 text-primary"
-              : "bg-muted text-muted-foreground";
+            ? "text-primary"
+            : isPast
+              ? "text-primary font-semibold"
+              : "text-muted-foreground";
 
           return (
-            <li key={step.id} className="flex items-center gap-2">
-              <button
-                type="button"
-                disabled={isDisabled}
-                onClick={() => {
-                  if (onStepClick && !isDisabled) {
-                    onStepClick(step.id);
-                  }
-                }}
-                className={`${baseClasses} ${
-                  isDisabled
-                    ? "cursor-default opacity-50"
-                    : "hover:bg-primary/15"
-                } ${stateClasses}`}
-                aria-current={isCurrent ? "step" : undefined}
-                aria-disabled={isDisabled}
-              >
-                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border text-[0.7rem] font-semibold">
-                  {isCompleted ? "✓" : step.id}
-                </span>
-                <span className="font-medium">{step.label}</span>
-              </button>
-
+            <Fragment key={step.id}>
+              <li className="flex flex-shrink-0 items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (canClick) {
+                      onStepClick(step.id);
+                    }
+                  }}
+                  className={`${baseClasses} ${stateClasses} ${
+                    canClick ? "cursor-pointer" : "cursor-default"
+                  }`}
+                  aria-current={isCurrent ? "step" : undefined}
+                  aria-disabled={isFuture}
+                >
+                  <span
+                    className={`inline-flex h-5 w-5 items-center justify-center  rounded-full border text-[0.7rem] font-semibold ${
+                      isCurrent
+                        ? "border-primary bg-primary text-background"
+                        : "border-border"
+                    } ${isPast ? "text-background bg-primary" : ""}`}
+                  >
+                    {isPast ? "✓" : step.id}
+                  </span>
+                  <span className="text-sm">{step.label}</span>
+                </button>
+              </li>
               {index < STEPS.length - 1 && (
-                <span
+                <li
                   aria-hidden="true"
-                  className="hidden h-px w-6 shrink-0 bg-border sm:block"
-                />
+                  className="hidden flex-1 items-center sm:flex"
+                >
+                  <span
+                    className={`block h-px w-full ${
+                      isPast ? "bg-primary" : "bg-border"
+                    }`}
+                  />
+                </li>
               )}
-            </li>
+            </Fragment>
           );
         })}
       </ol>

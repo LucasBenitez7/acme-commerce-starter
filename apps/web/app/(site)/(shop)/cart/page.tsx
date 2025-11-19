@@ -19,16 +19,22 @@ export default function CartPage() {
   const hasItems = rows.length > 0;
 
   return (
-    <main className="py-6 max-w-[1400px] mx-auto">
-      <h1 className="mb-4 mx-2 text-2xl font-semibold">Cesta</h1>
+    <main className="pt-2 pb-8 max-w-[1400px] mx-auto">
+      <h1 className="py-4 text-2xl font-semibold">Cesta</h1>
 
       {rows.length === 0 ? (
-        <p className="text-sm text-center text-muted-foreground">
-          Tu carrito está vacío.
-        </p>
+        <div className="rounded-lb border p-4 text-sm">
+          <p className="mb-3 font-medium">Tu cesta está vacía</p>
+          <p className="mb-4 text-muted-foreground">
+            Explora en nuestra tienda para encontrar lo que necesitas
+          </p>
+          <Button asChild variant="default" className="px-4">
+            <Link href="/catalogo">Ir al catálogo</Link>
+          </Button>
+        </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_minmax(320px,480px)]">
-          <div className="border rounded-lb px-4">
+          <div className="border rounded-lb px-5 py-3 bg-background">
             {rows.map((r) => {
               const d = r.detail;
               const lineTotalMinor = (d?.priceMinor ?? 0) * r.qty;
@@ -36,7 +42,7 @@ export default function CartPage() {
               return (
                 <div
                   key={r.slug}
-                  className="grid grid-cols-[auto_1fr_auto] items-center gap-4 border-b py-6"
+                  className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-2"
                 >
                   <div className="h-52 w-36 shrink-0 bg-muted">
                     {d?.imageUrl && (
@@ -44,7 +50,7 @@ export default function CartPage() {
                       <img
                         src={d.imageUrl}
                         alt={d.name}
-                        className="h-full w-full object-cover"
+                        className="h-full w-full rounded-lb object-cover"
                       />
                     )}
                   </div>
@@ -54,19 +60,17 @@ export default function CartPage() {
                       <div className="truncate text-sm font-medium">
                         {d?.name ?? r.slug}
                       </div>
-                      <div className="flex gap-2 text-xs mb-2">
+                      <div className="flex gap-2 text-xs mb-1">
                         <span className="border-r pr-2 uppercase">S</span>
                         <span>Marrón</span>
                       </div>
-                      <div
-                        className={
-                          r.qty > 1
-                            ? "text-xs font-medium text-muted-foreground"
-                            : "text-xs font-medium"
-                        }
-                      >
-                        {d ? formatMinor(d.priceMinor, DEFAULT_CURRENCY) : "—"}
-                      </div>
+                      {r.qty > 1 && (
+                        <div className="text-xs font-medium text-muted-foreground">
+                          {d
+                            ? formatMinor(d.priceMinor, DEFAULT_CURRENCY)
+                            : "—"}
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -101,11 +105,10 @@ export default function CartPage() {
                           +
                         </button>
                       </div>
-                      {r.qty > 1 && (
-                        <div className="text-right text-sm font-medium tabular-nums">
-                          {formatMinor(lineTotalMinor, DEFAULT_CURRENCY)}
-                        </div>
-                      )}
+
+                      <div className="text-right text-sm font-medium tabular-nums">
+                        {formatMinor(lineTotalMinor, DEFAULT_CURRENCY)}
+                      </div>
                     </div>
                   </div>
 
@@ -125,10 +128,12 @@ export default function CartPage() {
           </div>
 
           {rows.length > 0 && (
-            <aside className="h-max border rounded-lb p-4">
+            <aside className="lg:sticky lg:top-18 h-max border rounded-lb p-4 bg-background">
               <div className="flex items-center justify-between text-lg font-medium">
                 <span>Subtotal</span>
-                <span>{formatMinor(subtotalMinor, DEFAULT_CURRENCY)}</span>
+                <span className="text-base">
+                  {formatMinor(subtotalMinor, DEFAULT_CURRENCY)}
+                </span>
               </div>
               <div className="mt-3 flex gap-6">
                 <Button

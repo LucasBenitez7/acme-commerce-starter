@@ -143,6 +143,7 @@
     background-position: left bottom;
     background-size: 0% 0.12rem;
     transition: background-size 0.25s ease;
+    cursor: pointer;
   }
   .fx-underline-anim:hover {
     background-size: 100% 0.12rem;

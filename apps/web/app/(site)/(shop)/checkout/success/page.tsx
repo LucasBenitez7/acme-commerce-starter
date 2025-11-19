@@ -38,7 +38,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
 
       <div className="mb-6 flex flex-col gap-2 md:mb-8">
         <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
-          Pedido realizado
+          Pedido realizado correctamente
         </h1>
         <p className="text-sm text-muted-foreground">
           Gracias por tu compra. Más adelante conectaremos el envío de correos
@@ -52,7 +52,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
           <span className="font-mono text-xs md:text-sm">{order.id}</span>
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Guarda este identificador por si necesitas contactar con soporte.
+          Guarda este identificador por si te haga falta.
         </p>
       </div>
 

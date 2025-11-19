@@ -1,8 +1,9 @@
 import { cookies } from "next/headers";
+import Image from "next/image";
 import Link from "next/link";
 
 import { CheckoutForm } from "@/components/checkout/CheckoutForm";
-import { Container } from "@/components/ui";
+import { Button, Container } from "@/components/ui";
 
 import { formatMinor } from "@/lib/currency";
 import {
@@ -42,88 +43,111 @@ export default async function CheckoutPage() {
 
   const lines = parseCartCookie(rawCart);
   const orderDraft = await buildOrderDraftFromCart(lines);
+  const totalQty = orderDraft.items.reduce(
+    (sum, item) => sum + item.quantity,
+    0,
+  );
 
   const hasItems = orderDraft.items.length > 0;
 
   return (
-    <Container className="py-8 md:py-10">
-      {/* Header especial de checkout */}
-      <div className="mb-6 flex flex-col gap-3 rounded-lg border bg-muted/60 px-4 py-3 md:mb-8 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-lg font-semibold tracking-tight md:text-xl">
-            Finaliza tu compra
-          </h1>
-          <p className="text-xs text-muted-foreground md:text-sm">
-            Completa tus datos, elige el método de pago y revisa tu pedido.
-          </p>
-        </div>
-
-        <div className="text-[11px] text-muted-foreground md:text-xs">
-          <span className="font-medium">Checkout de prueba</span>
-          <span className="mx-1">·</span>
-          <span>
-            Los precios se recalculan desde la base de datos en cada pedido.
-          </span>
-        </div>
-      </div>
-
+    <Container className="py-4 px-0">
       {!hasItems ? (
-        <div className="rounded-lg border bg-muted/40 p-6 text-sm">
-          <p className="mb-3 font-medium">Tu carrito está vacío</p>
+        <div className="rounded-lb border p-6 text-sm">
+          <p className="mb-3 font-medium">Tu cesta está vacía</p>
           <p className="mb-4 text-muted-foreground">
-            Añade algunos productos al carrito antes de ir al checkout.
+            Añade algunos productos para ir al proceso de compra.
           </p>
-          <Link
-            href="/catalogo"
-            className="inline-flex items-center text-sm font-medium underline-offset-2 hover:underline"
-          >
-            Ir al catálogo
-          </Link>
+          <Button asChild variant="default" className="px-4">
+            <Link href="/catalogo">Ir al catálogo</Link>
+          </Button>
         </div>
       ) : (
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)]">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
           {/* Columna izquierda: formulario multipaso */}
           <section className="space-y-4">
-            <h2 className="text-lg font-semibold">Proceso de compra</h2>
             <CheckoutForm />
           </section>
 
-          {/* Columna derecha: resumen del pedido (sticky en desktop) */}
-          <aside className="h-max space-y-4 rounded-lg border bg-card p-4 sm:p-6 lg:sticky lg:top-24">
-            <h2 className="text-lg font-semibold">Resumen del pedido</h2>
+          {/* Columna derecha: resumen del pedido */}
+          <aside className="lg:sticky lg:top-18">
+            <div
+              className="flex flex-col rounded-lb border bg-background py-4 
+               lg:h-[calc(100vh-5.5rem)]"
+            >
+              {/* Header del resumen (siempre visible) */}
+              <header className="mb-3 shrink-0  border-b px-4">
+                <h2 className="flex items-baseline gap-1 text-lg pb-3 font-semibold">
+                  Resumen de la compra{" "}
+                  <span className="text-base">({totalQty})</span>
+                </h2>
+              </header>
 
-            <ul className="space-y-3 text-sm">
-              {orderDraft.items.map((item) => (
-                <li
-                  key={item.productId}
-                  className="flex items-start justify-between gap-4"
-                >
-                  <div className="space-y-1">
-                    <p className="font-medium">{item.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Cantidad: {item.quantity}
-                    </p>
-                  </div>
-                  <div className="text-right text-sm font-medium">
-                    {formatMinor(item.subtotalMinor, orderDraft.currency)}
-                  </div>
-                </li>
-              ))}
-            </ul>
+              {/* Body scrollable */}
+              <div className="flex-1 overflow-y-auto px-4">
+                <ul className="space-y-2 text-sm">
+                  {orderDraft.items.map((item) => {
+                    const lineTotalMinor = item.subtotalMinor;
 
-            <div className="h-px w-full bg-border" />
+                    return (
+                      <li
+                        key={item.productId}
+                        className="grid grid-cols-[auto_1fr_auto] items-center gap-2 py-1"
+                      >
+                        <div
+                          className="relative h-40 w-28 shrink-0 overflow-hidden rounded-lb bg-neutral-100"
+                          aria-hidden="true"
+                        >
+                          {item.imageUrl && (
+                            <Image
+                              src={item.imageUrl}
+                              alt={item.name}
+                              fill
+                              sizes="200px"
+                              className="object-cover"
+                            />
+                          )}
+                        </div>
 
-            <div className="flex items-center justify-between text-sm font-semibold">
-              <span>Total</span>
-              <span>
-                {formatMinor(orderDraft.totalMinor, orderDraft.currency)}
-              </span>
+                        <div className="flex h-full justify-between py-1 font-medium">
+                          <div className="space-y-1">
+                            <p className="text-sm">{item.name}</p>
+                            <p className="text-xs">M</p>
+                            <p className="text-xs">Negro</p>
+                            <div className="flex gap-1">
+                              {item.quantity > 1 && (
+                                <div className="text-xs text-muted-foreground">
+                                  {lineTotalMinor
+                                    ? formatMinor(
+                                        lineTotalMinor / item.quantity,
+                                        orderDraft.currency,
+                                      )
+                                    : "—"}
+                                </div>
+                              )}
+                              <p className="text-xs">x{item.quantity}</p>
+                            </div>
+                          </div>
+
+                          <div className="text-sm font-medium">
+                            {formatMinor(lineTotalMinor, orderDraft.currency)}
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+
+              <footer className="mt-3 shrink-0 pt-3 px-4 border-t">
+                <div className="flex items-center justify-between text-base font-semibold">
+                  <span className="text-lg">Total</span>
+                  <span>
+                    {formatMinor(orderDraft.totalMinor, orderDraft.currency)}
+                  </span>
+                </div>
+              </footer>
             </div>
-
-            <p className="text-xs text-muted-foreground">
-              * Los precios se recalculan automáticamente a partir de los
-              productos en la base de datos.
-            </p>
           </aside>
         </div>
       )}

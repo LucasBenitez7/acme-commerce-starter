@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useRef, useState } from "react";
 import { FaRegUser, FaRegHeart } from "react-icons/fa6";
 import { IoSearch } from "react-icons/io5";
@@ -27,16 +28,36 @@ const SHEET_ID = "site-sidebar";
 export function Header({ categories }: { categories: CategoryLink[] }) {
   const [open, setOpen] = useState(false);
   const safeRef = useRef<HTMLDivElement>(null);
-
   useLockBodyScroll(open);
   useAutoCloseOnRouteChange(open, () => setOpen(false));
 
+  const pathname = usePathname();
+  const isCheckoutRoute = pathname.startsWith("/checkout");
   const {
     handlePointerLeaveHeader,
     handlePointerLeaveSheet,
     handleAnyNavClickCapture,
     onInteractOutside,
   } = useSheetSafety({ open, setOpen, safeRef, sheetId: SHEET_ID });
+
+  const logo = (
+    <Link
+      href="/"
+      className="flex justify-self-center focus:outline-none mx-2 px-2 text-3xl font-semibold"
+    >
+      Logo lsb
+    </Link>
+  );
+
+  if (isCheckoutRoute) {
+    return (
+      <header className="border-b bg-background mx-auto w-full z-[100] sticky top-0 h-[var(--header-h)] items-center">
+        <div className="mx-auto flex h-[var(--header-h)] w-max items-center px-4 sm:px-6">
+          {logo}
+        </div>
+      </header>
+    );
+  }
 
   return (
     <>
@@ -72,13 +93,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
         </div>
 
         {/*------------- LOGO ------------- */}
-        <Link
-          href="/"
-          className="flex justify-self-center focus:outline-none mx-2 px-2 text-3xl font-semibold"
-        >
-          Logo lsb
-        </Link>
-
+        {logo}
         {/*------------- NAV ------------- */}
         <nav className="justify-self-end h-full flex items-center gap-2 text-sm">
           <div className="hidden sm:flex items-center gap-1 border-b border-neutral-500">

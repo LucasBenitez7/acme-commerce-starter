@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { CgClose } from "react-icons/cg";
@@ -87,7 +88,7 @@ export function CartButtonWithSheet() {
         className="z-[190] w-[min(100vw,450px)] sm:-w-full p-0"
       >
         <div className="flex h-full flex-col">
-          <SheetHeader className="shrink-0 border-b px-4">
+          <SheetHeader className="shrink-0 border-b mb-2 px-4">
             <div className="flex flex-row justify-between items-center h-[var(--header-h)]">
               <SheetTitle className="text-center rounded-lb text-xl font-medium">
                 Cesta
@@ -105,9 +106,12 @@ export function CartButtonWithSheet() {
 
           <div className="flex-1 overflow-y-auto">
             {rows.length === 0 && (
-              <p className="flex text-sm items-center justify-center h-full text-muted-foreground">
-                Tu carrito está vacío.
-              </p>
+              <div className="rounded-lb h-full p-6 text-sm justify-center items-center flex flex-col">
+                <p className="mb-3 font-medium">Tu cesta está vacía</p>
+                <p className="mb-4 text-muted-foreground">
+                  Explora en nuestra tienda para encontrar lo que necesitas
+                </p>
+              </div>
             )}
 
             {rows.map((r) => {
@@ -116,18 +120,19 @@ export function CartButtonWithSheet() {
               return (
                 <div
                   key={r.slug}
-                  className="grid grid-cols-[auto_1fr_auto] items-center gap-4 px-4 py-6 border-b"
+                  className="grid grid-cols-[auto_1fr_auto] items-center gap-2 py-2 px-4"
                 >
                   <div
-                    className="h-52 w-36 shrink-0 bg-muted"
+                    className="relative aspect-[3/4] h-44 w-32 shrink-0 bg-neutral-100"
                     aria-hidden="true"
                   >
                     {d?.imageUrl && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <Image
                         src={d.imageUrl}
                         alt={d.name}
-                        className="h-full w-full object-cover"
+                        fill
+                        sizes="200px"
+                        className="h-full w-full rounded-lb object-cover"
                       />
                     )}
                   </div>
@@ -137,19 +142,17 @@ export function CartButtonWithSheet() {
                       <div className="truncate text-sm font-medium">
                         {d?.name ?? r.slug}
                       </div>
-                      <div className="text-xs flex gap-2 mb-2">
+                      <div className="text-xs flex gap-2 mb-1">
                         <span className="border-r pr-2 uppercase">S</span>
                         <span>Marrón</span>
                       </div>
-                      <div
-                        className={
-                          r.qty > 1
-                            ? "text-xs font-medium text-muted-foreground"
-                            : "text-xs font-medium"
-                        }
-                      >
-                        {d ? formatMinor(d.priceMinor, DEFAULT_CURRENCY) : "—"}
-                      </div>
+                      {r.qty > 1 && (
+                        <div className="text-xs font-medium text-muted-foreground">
+                          {d
+                            ? formatMinor(d.priceMinor, DEFAULT_CURRENCY)
+                            : "—"}
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -184,11 +187,10 @@ export function CartButtonWithSheet() {
                           +
                         </button>
                       </div>
-                      {r.qty > 1 && (
-                        <div className="text-right text-sm font-medium tabular-nums">
-                          {formatMinor(lineTotalMinor, DEFAULT_CURRENCY)}
-                        </div>
-                      )}
+
+                      <div className="text-right text-sm font-medium tabular-nums">
+                        {formatMinor(lineTotalMinor, DEFAULT_CURRENCY)}
+                      </div>
                     </div>
                   </div>
 
@@ -198,7 +200,7 @@ export function CartButtonWithSheet() {
                       className="hover:cursor-pointer"
                       aria-label="Agregar a favoritos"
                     >
-                      <FaRegHeart className="size-[20px]" />
+                      <FaRegHeart className="size-[18px]" />
                     </button>
                     <button
                       type="button"
@@ -206,7 +208,7 @@ export function CartButtonWithSheet() {
                       aria-label="Quitar de la cesta"
                       onClick={() => dispatch(removeItem({ slug: r.slug }))}
                     >
-                      <FaRegTrashCan className="size-[20px] text-slate-700 hover:text-primary" />
+                      <FaRegTrashCan className="size-[18px] text-slate-700 hover:text-primary" />
                     </button>
                   </div>
                 </div>
@@ -215,7 +217,7 @@ export function CartButtonWithSheet() {
           </div>
 
           {rows.length > 0 && (
-            <div className="shrink-0 py-6 px-4">
+            <div className="shrink-0 border-t py-6 px-4">
               <div className="flex items-center justify-between text-base font-medium">
                 <span>Subtotal</span>
                 <span>{formatMinor(subtotalMinor, DEFAULT_CURRENCY)}</span>

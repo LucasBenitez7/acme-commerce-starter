@@ -15,6 +15,7 @@ export type OrderItemDraft = {
   unitPriceMinor: number;
   quantity: number;
   subtotalMinor: number;
+  imageUrl?: string | null;
 };
 
 export type OrderDraft = {
@@ -71,6 +72,11 @@ export async function buildOrderDraftFromCart(
       name: true,
       priceCents: true,
       currency: true,
+      images: {
+        orderBy: [{ sort: "asc" }, { id: "asc" }],
+        take: 1,
+        select: { url: true },
+      },
     },
   });
 
@@ -105,6 +111,7 @@ export async function buildOrderDraftFromCart(
       unitPriceMinor,
       quantity: qty,
       subtotalMinor,
+      imageUrl: product.images[0]?.url ?? null,
     });
   }
 

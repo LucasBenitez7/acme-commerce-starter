@@ -1,9 +1,24 @@
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+"use client";
+
+import {
+  IoHomeOutline,
+  IoStorefront,
+  IoHome,
+  IoLocationOutline,
+  IoLocationSharp,
+  IoStorefrontOutline,
+} from "react-icons/io5";
+
+import {
+  CheckoutShippingHome,
+  CheckoutShippingPickup,
+  CheckoutShippingStore,
+} from "@/components/checkout/shipping";
 
 import type {
   CheckoutClientErrors,
   CheckoutFormState,
+  ShippingType,
 } from "@/hooks/use-checkout-form";
 
 type ShippingStepProps = {
@@ -15,122 +30,102 @@ type ShippingStepProps = {
   ) => void;
 };
 
+const SHIPPING_ICONS = {
+  home: {
+    outline: IoHomeOutline,
+    solid: IoHome,
+  },
+  store: {
+    outline: IoStorefrontOutline,
+    solid: IoStorefront,
+  },
+  pickup: {
+    outline: IoLocationOutline,
+    solid: IoLocationSharp,
+  },
+} as const;
+
+const SHIPPING_OPTIONS: {
+  id: ShippingType;
+  title: string;
+}[] = [
+  {
+    id: "home",
+    title: "Envío a domicilio",
+  },
+  {
+    id: "store",
+    title: "Recogida en tienda",
+  },
+  {
+    id: "pickup",
+    title: "Punto de recogida",
+  },
+];
+
 export function CheckoutShippingStep({
   form,
   errors,
   onChange,
 }: ShippingStepProps) {
-  const { fullName, email, address, city, phone } = form;
-  const {
-    fullName: fullNameError,
-    email: emailError,
-    address: addressError,
-    city: cityError,
-    phone: phoneError,
-  } = errors;
+  const { shippingType } = form;
 
   return (
     <div className="space-y-4">
-      <p className="text-sm font-medium text-muted-foreground">
-        Paso 1 de 3 · Datos de envío
-      </p>
+      {/* Selector de tipo de envío */}
+      <div className="space-y-3">
+        <div className="grid gap-3 sm:grid-cols-3">
+          {SHIPPING_OPTIONS.map((option) => {
+            const isActive = shippingType === option.id;
+            const Icon =
+              SHIPPING_ICONS[option.id as "home" | "store" | "pickup"][
+                isActive ? "solid" : "outline"
+              ];
 
-      <div className="space-y-2">
-        <Label htmlFor="fullName">Nombre completo</Label>
-        <Input
-          id="fullName"
-          name="fullName"
-          autoComplete="name"
-          value={fullName}
-          onChange={(e) => onChange("fullName", e.target.value)}
-          required
-          aria-invalid={fullNameError || undefined}
-          aria-describedby={fullNameError ? "fullName-error" : undefined}
-        />
-        {fullNameError && (
-          <p id="fullName-error" className="text-xs text-destructive">
-            Introduce tu nombre y apellidos.
-          </p>
-        )}
+            return (
+              <button
+                key={option.id}
+                type="button"
+                onClick={() => onChange("shippingType", option.id)}
+                className={`flex h-full flex-col items-center justify-center gap-2 rounded-lb border px-3 py-4 text-sm sm:text-sm transition-colors ${
+                  isActive
+                    ? "border-primary text-foreground"
+                    : "border-border bg-neutral-100 hover:border-primary hover:cursor-pointer"
+                }`}
+                aria-pressed={isActive}
+              >
+                <span className="sm:text-lg">
+                  <Icon size={18} />
+                </span>
+                <span className="lg:text-sm sm:text-sm font-medium text-foreground">
+                  {option.title}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="email">Correo electrónico</Label>
-        <Input
-          id="email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          value={email}
-          onChange={(e) => onChange("email", e.target.value)}
-          required
-          aria-invalid={emailError || undefined}
-          aria-describedby={emailError ? "email-error" : undefined}
-        />
-        {emailError && (
-          <p id="email-error" className="text-xs text-destructive">
-            Introduce un correo electrónico válido.
-          </p>
-        )}
-      </div>
+      {/* Secciones específicas según tipo de envío */}
+      {shippingType === "home" && (
+        <CheckoutShippingHome form={form} errors={errors} onChange={onChange} />
+      )}
 
-      <div className="space-y-2">
-        <Label htmlFor="address">Dirección</Label>
-        <Input
-          id="address"
-          name="address"
-          autoComplete="street-address"
-          value={address}
-          onChange={(e) => onChange("address", e.target.value)}
-          required
-          aria-invalid={addressError || undefined}
-          aria-describedby={addressError ? "address-error" : undefined}
+      {shippingType === "store" && (
+        <CheckoutShippingStore
+          form={form}
+          errors={errors}
+          onChange={onChange}
         />
-        {addressError && (
-          <p id="address-error" className="text-xs text-destructive">
-            Introduce una dirección un poco más detallada.
-          </p>
-        )}
-      </div>
+      )}
 
-      <div className="space-y-2">
-        <Label htmlFor="city">Ciudad</Label>
-        <Input
-          id="city"
-          name="city"
-          autoComplete="address-level2"
-          value={city}
-          onChange={(e) => onChange("city", e.target.value)}
-          required
-          aria-invalid={cityError || undefined}
-          aria-describedby={cityError ? "city-error" : undefined}
+      {shippingType === "pickup" && (
+        <CheckoutShippingPickup
+          form={form}
+          errors={errors}
+          onChange={onChange}
         />
-        {cityError && (
-          <p id="city-error" className="text-xs text-destructive">
-            Introduce el nombre de tu ciudad.
-          </p>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="phone">Teléfono (opcional)</Label>
-        <Input
-          id="phone"
-          name="phone"
-          type="tel"
-          autoComplete="tel"
-          value={phone}
-          onChange={(e) => onChange("phone", e.target.value)}
-          aria-invalid={phoneError || undefined}
-          aria-describedby={phoneError ? "phone-error" : undefined}
-        />
-        {phoneError && (
-          <p id="phone-error" className="text-xs text-destructive">
-            El teléfono solo puede contener números y signos habituales (+,
-            espacios, guiones).
-          </p>
-        )}
-      </div>
+      )}
     </div>
   );
 }

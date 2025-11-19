@@ -10,11 +10,14 @@ import {
   isValidEmail,
   isNonEmptyMin,
   isValidPhone,
+  isValidPostalCodeES,
 } from "@/lib/validation/checkout";
 
 export type CheckoutActionState = {
   error?: string;
 };
+
+type ShippingType = "home" | "store" | "pickup";
 
 export async function createOrderAction(
   prevState: CheckoutActionState,
@@ -31,37 +34,81 @@ export async function createOrderAction(
     };
   }
 
+  const firstName = String(formData.get("firstName") ?? "").trim();
+  const lastName = String(formData.get("lastName") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
-  const fullName = String(formData.get("fullName") ?? "").trim();
-  const address = String(formData.get("address") ?? "").trim();
-  const city = String(formData.get("city") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
+  const street = String(formData.get("street") ?? "").trim();
+  const addressExtra = String(formData.get("addressExtra") ?? "").trim();
+  const postalCode = String(formData.get("postalCode") ?? "").trim();
+  const province = String(formData.get("province") ?? "").trim();
+  const city = String(formData.get("city") ?? "").trim();
+  const shippingTypeRaw = String(formData.get("shippingType") ?? "home").trim();
+  let shippingType: ShippingType = "home";
+  if (shippingTypeRaw === "store" || shippingTypeRaw === "pickup") {
+    shippingType = shippingTypeRaw;
+  }
+  const pickupStoreId = String(formData.get("pickupStoreId") ?? "").trim();
+  const pickupSearch = String(formData.get("pickupSearch") ?? "").trim();
 
-  // Preparado para el futuro (card | whatsapp | manual, etc.)
   const paymentMethodRaw = String(
     formData.get("paymentMethod") ?? "card",
   ).trim();
+  // Preparado para el futuro (card | whatsapp | manual, etc.)
   const paymentMethod = paymentMethodRaw === "card" ? "card" : "card";
+
+  // Validaciones básicas
+  if (!isNonEmptyMin(firstName, 2)) {
+    return { error: "Introduce tu nombre." };
+  }
+
+  if (!isNonEmptyMin(lastName, 2)) {
+    return { error: "Introduce tus apellidos." };
+  }
 
   if (!isValidEmail(email)) {
     return { error: "Introduce un correo electrónico válido." };
   }
 
-  if (!isNonEmptyMin(fullName, 3)) {
-    return { error: "Introduce tu nombre y apellidos." };
-  }
-
-  if (!isNonEmptyMin(address, 5) || !isNonEmptyMin(city, 2)) {
-    return {
-      error: "Revisa que hayas completado correctamente tu dirección y ciudad.",
-    };
-  }
-
   if (!isValidPhone(phone)) {
     return {
       error:
-        "El número de teléfono debe contener solo números y signos habituales (+, espacios, guiones).",
+        "Introduce un número de teléfono válido (solo números y signos habituales).",
     };
+  }
+
+  // Validaciones específicas según el tipo de envío
+  if (shippingType === "home") {
+    if (!isNonEmptyMin(street, 5)) {
+      return {
+        error:
+          "Introduce una dirección de envío más detallada (calle y número).",
+      };
+    }
+
+    if (!isValidPostalCodeES(postalCode)) {
+      return {
+        error: "Introduce un código postal español válido (5 dígitos).",
+      };
+    }
+
+    if (!isNonEmptyMin(province, 2) || !isNonEmptyMin(city, 2)) {
+      return {
+        error: "Revisa que hayas completado correctamente provincia y ciudad.",
+      };
+    }
+  } else if (shippingType === "store") {
+    if (!pickupStoreId) {
+      return {
+        error: "Selecciona una tienda para recoger tu pedido.",
+      };
+    }
+  } else if (shippingType === "pickup") {
+    if (!isNonEmptyMin(pickupSearch, 3)) {
+      return {
+        error: "Introduce un código postal o zona para el punto de recogida.",
+      };
+    }
   }
 
   const draft = await buildOrderDraftFromCart(lines);
@@ -81,6 +128,8 @@ export async function createOrderAction(
         currency: draft.currency,
         totalMinor: draft.totalMinor,
         status: "PENDING_PAYMENT",
+        // En una fase futura podemos guardar también los datos de envío en la tabla Order
+        // (shippingType, dirección, tienda, etc.).
         items: {
           create: draft.items.map((item) => ({
             productId: item.productId,

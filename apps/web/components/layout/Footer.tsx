@@ -1,8 +1,20 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { Container } from "@/components/ui";
 
 export function Footer() {
+  const pathname = usePathname();
+
+  const isCheckoutFlow =
+    pathname === "/checkout" || pathname.startsWith("/checkout/");
+
+  if (isCheckoutFlow) {
+    return null;
+  }
+
   return (
     <footer className="border-t">
       <Container className="py-8 text-sm text-neutral-600 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
