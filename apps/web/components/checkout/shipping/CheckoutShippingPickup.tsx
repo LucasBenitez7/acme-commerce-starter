@@ -32,7 +32,7 @@ export function CheckoutShippingPickup({
   );
 
   return (
-    <div className="space-y-4 pt-2">
+    <div className="space-y-3 pt-2">
       {/* MODO SELECCIÓN: aún no hay punto elegido */}
       {!hasSelectedLocation && (
         <>

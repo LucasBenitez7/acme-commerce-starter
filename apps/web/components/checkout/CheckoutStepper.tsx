@@ -18,7 +18,7 @@ export function CheckoutStepper({ currentStep, onStepClick }: Props) {
   return (
     <nav
       aria-label="Progreso del checkout"
-      className="flex mb-4 rounded-lb border px-3 py-4 text-xs sm:text-sm items-center justify-center bg-background"
+      className="flex px-3 border-b py-4 text-xs sm:text-sm items-center justify-center bg-background"
     >
       <ol className="flex w-full items-center gap-3 sm:gap-4">
         {STEPS.map((step, index) => {

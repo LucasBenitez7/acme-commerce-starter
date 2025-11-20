@@ -30,7 +30,7 @@ export function CheckoutShippingStore({
   const selectedStore = STORE_LOCATIONS.find((s) => s.id === storeLocationId);
 
   return (
-    <div className="space-y-4 pt-2">
+    <div className="space-y-3 pt-2">
       {/* MODO SELECCIÓN: todavía no hay tienda elegida */}
       {!hasSelectedLocation && (
         <>

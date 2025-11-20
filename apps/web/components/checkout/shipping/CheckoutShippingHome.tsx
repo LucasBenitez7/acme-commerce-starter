@@ -31,8 +31,8 @@ export function CheckoutShippingHome({
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <p className="text-base font-medium text-foreground pt-2">
+      <div>
+        <p className="text-base font-medium text-foreground pt-2 mb-1">
           Datos de contacto
         </p>
         <CheckoutContactFields
@@ -42,101 +42,102 @@ export function CheckoutShippingHome({
         />
       </div>
 
-      <div className="space-y-2">
-        <p className="text-base font-medium text-foreground">
+      <div>
+        <p className="text-base font-medium text-foreground mb-1">
           Dirección de entrega
         </p>
-
-        <div className="space-y-2">
-          <Label htmlFor="street">Calle y número*</Label>
-          <Input
-            id="street"
-            name="street"
-            autoComplete="address-line1"
-            value={street}
-            onChange={(e) => onChange("street", e.target.value)}
-            required
-            aria-invalid={streetError || undefined}
-            aria-describedby={streetError ? "street-error" : undefined}
-          />
-          {streetError && (
-            <p id="street-error" className="text-xs text-destructive">
-              Introduce una dirección un poco más detallada (calle y número).
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="addressExtra">Escalera, piso... (opcional)</Label>
-          <Input
-            id="addressExtra"
-            name="addressExtra"
-            autoComplete="address-line2"
-            value={addressExtra}
-            onChange={(e) => onChange("addressExtra", e.target.value)}
-            placeholder="Escalera, portal, piso…"
-          />
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div className="space-y-2">
-            <Label htmlFor="postalCode">Código postal*</Label>
+        <div className="space-y-4">
+          <div className="space-y-1">
+            <Label htmlFor="street">Calle y número*</Label>
             <Input
-              id="postalCode"
-              name="postalCode"
-              autoComplete="postal-code"
-              inputMode="numeric"
-              value={postalCode}
-              onChange={(e) => onChange("postalCode", e.target.value)}
+              id="street"
+              name="street"
+              autoComplete="address-line1"
+              value={street}
+              onChange={(e) => onChange("street", e.target.value)}
               required
-              aria-invalid={postalCodeError || undefined}
-              aria-describedby={
-                postalCodeError ? "postalCode-error" : undefined
-              }
+              aria-invalid={streetError || undefined}
+              aria-describedby={streetError ? "street-error" : undefined}
             />
-            {postalCodeError && (
-              <p id="postalCode-error" className="text-xs text-destructive">
-                Introduce un código postal español válido (5 dígitos).
+            {streetError && (
+              <p id="street-error" className="text-xs text-destructive">
+                Introduce una dirección un poco más detallada (calle y número).
               </p>
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="province">Provincia*</Label>
+          <div className="space-y-1">
+            <Label htmlFor="addressExtra">Escalera, piso... (opcional)</Label>
             <Input
-              id="province"
-              name="province"
-              autoComplete="address-level1"
-              value={province}
-              onChange={(e) => onChange("province", e.target.value)}
-              required
-              aria-invalid={provinceError || undefined}
-              aria-describedby={provinceError ? "province-error" : undefined}
+              id="addressExtra"
+              name="addressExtra"
+              autoComplete="address-line2"
+              value={addressExtra}
+              onChange={(e) => onChange("addressExtra", e.target.value)}
+              placeholder="Escalera, portal, piso…"
             />
-            {provinceError && (
-              <p id="province-error" className="text-xs text-destructive">
-                Introduce tu provincia.
-              </p>
-            )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="city">Ciudad*</Label>
-            <Input
-              id="city"
-              name="city"
-              autoComplete="address-level2"
-              value={city}
-              onChange={(e) => onChange("city", e.target.value)}
-              required
-              aria-invalid={cityError || undefined}
-              aria-describedby={cityError ? "city-error" : undefined}
-            />
-            {cityError && (
-              <p id="city-error" className="text-xs text-destructive">
-                Introduce tu ciudad.
-              </p>
-            )}
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="space-y-1">
+              <Label htmlFor="postalCode">Código postal*</Label>
+              <Input
+                id="postalCode"
+                name="postalCode"
+                autoComplete="postal-code"
+                inputMode="numeric"
+                value={postalCode}
+                onChange={(e) => onChange("postalCode", e.target.value)}
+                required
+                aria-invalid={postalCodeError || undefined}
+                aria-describedby={
+                  postalCodeError ? "postalCode-error" : undefined
+                }
+              />
+              {postalCodeError && (
+                <p id="postalCode-error" className="text-xs text-destructive">
+                  Introduce un código postal español válido (5 dígitos).
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <Label htmlFor="province">Provincia*</Label>
+              <Input
+                id="province"
+                name="province"
+                autoComplete="address-level1"
+                value={province}
+                onChange={(e) => onChange("province", e.target.value)}
+                required
+                aria-invalid={provinceError || undefined}
+                aria-describedby={provinceError ? "province-error" : undefined}
+              />
+              {provinceError && (
+                <p id="province-error" className="text-xs text-destructive">
+                  Introduce tu provincia.
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <Label htmlFor="city">Ciudad*</Label>
+              <Input
+                id="city"
+                name="city"
+                autoComplete="address-level2"
+                value={city}
+                onChange={(e) => onChange("city", e.target.value)}
+                required
+                aria-invalid={cityError || undefined}
+                aria-describedby={cityError ? "city-error" : undefined}
+              />
+              {cityError && (
+                <p id="city-error" className="text-xs text-destructive">
+                  Introduce tu ciudad.
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </div>

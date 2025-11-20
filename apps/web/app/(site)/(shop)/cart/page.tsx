@@ -19,7 +19,7 @@ export default function CartPage() {
   const hasItems = rows.length > 0;
 
   return (
-    <main className="pt-2 pb-8 max-w-[1400px] mx-auto">
+    <main className="pt-2 pb-8 max-w-[1440px] mx-auto px-4">
       <h1 className="py-4 text-2xl font-semibold">Cesta</h1>
 
       {rows.length === 0 ? (
@@ -128,14 +128,14 @@ export default function CartPage() {
           </div>
 
           {rows.length > 0 && (
-            <aside className="lg:sticky lg:top-18 h-max border rounded-lb p-4 bg-background">
-              <div className="flex items-center justify-between text-lg font-medium">
+            <aside className="lg:sticky lg:top-18 h-max border rounded-lb px-4 bg-background">
+              <div className="flex items-center justify-between text-lg  py-4 font-medium">
                 <span>Subtotal</span>
                 <span className="text-base">
                   {formatMinor(subtotalMinor, DEFAULT_CURRENCY)}
                 </span>
               </div>
-              <div className="mt-3 flex gap-6">
+              <div className="pb-6 flex gap-6">
                 <Button
                   asChild
                   className="flex-1 py-2 hover:cursor-pointer"

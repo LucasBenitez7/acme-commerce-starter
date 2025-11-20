@@ -1,5 +1,3 @@
-// apps/web/components/checkout/shipping/locations.ts
-
 export type LocationBase = {
   id: string;
   name: string;

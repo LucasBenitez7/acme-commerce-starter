@@ -1,6 +1,13 @@
 "use client";
+
 import Link from "next/link";
-import { useEffect, useRef, useActionState, type FormEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useActionState,
+  type FormEvent,
+  useState,
+} from "react";
 import { useFormStatus } from "react-dom";
 
 import {
@@ -15,7 +22,12 @@ import {
   createOrderAction,
   type CheckoutActionState,
 } from "@/app/(site)/(shop)/checkout/actions";
-import { useCheckoutForm } from "@/hooks/use-checkout-form";
+import {
+  useCheckoutForm,
+  type CheckoutFormState,
+} from "@/hooks/use-checkout-form";
+
+import type { CheckoutStep } from "@/components/checkout";
 
 const INITIAL_SERVER_STATE: CheckoutActionState = {
   error: undefined,
@@ -27,7 +39,7 @@ function SubmitButton({ disabledBase }: { disabledBase: boolean }) {
   return (
     <Button
       type="submit"
-      className="w-full md:w-auto hover:cursor-pointer"
+      className="w-full hover:cursor-pointer md:w-auto"
       disabled={disabledBase || pending}
     >
       {pending ? "Procesando pedido..." : "Realizar pedido"}
@@ -54,6 +66,14 @@ export function CheckoutForm() {
 
   const { shippingType, storeLocationId, pickupLocationId } = form;
 
+  // Error del servidor que queremos poder limpiar
+  const [serverError, setServerError] = useState<string | undefined>(undefined);
+
+  // Sincronizamos el último error que venga del serverAction
+  useEffect(() => {
+    setServerError(serverState.error);
+  }, [serverState.error]);
+
   const canShowNextButton =
     step === 1
       ? shippingType === "home" ||
@@ -63,23 +83,48 @@ export function CheckoutForm() {
 
   const errorRef = useRef<HTMLDivElement | null>(null);
 
-  // Focus y scroll al banner de error del servidor
+  // Focus + scroll al banner de error del servidor
   useEffect(() => {
-    if (serverState?.error && errorRef.current) {
+    if (serverError && errorRef.current) {
       errorRef.current.focus();
       errorRef.current.scrollIntoView({
         behavior: "smooth",
         block: "start",
       });
     }
-  }, [serverState?.error]);
+  }, [serverError]);
+
+  // Wrappers para limpiar error del servidor al interactuar
+  function handleChangeWithClear<K extends keyof CheckoutFormState>(
+    key: K,
+    value: CheckoutFormState[K],
+  ) {
+    if (serverError) setServerError(undefined);
+    handleChange(key, value);
+  }
+
+  function handleNextWithClear() {
+    if (serverError) setServerError(undefined);
+    handleNext();
+  }
+
+  function handlePrevWithClear() {
+    if (serverError) setServerError(undefined);
+    handlePrev();
+  }
+
+  function handleStepperClickWithClear(target: CheckoutStep) {
+    if (serverError) setServerError(undefined);
+    handleStepperClick(target);
+  }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     if (step < 3) {
       event.preventDefault();
-      handleNext();
+      handleNextWithClear();
       return;
     }
+    // step === 3 → dejamos que el form haga submit al serverAction
   }
 
   const isStep1 = step === 1;
@@ -87,29 +132,33 @@ export function CheckoutForm() {
   const isStep3 = step === 3;
 
   return (
-    <div className="space-y-4">
-      <CheckoutStepper currentStep={step} onStepClick={handleStepperClick} />
+    <div className="border">
+      <CheckoutStepper
+        currentStep={step}
+        onStepClick={handleStepperClickWithClear}
+      />
 
       <form
-        className="p-4 space-y-4 border rounded-lb bg-background"
+        className="rounded-lb bg-background p-4"
         action={formAction}
         noValidate
         onSubmit={handleSubmit}
       >
-        {serverState?.error && (
+        {serverError && (
           <div
             ref={errorRef}
             tabIndex={-1}
-            className="rounded-lb border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+            className="mb-3 rounded-lb border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
             role="alert"
             aria-live="assertive"
           >
-            {serverState.error}
+            {serverError}
           </div>
         )}
-        <h2 className="text-lg font-semibold text-foreground mb-2">
-          {isStep1 && "Elige un metodo de envío"}
-          {isStep2 && "Elige un metodo de pago"}
+
+        <h2 className="py-1 text-lg font-semibold text-foreground">
+          {isStep1 && "Elige un método de envío"}
+          {isStep2 && "Elige un método de pago"}
           {isStep3 && "Revisa y finaliza tu pedido"}
         </h2>
 
@@ -118,30 +167,25 @@ export function CheckoutForm() {
           <CheckoutShippingStep
             form={form}
             errors={errors}
-            onChange={handleChange}
+            onChange={handleChangeWithClear}
           />
         )}
 
         {/* Paso 2: método de pago */}
-        {isStep2 && <CheckoutPaymentStep paymentMethod={form.paymentMethod} />}
-
-        {/* Paso 3: resumen final + inputs ocultos */}
-        {isStep3 && (
-          <CheckoutReviewStep
-            form={form}
-            onEditShipping={() => handleStepperClick(1)}
-            onEditContact={() => handleStepperClick(1)}
-            onEditPayment={() => handleStepperClick(2)}
-          />
+        {isStep2 && (
+          <CheckoutPaymentStep form={form} onChange={handleChangeWithClear} />
         )}
 
+        {/* Paso 3: resumen final + inputs ocultos */}
+        {isStep3 && <CheckoutReviewStep form={form} />}
+
         {/* Navegación entre pasos */}
-        <div className="flex flex-col gap-3 font-medium pt-2 text-sm sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 py-1 text-sm font-medium sm:flex-row sm:items-center sm:justify-between">
           <div>
             {step === 1 && (
               <Link
                 href="/cart"
-                className="text-muted-foreground fx-underline-anim hover:cursor-pointer hover:text-primary transition-all duration-200 ease-in-out"
+                className="fx-underline-anim text-muted-foreground transition-all duration-200 ease-in-out hover:cursor-pointer hover:text-primary"
               >
                 ← Volver a la cesta
               </Link>
@@ -149,8 +193,8 @@ export function CheckoutForm() {
             {step > 1 && (
               <button
                 type="button"
-                className="text-muted-foreground fx-underline-anim hover:cursor-pointer hover:text-primary transition-all duration-200 ease-in-out"
-                onClick={handlePrev}
+                className="fx-underline-anim text-muted-foreground transition-all duration-200 ease-in-out hover:cursor-pointer hover:text-primary"
+                onClick={handlePrevWithClear}
               >
                 {step === 2 && "← Volver al tipo de envío"}
                 {step === 3 && "← Volver al método de pago"}
@@ -162,9 +206,9 @@ export function CheckoutForm() {
             {step < 3 && canShowNextButton && (
               <Button
                 type="button"
-                className="w-full sm:w-auto hover:cursor-pointer"
+                className="w-full hover:cursor-pointer sm:w-auto"
                 variant="default"
-                onClick={handleNext}
+                onClick={handleNextWithClear}
               >
                 {step === 1 ? "Continuar con el pago" : "Continuar al resumen"}
               </Button>

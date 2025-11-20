@@ -27,7 +27,7 @@ export default async function CatalogoPage({
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
 
   return (
-    <section>
+    <section className="px-4">
       <SectionHeader title="Todas las prendas" />
       <ProductGrid items={items} showCartRow={true} />
       <PaginationNav page={page} totalPages={totalPages} base="/catalogo" />

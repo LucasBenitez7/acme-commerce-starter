@@ -39,7 +39,7 @@ export default async function SiteLayout({
       <div className="flex min-h-dvh flex-col bg-background">
         <Header categories={categories} />
         <div className="flex-1">
-          <Container className="bg-neutral-100">
+          <Container className="bg-background">
             <main>{children}</main>
           </Container>
         </div>

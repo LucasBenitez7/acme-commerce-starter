@@ -86,7 +86,7 @@ export default async function ProductPage({ params }: { params: ParamsSlug }) {
   const priceDecimals = MINOR_UNITS[currency];
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-6 px-4">
       <nav className="text-sm text-neutral-500">
         <Link href="/">Inicio</Link> <span aria-hidden>›</span>{" "}
         <Link href="/catalogo">Todas las prendas</Link>{" "}

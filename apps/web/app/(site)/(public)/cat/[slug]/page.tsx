@@ -41,7 +41,7 @@ export default async function CategoryPage({
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
 
   return (
-    <section>
+    <section className="px-4">
       <SectionHeader title={String(cat.name)} />
       <ProductGrid items={items} showCartRow={true} />
       <PaginationNav

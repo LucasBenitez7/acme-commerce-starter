@@ -28,10 +28,12 @@ import { setQty, removeItem } from "@/store/cart.slice";
 
 export function CartButtonWithSheet() {
   const [open, setOpen] = useState(false);
-  const total = useAppSelector(selectCartTotalQty);
   const dispatch = useAppDispatch();
+  const total = useAppSelector(selectCartTotalQty);
+
   const { rows, subtotalMinor } = useCartView();
   const mounted = useMounted();
+
   useAutoCloseOnRouteChange(open, () => setOpen(false));
 
   const badgeText = total > 9 ? "9+" : String(total);
@@ -217,12 +219,12 @@ export function CartButtonWithSheet() {
           </div>
 
           {rows.length > 0 && (
-            <div className="shrink-0 border-t py-6 px-4">
-              <div className="flex items-center justify-between text-base font-medium">
+            <div className="shrink-0 border-t px-4">
+              <div className="flex items-center py-4 justify-between text-base font-medium">
                 <span>Subtotal</span>
                 <span>{formatMinor(subtotalMinor, DEFAULT_CURRENCY)}</span>
               </div>
-              <div className="mt-3 flex gap-6">
+              <div className="pb-6 flex gap-6">
                 <Button
                   asChild
                   className="flex-1 py-2 hover:cursor-pointer"

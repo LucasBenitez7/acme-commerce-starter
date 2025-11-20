@@ -43,21 +43,33 @@ export async function createOrderAction(
   const postalCode = String(formData.get("postalCode") ?? "").trim();
   const province = String(formData.get("province") ?? "").trim();
   const city = String(formData.get("city") ?? "").trim();
+
   const shippingTypeRaw = String(formData.get("shippingType") ?? "home").trim();
+
   let shippingType: ShippingType = "home";
   if (shippingTypeRaw === "store" || shippingTypeRaw === "pickup") {
     shippingType = shippingTypeRaw;
   }
-  const pickupStoreId = String(formData.get("pickupStoreId") ?? "").trim();
+
+  const storeLocationId = String(formData.get("storeLocationId") ?? "").trim();
+
+  const pickupLocationId = String(
+    formData.get("pickupLocationId") ?? "",
+  ).trim();
+
+  const storeSearch = String(formData.get("storeSearch") ?? "").trim();
   const pickupSearch = String(formData.get("pickupSearch") ?? "").trim();
 
   const paymentMethodRaw = String(
     formData.get("paymentMethod") ?? "card",
   ).trim();
-  // Preparado para el futuro (card | whatsapp | manual, etc.)
+
+  // Por ahora sólo aceptamos "card", pero dejamos preparado para el futuro
   const paymentMethod = paymentMethodRaw === "card" ? "card" : "card";
 
+  // ------------------------
   // Validaciones básicas
+  // ------------------------
   if (!isNonEmptyMin(firstName, 2)) {
     return { error: "Introduce tu nombre." };
   }
@@ -77,7 +89,9 @@ export async function createOrderAction(
     };
   }
 
-  // Validaciones específicas según el tipo de envío
+  // ------------------------
+  // Validaciones según tipo de envío
+  // ------------------------
   if (shippingType === "home") {
     if (!isNonEmptyMin(street, 5)) {
       return {
@@ -98,12 +112,19 @@ export async function createOrderAction(
       };
     }
   } else if (shippingType === "store") {
-    if (!pickupStoreId) {
+    if (!storeLocationId) {
       return {
         error: "Selecciona una tienda para recoger tu pedido.",
       };
     }
+    // (storeSearch lo puedes usar en el futuro si quieres validar algo más)
   } else if (shippingType === "pickup") {
+    if (!pickupLocationId) {
+      return {
+        error: "Selecciona un punto de recogida para tu pedido.",
+      };
+    }
+
     if (!isNonEmptyMin(pickupSearch, 3)) {
       return {
         error: "Introduce un código postal o zona para el punto de recogida.",
@@ -111,6 +132,9 @@ export async function createOrderAction(
     }
   }
 
+  // ------------------------
+  // Recalcular pedido a partir del carrito
+  // ------------------------
   const draft = await buildOrderDraftFromCart(lines);
 
   if (!draft.items.length || draft.totalMinor <= 0) {
@@ -120,6 +144,9 @@ export async function createOrderAction(
     };
   }
 
+  // ------------------------
+  // Crear pedido en base de datos
+  // ------------------------
   let order;
   try {
     order = await prisma.order.create({
@@ -128,8 +155,8 @@ export async function createOrderAction(
         currency: draft.currency,
         totalMinor: draft.totalMinor,
         status: "PENDING_PAYMENT",
-        // En una fase futura podemos guardar también los datos de envío en la tabla Order
-        // (shippingType, dirección, tienda, etc.).
+        // En una fase futura podemos guardar también los datos de envío
+        // (shippingType, dirección, tienda, etc.) y paymentMethod.
         items: {
           create: draft.items.map((item) => ({
             productId: item.productId,
@@ -149,6 +176,7 @@ export async function createOrderAction(
     };
   }
 
+  // Vaciar carrito
   cookieStore.set(CART_COOKIE_NAME, "", {
     path: "/",
     maxAge: 0,

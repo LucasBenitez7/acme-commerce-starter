@@ -3,6 +3,11 @@
 import { useEffect, useState } from "react";
 
 import {
+  isPaymentMethod,
+  type PaymentMethod,
+} from "@/components/checkout/payment/methods";
+
+import {
   isValidEmail,
   isNonEmptyMin,
   isValidPhone,
@@ -10,8 +15,6 @@ import {
 } from "@/lib/validation/checkout";
 
 import type { CheckoutStep } from "@/components/checkout";
-
-export type PaymentMethod = "card";
 
 export type ShippingType = "home" | "store" | "pickup";
 
@@ -135,10 +138,9 @@ export function useCheckoutForm() {
           typeof parsed.storeSearch === "string"
             ? parsed.storeSearch
             : prev.storeSearch,
-        paymentMethod:
-          parsed.paymentMethod === "card"
-            ? parsed.paymentMethod
-            : prev.paymentMethod,
+        paymentMethod: isPaymentMethod(parsed.paymentMethod)
+          ? parsed.paymentMethod
+          : prev.paymentMethod,
       }));
     } catch {
       // ignoramos errores de parseo

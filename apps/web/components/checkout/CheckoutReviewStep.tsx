@@ -1,5 +1,4 @@
-import { FaCreditCard } from "react-icons/fa6";
-
+import { findPaymentMethod } from "@/components/checkout/payment/methods";
 import {
   findPickupLocation,
   findStoreLocation,
@@ -9,17 +8,9 @@ import type { CheckoutFormState } from "@/hooks/use-checkout-form";
 
 type ReviewStepProps = {
   form: CheckoutFormState;
-  onEditShipping: () => void;
-  onEditContact: () => void;
-  onEditPayment: () => void;
 };
 
-export function CheckoutReviewStep({
-  form,
-  onEditShipping,
-  onEditContact,
-  onEditPayment,
-}: ReviewStepProps) {
+export function CheckoutReviewStep({ form }: ReviewStepProps) {
   const {
     firstName,
     lastName,
@@ -37,6 +28,14 @@ export function CheckoutReviewStep({
     pickupSearch,
     paymentMethod,
   } = form;
+
+  const paymentOption = findPaymentMethod(paymentMethod);
+
+  const paymentLabel =
+    paymentOption?.title ??
+    (paymentMethod === "cash" ? "Pago en efectivo" : "Método de pago");
+
+  const PaymentIcon = paymentOption?.icon ?? "";
 
   const fullName =
     firstName || lastName ? `${firstName} ${lastName}`.trim() : "";
@@ -83,87 +82,56 @@ export function CheckoutReviewStep({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-3 rounded-lb text-sm">
+    <div>
+      <div className="space-y-4 pb-4 pt-2 text-sm">
         <div>
-          <div className="flex items-center pt-3 justify-between border-t">
-            <p className="text-base font-semibold">Envío</p>
-            <button
-              type="button"
-              className="text-xs font-medium fx-underline-anim"
-              onClick={onEditShipping}
-            >
-              Editar
-            </button>
-          </div>
-
-          <dl className="mt-2 space-y-1 text-xs text-foreground">
-            <div className="flex gap-2">
-              <dt className="w-24 shrink-0 font-medium text-foreground text-sm">
-                Tipo
+          <p className="text-base font-semibold">Datos de contacto</p>
+          <dl className="space-y-1 text-xs text-foreground">
+            <div className="flex gap-2 items-center">
+              <dt className="shrink-0 font-medium text-foreground text-sm">
+                Nombre:
               </dt>
-              <dd>{shippingTypeLabel}</dd>
+              <dd className="font-medium">{fullName || "—"}</dd>
             </div>
-            <div className="flex gap-2">
-              <dt className="w-24 shrink-0 font-medium text-foreground text-sm">
-                Detalles
+            <div className="flex gap-2 items-center">
+              <dt className="shrink-0 font-medium text-foreground text-sm">
+                E-mail:
               </dt>
-              <dd>{shippingDetails}</dd>
+              <dd className="font-medium">{email || "—"}</dd>
             </div>
-          </dl>
-        </div>
-        <div className="h-px w-full bg-border" />
-        <div>
-          <div className="flex items-center justify-between">
-            <p className="text-base font-semibold">Datos de contacto</p>
-            <button
-              type="button"
-              className="text-xs font-medium fx-underline-anim"
-              onClick={onEditContact}
-            >
-              Editar
-            </button>
-          </div>
-          <dl className="mt-2 space-y-1 text-xs text-foreground">
-            <div className="flex gap-2">
-              <dt className="w-24 shrink-0 font-medium text-foreground text-sm">
-                Nombre
+            <div className="flex gap-2 items-center">
+              <dt className="shrink-0 font-medium text-foreground text-sm">
+                Teléfono:
               </dt>
-              <dd>{fullName || "—"}</dd>
-            </div>
-            <div className="flex gap-2">
-              <dt className="w-24 shrink-0 font-medium text-foreground text-sm">
-                E-mail
-              </dt>
-              <dd>{email || "—"}</dd>
-            </div>
-            <div className="flex gap-2">
-              <dt className="w-24 shrink-0 font-medium text-foreground text-sm">
-                Teléfono
-              </dt>
-              <dd>{phone || "—"}</dd>
+              <dd className="font-medium">{phone || "—"}</dd>
             </div>
           </dl>
         </div>
 
-        <div className="h-px w-full bg-border" />
+        <div>
+          <p className="text-base font-semibold">Envío</p>
+          <dl className="space-y-1 text-xs text-foreground">
+            <div className="flex gap-2 items-center">
+              <dt className="shrink-0 font-medium text-foreground text-sm">
+                Tipo:
+              </dt>
+              <dd className="font-medium">{shippingTypeLabel}</dd>
+            </div>
+            <div className="flex gap-2 items-center">
+              <dt className="shrink-0 font-medium text-foreground text-sm">
+                Detalles:
+              </dt>
+              <dd className="font-medium">{shippingDetails}</dd>
+            </div>
+          </dl>
+        </div>
 
-        <div className="space-y-2 pb-4 border-b">
-          <div className="flex items-center justify-between">
-            <p className="text-base font-semibold">Método de pago</p>
-            <button
-              type="button"
-              className="text-xs font-medium fx-underline-anim"
-              onClick={onEditPayment}
-            >
-              Editar
-            </button>
-          </div>
-          <p className="items-center font-medium flex text-foreground text-sm">
-            {paymentMethod === "card"
-              ? "Pago online con tarjeta"
-              : "Método de pago seleccionado"}
-            <FaCreditCard className="ml-2  inline text-sm" />
+        <div>
+          <p className="text-base font-semibold">Método de pago</p>
+
+          <p className="flex items-center text-sm font-medium text-foreground">
+            {paymentLabel}
+            {PaymentIcon && <PaymentIcon className="ml-2 inline h-4 w-4" />}
           </p>
         </div>
       </div>

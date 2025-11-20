@@ -28,11 +28,15 @@ const SHEET_ID = "site-sidebar";
 export function Header({ categories }: { categories: CategoryLink[] }) {
   const [open, setOpen] = useState(false);
   const safeRef = useRef<HTMLDivElement>(null);
-  useLockBodyScroll(open);
-  useAutoCloseOnRouteChange(open, () => setOpen(false));
-
   const pathname = usePathname();
-  const isCheckoutRoute = pathname.startsWith("/checkout");
+
+  const HIDE_HEADER_ON: string[] = ["/checkout"];
+  const hideHeader = HIDE_HEADER_ON.includes(pathname);
+  const isCartPage = pathname === "/cart";
+
+  useLockBodyScroll(open && !hideHeader);
+  useAutoCloseOnRouteChange(open && !hideHeader, () => setOpen(false));
+
   const {
     handlePointerLeaveHeader,
     handlePointerLeaveSheet,
@@ -40,24 +44,18 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
     onInteractOutside,
   } = useSheetSafety({ open, setOpen, safeRef, sheetId: SHEET_ID });
 
+  if (hideHeader) {
+    return null;
+  }
+
   const logo = (
     <Link
       href="/"
-      className="flex justify-self-center focus:outline-none mx-2 px-2 text-3xl font-semibold"
+      className="mx-2 flex justify-self-center px-2 text-3xl font-semibold focus:outline-none"
     >
       Logo lsb
     </Link>
   );
-
-  if (isCheckoutRoute) {
-    return (
-      <header className="border-b bg-background mx-auto w-full z-[100] sticky top-0 h-[var(--header-h)] items-center">
-        <div className="mx-auto flex h-[var(--header-h)] w-max items-center px-4 sm:px-6">
-          {logo}
-        </div>
-      </header>
-    );
-  }
 
   return (
     <>
@@ -65,7 +63,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
         ref={safeRef}
         onPointerLeave={handlePointerLeaveHeader}
         onClickCapture={handleAnyNavClickCapture}
-        className="mx-auto w-full z-[100] sticky top-0 h-[var(--header-h)] grid grid-cols-[1fr_auto_1fr] items-center bg-white px-6"
+        className="mx-auto w-full z-[100] sticky top-0 h-[var(--header-h)] grid grid-cols-[1fr_auto_1fr] items-center bg-background border-b px-4"
       >
         <div className="flex justify-self-start items-center h-full content-center">
           <Sheet open={open} onOpenChange={setOpen} modal={false}>
@@ -134,14 +132,20 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
               </Link>
             </Button>
 
-            <CartButtonWithSheet />
+            <div
+              style={isCartPage ? { pointerEvents: "none" } : undefined}
+              aria-disabled={isCartPage}
+              aria-hidden={isCartPage}
+            >
+              <CartButtonWithSheet />
+            </div>
           </div>
 
-          {/* <Button asChild variant={"outline"} className="text-base">
-						<Link href="/admin" className="px-3 text-base">
-							Admin
-						</Link>
-					</Button> */}
+          <Button asChild variant={"outline"} className="text-base">
+            <Link href="/admin" className="px-4 text-base">
+              Admin
+            </Link>
+          </Button>
         </nav>
       </header>
       <div
