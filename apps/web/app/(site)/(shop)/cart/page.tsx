@@ -1,9 +1,8 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FaRegTrashCan } from "react-icons/fa6";
 
-import { Button } from "@/components/ui/button";
+import { Button, FavoriteButton, RemoveButton } from "@/components/ui";
 
 import { formatMinor, DEFAULT_CURRENCY } from "@/lib/currency";
 
@@ -15,6 +14,8 @@ export default function CartPage() {
   const { rows, subtotalMinor } = useCartView();
   const dispatch = useAppDispatch();
   const router = useRouter();
+
+  const isFavorite = false; // TODO: conectar con wishlist
 
   const hasItems = rows.length > 0;
 
@@ -112,15 +113,18 @@ export default function CartPage() {
                     </div>
                   </div>
 
-                  <div className="flex h-full items-start py-1">
-                    <button
-                      type="button"
-                      className="hover:cursor-pointer"
-                      aria-label="Quitar del carrito"
-                      onClick={() => dispatch(removeItem({ slug: r.slug }))}
-                    >
-                      <FaRegTrashCan className="size-[24px] p-[2px] text-slate-700 hover:text-primary" />
-                    </button>
+                  <div className="flex h-full flex-col items-center justify-between px-1 py-1">
+                    <FavoriteButton
+                      isFavorite={isFavorite}
+                      onToggle={() => {
+                        // TODO: dispatch(toggleWishlist({ slug: r.slug }))
+                      }}
+                    />
+
+                    <RemoveButton
+                      className="mt-1"
+                      onRemove={() => dispatch(removeItem({ slug: r.slug }))}
+                    />
                   </div>
                 </div>
               );

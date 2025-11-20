@@ -1,13 +1,12 @@
 "use client";
+import { HiOutlineShoppingBag } from "react-icons/hi2";
 
 import { upsertDetails, type CartItemDetails } from "@/lib/cart-details";
 
 import { useAppDispatch } from "@/hooks/use-app-dispatch";
 import { addItem } from "@/store/cart.slice";
 
-import { Button } from "../ui";
-
-export function AddToCartButton({
+export function AddToCartIcon({
   slug,
   qty = 1,
   details,
@@ -23,13 +22,18 @@ export function AddToCartButton({
   };
 
   return (
-    <Button
+    <button
       type="button"
       onClick={onClick}
-      variant={"default"}
-      className="px-4 hover:cursor-pointer"
+      className="hover:cursor-pointer text-slate-800 hover:text-primary transition-all duration-200 ease-in-out relative"
     >
-      Añadir a la cesta
-    </Button>
+      <HiOutlineShoppingBag strokeWidth={2} className="size-[22px]" />
+      <span
+        className="absolute top-[-1px] h-[0px] right-[6px] bg-transparent text-lg font-semibold"
+        aria-live="polite"
+      >
+        +
+      </span>
+    </button>
   );
 }

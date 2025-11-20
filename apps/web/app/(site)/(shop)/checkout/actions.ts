@@ -30,7 +30,7 @@ export async function createOrderAction(
   if (!lines.length) {
     return {
       error:
-        "Tu carrito está vacío. Añade algunos productos antes de finalizar el pedido.",
+        "Tu cesta está vacía. Añade algunos productos antes de finalizar el pedido.",
     };
   }
 
@@ -133,14 +133,14 @@ export async function createOrderAction(
   }
 
   // ------------------------
-  // Recalcular pedido a partir del carrito
+  // Recalcular pedido a partir del cesta
   // ------------------------
   const draft = await buildOrderDraftFromCart(lines);
 
   if (!draft.items.length || draft.totalMinor <= 0) {
     return {
       error:
-        "No hemos podido recalcular tu pedido. Revisa tu carrito o actualiza la página e inténtalo de nuevo.",
+        "No hemos podido recalcular tu pedido. Revisa tu cesta o actualiza la página e inténtalo de nuevo.",
     };
   }
 
@@ -176,7 +176,7 @@ export async function createOrderAction(
     };
   }
 
-  // Vaciar carrito
+  // Vaciar cesta
   cookieStore.set(CART_COOKIE_NAME, "", {
     path: "/",
     maxAge: 0,

@@ -1,9 +1,15 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import { FaRegHeart } from "react-icons/fa6";
 
-import { AddToCartButton } from "@/components/cart/AddToCartButton";
-import { CardContent, CardHeader, CardTitle } from "@/components/ui";
+import { AddToCartIcon } from "@/components/cart/AddToCartIcon";
+import {
+  CardContent,
+  CardHeader,
+  CardTitle,
+  FavoriteButton,
+} from "@/components/ui";
 
 import { formatMinor, DEFAULT_CURRENCY } from "@/lib/currency";
 
@@ -17,6 +23,8 @@ export function ProductCard({
   showCartRow?: boolean;
 }) {
   const img = item.thumbnail ?? "/og/default-products.jpg";
+  const isFavorite = false; // TODO: conectar con wishlist
+
   return (
     <div className="overflow-hidden">
       <div className="relative aspect-[3/4] bg-neutral-100">
@@ -36,9 +44,11 @@ export function ProductCard({
           <CardTitle className="font-medium">
             <Link href={`/product/${item.slug}`}>{item.name}</Link>
           </CardTitle>
-          <FaRegHeart
-            className="size-[20px] hover:cursor-pointer"
-            aria-hidden="true"
+          <FavoriteButton
+            isFavorite={isFavorite}
+            onToggle={() => {
+              // TODO: dispatch(toggleWishlist({ slug: r.slug }))
+            }}
           />
         </CardHeader>
         <CardContent className="flex flex-col gap-2 px-2 pb-2">
@@ -49,7 +59,7 @@ export function ProductCard({
           {showCartRow && (
             <div className="flex items-center justify-between">
               <p>talla</p>
-              <AddToCartButton
+              <AddToCartIcon
                 slug={item.slug}
                 details={{
                   slug: item.slug,

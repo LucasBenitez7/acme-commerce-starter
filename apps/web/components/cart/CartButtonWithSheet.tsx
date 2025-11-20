@@ -3,10 +3,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { CgClose } from "react-icons/cg";
-import { FaRegHeart, FaRegTrashCan } from "react-icons/fa6";
 import { HiOutlineShoppingBag } from "react-icons/hi2";
 
-import { Button } from "@/components/ui/button";
+import { Button, FavoriteButton, RemoveButton } from "@/components/ui";
 import {
   Sheet,
   SheetClose,
@@ -33,6 +32,8 @@ export function CartButtonWithSheet() {
 
   const { rows, subtotalMinor } = useCartView();
   const mounted = useMounted();
+
+  const isFavorite = false; // TODO: conectar con wishlist
 
   useAutoCloseOnRouteChange(open, () => setOpen(false));
 
@@ -196,22 +197,18 @@ export function CartButtonWithSheet() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col justify-between h-full items-center px-1 py-1">
-                    <button
-                      type="button"
-                      className="hover:cursor-pointer"
-                      aria-label="Agregar a favoritos"
-                    >
-                      <FaRegHeart className="size-[18px]" />
-                    </button>
-                    <button
-                      type="button"
-                      className="hover:cursor-pointer pb-2"
-                      aria-label="Quitar de la cesta"
-                      onClick={() => dispatch(removeItem({ slug: r.slug }))}
-                    >
-                      <FaRegTrashCan className="size-[18px] text-slate-700 hover:text-primary" />
-                    </button>
+                  <div className="flex h-full flex-col items-center justify-between px-1 py-1">
+                    <FavoriteButton
+                      isFavorite={isFavorite}
+                      onToggle={() => {
+                        // TODO: dispatch(toggleWishlist({ slug: r.slug }))
+                      }}
+                    />
+
+                    <RemoveButton
+                      className="mt-1"
+                      onRemove={() => dispatch(removeItem({ slug: r.slug }))}
+                    />
                   </div>
                 </div>
               );
@@ -228,11 +225,11 @@ export function CartButtonWithSheet() {
                 <Button
                   asChild
                   className="flex-1 py-2 hover:cursor-pointer"
-                  aria-label="Ir al carrito"
+                  aria-label="Ir a la cesta"
                   variant={"outline"}
                 >
                   <SheetClose asChild>
-                    <Link href="/cart">Ir al carrito</Link>
+                    <Link href="/cart">Ir a la cesta</Link>
                   </SheetClose>
                 </Button>
                 <SheetClose asChild>
