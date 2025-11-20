@@ -86,7 +86,7 @@ export default async function ProductPage({ params }: { params: ParamsSlug }) {
   const priceDecimals = MINOR_UNITS[currency];
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-6 px-4 py-6">
       <nav className="text-sm text-neutral-500">
         <Link href="/">Inicio</Link> <span aria-hidden>›</span>{" "}
         <Link href="/catalogo">Todas las prendas</Link>{" "}
@@ -98,29 +98,15 @@ export default async function ProductPage({ params }: { params: ParamsSlug }) {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div>
-          <div className="aspect-[4/5] relative bg-neutral-100">
+          <div className="aspect-[3/4] relative bg-neutral-100">
             <Image
               src={imgMain}
               alt={p.name}
               fill
-              sizes="(max-width: 1024px) 100vw, 50vw"
+              sizes="(max-width: 1280px) 50vw, 25vw"
               className="object-cover"
               priority
             />
-          </div>
-
-          <div className="mt-3 grid grid-cols-4 gap-2">
-            {thumbs.map((img: { url: string }, i: number) => (
-              <div key={i} className="aspect-[4/5] relative bg-neutral-100">
-                <Image
-                  src={img.url}
-                  alt={`${p.name} - imagen ${i + 1}`}
-                  fill
-                  sizes="25vw"
-                  className="object-cover"
-                />
-              </div>
-            ))}
           </div>
         </div>
 
@@ -137,13 +123,13 @@ export default async function ProductPage({ params }: { params: ParamsSlug }) {
             {p.description}
           </p>
 
-          <div className="pt-2 flex items-center gap-2">
-            <AddToCartButton slug={p.slug} />
+          <div className="pt-2 flex items-center gap-4">
             <Button variant="outline" asChild>
               <Link href={`/?cat=${p.category.slug}`}>
                 Ver más de {p.category.name}
               </Link>
             </Button>
+            <AddToCartButton slug={p.slug} />
           </div>
         </div>
       </div>

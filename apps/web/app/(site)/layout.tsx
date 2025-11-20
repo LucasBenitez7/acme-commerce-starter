@@ -8,6 +8,7 @@ import { getHeaderCategories } from "@/lib/server/categories";
 
 import Providers from "@/app/providers";
 import { CART_COOKIE_NAME, decodeCookie } from "@/store/cart.persist";
+import { type CartState } from "@/store/cart.types";
 
 import type { RootState } from "@/store";
 import type { ReactNode } from "react";
@@ -29,7 +30,8 @@ export default async function SiteLayout({
     cart: {
       items,
       updatedAt: Date.now(),
-    },
+      lastRemovedStack: [],
+    } satisfies CartState,
   };
 
   const categories = await getHeaderCategories();
@@ -39,7 +41,7 @@ export default async function SiteLayout({
       <div className="flex min-h-dvh flex-col bg-background">
         <Header categories={categories} />
         <div className="flex-1">
-          <Container>
+          <Container className="bg-background">
             <main>{children}</main>
           </Container>
         </div>

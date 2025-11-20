@@ -188,7 +188,7 @@ pnpm exec lint-staged
 
 ---
 
-## Carrito (Fase 4)
+## Cesta (Fase 4)
 
 - **Estado mínimo**: `CartItemMini[]` con `{ slug: string; qty: number }`.
 - **Persistencia**

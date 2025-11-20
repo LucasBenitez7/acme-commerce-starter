@@ -13,7 +13,7 @@ export default async function HomePage() {
   const items = rows;
 
   return (
-    <section>
+    <section className="px-4">
       <SectionHeader title="Home" />
       <ProductGrid items={items} showCartRow={true} />
     </section>

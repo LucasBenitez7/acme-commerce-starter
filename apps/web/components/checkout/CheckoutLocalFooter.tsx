@@ -1,22 +1,9 @@
-"use client";
-
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 
-import { Container } from "@/components/ui";
-
-export function Footer() {
-  const pathname = usePathname();
-
-  const isCheckoutFlow: string[] = ["/checkout"];
-  const hideFooter = isCheckoutFlow.includes(pathname);
-  if (hideFooter) {
-    return null;
-  }
-
+export function CheckoutLocalFooter() {
   return (
-    <footer className="border-t px-4">
-      <Container className="py-8 text-sm text-neutral-600 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <footer className="hidden border-t bg-background py-6 px-4 text-xs text-muted-foreground lg:block">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <p>
           © {new Date().getFullYear()} lsbstack. Todos los derechos reservados.
         </p>
@@ -31,7 +18,7 @@ export function Footer() {
             Contacto
           </Link>
         </div>
-      </Container>
+      </div>
     </footer>
   );
 }
