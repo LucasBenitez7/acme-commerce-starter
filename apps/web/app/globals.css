@@ -133,6 +133,23 @@
   }
 }
 
+@layer components {
+  @keyframes cart-undo-enter {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  .cart-undo-enter {
+    animation: cart-undo-enter 250ms ease-in-out;
+  }
+}
+
 @layer utilities {
   /*------------- fx-underline-anim ------------- */
   .fx-underline-anim {

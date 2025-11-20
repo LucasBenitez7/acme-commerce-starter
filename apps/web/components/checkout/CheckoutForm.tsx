@@ -41,10 +41,10 @@ function SubmitButton({ disabledBase }: { disabledBase: boolean }) {
   return (
     <Button
       type="submit"
-      className="w-full hover:cursor-pointer md:w-auto"
+      className="w-full px-4 hover:cursor-pointer md:w-auto bg-green-600 hover:bg-green-700"
       disabled={disabledBase || pending}
     >
-      {pending ? "Procesando pedido..." : "Realizar pedido"}
+      {pending ? "Procesando pedido..." : "Pagar y finalizar"}
     </Button>
   );
 }

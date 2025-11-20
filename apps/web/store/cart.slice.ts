@@ -1,25 +1,37 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
-import type { CartItemMini, CartState } from "./cart.types";
+import type {
+  CartItemMini,
+  CartState,
+  LastRemovedStackEntry,
+} from "./cart.types";
 
 const initialState: CartState = {
   items: [],
   updatedAt: null,
-  lastRemovedItem: null,
+  lastRemovedStack: [],
 };
 
 function upsert(items: CartItemMini[], incoming: CartItemMini): CartItemMini[] {
   const idx = items.findIndex((i) => i.slug === incoming.slug);
-  if (idx === -1) {
-    return [...items, incoming];
-  }
+  if (idx === -1) return [...items, incoming];
 
   const next = [...items];
   next[idx] = { slug: incoming.slug, qty: next[idx].qty + incoming.qty };
-
   return next.filter((i) => i.qty > 0);
 }
 
+function pushUndoEntry(
+  state: CartState,
+  entry: Omit<LastRemovedStackEntry, "removedAt">,
+) {
+  const full: LastRemovedStackEntry = {
+    ...entry,
+    removedAt: Date.now(),
+  };
+
+  state.lastRemovedStack = [...state.lastRemovedStack, full].slice(-10);
+}
 export const cartSlice = createSlice({
   name: "cart",
   initialState,
@@ -33,12 +45,19 @@ export const cartSlice = createSlice({
       state.updatedAt = Date.now();
     },
 
-    // ✅ guardar el último eliminado
     removeItem: (state, { payload }: PayloadAction<{ slug: string }>) => {
-      const existing = state.items.find((i) => i.slug === payload.slug);
-      if (!existing) return;
+      const idx = state.items.findIndex((i) => i.slug === payload.slug);
+      if (idx === -1) return;
 
-      state.lastRemovedItem = { ...existing };
+      const removed = state.items[idx];
+
+      // Guardamos entrada de undo con índice
+      pushUndoEntry(state, {
+        slug: removed.slug,
+        qty: removed.qty,
+        index: idx,
+      });
+
       state.items = state.items.filter((i) => i.slug !== payload.slug);
       state.updatedAt = Date.now();
     },
@@ -50,11 +69,15 @@ export const cartSlice = createSlice({
       const idx = state.items.findIndex((i) => i.slug === payload.slug);
       if (idx === -1) return;
 
-      const currentItem = state.items[idx];
-
       if (payload.qty <= 0) {
-        // ✅ también consideramos esto como "eliminar" para poder deshacer
-        state.lastRemovedItem = { ...currentItem };
+        const removed = state.items[idx];
+
+        pushUndoEntry(state, {
+          slug: removed.slug,
+          qty: removed.qty,
+          index: idx,
+        });
+
         state.items = state.items.filter((i) => i.slug !== payload.slug);
       } else {
         state.items[idx].qty = payload.qty;
@@ -66,26 +89,36 @@ export const cartSlice = createSlice({
     clear: (state) => {
       state.items = [];
       state.updatedAt = Date.now();
-      state.lastRemovedItem = null;
+      state.lastRemovedStack = [];
     },
 
     hydrateFromArray: (state, { payload }: PayloadAction<CartItemMini[]>) => {
       state.items = payload.filter((i) => i.qty > 0);
       state.updatedAt = Date.now();
-      state.lastRemovedItem = null;
+      state.lastRemovedStack = [];
     },
 
-    // ✅ nuevo: deshacer el último eliminado
-    restoreLastRemovedItem: (state) => {
-      if (!state.lastRemovedItem) return;
+    restoreFromStack: (
+      state,
+      { payload }: PayloadAction<{ removedAt: number }>,
+    ) => {
+      const idx = state.lastRemovedStack.findIndex(
+        (entry) => entry.removedAt === payload.removedAt,
+      );
+      if (idx === -1) return;
 
-      state.items = upsert(state.items, state.lastRemovedItem);
-      state.lastRemovedItem = null;
+      const [entry] = state.lastRemovedStack.splice(idx, 1);
+      state.lastRemovedStack = [...state.lastRemovedStack];
+
+      state.items = upsert(state.items, {
+        slug: entry.slug,
+        qty: entry.qty,
+      });
       state.updatedAt = Date.now();
     },
 
-    clearLastRemovedItem: (state) => {
-      state.lastRemovedItem = null;
+    clearUndoStack: (state) => {
+      state.lastRemovedStack = [];
     },
   },
 });
@@ -96,8 +129,8 @@ export const {
   setQty,
   clear,
   hydrateFromArray,
-  restoreLastRemovedItem,
-  clearLastRemovedItem,
+  restoreFromStack,
+  clearUndoStack,
 } = cartSlice.actions;
 
 export const cartReducer = cartSlice.reducer;

@@ -29,8 +29,8 @@ export function CheckoutPaymentStep({
               className={`flex cursor-pointer flex-col rounded-lb border p-3 py-6 text-sm text-left transition-colors
                 ${
                   isSelected
-                    ? "border-primary"
-                    : "border-border bg-neutral-50 hover:border-primary"
+                    ? "border-green-600 bg-green-50"
+                    : "border-border bg-neutral-50 hover:bg-neutral-100"
                 }`}
             >
               <input
@@ -46,10 +46,10 @@ export function CheckoutPaymentStep({
                 <div className="flex items-center gap-2">
                   <span
                     aria-hidden="true"
-                    className={`inline-flex h-3 w-3 items-center justify-center rounded-full border-2
+                    className={`inline-flex h-4 w-4 items-center justify-center rounded-full border-2
                     ${
                       isSelected
-                        ? "border-primary bg-primary"
+                        ? "border-green-600 bg-green-600"
                         : "border-muted-foreground/40"
                     }`}
                   />

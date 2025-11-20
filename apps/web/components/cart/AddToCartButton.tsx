@@ -27,7 +27,7 @@ export function AddToCartButton({
       type="button"
       onClick={onClick}
       variant={"default"}
-      className="px-4 hover:cursor-pointer"
+      className="hover:cursor-pointer"
     >
       Añadir a la cesta
     </Button>

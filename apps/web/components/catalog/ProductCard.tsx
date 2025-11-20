@@ -13,6 +13,8 @@ import {
 
 import { formatMinor, DEFAULT_CURRENCY } from "@/lib/currency";
 
+import { AddToCartButton } from "../cart/AddToCartButton";
+
 import type { ProductListItem } from "@/types/catalog";
 
 export function ProductCard({
@@ -39,9 +41,9 @@ export function ProductCard({
         </Link>
       </div>
 
-      <div className="flex flex-col text-sm">
+      <div className="flex flex-col text-sm gap-2">
         <CardHeader className="flex items-center justify-between px-2 py-2">
-          <CardTitle className="font-medium">
+          <CardTitle className="text-sm font-medium">
             <Link href={`/product/${item.slug}`}>{item.name}</Link>
           </CardTitle>
           <FavoriteButton
@@ -51,24 +53,24 @@ export function ProductCard({
             }}
           />
         </CardHeader>
-        <CardContent className="flex flex-col gap-2 px-2 pb-2">
-          <p className="text-sm text-neutral-600">
+        <CardContent className="flex flex-col text-xs font-medium gap-4 px-2 pb-2">
+          <p className="text-xs">
             {formatMinor(item.priceCents, DEFAULT_CURRENCY)}
           </p>
-          <p>c1 c2 c3 c4</p>
+          <div className="flex justify-between">
+            <p>C1 C2 C3 C4</p>
+            <p>XS S M L XL </p>
+          </div>
           {showCartRow && (
-            <div className="flex items-center justify-between">
-              <p>talla</p>
-              <AddToCartIcon
-                slug={item.slug}
-                details={{
-                  slug: item.slug,
-                  name: item.name,
-                  priceMinor: item.priceCents,
-                  imageUrl: img,
-                }}
-              />
-            </div>
+            <AddToCartButton
+              slug={item.slug}
+              details={{
+                slug: item.slug,
+                name: item.name,
+                priceMinor: item.priceCents,
+                imageUrl: img,
+              }}
+            />
           )}
         </CardContent>
       </div>

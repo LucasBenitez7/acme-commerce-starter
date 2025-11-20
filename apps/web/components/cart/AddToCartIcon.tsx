@@ -27,9 +27,9 @@ export function AddToCartIcon({
       onClick={onClick}
       className="hover:cursor-pointer text-slate-800 hover:text-primary transition-all duration-200 ease-in-out relative"
     >
-      <HiOutlineShoppingBag strokeWidth={2} className="size-[22px]" />
+      <HiOutlineShoppingBag strokeWidth={2} className="size-[24px]" />
       <span
-        className="absolute top-[-1px] h-[0px] right-[6px] bg-transparent text-lg font-semibold"
+        className="absolute top-0 h-[0px] right-[7px] bg-transparent text-lg font-semibold"
         aria-live="polite"
       >
         +

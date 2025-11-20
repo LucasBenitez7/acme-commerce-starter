@@ -5,6 +5,7 @@ import { useState } from "react";
 import { CgClose } from "react-icons/cg";
 import { HiOutlineShoppingBag } from "react-icons/hi2";
 
+import { CartUndoChip } from "@/components/cart/CartUndoChip";
 import { Button, FavoriteButton, RemoveButton } from "@/components/ui";
 import {
   Sheet,
@@ -20,6 +21,7 @@ import { formatMinor, DEFAULT_CURRENCY } from "@/lib/currency";
 import { useAppDispatch } from "@/hooks/use-app-dispatch";
 import { useAppSelector } from "@/hooks/use-app-selector";
 import { useAutoCloseOnRouteChange } from "@/hooks/use-auto-close-on-route-change";
+import { useCartUndoRows } from "@/hooks/use-cart-undo-rows";
 import { useCartView } from "@/hooks/use-cart-view";
 import { useMounted } from "@/hooks/use-mounted";
 import { selectCartTotalQty } from "@/store/cart.selectors";
@@ -31,6 +33,8 @@ export function CartButtonWithSheet() {
   const total = useAppSelector(selectCartTotalQty);
 
   const { rows, subtotalMinor } = useCartView();
+  const { undoStack, rowsWithUndo, handleUndo } = useCartUndoRows(rows);
+
   const mounted = useMounted();
 
   const isFavorite = false; // TODO: conectar con wishlist
@@ -88,7 +92,7 @@ export function CartButtonWithSheet() {
         id="cart-sheet"
         side="right"
         overlayClassName="z-[180] bg-black/60 pointer-events-auto"
-        className="z-[190] w-[min(100vw,450px)] sm:-w-full p-0"
+        className="z-[190] w-[min(100vw,500px)] p-0"
       >
         <div className="flex h-full flex-col">
           <SheetHeader className="shrink-0 border-b mb-2 px-4">
@@ -99,7 +103,7 @@ export function CartButtonWithSheet() {
               <SheetClose asChild>
                 <button
                   aria-label="Cerrar cesta"
-                  className="p-[4px] text-sm hover:cursor-pointer border border-white  hover:border-slate-300 focus:outline-none bg-background hover:bg-neutral-100 rounded-lb transition-all duration-200 ease-in-out"
+                  className="p-[4px] text-sm hover:cursor-pointer border border-white hover:border-slate-300 focus:outline-none bg-background hover:bg-neutral-100 rounded-lb transition-all duration-200 ease-in-out"
                 >
                   <CgClose className="size-[20px] stroke-[0.4px]" />
                 </button>
@@ -108,7 +112,8 @@ export function CartButtonWithSheet() {
           </SheetHeader>
 
           <div className="flex-1 overflow-y-auto">
-            {rows.length === 0 && (
+            {/* Estado vacío solo si no hay filas NI undos */}
+            {rows.length === 0 && !undoStack.length && (
               <div className="rounded-lb h-full p-6 text-sm justify-center items-center flex flex-col">
                 <p className="mb-3 font-medium">Tu cesta está vacía</p>
                 <p className="mb-4 text-muted-foreground">
@@ -117,100 +122,116 @@ export function CartButtonWithSheet() {
               </div>
             )}
 
-            {rows.map((r) => {
-              const d = r.detail;
-              const lineTotalMinor = (d?.priceMinor ?? 0) * r.qty;
-              return (
-                <div
-                  key={r.slug}
-                  className="grid grid-cols-[auto_1fr_auto] items-center gap-2 py-2 px-4"
-                >
-                  <div
-                    className="relative aspect-[3/4] h-44 w-32 shrink-0 bg-neutral-100"
-                    aria-hidden="true"
-                  >
-                    {d?.imageUrl && (
-                      <Image
-                        src={d.imageUrl}
-                        alt={d.name}
-                        fill
-                        sizes="200px"
-                        className="h-full w-full rounded-lb object-cover"
-                      />
-                    )}
-                  </div>
+            {rowsWithUndo.map((item) => {
+              if (item.kind === "row") {
+                const r = item.row;
+                const d = r.detail;
+                const lineTotalMinor = (d?.priceMinor ?? 0) * r.qty;
 
-                  <div className="flex flex-col justify-between min-w-0 h-full py-1">
-                    <div className="flex flex-col gap-2">
-                      <div className="truncate text-sm font-medium">
-                        {d?.name ?? r.slug}
-                      </div>
-                      <div className="text-xs flex gap-2 mb-1">
-                        <span className="border-r pr-2 uppercase">S</span>
-                        <span>Marrón</span>
-                      </div>
-                      {r.qty > 1 && (
-                        <div className="text-xs font-medium text-muted-foreground">
-                          {d
-                            ? formatMinor(d.priceMinor, DEFAULT_CURRENCY)
-                            : "—"}
-                        </div>
+                return (
+                  <div
+                    key={r.slug}
+                    className="grid grid-cols-[auto_1fr_auto] items-center gap-2 py-2 px-4"
+                  >
+                    <div
+                      className="relative aspect-[3/4] h-44 w-32 shrink-0 bg-neutral-100"
+                      aria-hidden="true"
+                    >
+                      {d?.imageUrl && (
+                        <Image
+                          src={d.imageUrl}
+                          alt={d.name}
+                          fill
+                          sizes="200px"
+                          className="h-full w-full rounded-lb object-cover"
+                        />
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center border rounded-lb">
-                        <button
-                          className="text-base hover:cursor-pointer px-3 py-1  hover:bg-neutral-100"
-                          aria-label="Restar unidad"
-                          onClick={() =>
-                            dispatch(
-                              setQty({
-                                slug: r.slug,
-                                qty: Math.max(0, r.qty - 1),
-                              }),
-                            )
-                          }
-                        >
-                          −
-                        </button>
-                        <span
-                          className="px-2 py-1 text-center text-sm font-medium"
-                          aria-live="polite"
-                        >
-                          {r.qty}
-                        </span>
-                        <button
-                          className="text-base hover:cursor-pointer px-3 py-1 hover:bg-neutral-100"
-                          aria-label="Sumar unidad"
-                          onClick={() =>
-                            dispatch(setQty({ slug: r.slug, qty: r.qty + 1 }))
-                          }
-                        >
-                          +
-                        </button>
+                    <div className="flex flex-col justify-between min-w-0 h-full py-1">
+                      <div className="flex flex-col gap-2">
+                        <div className="truncate text-sm font-medium">
+                          {d?.name ?? r.slug}
+                        </div>
+                        <div className="text-xs flex gap-2 mb-1">
+                          <span className="border-r pr-2 uppercase">S</span>
+                          <span>Marrón</span>
+                        </div>
+                        {r.qty > 1 && (
+                          <div className="text-xs font-medium text-muted-foreground">
+                            {d
+                              ? formatMinor(d.priceMinor, DEFAULT_CURRENCY)
+                              : "—"}
+                          </div>
+                        )}
                       </div>
 
-                      <div className="text-right text-sm font-medium tabular-nums">
-                        {formatMinor(lineTotalMinor, DEFAULT_CURRENCY)}
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center border rounded-lb">
+                          <button
+                            className="text-base hover:cursor-pointer px-3 py-1 hover:bg-neutral-100"
+                            aria-label="Restar unidad"
+                            onClick={() =>
+                              dispatch(
+                                setQty({
+                                  slug: r.slug,
+                                  qty: Math.max(0, r.qty - 1),
+                                }),
+                              )
+                            }
+                          >
+                            −
+                          </button>
+                          <span
+                            className="px-2 py-1 text-center text-sm font-medium"
+                            aria-live="polite"
+                          >
+                            {r.qty}
+                          </span>
+                          <button
+                            className="text-base hover:cursor-pointer px-3 py-1 hover:bg-neutral-100"
+                            aria-label="Sumar unidad"
+                            onClick={() =>
+                              dispatch(setQty({ slug: r.slug, qty: r.qty + 1 }))
+                            }
+                          >
+                            +
+                          </button>
+                        </div>
+
+                        <div className="text-right text-sm font-medium tabular-nums">
+                          {formatMinor(lineTotalMinor, DEFAULT_CURRENCY)}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="flex h-full flex-col items-center justify-between px-1 py-1">
-                    <FavoriteButton
-                      isFavorite={isFavorite}
-                      onToggle={() => {
-                        // TODO: dispatch(toggleWishlist({ slug: r.slug }))
-                      }}
-                    />
+                    <div className="flex h-full flex-col items-center justify-between px-1 py-1">
+                      <FavoriteButton
+                        isFavorite={isFavorite}
+                        onToggle={() => {
+                          // TODO: dispatch(toggleWishlist({ slug: r.slug }))
+                        }}
+                      />
 
-                    <RemoveButton
-                      className="mt-1"
-                      onRemove={() => dispatch(removeItem({ slug: r.slug }))}
-                    />
+                      <RemoveButton
+                        className="mt-1"
+                        onRemove={() => dispatch(removeItem({ slug: r.slug }))}
+                      />
+                    </div>
                   </div>
-                </div>
+                );
+              }
+
+              const entry = item.entry;
+
+              return (
+                <CartUndoChip
+                  key={`undo-${entry.slug}-${entry.removedAt}`}
+                  entry={entry}
+                  onUndo={handleUndo}
+                  className="px-4 pb-2"
+                  size="sm"
+                />
               );
             })}
           </div>

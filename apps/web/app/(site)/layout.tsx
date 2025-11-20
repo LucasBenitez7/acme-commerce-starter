@@ -1,7 +1,6 @@
 import "@/app/globals.css";
 import { cookies } from "next/headers";
 
-import { CartUndoToast } from "@/components/cart/CartUndoToast";
 import { Header, Footer } from "@/components/layout";
 import { Container } from "@/components/ui";
 
@@ -31,7 +30,7 @@ export default async function SiteLayout({
     cart: {
       items,
       updatedAt: Date.now(),
-      lastRemovedItem: null,
+      lastRemovedStack: [],
     } satisfies CartState,
   };
 
@@ -39,7 +38,6 @@ export default async function SiteLayout({
 
   return (
     <Providers preloadedState={preloadedState}>
-      <CartUndoToast />
       <div className="flex min-h-dvh flex-col bg-background">
         <Header categories={categories} />
         <div className="flex-1">
