@@ -47,13 +47,13 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
   const totalQty = order.items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <Container className="mt-4 py-4 px-4 max-w-4xl">
+    <Container className="lg:py-6 py-4 px-4 max-w-4xl">
       <ClearCartOnMount />
 
       <div className="flex flex-col gap-2 mb-4">
-        <h1 className="text-2xl font-semibold tracking-tight items-center flex gap-1 md:text-3xl">
-          Pedido realizado correctamente{" "}
-          <FaCheckCircle className="size-6 rounded-lb bg-background outline-none text-green-700" />
+        <h1 className="text-2xl font-semibold tracking-tight items-center flex gap-2 md:text-3xl">
+          Su pedido se ha realizado correctamente{" "}
+          <FaCheckCircle className="bg-background outline-none text-green-700" />
         </h1>
         <p className="text-sm text-muted-foreground">
           Gracias por tu compra. Más adelante conectaremos el envío de correos

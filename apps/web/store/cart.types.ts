@@ -6,4 +6,5 @@ export type CartItemMini = {
 export type CartState = {
   items: CartItemMini[];
   updatedAt: number | null;
+  lastRemovedItem: CartItemMini | null;
 };

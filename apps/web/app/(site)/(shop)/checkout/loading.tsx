@@ -69,7 +69,7 @@ export default function CheckoutLoading() {
                     key={i}
                     className="grid grid-cols-[auto_1fr_auto] items-center gap-2"
                   >
-                    <div className="relative h-24 w-20 shrink-0 overflow-hidden rounded-lb bg-neutral-100 animate-pulse" />
+                    <div className="relative h-24 w-20 shrink-0 overflow-hidden rounded-lb bg-neutral-200 animate-pulse" />
                     <div className="flex h-full flex-col justify-between py-1">
                       <div className="h-4 w-32 rounded bg-neutral-200 animate-pulse" />
                       <div className="h-3 w-24 rounded bg-neutral-200 animate-pulse" />

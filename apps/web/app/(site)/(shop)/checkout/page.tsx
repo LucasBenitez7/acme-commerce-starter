@@ -1,9 +1,10 @@
 import { cookies } from "next/headers";
 import Image from "next/image";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { CheckoutForm } from "@/components/checkout/CheckoutForm";
+import { CheckoutHeader } from "@/components/checkout/CheckoutHeader";
+import { CheckoutLocalFooter } from "@/components/checkout/CheckoutLocalFooter";
 import { Container } from "@/components/ui";
 
 import { formatMinor } from "@/lib/currency";
@@ -44,33 +45,23 @@ export default async function CheckoutPage() {
 
   const lines = parseCartCookie(rawCart);
   const orderDraft = await buildOrderDraftFromCart(lines);
+
+  if (!orderDraft.items.length) {
+    redirect("/catalogo");
+  }
+
   const totalQty = orderDraft.items.reduce(
     (sum, item) => sum + item.quantity,
     0,
   );
 
-  const hasItems = orderDraft.items.length > 0;
-
-  if (!hasItems) {
-    redirect("/catalogo");
-  }
-
   return (
     <Container className="px-0">
       <div className="grid lg:grid-cols-[minmax(0,2fr)_minmax(0,0.8fr)] lg:items-start">
         {/* Columna izquierda: header + formulario + footer (solo en desktop) */}
-        <section className="flex flex-col lg:min-h-screen px-4">
+        <section className="flex flex-col px-4 lg:min-h-screen">
           {/* Header local del checkout */}
-          <header className="sticky top-0 z-[100] flex h-[var(--header-h)] w-full items-center border-b bg-background">
-            <div className="mx-auto flex h-[var(--header-h)] w-max items-center px-4 sm:px-6">
-              <Link
-                href="/"
-                className="flex justify-self-center px-2 text-3xl font-semibold focus:outline-none"
-              >
-                Logo lsb
-              </Link>
-            </div>
-          </header>
+          <CheckoutHeader />
 
           {/* Contenido principal */}
           <div className="flex-1 py-4">
@@ -78,25 +69,7 @@ export default async function CheckoutPage() {
           </div>
 
           {/* Footer local SOLO en desktop */}
-          <footer className="hidden border-t bg-background py-6 px-4 text-xs text-muted-foreground lg:block">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <p>
-                © {new Date().getFullYear()} lsbstack. Todos los derechos
-                reservados.
-              </p>
-              <div className="flex items-center gap-3">
-                <Link href="#" className="hover:underline">
-                  Privacidad
-                </Link>
-                <Link href="#" className="hover:underline">
-                  Términos
-                </Link>
-                <Link href="#" className="hover:underline">
-                  Contacto
-                </Link>
-              </div>
-            </div>
-          </footer>
+          <CheckoutLocalFooter />
         </section>
 
         {/* Columna derecha: resumen del pedido */}
@@ -139,6 +112,7 @@ export default async function CheckoutPage() {
                       <div className="flex h-full justify-between py-1 font-medium">
                         <div className="space-y-1">
                           <p className="text-sm">{item.name}</p>
+                          {/* TODO: tallas/colores reales en el futuro */}
                           <p className="text-xs">M</p>
                           <p className="text-xs">Negro</p>
                           <div className="flex gap-1">
@@ -167,12 +141,13 @@ export default async function CheckoutPage() {
             </div>
 
             {/* Footer del resumen */}
-            <footer className="mt-3 border-t shrink-0 px-4">
+            <footer className="mt-3 shrink-0 border-t px-4">
               <div className="flex items-center justify-between pt-4 text-sm">
                 <span className="text-base">Descuentos</span>
+                {/* TODO: conectar con promos reales */}
                 <span>45,50 €</span>
               </div>
-              <div className="flex items-center justify-between text-base font-semibold pb-6 pt-4">
+              <div className="flex items-center justify-between pb-6 pt-4 text-base font-semibold">
                 <span className="text-lg">Total</span>
                 <span>
                   {formatMinor(orderDraft.totalMinor, orderDraft.currency)}
@@ -191,15 +166,15 @@ export default async function CheckoutPage() {
             reservados.
           </p>
           <div className="flex items-center gap-3">
-            <Link href="#" className="hover:underline">
+            <a href="#" className="hover:underline">
               Privacidad
-            </Link>
-            <Link href="#" className="hover:underline">
+            </a>
+            <a href="#" className="hover:underline">
               Términos
-            </Link>
-            <Link href="#" className="hover:underline">
+            </a>
+            <a href="#" className="hover:underline">
               Contacto
-            </Link>
+            </a>
           </div>
         </div>
       </footer>

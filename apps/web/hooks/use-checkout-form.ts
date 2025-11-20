@@ -51,6 +51,7 @@ export type CheckoutClientErrors = {
 };
 
 const STORAGE_KEY = "checkout.form.v1";
+const STEP_STORAGE_KEY = "checkout.step.v1";
 
 const INITIAL_FORM_STATE: CheckoutFormState = {
   firstName: "",
@@ -85,6 +86,22 @@ export function useCheckoutForm() {
   // ------------------------
   // Restaurar desde localStorage
   // ------------------------
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const raw = window.localStorage.getItem(STEP_STORAGE_KEY);
+      if (!raw) return;
+
+      const parsed = Number.parseInt(raw, 10);
+      if (parsed === 1 || parsed === 2 || parsed === 3) {
+        setStep(parsed as CheckoutStep);
+      }
+    } catch {
+      // ignoramos errores
+    }
+  }, []);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -150,6 +167,16 @@ export function useCheckoutForm() {
   // ------------------------
   // Guardar en localStorage
   // ------------------------
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      window.localStorage.setItem(STEP_STORAGE_KEY, String(step));
+    } catch {
+      // ignoramos errores
+    }
+  }, [step]);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -280,12 +307,8 @@ export function useCheckoutForm() {
       return next;
     });
 
-    // Si cambia el tipo de envío, "reseteamos" la tarjeta que había fallado
     if (key === "shippingType") {
       setInvalidShippingType(null);
-      // Mantenemos showAllErrors para que siga marcando campos
-      // si el usuario ya empezó a rellenar, pero no forzamos errores
-      // en la nueva tarjeta hasta que vuelva a pulsar Continuar.
     }
   }
 
@@ -318,8 +341,8 @@ export function useCheckoutForm() {
 
   function resetForm() {
     setForm(INITIAL_FORM_STATE);
-    setStep(1);
     setShowAllErrors(false);
+    setStep(1);
     setInvalidShippingType(null);
   }
 
@@ -328,6 +351,7 @@ export function useCheckoutForm() {
     isValid,
     step,
     errors,
+    showShippingErrors: forceShowForCurrentShipping,
     handleChange,
     handleNext,
     handlePrev,

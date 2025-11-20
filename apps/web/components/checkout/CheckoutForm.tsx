@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   useEffect,
   useRef,
@@ -15,6 +16,7 @@ import {
   CheckoutReviewStep,
   CheckoutShippingStep,
   CheckoutStepper,
+  LeaveCheckoutDialog,
 } from "@/components/checkout";
 import { Button } from "@/components/ui";
 
@@ -52,12 +54,15 @@ export function CheckoutForm() {
     CheckoutActionState,
     FormData
   >(createOrderAction, INITIAL_SERVER_STATE);
+  const router = useRouter();
+  const [showLeaveToCartDialog, setShowLeaveToCartDialog] = useState(false);
 
   const {
     form,
     isValid,
     step,
     errors,
+    showShippingErrors,
     handleChange,
     handleNext,
     handlePrev,
@@ -82,6 +87,7 @@ export function CheckoutForm() {
       : true;
 
   const errorRef = useRef<HTMLDivElement | null>(null);
+  const stepHeadingRef = useRef<HTMLHeadingElement | null>(null);
 
   // Focus + scroll al banner de error del servidor
   useEffect(() => {
@@ -156,11 +162,22 @@ export function CheckoutForm() {
           </div>
         )}
 
-        <h2 className="py-1 text-lg font-semibold text-foreground">
+        <h2
+          ref={stepHeadingRef}
+          tabIndex={-1}
+          className="py-1 text-lg font-semibold text-foreground"
+        >
           {isStep1 && "Elige un método de envío"}
           {isStep2 && "Elige un método de pago"}
           {isStep3 && "Revisa y finaliza tu pedido"}
         </h2>
+
+        {/* Mensaje global solo para lectores de pantalla cuando forzamos errores de envío */}
+        <div className="sr-only" aria-live="polite">
+          {showShippingErrors && step === 1
+            ? "Hay errores en los datos de envío. Revisa los campos marcados en rojo."
+            : ""}
+        </div>
 
         {/* Paso 1: datos de envío */}
         {isStep1 && (
@@ -183,12 +200,13 @@ export function CheckoutForm() {
         <div className="flex flex-col gap-3 py-1 text-sm font-medium sm:flex-row sm:items-center sm:justify-between">
           <div>
             {step === 1 && (
-              <Link
-                href="/cart"
-                className="fx-underline-anim text-muted-foreground transition-all duration-200 ease-in-out hover:cursor-pointer hover:text-primary"
+              <button
+                type="button"
+                className="text-muted-foreground fx-underline-anim hover:cursor-pointer hover:text-primary transition-all duration-200 ease-in-out"
+                onClick={() => setShowLeaveToCartDialog(true)}
               >
                 ← Volver a la cesta
-              </Link>
+              </button>
             )}
             {step > 1 && (
               <button
@@ -218,6 +236,18 @@ export function CheckoutForm() {
           </div>
         </div>
       </form>
+      <LeaveCheckoutDialog
+        open={showLeaveToCartDialog}
+        onClose={() => setShowLeaveToCartDialog(false)}
+        onConfirm={() => {
+          setShowLeaveToCartDialog(false);
+          router.push("/cart");
+        }}
+        title="¿Volver a la cesta?"
+        description="Si vuelves a la cesta, saldrás del proceso de compra. Podrás retomarlo más tarde desde tu carrito."
+        confirmLabel="Volver a la cesta"
+        cancelLabel="Continuar con la compra"
+      />
     </div>
   );
 }
