@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { createSelector } from "@reduxjs/toolkit";
 
 import type { RootState } from "./index";
@@ -20,3 +21,11 @@ export const selectCartQtyByVariant = createSelector(
     return item ? item.qty : 0;
   },
 );
+=======
+import type { RootState } from "./index";
+
+export const selectCartItems = (s: RootState) => s.cart.items;
+
+export const selectCartTotalQty = (s: RootState) =>
+  s.cart.items.reduce<number>((acc, it) => acc + it.qty, 0);
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))

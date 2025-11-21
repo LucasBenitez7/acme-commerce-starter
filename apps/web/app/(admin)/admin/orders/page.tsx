@@ -73,7 +73,11 @@ export default async function OrdersPage({ searchParams }: Props) {
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         {/* Lista de pedidos */}
+<<<<<<< HEAD
         <section className="rounded-xs border bg-card">
+=======
+        <section className="rounded-lb border bg-card">
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
           <header className="flex items-center justify-between border-b px-3 py-3">
             <h2 className="text-sm font-semibold">Últimos pedidos</h2>
             <span className="text-xs text-muted-foreground">
@@ -91,8 +95,13 @@ export default async function OrdersPage({ searchParams }: Props) {
                 <thead className="sticky top-0 bg-slate-100 text-[11px] uppercase tracking-wide font-medium text-foreground">
                   <tr>
                     <th className="w-[12rem] px-3 py-2 font-medium">Pedido</th>
+<<<<<<< HEAD
                     <th className="w-[12rem] py-2 font-medium">Fecha</th>
                     <th className="w-[10rem] py-2 font-medium">Cliente</th>
+=======
+                    <th className="w-[7rem] px-2 py-2 font-medium">Fecha</th>
+                    <th className="w-[10rem] px-2 py-2 font-medium">Cliente</th>
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
                     <th className="px-3 py-2 font-medium">Envío</th>
                     <th className="px-3 py-2 font-medium">Estado</th>
                     <th className="px-3 py-2 font-medium text-left">Total</th>
@@ -123,8 +132,13 @@ export default async function OrdersPage({ searchParams }: Props) {
                     return (
                       <tr
                         key={order.id}
+<<<<<<< HEAD
                         className={`border-t text-xs hover:bg-slate-50 ${
                           isSelected ? "bg-slate-100" : ""
+=======
+                        className={`border-t text-xs hover:bg-muted/60 ${
+                          isSelected ? "bg-muted/80" : ""
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
                         }`}
                       >
                         <td className="w-[12rem] px-3 py-2">
@@ -135,8 +149,17 @@ export default async function OrdersPage({ searchParams }: Props) {
                             {order.id.slice(0, 20)}…
                           </Link>
                         </td>
+<<<<<<< HEAD
                         <td className="w-[12rem] py-2 align-top">{created}</td>
                         <td className="w-[10rem] py-2 align-top">{fullName}</td>
+=======
+                        <td className="w-[7rem] px-2 py-2 align-top">
+                          {created}
+                        </td>
+                        <td className="w-[10rem] px-2 py-2 align-top">
+                          {fullName}
+                        </td>
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
                         <td className="px-3 py-2 align-top">{shippingLabel}</td>
                         <td className="px-3 py-2 align-top text-foreground">
                           {order.status}
@@ -154,7 +177,11 @@ export default async function OrdersPage({ searchParams }: Props) {
         </section>
 
         {/* Detalle del pedido seleccionado */}
+<<<<<<< HEAD
         <section className="rounded-xs border bg-card">
+=======
+        <section className="rounded-lb border bg-card">
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
           <header className="border-b px-3 py-3">
             <h2 className="text-sm font-semibold">Detalle del pedido</h2>
             {!selectedOrder && (
@@ -249,9 +276,18 @@ export default async function OrdersPage({ searchParams }: Props) {
           </p>
           <ul>
             {selectedOrder.items.map((item) => (
+<<<<<<< HEAD
               <li key={item.id} className="flex items-center justify-between">
                 <div className="flex flex-col py-1">
                   <span className="text-[11px] font-medium">
+=======
+              <li
+                key={item.id}
+                className="flex items-center justify-between gap-2 border px-2 py-1"
+              >
+                <div className="flex flex-col">
+                  <span className="text-[11px] py-1 font-medium">
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
                     {item.nameSnapshot}{" "}
                     <span className="text-[11px] text-muted-foreground">
                       x{item.quantity}
@@ -264,6 +300,7 @@ export default async function OrdersPage({ searchParams }: Props) {
               </li>
             ))}
           </ul>
+<<<<<<< HEAD
         </div>
         <div className="flex items-center pt-4 justify-between">
           <p className="text-[12px] font-semibold uppercase text-muted-foreground">
@@ -272,6 +309,15 @@ export default async function OrdersPage({ searchParams }: Props) {
           <p className="text-[12px] font-semibold">
             {formatMinor(selectedOrder.totalMinor, currency)}
           </p>
+=======
+
+          <div className="mt-3 flex items-center justify-between border-t pt-2 px-2 text-sm font-semibold">
+            <span>Total</span>
+            <span className="text-xs">
+              {formatMinor(selectedOrder.totalMinor, currency)}
+            </span>
+          </div>
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
         </div>
       </div>
     );

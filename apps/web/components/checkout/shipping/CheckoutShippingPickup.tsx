@@ -65,7 +65,11 @@ export function CheckoutShippingPickup({
                 return (
                   <label
                     key={location.id}
+<<<<<<< HEAD
                     className={`flex w-full cursor-pointer flex-col rounded-xs space-y-1 border p-3 text-left text-xs sm:text-sm transition-colors ${
+=======
+                    className={`flex w-full cursor-pointer flex-col rounded-lb border p-3 text-left text-xs sm:text-sm transition-colors ${
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
                       isSelected
                         ? "border-primary bg-primary/5"
                         : "border-border hover:border-primary/60 hover:bg-neutral-50"
@@ -87,9 +91,17 @@ export function CheckoutShippingPickup({
                       {location.addressLine2}
                     </p>
 
+<<<<<<< HEAD
                     <div className="flex flex-wrap items-center gap-2 text-[0.7rem] text-muted-foreground">
                       <span>{location.tag}</span>
                       <span>{location.distance}</span>
+=======
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-[0.7rem] text-muted-foreground">
+                      <span>{location.tag}</span>
+                      <span>·</span>
+                      <span>{location.distance}</span>
+                      <span>·</span>
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
                       <span>{location.schedule}</span>
                     </div>
                   </label>
@@ -119,7 +131,11 @@ export function CheckoutShippingPickup({
             </button>
           </div>
 
+<<<<<<< HEAD
           <div className="rounded-xs border p-3 space-y-1 text-xs sm:text-sm">
+=======
+          <div className="rounded-lb border p-3 text-xs sm:text-sm">
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
             <p className="text-sm font-semibold">
               {selectedPickupLocation.name}
             </p>
@@ -130,14 +146,26 @@ export function CheckoutShippingPickup({
               {selectedPickupLocation.addressLine2}
             </p>
 
+<<<<<<< HEAD
             <div className="flex flex-wrap items-center gap-2 text-[0.7rem] text-muted-foreground">
               <span>{selectedPickupLocation.tag}</span>
               <span>{selectedPickupLocation.distance}</span>
+=======
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-[0.7rem] text-muted-foreground">
+              <span>{selectedPickupLocation.tag}</span>
+              <span>·</span>
+              <span>{selectedPickupLocation.distance}</span>
+              <span>·</span>
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
               <span>{selectedPickupLocation.schedule}</span>
             </div>
           </div>
 
+<<<<<<< HEAD
           <div className="space-y-1 pt-6">
+=======
+          <div className="space-y-2 pt-6">
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
             <p className="text-base font-medium text-foreground">
               Datos de contacto
             </p>

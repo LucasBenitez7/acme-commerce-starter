@@ -31,6 +31,7 @@ import {
   type CheckoutFormState,
 } from "@/hooks/use-checkout-form";
 
+<<<<<<< HEAD
 type Props = {
   defaultFirstName?: string | null;
   defaultLastName?: string | null;
@@ -38,6 +39,8 @@ type Props = {
   defaultPhone?: string | null;
 };
 
+=======
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
 const INITIAL_SERVER_STATE: CheckoutActionState = {
   error: undefined,
 };
@@ -48,7 +51,11 @@ function SubmitButton({ disabledBase }: { disabledBase: boolean }) {
   return (
     <Button
       type="submit"
+<<<<<<< HEAD
       className="w-full px-4 py-3 sm:py-2 text-sm hover:cursor-pointer md:w-auto bg-green-600 hover:bg-green-700"
+=======
+      className="w-full px-4 text-sm hover:cursor-pointer md:w-auto bg-green-600 hover:bg-green-700"
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
       disabled={disabledBase || pending}
     >
       {pending ? "Procesando pedido..." : "Pagar y finalizar"}
@@ -56,12 +63,16 @@ function SubmitButton({ disabledBase }: { disabledBase: boolean }) {
   );
 }
 
+<<<<<<< HEAD
 export function CheckoutForm({
   defaultFirstName,
   defaultLastName,
   defaultEmail,
   defaultPhone,
 }: Props) {
+=======
+export function CheckoutForm() {
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
   const [serverState, formAction] = useActionState<
     CheckoutActionState,
     FormData
@@ -79,6 +90,7 @@ export function CheckoutForm({
     handleNext,
     handlePrev,
     handleStepperClick,
+<<<<<<< HEAD
   } = useCheckoutForm({
     defaults: {
       firstName: defaultFirstName,
@@ -91,6 +103,16 @@ export function CheckoutForm({
   const { shippingType, storeLocationId, pickupLocationId } = form;
   const [serverError, setServerError] = useState<string | undefined>(undefined);
 
+=======
+  } = useCheckoutForm();
+
+  const { shippingType, storeLocationId, pickupLocationId } = form;
+
+  // Error del servidor que queremos poder limpiar
+  const [serverError, setServerError] = useState<string | undefined>(undefined);
+
+  // Sincronizamos el último error que venga del serverAction
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
   useEffect(() => {
     setServerError(serverState.error);
   }, [serverState.error]);
@@ -146,6 +168,10 @@ export function CheckoutForm({
       handleNextWithClear();
       return;
     }
+<<<<<<< HEAD
+=======
+    // step === 3 → dejamos que el form haga submit al serverAction
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
   }
 
   const isStep1 = step === 1;
@@ -160,7 +186,11 @@ export function CheckoutForm({
       />
 
       <form
+<<<<<<< HEAD
         className="rounded-xs bg-background p-4"
+=======
+        className="rounded-lb bg-background p-4"
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
         action={formAction}
         noValidate
         onSubmit={handleSubmit}
@@ -169,7 +199,11 @@ export function CheckoutForm({
           <div
             ref={errorRef}
             tabIndex={-1}
+<<<<<<< HEAD
             className="mb-3 rounded-xs border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+=======
+            className="mb-3 rounded-lb border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
             role="alert"
             aria-live="assertive"
           >
@@ -180,7 +214,11 @@ export function CheckoutForm({
         <h2
           ref={stepHeadingRef}
           tabIndex={-1}
+<<<<<<< HEAD
           className="pb-4 text-xl font-semibold text-foreground"
+=======
+          className="py-1 text-lg font-semibold text-foreground"
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
         >
           {isStep1 && "Elige un método de envío"}
           {isStep2 && "Elige un método de pago"}
@@ -209,6 +247,7 @@ export function CheckoutForm({
         )}
 
         {/* Paso 3: resumen final + inputs ocultos */}
+<<<<<<< HEAD
         {isStep3 && (
           <CheckoutReviewStep
             form={form}
@@ -220,11 +259,21 @@ export function CheckoutForm({
 
         {/* Navegación entre pasos */}
         <div className="flex flex-col gap-6 py-1 text-sm font-medium sm:flex-row sm:items-center sm:justify-between">
+=======
+        {isStep3 && <CheckoutReviewStep form={form} />}
+
+        {/* Navegación entre pasos */}
+        <div className="flex flex-col gap-3 py-1 text-sm font-medium sm:flex-row sm:items-center sm:justify-between">
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
           <div>
             {step === 1 && (
               <button
                 type="button"
+<<<<<<< HEAD
                 className="text-muted-foreground hover:cursor-pointer hover:text-primary transition-all duration-200 ease-in-out"
+=======
+                className="text-muted-foreground fx-underline-anim hover:cursor-pointer hover:text-primary transition-all duration-200 ease-in-out"
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
                 onClick={() => setShowLeaveToCartDialog(true)}
               >
                 ← Volver a la cesta
@@ -233,7 +282,11 @@ export function CheckoutForm({
             {step > 1 && (
               <button
                 type="button"
+<<<<<<< HEAD
                 className="text-muted-foreground transition-all duration-200 ease-in-out hover:cursor-pointer hover:text-primary"
+=======
+                className="fx-underline-anim text-muted-foreground transition-all duration-200 ease-in-out hover:cursor-pointer hover:text-primary"
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
                 onClick={handlePrevWithClear}
               >
                 {step === 2 && "← Volver al tipo de envío"}
@@ -246,7 +299,11 @@ export function CheckoutForm({
             {step < 3 && canShowNextButton && (
               <Button
                 type="button"
+<<<<<<< HEAD
                 className="w-full hover:cursor-pointer p-3 sm:py-2 sm:w-auto"
+=======
+                className="w-full hover:cursor-pointer sm:w-auto"
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
                 variant="default"
                 onClick={handleNextWithClear}
               >

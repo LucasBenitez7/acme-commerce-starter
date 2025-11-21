@@ -1,27 +1,37 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+<<<<<<< HEAD
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { ImSpinner8 } from "react-icons/im";
+=======
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
 
 import { CartUndoChip } from "@/components/cart/CartUndoChip";
 import { Button, FavoriteButton, RemoveButton } from "@/components/ui";
 
 import { formatMinor, DEFAULT_CURRENCY } from "@/lib/currency";
+<<<<<<< HEAD
 import { cn } from "@/lib/utils";
+=======
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
 
 import { useAppDispatch } from "@/hooks/use-app-dispatch";
 import { useCartUndoRows } from "@/hooks/use-cart-undo-rows";
 import { useCartView } from "@/hooks/use-cart-view";
 import { setQty, removeItem } from "@/store/cart.slice";
+<<<<<<< HEAD
 
 import { validateStockAction } from "./actions";
+=======
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
 
 export default function CartPage() {
   const { rows, subtotalMinor } = useCartView();
   const dispatch = useAppDispatch();
   const router = useRouter();
+<<<<<<< HEAD
   const { data: session } = useSession();
 
   const { undoStack, rowsWithUndo, handleUndo } = useCartUndoRows(rows);
@@ -66,12 +76,25 @@ export default function CartPage() {
     }
   }
 
+=======
+
+  const { undoStack, rowsWithUndo, handleUndo } = useCartUndoRows(rows);
+
+  const isFavorite = false; // TODO: conectar con wishlist
+
+  const hasItems = rows.length > 0;
+
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
   return (
     <main className="pt-2 pb-8 max-w-[1440px] mx-auto px-4">
       <h1 className="py-4 text-2xl font-semibold">Cesta</h1>
 
       {!hasItems && !undoStack.length ? (
+<<<<<<< HEAD
         <div className="rounded-xs border p-4 text-sm">
+=======
+        <div className="rounded-lb border p-4 text-sm">
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
           <p className="mb-3 font-medium">Tu cesta está vacía</p>
           <p className="mb-4 text-muted-foreground">
             Explora en nuestra tienda para encontrar lo que necesitas
@@ -82,6 +105,7 @@ export default function CartPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_minmax(320px,480px)]">
+<<<<<<< HEAD
           <div className="border rounded-xs px-5 py-3 bg-background">
             {/* Mensaje de error de stock en la lista principal */}
             {stockError && (
@@ -90,11 +114,15 @@ export default function CartPage() {
               </div>
             )}
 
+=======
+          <div className="border rounded-lb px-5 py-3 bg-background">
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
             {rowsWithUndo.map((item) => {
               if (item.kind === "row") {
                 const r = item.row;
                 const d = r.detail;
                 const lineTotalMinor = (d?.priceMinor ?? 0) * r.qty;
+<<<<<<< HEAD
                 const maxStock = d?.stock ?? 999;
                 const isMaxed = r.qty >= maxStock;
                 const isItemOutOfStock = d?.stock === 0;
@@ -105,11 +133,21 @@ export default function CartPage() {
                     className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-2"
                   >
                     <div className="h-52 w-36 shrink-0 bg-muted relative">
+=======
+
+                return (
+                  <div
+                    key={r.slug}
+                    className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-2"
+                  >
+                    <div className="h-52 w-36 shrink-0 bg-muted">
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
                       {d?.imageUrl && (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={d.imageUrl}
                           alt={d.name}
+<<<<<<< HEAD
                           className="h-full w-full rounded-xs object-cover"
                         />
                       )}
@@ -120,10 +158,16 @@ export default function CartPage() {
                           </div>
                         </div>
                       )}
+=======
+                          className="h-full w-full rounded-lb object-cover"
+                        />
+                      )}
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
                     </div>
 
                     <div className="flex flex-col justify-between min-w-0 h-full py-1">
                       <div className="flex flex-col gap-2">
+<<<<<<< HEAD
                         <Link
                           href={`/product/${d?.slug ?? r.slug}`}
                           className="truncate text-sm font-medium fx-underline-anim w-max"
@@ -139,6 +183,17 @@ export default function CartPage() {
                         </div>
                         {r.qty > 1 && (
                           <div className="text-xs font-normal text-muted-foreground">
+=======
+                        <div className="truncate text-sm font-medium">
+                          {d?.name ?? r.slug}
+                        </div>
+                        <div className="flex gap-2 text-xs mb-1">
+                          <span className="border-r pr-2 uppercase">S</span>
+                          <span>Marrón</span>
+                        </div>
+                        {r.qty > 1 && (
+                          <div className="text-xs font-medium text-muted-foreground">
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
                             {d
                               ? formatMinor(d.priceMinor, DEFAULT_CURRENCY)
                               : "—"}
@@ -147,6 +202,7 @@ export default function CartPage() {
                       </div>
 
                       <div className="flex items-center gap-2">
+<<<<<<< HEAD
                         <div className="flex items-center border rounded-xs">
                           <button
                             className={cn(
@@ -161,6 +217,16 @@ export default function CartPage() {
                                 setQty({
                                   slug: r.slug,
                                   variantId: r.variantId,
+=======
+                        <div className="flex items-center border rounded-lb">
+                          <button
+                            className="text-base hover:cursor-pointer px-3 py-1  hover:bg-neutral-100"
+                            aria-label="Restar unidad"
+                            onClick={() =>
+                              dispatch(
+                                setQty({
+                                  slug: r.slug,
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
                                   qty: Math.max(0, r.qty - 1),
                                 }),
                               )
@@ -175,6 +241,7 @@ export default function CartPage() {
                             {r.qty}
                           </span>
                           <button
+<<<<<<< HEAD
                             className={cn(
                               "text-base hover:cursor-pointer px-3 py-1 hover:bg-neutral-100",
                               isMaxed && "pointer-events-none text-slate-300",
@@ -189,6 +256,12 @@ export default function CartPage() {
                                   qty: r.qty + 1,
                                 }),
                               )
+=======
+                            className="text-base hover:cursor-pointer px-3 py-1 hover:bg-neutral-100"
+                            aria-label="Sumar unidad"
+                            onClick={() =>
+                              dispatch(setQty({ slug: r.slug, qty: r.qty + 1 }))
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
                             }
                           >
                             +
@@ -210,6 +283,7 @@ export default function CartPage() {
                       />
 
                       <RemoveButton
+<<<<<<< HEAD
                         onRemove={() =>
                           dispatch(
                             removeItem({
@@ -218,6 +292,10 @@ export default function CartPage() {
                             }),
                           )
                         }
+=======
+                        className="mt-1"
+                        onRemove={() => dispatch(removeItem({ slug: r.slug }))}
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
                       />
                     </div>
                   </div>
@@ -240,8 +318,13 @@ export default function CartPage() {
           </div>
 
           {rows.length > 0 && (
+<<<<<<< HEAD
             <aside className="lg:sticky lg:top-18 h-max border rounded-xs px-4 bg-background">
               <div className="flex items-center justify-between text-lg py-4 font-medium">
+=======
+            <aside className="lg:sticky lg:top-18 h-max border rounded-lb px-4 bg-background">
+              <div className="flex items-center justify-between text-lg  py-4 font-medium">
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
                 <span>Subtotal</span>
                 <span className="text-base">
                   {formatMinor(subtotalMinor, DEFAULT_CURRENCY)}
@@ -256,6 +339,7 @@ export default function CartPage() {
                 >
                   <Link href="/catalogo">Seguir comprando</Link>
                 </Button>
+<<<<<<< HEAD
                 <Button
                   className="bg-green-600 flex-1 hover:bg-green-700"
                   aria-label="Proceder al pago"
@@ -267,6 +351,20 @@ export default function CartPage() {
                   )}
                   {isValidating ? "Verificando..." : "Tramitar pedido"}
                 </Button>
+=======
+                <button
+                  type="button"
+                  className="flex-1 py-2 px-2 rounded-lb text-sm text-white bg-green-600 hover:cursor-pointer hover:bg-green-700 transition-all duration-200 ease-in-out"
+                  aria-label="Proceder al pago"
+                  disabled={!hasItems}
+                  onClick={() => {
+                    if (!hasItems) return;
+                    router.push("/checkout");
+                  }}
+                >
+                  Tramitar pedido
+                </button>
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
               </div>
             </aside>
           )}

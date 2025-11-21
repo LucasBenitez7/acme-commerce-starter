@@ -32,7 +32,11 @@ export function CheckoutShippingHome({
   return (
     <div className="space-y-6">
       <div>
+<<<<<<< HEAD
         <p className="text-base font-medium text-foreground pt-2 pb-1">
+=======
+        <p className="text-base font-medium text-foreground py-2">
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
           Datos de contacto
         </p>
         <CheckoutContactFields
@@ -43,6 +47,7 @@ export function CheckoutShippingHome({
       </div>
 
       <div>
+<<<<<<< HEAD
         <p className="text-base font-medium text-foreground pb-1">
           Dirección de entrega
         </p>
@@ -51,6 +56,14 @@ export function CheckoutShippingHome({
             <Label htmlFor="street" className="text-xs">
               Calle y número*
             </Label>
+=======
+        <p className="text-base font-medium text-foreground pb-2">
+          Dirección de entrega
+        </p>
+        <div className="space-y-4">
+          <div className="space-y-1">
+            <Label htmlFor="street">Calle y número*</Label>
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
             <Input
               id="street"
               name="street"
@@ -69,23 +82,35 @@ export function CheckoutShippingHome({
           </div>
 
           <div className="space-y-1">
+<<<<<<< HEAD
             <Label htmlFor="addressExtra" className="text-xs">
               Escalera, piso... (opcional)
             </Label>
+=======
+            <Label htmlFor="addressExtra">Escalera, piso... (opcional)</Label>
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
             <Input
               id="addressExtra"
               name="addressExtra"
               autoComplete="address-line2"
               value={addressExtra}
               onChange={(e) => onChange("addressExtra", e.target.value)}
+<<<<<<< HEAD
+=======
+              placeholder="Escalera, portal, piso…"
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
             />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="space-y-1">
+<<<<<<< HEAD
               <Label htmlFor="postalCode" className="text-xs">
                 Código postal*
               </Label>
+=======
+              <Label htmlFor="postalCode">Código postal*</Label>
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
               <Input
                 id="postalCode"
                 name="postalCode"
@@ -107,9 +132,13 @@ export function CheckoutShippingHome({
             </div>
 
             <div className="space-y-1">
+<<<<<<< HEAD
               <Label htmlFor="province" className="text-xs">
                 Provincia*
               </Label>
+=======
+              <Label htmlFor="province">Provincia*</Label>
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
               <Input
                 id="province"
                 name="province"
@@ -128,11 +157,16 @@ export function CheckoutShippingHome({
             </div>
 
             <div className="space-y-1">
+<<<<<<< HEAD
               <Label htmlFor="city" className="text-xs">
                 Ciudad*
               </Label>
               <Input
                 className="placeholder:font-medium"
+=======
+              <Label htmlFor="city">Ciudad*</Label>
+              <Input
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
                 id="city"
                 name="city"
                 autoComplete="address-level2"

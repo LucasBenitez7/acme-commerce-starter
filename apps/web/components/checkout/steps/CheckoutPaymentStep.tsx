@@ -17,7 +17,11 @@ export function CheckoutPaymentStep({
   const { paymentMethod } = form;
 
   return (
+<<<<<<< HEAD
     <div className="space-y-4 pb-4">
+=======
+    <div className="space-y-4 pt-2 pb-4">
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
       <div className="grid gap-3 sm:grid-cols-1">
         {PAYMENT_METHOD_OPTIONS.map((option) => {
           const isSelected = paymentMethod === option.id;
@@ -26,11 +30,19 @@ export function CheckoutPaymentStep({
           return (
             <label
               key={option.id}
+<<<<<<< HEAD
               className={`flex cursor-pointer flex-col rounded-xs border p-3 py-6 text-sm text-left transition-colors
                 ${
                   isSelected
                     ? "border-primary"
                     : "border-border  hover:bg-neutral-50"
+=======
+              className={`flex cursor-pointer flex-col rounded-lb border p-3 py-6 text-sm text-left transition-colors
+                ${
+                  isSelected
+                    ? "border-primary"
+                    : "border-border bg-neutral-50 hover:bg-neutral-100"
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
                 }`}
             >
               <input
