@@ -2,11 +2,17 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { FaCheckCircle } from "react-icons/fa";
 
-import { ClearCartOnMount } from "@/components/checkout";
+import { ClearCartOnMount } from "@/components/checkout/core/ClearCartOnMount";
+import {
+  buildContactSummary,
+  buildShippingSummary,
+} from "@/components/checkout/shared/checkout-summary";
 import { Container } from "@/components/ui";
 
 import { formatMinor, parseCurrency } from "@/lib/currency";
 import { prisma } from "@/lib/db";
+
+import type { ShippingType } from "@/hooks/use-checkout-form";
 
 type Props = {
   searchParams: Promise<{ orderId?: string }>;
@@ -46,6 +52,32 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
   const currency = parseCurrency(order.currency);
   const totalQty = order.items.reduce((sum, item) => sum + item.quantity, 0);
 
+  const shippingTypeFromDb: ShippingType =
+    order.shippingType === "STORE"
+      ? "store"
+      : order.shippingType === "PICKUP"
+        ? "pickup"
+        : "home";
+
+  const contact = buildContactSummary({
+    firstName: order.firstName,
+    lastName: order.lastName,
+    email: order.email,
+    phone: order.phone,
+  });
+
+  const shipping = buildShippingSummary({
+    shippingType: shippingTypeFromDb,
+    street: order.street,
+    addressExtra: order.addressExtra,
+    postalCode: order.postalCode,
+    province: order.province,
+    city: order.city,
+    storeLocationId: order.storeLocationId,
+    pickupLocationId: order.pickupLocationId,
+    pickupSearch: order.pickupSearch,
+  });
+
   return (
     <Container className="lg:py-6 py-4 px-4 max-w-4xl">
       <ClearCartOnMount />
@@ -70,6 +102,40 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
           Guarda este identificador por si te haga falta.
         </p>
       </div>
+
+      <section className="mb-4 space-y-4 rounded-lb border bg-card p-4 text-sm">
+        <div>
+          <h2 className="mb-2 text-base font-semibold">Datos de contacto</h2>
+          <dl className="space-y-1 text-xs text-foreground">
+            <div className="flex items-center gap-2">
+              <dt className="shrink-0 text-sm font-medium">Nombre:</dt>
+              <dd className="font-medium">{contact.fullName}</dd>
+            </div>
+            <div className="flex items-center gap-2">
+              <dt className="shrink-0 text-sm font-medium">E-mail:</dt>
+              <dd className="font-medium">{contact.email}</dd>
+            </div>
+            <div className="flex items-center gap-2">
+              <dt className="shrink-0 text-sm font-medium">Teléfono:</dt>
+              <dd className="font-medium">{contact.phone}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div>
+          <h2 className="mb-2 text-base font-semibold">Datos de envío</h2>
+          <dl className="space-y-1 text-xs text-foreground">
+            <div className="flex items-center gap-2">
+              <dt className="shrink-0 text-sm font-medium">Tipo:</dt>
+              <dd className="font-medium">{shipping.label}</dd>
+            </div>
+            <div className="flex items-center gap-2">
+              <dt className="shrink-0 text-sm font-medium">Detalles:</dt>
+              <dd className="font-medium">{shipping.details}</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
 
       <section className="space-y-4 rounded-lb border bg-card">
         <div className="flex items-baseline justify-between gap-2">

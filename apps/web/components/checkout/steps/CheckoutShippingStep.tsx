@@ -54,12 +54,12 @@ const SHIPPING_OPTIONS: {
     title: "Envío a domicilio",
   },
   {
-    id: "store",
-    title: "Recogida en tienda",
-  },
-  {
     id: "pickup",
     title: "Punto de recogida",
+  },
+  {
+    id: "store",
+    title: "Recogida en tienda",
   },
 ];
 
@@ -111,16 +111,16 @@ export function CheckoutShippingStep({
         <CheckoutShippingHome form={form} errors={errors} onChange={onChange} />
       )}
 
-      {shippingType === "store" && (
-        <CheckoutShippingStore
+      {shippingType === "pickup" && (
+        <CheckoutShippingPickup
           form={form}
           errors={errors}
           onChange={onChange}
         />
       )}
 
-      {shippingType === "pickup" && (
-        <CheckoutShippingPickup
+      {shippingType === "store" && (
+        <CheckoutShippingStore
           form={form}
           errors={errors}
           onChange={onChange}

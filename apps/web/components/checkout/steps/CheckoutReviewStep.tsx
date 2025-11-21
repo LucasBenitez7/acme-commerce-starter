@@ -1,8 +1,8 @@
-import { findPaymentMethod } from "@/components/checkout/payment/methods";
 import {
-  findPickupLocation,
-  findStoreLocation,
-} from "@/components/checkout/shipping/locations";
+  buildContactSummary,
+  buildShippingSummary,
+} from "@/components/checkout/shared/checkout-summary";
+import { findPaymentMethod } from "@/components/checkout/shared/methods";
 
 import type { CheckoutFormState } from "@/hooks/use-checkout-form";
 
@@ -37,49 +37,24 @@ export function CheckoutReviewStep({ form }: ReviewStepProps) {
 
   const PaymentIcon = paymentOption?.icon ?? "";
 
-  const fullName =
-    firstName || lastName ? `${firstName} ${lastName}`.trim() : "";
+  const contact = buildContactSummary({
+    firstName,
+    lastName,
+    email,
+    phone,
+  });
 
-  let shippingTypeLabel = "";
-  let shippingDetails = "";
-
-  if (shippingType === "home") {
-    shippingTypeLabel = "Envío a domicilio";
-
-    const line1 = street || "";
-    const line2 = addressExtra || "";
-    const line3Parts = [postalCode, city, province].filter(Boolean);
-    const line3 = line3Parts.join(" ");
-
-    shippingDetails =
-      [line1, line2, line3].filter((part) => part.trim() !== "").join(" · ") ||
-      "Dirección de entrega no completada.";
-  } else if (shippingType === "store") {
-    shippingTypeLabel = "Recogida en tienda";
-
-    const store = findStoreLocation(storeLocationId);
-
-    if (store) {
-      shippingDetails = `${store.name} · ${store.addressLine1} · ${store.addressLine2}`;
-    } else {
-      shippingDetails = "Todavía no has elegido tienda.";
-    }
-  } else {
-    // pickup
-    shippingTypeLabel = "Punto de recogida";
-
-    const pickup = findPickupLocation(pickupLocationId);
-
-    if (pickup) {
-      const base = `${pickup.name} · ${pickup.addressLine1} · ${pickup.addressLine2}`;
-
-      shippingDetails = pickupSearch ? `Zona: ${pickupSearch} · ${base}` : base;
-    } else if (pickupSearch) {
-      shippingDetails = `Zona: ${pickupSearch} (sin punto de recogida seleccionado).`;
-    } else {
-      shippingDetails = "Todavía no has indicado zona ni punto de recogida.";
-    }
-  }
+  const shipping = buildShippingSummary({
+    shippingType,
+    street,
+    addressExtra,
+    postalCode,
+    province,
+    city,
+    storeLocationId,
+    pickupLocationId,
+    pickupSearch,
+  });
 
   return (
     <div>
@@ -91,19 +66,19 @@ export function CheckoutReviewStep({ form }: ReviewStepProps) {
               <dt className="shrink-0 font-medium text-foreground text-sm">
                 Nombre:
               </dt>
-              <dd className="font-medium">{fullName || "—"}</dd>
+              <dd className="font-medium">{contact.fullName || "—"}</dd>
             </div>
             <div className="flex gap-2 items-center">
               <dt className="shrink-0 font-medium text-foreground text-sm">
                 E-mail:
               </dt>
-              <dd className="font-medium">{email || "—"}</dd>
+              <dd className="font-medium">{contact.email || "—"}</dd>
             </div>
             <div className="flex gap-2 items-center">
               <dt className="shrink-0 font-medium text-foreground text-sm">
                 Teléfono:
               </dt>
-              <dd className="font-medium">{phone || "—"}</dd>
+              <dd className="font-medium">{contact.phone || "—"}</dd>
             </div>
           </dl>
         </div>
@@ -115,13 +90,13 @@ export function CheckoutReviewStep({ form }: ReviewStepProps) {
               <dt className="shrink-0 font-medium text-foreground text-sm">
                 Tipo:
               </dt>
-              <dd className="font-medium">{shippingTypeLabel}</dd>
+              <dd className="font-medium">{shipping.label}</dd>
             </div>
             <div className="flex gap-2 items-center">
               <dt className="shrink-0 font-medium text-foreground text-sm">
                 Detalles:
               </dt>
-              <dd className="font-medium">{shippingDetails}</dd>
+              <dd className="font-medium">{shipping.details}</dd>
             </div>
           </dl>
         </div>

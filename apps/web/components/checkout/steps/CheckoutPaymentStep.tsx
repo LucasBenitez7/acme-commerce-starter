@@ -1,4 +1,4 @@
-import { PAYMENT_METHOD_OPTIONS } from "@/components/checkout/payment/methods";
+import { PAYMENT_METHOD_OPTIONS } from "@/components/checkout/shared/methods";
 
 import type { CheckoutFormState } from "@/hooks/use-checkout-form";
 
@@ -29,7 +29,7 @@ export function CheckoutPaymentStep({
               className={`flex cursor-pointer flex-col rounded-lb border p-3 py-6 text-sm text-left transition-colors
                 ${
                   isSelected
-                    ? "border-green-600 bg-green-50"
+                    ? "border-primary"
                     : "border-border bg-neutral-50 hover:bg-neutral-100"
                 }`}
             >
@@ -43,16 +43,22 @@ export function CheckoutPaymentStep({
               />
 
               <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <span
                     aria-hidden="true"
-                    className={`inline-flex h-4 w-4 items-center justify-center rounded-full border-2
+                    className={`h-4 w-4 absolute rounded-full p-1 border-2
                     ${
                       isSelected
-                        ? "border-green-600 bg-green-600"
-                        : "border-muted-foreground/40"
+                        ? "border-primary bg-background"
+                        : "border-slate-300"
                     }`}
                   />
+                  <span
+                    aria-hidden="true"
+                    className={`inline-flex h-3 w-3 translate-x-0.5 items-center justify-center rounded-full
+                    ${isSelected ? "bg-primary border-2 border-background" : "bg-background"}`}
+                  />
+
                   <p className="font-semibold">{option.title}</p>
                 </div>
                 {Icon && (

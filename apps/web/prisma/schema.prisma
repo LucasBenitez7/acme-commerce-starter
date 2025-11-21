@@ -55,6 +55,12 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum ShippingType {
+  HOME
+  STORE
+  PICKUP
+}
+
 model Order {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
@@ -69,6 +75,20 @@ model Order {
 
   /// Estado general del pedido
   status OrderStatus @default(PENDING_PAYMENT)
+
+  shippingType     ShippingType? @default(HOME)
+  firstName        String?
+  lastName         String?
+  phone            String?
+  street           String?
+  addressExtra     String?
+  postalCode       String?
+  province         String?
+  city             String?
+  storeLocationId  String?
+  pickupLocationId String?
+  pickupSearch     String?
+  paymentMethod    String?
 
   /// Relación con items
   items OrderItem[]

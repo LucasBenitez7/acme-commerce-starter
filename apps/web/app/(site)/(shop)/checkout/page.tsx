@@ -3,8 +3,8 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 
 import { CheckoutForm } from "@/components/checkout/CheckoutForm";
-import { CheckoutHeader } from "@/components/checkout/CheckoutHeader";
-import { CheckoutLocalFooter } from "@/components/checkout/CheckoutLocalFooter";
+import { CheckoutHeader } from "@/components/checkout/layout/CheckoutHeader";
+import { CheckoutLocalFooter } from "@/components/checkout/layout/CheckoutLocalFooter";
 import { Container } from "@/components/ui";
 
 import { formatMinor } from "@/lib/currency";

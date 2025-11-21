@@ -1,5 +1,5 @@
-import { CheckoutContactFields } from "@/components/checkout/shipping";
-import { PICKUP_LOCATIONS } from "@/components/checkout/shipping/locations";
+import { PICKUP_LOCATIONS } from "@/components/checkout/shared/locations";
+import { CheckoutContactFields } from "@/components/checkout/shipping/CheckoutContactFields";
 import { Input, Label } from "@/components/ui";
 
 import type {
