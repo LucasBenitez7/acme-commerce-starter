@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { LeaveCheckoutDialog } from "@/components/checkout/LeaveCheckoutDialog";
+import { LeaveCheckoutDialog } from "@/components/checkout/core/LeaveCheckoutDialog";
 
 export function CheckoutHeader() {
   const router = useRouter();

@@ -13,6 +13,8 @@ import {
   isValidPostalCodeES,
 } from "@/lib/validation/checkout";
 
+import type { ShippingType as ShippingTypeDb } from "@prisma/client";
+
 export type CheckoutActionState = {
   error?: string;
 };
@@ -50,6 +52,13 @@ export async function createOrderAction(
   if (shippingTypeRaw === "store" || shippingTypeRaw === "pickup") {
     shippingType = shippingTypeRaw;
   }
+
+  const shippingTypeDb: ShippingTypeDb =
+    shippingType === "home"
+      ? "HOME"
+      : shippingType === "store"
+        ? "STORE"
+        : "PICKUP";
 
   const storeLocationId = String(formData.get("storeLocationId") ?? "").trim();
 
@@ -117,7 +126,6 @@ export async function createOrderAction(
         error: "Selecciona una tienda para recoger tu pedido.",
       };
     }
-    // (storeSearch lo puedes usar en el futuro si quieres validar algo más)
   } else if (shippingType === "pickup") {
     if (!pickupLocationId) {
       return {
@@ -155,8 +163,20 @@ export async function createOrderAction(
         currency: draft.currency,
         totalMinor: draft.totalMinor,
         status: "PENDING_PAYMENT",
-        // En una fase futura podemos guardar también los datos de envío
-        // (shippingType, dirección, tienda, etc.) y paymentMethod.
+        shippingType: shippingTypeDb,
+        firstName,
+        lastName,
+        phone,
+        street,
+        addressExtra,
+        postalCode,
+        province,
+        city,
+        storeLocationId: storeLocationId || null,
+        pickupLocationId: pickupLocationId || null,
+        pickupSearch: pickupSearch || null,
+        paymentMethod,
+
         items: {
           create: draft.items.map((item) => ({
             productId: item.productId,

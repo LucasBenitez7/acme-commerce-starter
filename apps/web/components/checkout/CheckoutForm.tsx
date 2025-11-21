@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   useEffect,
@@ -11,13 +10,16 @@ import {
 } from "react";
 import { useFormStatus } from "react-dom";
 
+import { LeaveCheckoutDialog } from "@/components/checkout/core/LeaveCheckoutDialog";
+import {
+  type CheckoutStep,
+  CheckoutStepper,
+} from "@/components/checkout/layout";
 import {
   CheckoutPaymentStep,
   CheckoutReviewStep,
   CheckoutShippingStep,
-  CheckoutStepper,
-  LeaveCheckoutDialog,
-} from "@/components/checkout";
+} from "@/components/checkout/steps";
 import { Button } from "@/components/ui";
 
 import {
@@ -29,8 +31,6 @@ import {
   type CheckoutFormState,
 } from "@/hooks/use-checkout-form";
 
-import type { CheckoutStep } from "@/components/checkout";
-
 const INITIAL_SERVER_STATE: CheckoutActionState = {
   error: undefined,
 };
@@ -41,7 +41,7 @@ function SubmitButton({ disabledBase }: { disabledBase: boolean }) {
   return (
     <Button
       type="submit"
-      className="w-full px-4 hover:cursor-pointer md:w-auto bg-green-600 hover:bg-green-700"
+      className="w-full px-4 text-sm hover:cursor-pointer md:w-auto bg-green-600 hover:bg-green-700"
       disabled={disabledBase || pending}
     >
       {pending ? "Procesando pedido..." : "Pagar y finalizar"}
@@ -228,7 +228,7 @@ export function CheckoutForm() {
                 variant="default"
                 onClick={handleNextWithClear}
               >
-                {step === 1 ? "Continuar con el pago" : "Continuar al resumen"}
+                {step === 1 ? "Guardar y continuar" : "Guardar y continuar"}
               </Button>
             )}
 

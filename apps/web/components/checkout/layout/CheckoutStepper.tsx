@@ -29,9 +29,9 @@ export function CheckoutStepper({ currentStep, onStepClick }: Props) {
           const canClick = !!onStepClick && isPast;
 
           const baseClasses =
-            "flex items-center gap-2 rounded-lb font-medium px-2.5 py-1 transition-colors";
+            "flex items-center gap-2 rounded-lb text-sm font-medium px-2.5 py-1 transition-colors";
           const stateClasses = isCurrent
-            ? "text-primary"
+            ? "text-primary font-semibold"
             : isPast
               ? "text-primary font-semibold"
               : "text-muted-foreground";
@@ -53,7 +53,7 @@ export function CheckoutStepper({ currentStep, onStepClick }: Props) {
                   aria-disabled={isFuture}
                 >
                   <span
-                    className={`inline-flex h-5 w-5 items-center justify-center  rounded-full border text-[0.7rem] font-semibold ${
+                    className={`inline-flex h-5 w-5 items-center justify-center rounded-full border text-[0.8rem] font-semibold ${
                       isCurrent
                         ? "border-primary bg-primary text-background"
                         : "border-border"
@@ -61,7 +61,7 @@ export function CheckoutStepper({ currentStep, onStepClick }: Props) {
                   >
                     {isPast ? "✓" : step.id}
                   </span>
-                  <span className="text-sm">{step.label}</span>
+                  <span>{step.label}</span>
                 </button>
               </li>
               {index < STEPS.length - 1 && (

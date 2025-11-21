@@ -2,11 +2,17 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { FaCheckCircle } from "react-icons/fa";
 
-import { ClearCartOnMount } from "@/components/checkout";
+import { ClearCartOnMount } from "@/components/checkout/core/ClearCartOnMount";
+import {
+  buildContactSummary,
+  buildShippingSummary,
+} from "@/components/checkout/shared/checkout-summary";
 import { Container } from "@/components/ui";
 
 import { formatMinor, parseCurrency } from "@/lib/currency";
 import { prisma } from "@/lib/db";
+
+import type { ShippingType } from "@/hooks/use-checkout-form";
 
 type Props = {
   searchParams: Promise<{ orderId?: string }>;
@@ -46,6 +52,32 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
   const currency = parseCurrency(order.currency);
   const totalQty = order.items.reduce((sum, item) => sum + item.quantity, 0);
 
+  const shippingTypeFromDb: ShippingType =
+    order.shippingType === "STORE"
+      ? "store"
+      : order.shippingType === "PICKUP"
+        ? "pickup"
+        : "home";
+
+  const contact = buildContactSummary({
+    firstName: order.firstName,
+    lastName: order.lastName,
+    email: order.email,
+    phone: order.phone,
+  });
+
+  const shipping = buildShippingSummary({
+    shippingType: shippingTypeFromDb,
+    street: order.street,
+    addressExtra: order.addressExtra,
+    postalCode: order.postalCode,
+    province: order.province,
+    city: order.city,
+    storeLocationId: order.storeLocationId,
+    pickupLocationId: order.pickupLocationId,
+    pickupSearch: order.pickupSearch,
+  });
+
   return (
     <Container className="lg:py-6 py-4 px-4 max-w-4xl">
       <ClearCartOnMount />
@@ -71,9 +103,22 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
         </p>
       </div>
 
+      <section className="mb-4 space-y-1 rounded-lb border bg-card p-4">
+        <p className="text-base font-semibold">Datos de contacto</p>
+        <div className="flex flex-col gap-1 text-xs text-foreground">
+          <dd className="gap-2 font-medium">
+            {contact.fullName || "—"} ·{" "}
+            <span className="text-xs">{contact.phone || "—"}</span>
+          </dd>
+          <dd className="font-medium">
+            {shipping.label} {shipping.details}
+          </dd>
+        </div>
+      </section>
+
       <section className="space-y-4 rounded-lb border bg-card">
         <div className="flex items-baseline justify-between gap-2">
-          <h2 className="text-lg font-semibold pt-4 px-4">
+          <h2 className="text-base font-semibold pt-4 px-4">
             Resumen de la compra <span className="text-base">({totalQty})</span>
           </h2>
         </div>
@@ -88,7 +133,6 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
                 key={item.id}
                 className="grid grid-cols-[auto_1fr_auto] items-center gap-2 py-1"
               >
-                {/* Columna imagen (igual que en el aside, pero un pelín más pequeña) */}
                 <div
                   className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lb bg-neutral-100"
                   aria-hidden="true"
@@ -103,8 +147,6 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
                     />
                   )}
                 </div>
-
-                {/* Info producto + qty + precio */}
                 <div className="flex h-full justify-between font-medium">
                   <div className="space-y-1">
                     <p className="text-sm">{item.nameSnapshot}</p>

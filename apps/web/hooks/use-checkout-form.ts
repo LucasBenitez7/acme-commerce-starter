@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import {
   isPaymentMethod,
   type PaymentMethod,
-} from "@/components/checkout/payment/methods";
+} from "@/components/checkout/shared/methods";
 
 import {
   isValidEmail,
@@ -14,7 +14,7 @@ import {
   isValidPostalCodeES,
 } from "@/lib/validation/checkout";
 
-import type { CheckoutStep } from "@/components/checkout";
+import type { CheckoutStep } from "@/components/checkout/layout";
 
 export type ShippingType = "home" | "store" | "pickup";
 
