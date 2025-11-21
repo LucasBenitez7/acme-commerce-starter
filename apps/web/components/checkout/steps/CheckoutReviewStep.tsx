@@ -58,53 +58,23 @@ export function CheckoutReviewStep({ form }: ReviewStepProps) {
 
   return (
     <div>
-      <div className="space-y-4 pb-4 pt-2 text-sm">
+      <div className="space-y-4 pb-4 pt-2">
         <div>
-          <p className="text-base font-semibold">Datos de contacto</p>
-          <dl className="space-y-1 text-xs text-foreground">
-            <div className="flex gap-2 items-center">
-              <dt className="shrink-0 font-medium text-foreground text-sm">
-                Nombre:
-              </dt>
-              <dd className="font-medium">{contact.fullName || "—"}</dd>
-            </div>
-            <div className="flex gap-2 items-center">
-              <dt className="shrink-0 font-medium text-foreground text-sm">
-                E-mail:
-              </dt>
-              <dd className="font-medium">{contact.email || "—"}</dd>
-            </div>
-            <div className="flex gap-2 items-center">
-              <dt className="shrink-0 font-medium text-foreground text-sm">
-                Teléfono:
-              </dt>
-              <dd className="font-medium">{contact.phone || "—"}</dd>
-            </div>
-          </dl>
-        </div>
-
-        <div>
-          <p className="text-base font-semibold">Envío</p>
-          <dl className="space-y-1 text-xs text-foreground">
-            <div className="flex gap-2 items-center">
-              <dt className="shrink-0 font-medium text-foreground text-sm">
-                Tipo:
-              </dt>
-              <dd className="font-medium">{shipping.label}</dd>
-            </div>
-            <div className="flex gap-2 items-center">
-              <dt className="shrink-0 font-medium text-foreground text-sm">
-                Detalles:
-              </dt>
-              <dd className="font-medium">{shipping.details}</dd>
-            </div>
-          </dl>
+          <p className="text-base font-semibold">Contacto</p>
+          <div className="flex flex-col gap-1 text-xs text-foreground">
+            <dd className="gap-2 font-medium">
+              {contact.fullName || "—"} ·{" "}
+              <span className="text-xs">{contact.phone || "—"}</span>
+            </dd>
+            <dd className="font-medium">
+              {shipping.label} {shipping.details}
+            </dd>
+          </div>
         </div>
 
         <div>
           <p className="text-base font-semibold">Método de pago</p>
-
-          <p className="flex items-center text-sm font-medium text-foreground">
+          <p className="flex items-center font-medium text-sm text-foreground">
             {paymentLabel}
             {PaymentIcon && <PaymentIcon className="ml-2 inline h-4 w-4" />}
           </p>

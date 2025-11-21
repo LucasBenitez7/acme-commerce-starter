@@ -96,8 +96,8 @@ export function buildShippingSummary(
     if (pickup) {
       const base = `${pickup.name} · ${pickup.addressLine1} · ${pickup.addressLine2}`;
       return {
-        label: "Punto de recogida",
-        details: pickupSearch ? `Zona: ${pickupSearch} · ${base}` : base,
+        label: "Punto de recogida en",
+        details: pickupSearch ? `${base}` : base,
       };
     }
 
@@ -127,7 +127,7 @@ export function buildShippingSummary(
     "Dirección de entrega no completada.";
 
   return {
-    label: "Envío a domicilio",
+    label: "",
     details,
   };
 }

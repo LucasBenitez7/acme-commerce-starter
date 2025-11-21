@@ -13,7 +13,7 @@ import {
   isValidPostalCodeES,
 } from "@/lib/validation/checkout";
 
-import type { Prisma } from "@prisma/client";
+import type { ShippingType as ShippingTypeDb } from "@prisma/client";
 
 export type CheckoutActionState = {
   error?: string;
@@ -53,7 +53,7 @@ export async function createOrderAction(
     shippingType = shippingTypeRaw;
   }
 
-  const shippingTypeDb: Prisma.$Enums.ShippingType =
+  const shippingTypeDb: ShippingTypeDb =
     shippingType === "home"
       ? "HOME"
       : shippingType === "store"
@@ -126,7 +126,6 @@ export async function createOrderAction(
         error: "Selecciona una tienda para recoger tu pedido.",
       };
     }
-    // (storeSearch lo puedes usar en el futuro si quieres validar algo más)
   } else if (shippingType === "pickup") {
     if (!pickupLocationId) {
       return {

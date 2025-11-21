@@ -103,43 +103,22 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
         </p>
       </div>
 
-      <section className="mb-4 space-y-4 rounded-lb border bg-card p-4 text-sm">
-        <div>
-          <h2 className="mb-2 text-base font-semibold">Datos de contacto</h2>
-          <dl className="space-y-1 text-xs text-foreground">
-            <div className="flex items-center gap-2">
-              <dt className="shrink-0 text-sm font-medium">Nombre:</dt>
-              <dd className="font-medium">{contact.fullName}</dd>
-            </div>
-            <div className="flex items-center gap-2">
-              <dt className="shrink-0 text-sm font-medium">E-mail:</dt>
-              <dd className="font-medium">{contact.email}</dd>
-            </div>
-            <div className="flex items-center gap-2">
-              <dt className="shrink-0 text-sm font-medium">Teléfono:</dt>
-              <dd className="font-medium">{contact.phone}</dd>
-            </div>
-          </dl>
-        </div>
-
-        <div>
-          <h2 className="mb-2 text-base font-semibold">Datos de envío</h2>
-          <dl className="space-y-1 text-xs text-foreground">
-            <div className="flex items-center gap-2">
-              <dt className="shrink-0 text-sm font-medium">Tipo:</dt>
-              <dd className="font-medium">{shipping.label}</dd>
-            </div>
-            <div className="flex items-center gap-2">
-              <dt className="shrink-0 text-sm font-medium">Detalles:</dt>
-              <dd className="font-medium">{shipping.details}</dd>
-            </div>
-          </dl>
+      <section className="mb-4 space-y-1 rounded-lb border bg-card p-4">
+        <p className="text-base font-semibold">Datos de contacto</p>
+        <div className="flex flex-col gap-1 text-xs text-foreground">
+          <dd className="gap-2 font-medium">
+            {contact.fullName || "—"} ·{" "}
+            <span className="text-xs">{contact.phone || "—"}</span>
+          </dd>
+          <dd className="font-medium">
+            {shipping.label} {shipping.details}
+          </dd>
         </div>
       </section>
 
       <section className="space-y-4 rounded-lb border bg-card">
         <div className="flex items-baseline justify-between gap-2">
-          <h2 className="text-lg font-semibold pt-4 px-4">
+          <h2 className="text-base font-semibold pt-4 px-4">
             Resumen de la compra <span className="text-base">({totalQty})</span>
           </h2>
         </div>
@@ -154,7 +133,6 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
                 key={item.id}
                 className="grid grid-cols-[auto_1fr_auto] items-center gap-2 py-1"
               >
-                {/* Columna imagen (igual que en el aside, pero un pelín más pequeña) */}
                 <div
                   className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lb bg-neutral-100"
                   aria-hidden="true"
@@ -169,8 +147,6 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
                     />
                   )}
                 </div>
-
-                {/* Info producto + qty + precio */}
                 <div className="flex h-full justify-between font-medium">
                   <div className="space-y-1">
                     <p className="text-sm">{item.nameSnapshot}</p>

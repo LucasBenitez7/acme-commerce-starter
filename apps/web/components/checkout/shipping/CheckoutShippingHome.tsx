@@ -32,7 +32,7 @@ export function CheckoutShippingHome({
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-base font-medium text-foreground pt-2 mb-1">
+        <p className="text-base font-medium text-foreground py-2">
           Datos de contacto
         </p>
         <CheckoutContactFields
@@ -43,7 +43,7 @@ export function CheckoutShippingHome({
       </div>
 
       <div>
-        <p className="text-base font-medium text-foreground mb-1">
+        <p className="text-base font-medium text-foreground pb-2">
           Dirección de entrega
         </p>
         <div className="space-y-4">
