@@ -1,15 +1,23 @@
-// apps/web/app/(admin)/layout.tsx
+import Link from "next/link";
+
 import type { ReactNode } from "react";
+
+export const metadata = {
+  title: "LSB Admin",
+};
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-dvh grid grid-rows-[auto,1fr] bg-neutral-900 text-neutral-100">
-      <header className="border-b border-neutral-800">
-        <div className="mx-auto max-w-7xl px-6 sm:px-8  h-12 flex items-center">
-          <h1 className="text-sm font-medium tracking-wide">LSB Admin</h1>
-        </div>
+    <div>
+      <header className="sticky top-0 z-[100] flex h-[var(--header-h)] w-full justify-center items-center border-b bg-background">
+        <Link
+          href="/"
+          type="button"
+          className="flex items-center px-2 text-3xl font-semibold focus:outline-none hover:cursor-pointer"
+        >
+          Logo lsb
+        </Link>
       </header>
-
       <main className="py-6">
         <div className="grid min-h-[60svh] place-items-center content-start mx-auto max-w-7xl px-6 sm:px-8">
           {children}
