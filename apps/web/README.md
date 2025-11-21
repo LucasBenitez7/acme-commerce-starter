@@ -188,6 +188,22 @@ pnpm exec lint-staged
 
 ---
 
+## Cesta (Fase 4)
+
+- **Estado mínimo**: `CartItemMini[]` con `{ slug: string; qty: number }`.
+- **Persistencia**
+  - **SSR**: hidratación desde cookie `cart.v1` (JSON `{v:1,items:[{s,q}]}`) en `(site)/layout.tsx`.
+  - **CSR**: sincronización continua en `localStorage` bajo `cart.v1`.
+  - Cookie: `SameSite=Lax; Path=/; Max-Age=2592000` (30 días) y `Secure` en producción/HTTPS.
+- **Moneda única por sitio**
+  - `NEXT_PUBLIC_DEFAULT_CURRENCY = EUR | PYG`.
+  - Minor units: `EUR=2`, `PYG=0` (ver `lib/currency.ts`).
+- **Límites**
+  - Cookies ≈4KB totales → guardamos **solo** `{slug, qty}`.
+  - Los detalles para UI (nombre, precio, imagen) van en **localStorage** (`cart.details.v1`).
+
+---
+
 ## 🔧 Troubleshooting
 
 - **`Could not resolve @prisma/client`**: instala y genera **en el paquete que contiene el schema**:

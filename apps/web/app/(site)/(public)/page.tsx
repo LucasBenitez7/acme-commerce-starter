@@ -1,6 +1,5 @@
 import { ProductGrid, SectionHeader } from "@/components/catalog";
 
-import { rowsToListItems } from "@/lib/catalog/mapping";
 import { PER_PAGE } from "@/lib/catalog/pagination";
 import { fetchNewest } from "@/lib/server/products";
 
@@ -11,10 +10,10 @@ export const runtime = "nodejs";
 
 export default async function HomePage() {
   const rows = await fetchNewest({ take: PER_PAGE });
-  const items = rowsToListItems(rows);
+  const items = rows;
 
   return (
-    <section>
+    <section className="px-4">
       <SectionHeader title="Home" />
       <ProductGrid items={items} showCartRow={true} />
     </section>

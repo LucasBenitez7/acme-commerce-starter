@@ -1,11 +1,19 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import { FaRegHeart } from "react-icons/fa6";
-import { HiOutlineShoppingBag } from "react-icons/hi2";
 
-import { CardContent, CardHeader, CardTitle } from "@/components/ui";
+import { AddToCartIcon } from "@/components/cart/AddToCartIcon";
+import {
+  CardContent,
+  CardHeader,
+  CardTitle,
+  FavoriteButton,
+} from "@/components/ui";
 
-import { formatPrice } from "@/lib/format";
+import { formatMinor, DEFAULT_CURRENCY } from "@/lib/currency";
+
+import { AddToCartButton } from "../cart/AddToCartButton";
 
 import type { ProductListItem } from "@/types/catalog";
 
@@ -17,6 +25,8 @@ export function ProductCard({
   showCartRow?: boolean;
 }) {
   const img = item.thumbnail ?? "/og/default-products.jpg";
+  const isFavorite = false; // TODO: conectar con wishlist
+
   return (
     <div className="overflow-hidden">
       <div className="relative aspect-[3/4] bg-neutral-100">
@@ -31,23 +41,36 @@ export function ProductCard({
         </Link>
       </div>
 
-      <div className="flex flex-col text-sm">
+      <div className="flex flex-col text-sm gap-2">
         <CardHeader className="flex items-center justify-between px-2 py-2">
-          <CardTitle className="font-medium">
+          <CardTitle className="text-sm font-medium">
             <Link href={`/product/${item.slug}`}>{item.name}</Link>
           </CardTitle>
-          <FaRegHeart className="size-[20px]" />
+          <FavoriteButton
+            isFavorite={isFavorite}
+            onToggle={() => {
+              // TODO: dispatch(toggleWishlist({ slug: r.slug }))
+            }}
+          />
         </CardHeader>
-        <CardContent className="flex flex-col gap-2 px-2 pb-2">
-          <p className="text-sm text-neutral-600">
-            {formatPrice(item.priceCents, item.currency ?? "EUR")}
+        <CardContent className="flex flex-col text-xs font-medium gap-4 px-2 pb-2">
+          <p className="text-xs">
+            {formatMinor(item.priceCents, DEFAULT_CURRENCY)}
           </p>
-          <p>c1 c2 c3 c4</p>
+          <div className="flex justify-between">
+            <p>C1 C2 C3 C4</p>
+            <p>XS S M L XL </p>
+          </div>
           {showCartRow && (
-            <div className="flex items-center justify-between">
-              <p>talla</p>
-              <HiOutlineShoppingBag className="size-[20px] stroke-2" />
-            </div>
+            <AddToCartButton
+              slug={item.slug}
+              details={{
+                slug: item.slug,
+                name: item.name,
+                priceMinor: item.priceCents,
+                imageUrl: img,
+              }}
+            />
           )}
         </CardContent>
       </div>

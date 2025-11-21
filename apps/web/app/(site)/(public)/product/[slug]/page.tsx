@@ -2,10 +2,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { Button, Separator } from "@/components/ui";
 
-import { prisma } from "@/lib/db";
+import { parseCurrency, toMajor, MINOR_UNITS } from "@/lib/currency";
 import { formatPrice } from "@/lib/format";
+import {
+  getProductMetaBySlug,
+  getProductFullBySlug,
+  getProductSlugs,
+} from "@/lib/server/products";
 
 import type { ParamsSlug, ProductImage } from "@/types/catalog";
 import type { Metadata } from "next";
@@ -21,15 +27,7 @@ export async function generateMetadata({
   params: ParamsSlug;
 }): Promise<Metadata> {
   const { slug } = await params;
-
-  const product = await prisma.product.findUnique({
-    where: { slug },
-    select: {
-      name: true,
-      description: true,
-      images: { select: { url: true }, orderBy: { sort: "desc" } },
-    },
-  });
+  const product = await getProductMetaBySlug(slug);
 
   if (!product) {
     return { title: "Producto no encontrado" };
@@ -64,31 +62,35 @@ export async function generateMetadata({
 
 export default async function ProductPage({ params }: { params: ParamsSlug }) {
   const { slug } = await params;
-
-  const p = await prisma.product.findUnique({
-    where: { slug },
-    include: {
-      images: { orderBy: { sort: "desc" } },
-      category: { select: { slug: true, name: true } },
-    },
-  });
+  const p = await getProductFullBySlug(slug);
 
   if (!p) notFound();
 
   const imgMain = p.images[0]?.url ?? "/og/default-products.jpg";
-  const thumbs: ProductImage[] =
-    p.images.length > 0 ? p.images : [{ url: imgMain }];
+  const thumbs = p.images;
 
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  const imageListAbs = thumbs.map((img) =>
-    img.url.startsWith("http") ? img.url : new URL(img.url, site).toString(),
+  const imageListAbs = Array.from(
+    new Set(
+      thumbs.map((img) =>
+        img.url.startsWith("http")
+          ? img.url
+          : new URL(img.url, site).toString(),
+      ),
+    ),
   );
   const productUrlAbs = new URL(`/product/${p.slug}`, site).toString();
 
+  const currency = parseCurrency(p.currency ?? "EUR");
+  const priceMajor = toMajor(p.priceCents ?? 0, currency);
+  const priceDecimals = MINOR_UNITS[currency];
+
   return (
-    <section className="space-y-6">
+    <section className="space-y-6 px-4 py-6">
       <nav className="text-sm text-neutral-500">
         <Link href="/">Inicio</Link> <span aria-hidden>›</span>{" "}
+        <Link href="/catalogo">Todas las prendas</Link>{" "}
+        <span aria-hidden>›</span>{" "}
         <Link href={`/cat/${p.category.slug}`}>{p.category.name}</Link>{" "}
         <span aria-hidden>›</span>{" "}
         <span className="text-neutral-800">{p.name}</span>
@@ -96,29 +98,15 @@ export default async function ProductPage({ params }: { params: ParamsSlug }) {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div>
-          <div className="aspect-[4/5] relative bg-neutral-100">
+          <div className="aspect-[3/4] relative bg-neutral-100">
             <Image
               src={imgMain}
               alt={p.name}
               fill
-              sizes="(max-width: 1024px) 100vw, 50vw"
+              sizes="(max-width: 1280px) 50vw, 25vw"
               className="object-cover"
               priority
             />
-          </div>
-
-          <div className="mt-3 grid grid-cols-4 gap-2">
-            {thumbs.map((img: { url: string }, i: number) => (
-              <div key={i} className="aspect-[4/5] relative bg-neutral-100">
-                <Image
-                  src={img.url}
-                  alt={`${p.name} ${i + 1}`}
-                  fill
-                  sizes="25vw"
-                  className="object-cover"
-                />
-              </div>
-            ))}
           </div>
         </div>
 
@@ -126,7 +114,7 @@ export default async function ProductPage({ params }: { params: ParamsSlug }) {
         <div className="space-y-4">
           <h1 className="text-2xl font-semibold">{p.name}</h1>
           <p className="text-lg text-neutral-800">
-            {formatPrice(p.priceCents, p.currency ?? "EUR")}
+            {formatPrice(p.priceCents, currency)}
           </p>
 
           <Separator />
@@ -135,13 +123,13 @@ export default async function ProductPage({ params }: { params: ParamsSlug }) {
             {p.description}
           </p>
 
-          <div className="pt-2 flex items-center gap-2">
-            <Button className="min-w-40">Añadir al carrito</Button>
+          <div className="pt-2 flex items-center gap-4">
             <Button variant="outline" asChild>
               <Link href={`/?cat=${p.category.slug}`}>
                 Ver más de {p.category.name}
               </Link>
             </Button>
+            <AddToCartButton slug={p.slug} />
           </div>
         </div>
       </div>
@@ -159,9 +147,10 @@ export default async function ProductPage({ params }: { params: ParamsSlug }) {
             category: p.category.name,
             offers: {
               "@type": "Offer",
-              price: (p.priceCents / 100).toFixed(2),
-              priceCurrency: p.currency || "EUR",
+              price: priceMajor.toFixed(priceDecimals),
+              priceCurrency: currency,
               availability: "https://schema.org/InStock",
+              url: productUrlAbs,
             },
             url: productUrlAbs,
           }),
@@ -184,11 +173,7 @@ export async function generateStaticParams() {
   }
 
   try {
-    const rows = await prisma.product.findMany({
-      select: { slug: true },
-      take: 1000,
-      orderBy: { createdAt: "desc" },
-    });
+    const rows = await getProductSlugs(1000);
     return rows.map((r: { slug: string }) => ({ slug: r.slug }));
   } catch {
     return [];

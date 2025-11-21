@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useRef, useState } from "react";
 import { FaRegUser, FaRegHeart } from "react-icons/fa6";
-import { HiOutlineShoppingBag } from "react-icons/hi2";
 import { IoSearch } from "react-icons/io5";
 
+import { CartButtonWithSheet } from "@/components/cart/CartButtonWithSheet";
 import {
   Sheet,
   SheetContent,
@@ -27,9 +28,14 @@ const SHEET_ID = "site-sidebar";
 export function Header({ categories }: { categories: CategoryLink[] }) {
   const [open, setOpen] = useState(false);
   const safeRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
 
-  useLockBodyScroll(open);
-  useAutoCloseOnRouteChange(open, () => setOpen(false));
+  const HIDE_HEADER_ON: string[] = ["/checkout"];
+  const hideHeader = HIDE_HEADER_ON.includes(pathname);
+  const isCartPage = pathname === "/cart";
+
+  useLockBodyScroll(open && !hideHeader);
+  useAutoCloseOnRouteChange(open && !hideHeader, () => setOpen(false));
 
   const {
     handlePointerLeaveHeader,
@@ -38,13 +44,26 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
     onInteractOutside,
   } = useSheetSafety({ open, setOpen, safeRef, sheetId: SHEET_ID });
 
+  if (hideHeader) {
+    return null;
+  }
+
+  const logo = (
+    <Link
+      href="/"
+      className="mx-2 flex justify-self-center px-2 text-3xl font-semibold focus:outline-none"
+    >
+      Logo lsb
+    </Link>
+  );
+
   return (
     <>
       <header
         ref={safeRef}
         onPointerLeave={handlePointerLeaveHeader}
         onClickCapture={handleAnyNavClickCapture}
-        className="mx-auto w-full z-[100] sticky top-0 h-[4rem] grid grid-cols-[1fr_auto_1fr] items-center bg-white px-6"
+        className="mx-auto w-full z-[100] sticky top-0 h-[var(--header-h)] grid grid-cols-[1fr_auto_1fr] items-center bg-background border-b px-4"
       >
         <div className="flex justify-self-start items-center h-full content-center">
           <Sheet open={open} onOpenChange={setOpen} modal={false}>
@@ -72,15 +91,9 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
         </div>
 
         {/*------------- LOGO ------------- */}
-        <Link
-          href="/"
-          className="flex justify-self-center focus:outline-none mx-2 px-2 text-3xl font-semibold"
-        >
-          Logo lsb
-        </Link>
-
+        {logo}
         {/*------------- NAV ------------- */}
-        <nav className="justify-self-end h-full flex items-center gap-2 text-base">
+        <nav className="justify-self-end h-full flex items-center gap-2 text-sm">
           <div className="hidden sm:flex items-center gap-1 border-b border-neutral-500">
             <IoSearch className="size-[20px]" />
             <input
@@ -89,30 +102,47 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
               className="px-1 outline-none w-[200px]"
             />
           </div>
-
           <div className="flex gap-1">
-            <Button asChild variant={"hovers"}>
-              <Link href="/account" className="flex items-center px-1 py-[6px]">
-                <FaRegUser className="size-[20px]" />
+            <Button
+              asChild
+              variant={"hovers"}
+              className="tip-bottom"
+              data-tip="Mi Cuenta"
+            >
+              <Link
+                href="/account"
+                className="flex items-center"
+                aria-label="Cuenta"
+              >
+                <FaRegUser className="size-[20px]" aria-hidden="true" />
               </Link>
             </Button>
-            <Button asChild variant={"hovers"}>
+            <Button
+              asChild
+              variant={"hovers"}
+              className="tip-bottom"
+              data-tip="Favoritos"
+            >
               <Link
                 href="/favoritos"
-                className="flex items-center px-1 py-[6px]"
+                className="flex items-center"
+                aria-label="Favoritos"
               >
-                <FaRegHeart className="size-[20px]" />
+                <FaRegHeart className="size-[20px]" aria-hidden="true" />
               </Link>
             </Button>
-            <Button asChild variant={"hovers"}>
-              <Link href="/cart" className="flex items-center px-1 py-[6px]">
-                <HiOutlineShoppingBag className="stroke-2 size-[20px]" />
-              </Link>
-            </Button>
+
+            <div
+              style={isCartPage ? { pointerEvents: "none" } : undefined}
+              aria-disabled={isCartPage}
+              aria-hidden={isCartPage}
+            >
+              <CartButtonWithSheet />
+            </div>
           </div>
 
           <Button asChild variant={"outline"} className="text-base">
-            <Link href="/admin" className="px-3 text-base">
+            <Link href="/admin" className="px-4 text-base">
               Admin
             </Link>
           </Button>

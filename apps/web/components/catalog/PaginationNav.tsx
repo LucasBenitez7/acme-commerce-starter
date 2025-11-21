@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { Button, PendingLink } from "@/components/ui";
 
 import { makePageHref } from "@/lib/catalog/pagination";
@@ -21,7 +19,7 @@ export function PaginationNav({
   return (
     <nav
       aria-label="Paginación"
-      className="flex items-center justify-end gap-2 mb-6"
+      className="flex items-center justify-end gap-2 pb-8"
     >
       <p className="text-sm text-neutral-500">
         Página {page} de {totalPages}
