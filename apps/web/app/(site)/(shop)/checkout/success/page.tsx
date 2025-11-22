@@ -103,16 +103,13 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
         </p>
       </div>
 
-      <section className="mb-4 space-y-1 rounded-lb border bg-card p-4">
+      <section className="mb-4 flex flex-col space-y-1 text-xs text-foreground font-medium border rounded-lb p-4">
         <p className="text-base font-semibold">Datos de contacto</p>
-        <div className="flex flex-col gap-1 text-xs text-foreground">
-          <dd className="gap-2 font-medium">
-            {contact.fullName || "—"} ·{" "}
-            <span className="text-xs">{contact.phone || "—"}</span>
-          </dd>
-          <dd className="font-medium">
-            {shipping.label} {shipping.details}
-          </dd>
+        <div className="space-y-1">
+          <dd className="font-semibold">{contact.fullName || "—"}</dd>
+          <dd>{contact.phone || "—"}</dd>
+          <dd>{shipping.label || "—"}</dd>
+          <dd>{shipping.details || "—"} </dd>
         </div>
       </section>
 

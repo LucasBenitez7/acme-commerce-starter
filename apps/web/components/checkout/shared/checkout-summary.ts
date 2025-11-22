@@ -96,7 +96,7 @@ export function buildShippingSummary(
     if (pickup) {
       const base = `${pickup.name} · ${pickup.addressLine1} · ${pickup.addressLine2}`;
       return {
-        label: "Punto de recogida en",
+        label: "Punto de recogida",
         details: pickupSearch ? `${base}` : base,
       };
     }

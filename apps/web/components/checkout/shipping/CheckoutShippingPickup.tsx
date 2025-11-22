@@ -121,7 +121,7 @@ export function CheckoutShippingPickup({
             </button>
           </div>
 
-          <div className="rounded-lb border p-3 text-xs sm:text-sm">
+          <div className="rounded-lb border p-3 space-y-1 text-xs sm:text-sm">
             <p className="text-sm font-semibold">
               {selectedPickupLocation.name}
             </p>
@@ -141,7 +141,7 @@ export function CheckoutShippingPickup({
             </div>
           </div>
 
-          <div className="space-y-2 pt-6">
+          <div className="space-y-1 pt-6">
             <p className="text-base font-medium text-foreground">
               Datos de contacto
             </p>

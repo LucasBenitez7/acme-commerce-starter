@@ -70,7 +70,7 @@ export function CheckoutStepper({ currentStep, onStepClick }: Props) {
                   className="hidden flex-1 items-center sm:flex"
                 >
                   <span
-                    className={`block h-px w-full ${
+                    className={`block h-[2px] w-full ${
                       isPast ? "bg-primary" : "bg-border"
                     }`}
                   />

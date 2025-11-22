@@ -29,10 +29,12 @@ export function CheckoutContactFields({
   } = errors;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 p-4 border ronded-lb">
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="firstName">Nombre*</Label>
+        <div className="space-y-1">
+          <Label htmlFor="firstName" className="text-xs">
+            Nombre*
+          </Label>
           <Input
             id="firstName"
             name="firstName"
@@ -50,8 +52,10 @@ export function CheckoutContactFields({
           )}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="lastName">Apellidos*</Label>
+        <div className="space-y-1">
+          <Label htmlFor="lastName" className="text-xs">
+            Apellidos*
+          </Label>
           <Input
             id="lastName"
             name="lastName"
@@ -71,8 +75,10 @@ export function CheckoutContactFields({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="email">E-mail*</Label>
+        <div className="space-y-1">
+          <Label htmlFor="email" className="text-xs">
+            E-mail*
+          </Label>
           <Input
             id="email"
             name="email"
@@ -91,8 +97,10 @@ export function CheckoutContactFields({
           )}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="phone">Teléfono*</Label>
+        <div className="space-y-1">
+          <Label htmlFor="phone" className="text-xs">
+            Teléfono*
+          </Label>
           <Input
             id="phone"
             name="phone"

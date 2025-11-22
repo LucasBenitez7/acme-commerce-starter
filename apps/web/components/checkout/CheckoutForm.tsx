@@ -165,7 +165,7 @@ export function CheckoutForm() {
         <h2
           ref={stepHeadingRef}
           tabIndex={-1}
-          className="py-1 text-lg font-semibold text-foreground"
+          className="pb-4 text-xl font-semibold text-foreground"
         >
           {isStep1 && "Elige un método de envío"}
           {isStep2 && "Elige un método de pago"}
