@@ -60,8 +60,10 @@ export function CheckoutReviewStep({ form }: ReviewStepProps) {
     <div>
       <div className="space-y-6 pb-4">
         <div>
-          <p className="text-base font-semibold">Datos de contacto</p>
-          <div className="flex flex-col gap-1 text-xs text-foreground font-medium border rounded-lb p-3">
+          <p className="text-base font-semibold">
+            Información de contacto y envio
+          </p>
+          <div className="flex flex-col gap-2 text-sm text-foreground font-normal border rounded-lb p-3">
             <dd>{contact.fullName || "—"}</dd>
             <dd>{contact.phone || "—"}</dd>
             <dd>{shipping.label || "—"}</dd>
@@ -71,7 +73,7 @@ export function CheckoutReviewStep({ form }: ReviewStepProps) {
 
         <div>
           <p className="text-base font-semibold">Método de pago</p>
-          <p className="flex items-center border rounded-lb p-3 font-medium text-sm text-foreground">
+          <p className="flex items-center border rounded-lb p-3 font-normal text-sm text-foreground">
             {paymentLabel}
             {PaymentIcon && <PaymentIcon className="ml-2 inline h-4 w-4" />}
           </p>
