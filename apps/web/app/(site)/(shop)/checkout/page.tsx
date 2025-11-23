@@ -56,15 +56,15 @@ export default async function CheckoutPage() {
   );
 
   return (
-    <Container className="px-0">
+    <Container className="px-0 bg-neutral-100">
       <div className="grid lg:grid-cols-[minmax(0,2fr)_minmax(0,0.8fr)] lg:items-start">
         {/* Columna izquierda: header + formulario + footer (solo en desktop) */}
-        <section className="flex flex-col px-4 lg:min-h-screen">
+        <section className="flex flex-col lg:min-h-screen">
           {/* Header local del checkout */}
           <CheckoutHeader />
 
           {/* Contenido principal */}
-          <div className="flex-1 py-4">
+          <div className="flex-1 px-4 py-4">
             <CheckoutForm />
           </div>
 
@@ -73,7 +73,7 @@ export default async function CheckoutPage() {
         </section>
 
         {/* Columna derecha: resumen del pedido */}
-        <aside className="lg:sticky lg:top-0">
+        <aside className="lg:sticky lg:top-0 px-4 lg:px-0">
           <div className="flex h-full flex-col border bg-background lg:h-screen">
             {/* Header del resumen (siempre visible) */}
             <header className="shrink-0 px-4">

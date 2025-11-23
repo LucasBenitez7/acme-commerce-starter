@@ -41,7 +41,7 @@ function SubmitButton({ disabledBase }: { disabledBase: boolean }) {
   return (
     <Button
       type="submit"
-      className="w-full px-4 text-sm hover:cursor-pointer md:w-auto bg-green-600 hover:bg-green-700"
+      className="w-full px-4 py-3 sm:py-2 text-sm hover:cursor-pointer md:w-auto bg-green-600 hover:bg-green-700"
       disabled={disabledBase || pending}
     >
       {pending ? "Procesando pedido..." : "Pagar y finalizar"}
@@ -165,7 +165,7 @@ export function CheckoutForm() {
         <h2
           ref={stepHeadingRef}
           tabIndex={-1}
-          className="py-1 text-lg font-semibold text-foreground"
+          className="pb-4 text-xl font-semibold text-foreground"
         >
           {isStep1 && "Elige un método de envío"}
           {isStep2 && "Elige un método de pago"}
@@ -194,10 +194,17 @@ export function CheckoutForm() {
         )}
 
         {/* Paso 3: resumen final + inputs ocultos */}
-        {isStep3 && <CheckoutReviewStep form={form} />}
+        {isStep3 && (
+          <CheckoutReviewStep
+            form={form}
+            onEditShipping={() => handleStepperClick(1)}
+            onEditContact={() => handleStepperClick(1)}
+            onEditPayment={() => handleStepperClick(2)}
+          />
+        )}
 
         {/* Navegación entre pasos */}
-        <div className="flex flex-col gap-3 py-1 text-sm font-medium sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-6 py-1 text-sm font-medium sm:flex-row sm:items-center sm:justify-between">
           <div>
             {step === 1 && (
               <button
@@ -224,7 +231,7 @@ export function CheckoutForm() {
             {step < 3 && canShowNextButton && (
               <Button
                 type="button"
-                className="w-full hover:cursor-pointer sm:w-auto"
+                className="w-full hover:cursor-pointer p-3 sm:py-2 sm:w-auto"
                 variant="default"
                 onClick={handleNextWithClear}
               >

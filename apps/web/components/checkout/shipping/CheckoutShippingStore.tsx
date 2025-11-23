@@ -64,7 +64,7 @@ export function CheckoutShippingStore({
                 return (
                   <label
                     key={store.id}
-                    className={`flex w-full cursor-pointer flex-col rounded-lb border p-3 text-left text-xs sm:text-sm transition-colors ${
+                    className={`flex w-full cursor-pointer flex-col rounded-lb space-y-1 border p-3 text-left text-xs sm:text-sm transition-colors ${
                       isSelected
                         ? "border-primary bg-primary/5"
                         : "border-border hover:border-primary/60 hover:bg-neutral-50"
@@ -86,11 +86,9 @@ export function CheckoutShippingStore({
                       {store.addressLine2}
                     </p>
 
-                    <div className="mt-2 flex flex-wrap items-center gap-2 text-[0.7rem] text-muted-foreground">
+                    <div className="flex flex-wrap items-center gap-2 text-[0.7rem] text-muted-foreground">
                       <span>{store.tag}</span>
-                      <span>·</span>
                       <span>{store.distance}</span>
-                      <span>·</span>
                       <span>{store.schedule}</span>
                     </div>
                   </label>
@@ -118,7 +116,7 @@ export function CheckoutShippingStore({
             </button>
           </div>
 
-          <div className="rounded-lb border p-3 text-xs sm:text-sm">
+          <div className="rounded-lb space-y-1 border p-3 text-xs sm:text-sm">
             <p className="text-sm font-semibold">{selectedStore.name}</p>
             <p className="text-xs text-muted-foreground">
               {selectedStore.addressLine1}
@@ -127,16 +125,14 @@ export function CheckoutShippingStore({
               {selectedStore.addressLine2}
             </p>
 
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-[0.7rem] text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-2 text-[0.7rem] text-muted-foreground">
               <span>{selectedStore.tag}</span>
-              <span>·</span>
               <span>{selectedStore.distance}</span>
-              <span>·</span>
               <span>{selectedStore.schedule}</span>
             </div>
           </div>
 
-          <div className="space-y-2 pt-6">
+          <div className="space-y-1 pt-6">
             <p className="text-base font-medium text-foreground">
               Datos de contacto
             </p>

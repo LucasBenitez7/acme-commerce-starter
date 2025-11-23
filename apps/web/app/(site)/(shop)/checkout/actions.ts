@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { CART_COOKIE_NAME, parseCartCookie } from "@/lib/server/cart-cookie";
 import { buildOrderDraftFromCart } from "@/lib/server/orders";
@@ -25,6 +26,10 @@ export async function createOrderAction(
   prevState: CheckoutActionState,
   formData: FormData,
 ): Promise<CheckoutActionState> {
+  const session = await auth();
+  const userId =
+    session?.user && "id" in session.user ? (session.user as any).id : null;
+
   const cookieStore = await cookies();
   const rawCart = cookieStore.get(CART_COOKIE_NAME)?.value;
   const lines = parseCartCookie(rawCart);
@@ -132,12 +137,6 @@ export async function createOrderAction(
         error: "Selecciona un punto de recogida para tu pedido.",
       };
     }
-
-    if (!isNonEmptyMin(pickupSearch, 3)) {
-      return {
-        error: "Introduce un código postal o zona para el punto de recogida.",
-      };
-    }
   }
 
   // ------------------------
@@ -159,6 +158,7 @@ export async function createOrderAction(
   try {
     order = await prisma.order.create({
       data: {
+        userId,
         email,
         currency: draft.currency,
         totalMinor: draft.totalMinor,
