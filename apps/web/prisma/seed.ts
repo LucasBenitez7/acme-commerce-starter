@@ -42,7 +42,7 @@ function makeProducts(): SeedProduct[] {
         categorySlug: cat.slug,
         images: [
           {
-            url: `https://plus.unsplash.com/premium_photo-1756137116701-ee9391c4bf62?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=687${encodeURIComponent(
+            url: `https://plus.unsplash.com/premium_photo-1756137116701-ee9391c4bf62?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=687&title=${encodeURIComponent(
               name,
             )}`,
             alt: name,

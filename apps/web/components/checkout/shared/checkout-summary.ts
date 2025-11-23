@@ -73,7 +73,7 @@ export function buildShippingSummary(
     if (store) {
       return {
         label: "Recogida en tienda",
-        details: `${store.name} · ${store.addressLine1} · ${store.addressLine2}`,
+        details: `${store.name} ${store.addressLine1} ${store.addressLine2}`,
       };
     }
 
@@ -94,7 +94,7 @@ export function buildShippingSummary(
     const pickup = findPickupLocation(pickupLocationId ?? undefined);
 
     if (pickup) {
-      const base = `${pickup.name} · ${pickup.addressLine1} · ${pickup.addressLine2}`;
+      const base = `${pickup.name} ${pickup.addressLine1} ${pickup.addressLine2}`;
       return {
         label: "Punto de recogida",
         details: pickupSearch ? `${base}` : base,
@@ -123,11 +123,11 @@ export function buildShippingSummary(
   const line3 = line3Parts.join(" ");
 
   const details =
-    [line1, line2, line3].filter((part) => part.trim() !== "").join(" · ") ||
+    [line1, line2, line3].filter((part) => part.trim() !== "").join(" ") ||
     "Dirección de entrega no completada.";
 
   return {
-    label: "",
+    label: "Dirección de envío",
     details,
   };
 }
