@@ -1,6 +1,8 @@
 "use client";
+
+import { SessionProvider } from "next-auth/react";
 import { useEffect, useMemo } from "react";
-import { Provider } from "react-redux";
+import { Provider as ReduxProvider } from "react-redux";
 
 import { makeStore } from "@/store";
 import { readFromLocalStorage, writeEverywhere } from "@/store/cart.persist";
@@ -9,15 +11,18 @@ import { hydrateFromArray } from "@/store/cart.slice";
 
 import type { RootState } from "@/store";
 
+type ProvidersProps = {
+  children: React.ReactNode;
+  preloadedState?: Partial<RootState>;
+};
+
 export default function Providers({
   children,
   preloadedState,
-}: {
-  children: React.ReactNode;
-  preloadedState?: Partial<RootState>;
-}) {
+}: ProvidersProps) {
   const store = useMemo(() => makeStore(preloadedState), [preloadedState]);
 
+  // Hidratar carrito desde localStorage si no viene nada del SSR
   useEffect(() => {
     const state = store.getState();
     const hasSSRItems = state.cart.items.length > 0;
@@ -27,6 +32,7 @@ export default function Providers({
     }
   }, [store]);
 
+  // Escribir carrito en cookie + localStorage en cada cambio
   useEffect(() => {
     const unsubscribe = store.subscribe(() => {
       const state = store.getState();
@@ -36,5 +42,9 @@ export default function Providers({
     return unsubscribe;
   }, [store]);
 
-  return <Provider store={store}>{children}</Provider>;
+  return (
+    <SessionProvider>
+      <ReduxProvider store={store}>{children}</ReduxProvider>
+    </SessionProvider>
+  );
 }

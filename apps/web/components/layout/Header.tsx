@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession, signIn, signOut } from "next-auth/react";
 import { useRef, useState } from "react";
 import { FaRegUser, FaRegHeart } from "react-icons/fa6";
 import { IoSearch } from "react-icons/io5";
@@ -27,15 +28,24 @@ const SHEET_ID = "site-sidebar";
 
 export function Header({ categories }: { categories: CategoryLink[] }) {
   const [open, setOpen] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+
   const safeRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+
+  const { data: session, status: sessionStatus } = useSession();
+  const user = session?.user ?? null;
+  const isSessionLoading = sessionStatus === "loading";
 
   const HIDE_HEADER_ON: string[] = ["/checkout"];
   const hideHeader = HIDE_HEADER_ON.includes(pathname);
   const isCartPage = pathname === "/cart";
 
   useLockBodyScroll(open && !hideHeader);
-  useAutoCloseOnRouteChange(open && !hideHeader, () => setOpen(false));
+  useAutoCloseOnRouteChange((open || accountMenuOpen) && !hideHeader, () => {
+    setOpen(false);
+    setAccountMenuOpen(false);
+  });
 
   const {
     handlePointerLeaveHeader,
@@ -56,6 +66,30 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
       Logo lsb
     </Link>
   );
+
+  const userInitial =
+    typeof user?.name === "string" && user.name.trim() !== ""
+      ? user.name.trim().charAt(0).toUpperCase()
+      : (user?.email?.charAt(0)?.toUpperCase() ?? null);
+
+  const accountTooltip = isSessionLoading
+    ? "Cargando sesión…"
+    : user
+      ? "Mi cuenta"
+      : "Iniciar sesión";
+
+  function handleAccountClick() {
+    if (isSessionLoading) return;
+
+    if (!user) {
+      // Usuario no logueado → iniciar sesión con GitHub
+      void signIn("github", { callbackUrl: "/account" });
+      return;
+    }
+
+    // Usuario logueado → abrir / cerrar menú
+    setAccountMenuOpen((prev) => !prev);
+  }
 
   return (
     <>
@@ -104,19 +138,60 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
           </div>
           <div className="flex gap-1">
             <Button
-              asChild
+              type="button"
               variant={"hovers"}
               className="tip-bottom"
-              data-tip="Mi Cuenta"
+              data-tip={accountTooltip}
+              aria-label={user ? "Menú de cuenta" : "Iniciar sesión"}
+              onClick={handleAccountClick}
             >
-              <Link
-                href="/account"
-                className="flex items-center"
-                aria-label="Cuenta"
-              >
+              {userInitial ? (
+                <span className="flex h-[28px] w-[28px] items-center justify-center rounded-full border border-neutral-400 text-[13px] font-semibold">
+                  {userInitial}
+                </span>
+              ) : (
                 <FaRegUser className="size-[20px]" aria-hidden="true" />
-              </Link>
+              )}
             </Button>
+
+            {user && accountMenuOpen && (
+              <div className="absolute right-0 top-full z-[120] mt-2 w-52 rounded-lb border bg-popover text-xs shadow-lg">
+                <div className="border-b px-3 py-2 text-[11px] text-muted-foreground">
+                  Sesión iniciada como
+                  <div className="truncate font-medium text-foreground">
+                    {user.name || user.email || "Usuario"}
+                  </div>
+                </div>
+
+                <nav className="py-1">
+                  <Link
+                    href="/account"
+                    className="block px-3 py-2 text-xs hover:bg-muted"
+                    onClick={() => setAccountMenuOpen(false)}
+                  >
+                    Mi cuenta
+                  </Link>
+                  <Link
+                    href="/account/orders"
+                    className="block px-3 py-2 text-xs hover:bg-muted"
+                    onClick={() => setAccountMenuOpen(false)}
+                  >
+                    Mis pedidos
+                  </Link>
+                  <button
+                    type="button"
+                    className="block w-full px-3 py-2 text-left text-xs text-destructive hover:bg-muted/80"
+                    onClick={() => {
+                      setAccountMenuOpen(false);
+                      void signOut({ callbackUrl: "/" });
+                    }}
+                  >
+                    Cerrar sesión
+                  </button>
+                </nav>
+              </div>
+            )}
+
             <Button
               asChild
               variant={"hovers"}

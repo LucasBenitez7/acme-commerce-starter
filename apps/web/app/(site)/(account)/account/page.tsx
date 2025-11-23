@@ -11,54 +11,48 @@ export const metadata = {
 export default async function AccountPage() {
   const session = await auth();
 
-  if (!session?.user) {
-    return (
-      <main className="container mx-auto max-w-xl py-10">
-        <h1 className="mb-4 text-2xl font-semibold">Mi cuenta</h1>
-        <p className="mb-4 text-sm text-muted-foreground">
-          No has iniciado sesión.
+  if (!session?.user) return null;
+
+  const name = (session.user.name ?? "").trim() || "Sin nombre";
+  const email = (session.user.email ?? "").trim() || "—";
+
+  return (
+    <div className="space-y-4">
+      <section className="rounded-lb border bg-card p-4 text-sm">
+        <h2 className="text-base font-semibold">Datos de la cuenta</h2>
+        <dl className="mt-2 space-y-1">
+          <div className="flex gap-2">
+            <dt className="w-24 shrink-0 text-muted-foreground">Nombre</dt>
+            <dd className="font-medium">{name}</dd>
+          </div>
+          <div className="flex gap-2">
+            <dt className="w-24 shrink-0 text-muted-foreground">E-mail</dt>
+            <dd className="font-medium">{email}</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section className="rounded-lb border bg-card p-4 text-sm">
+        <h2 className="text-base font-semibold">Sesión</h2>
+        <p className="text-sm text-muted-foreground">
+          Si estás en un ordenador compartido, recuerda cerrar la sesión cuando
+          termines.
         </p>
+
         <form
           action={async () => {
             "use server";
-            await signIn("github");
+            await signOut();
           }}
         >
           <button
             type="submit"
-            className="rounded-lb border px-4 py-2 text-sm font-medium"
+            className="mt-3 inline-flex items-center rounded-lb border px-3 py-1.5 text-xs font-medium hover:bg-muted"
           >
-            Iniciar sesión con GitHub
+            Cerrar sesión
           </button>
         </form>
-      </main>
-    );
-  }
-
-  return (
-    <main className="container mx-auto max-w-xl py-10">
-      <h1 className="mb-2 text-2xl font-semibold">Mi cuenta</h1>
-      <p className="mb-4 text-sm text-muted-foreground">
-        Has iniciado sesión como <strong>{session.user.email}</strong>
-      </p>
-
-      <pre className="mb-4 rounded-lb bg-muted p-3 text-[11px]">
-        {JSON.stringify(session.user, null, 2)}
-      </pre>
-
-      <form
-        action={async () => {
-          "use server";
-          await signOut();
-        }}
-      >
-        <button
-          type="submit"
-          className="rounded-lb border px-4 py-2 text-sm font-medium"
-        >
-          Cerrar sesión
-        </button>
-      </form>
-    </main>
+      </section>
+    </div>
   );
 }
