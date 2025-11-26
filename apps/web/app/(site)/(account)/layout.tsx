@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import { Container } from "@/components/ui";
 
@@ -23,12 +22,7 @@ type AccountLayoutProps = {
 export default async function AccountLayout({ children }: AccountLayoutProps) {
   const session = await auth();
 
-  if (!session?.user) {
-    const redirectTo = "/account";
-    redirect(`/auth/login?redirectTo=${encodeURIComponent(redirectTo)}`);
-  }
-
-  const name = (session.user.name ?? "").trim() || "Tu cuenta";
+  const name = (session?.user.name ?? "").trim() || "Tu cuenta";
 
   return (
     <Container className="py-8">
