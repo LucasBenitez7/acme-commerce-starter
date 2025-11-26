@@ -38,7 +38,7 @@ export default async function SiteLayout({
 
   return (
     <Providers preloadedState={preloadedState}>
-      <div className="flex min-h-dvh flex-col bg-background">
+      <div className="flex min-h-dvh flex-col bg-neutral-100">
         <Header categories={categories} />
         <div className="flex-1">
           <Container className="bg-neutral-100">

@@ -1,112 +1,162 @@
-import { buildShippingSummary } from "@/components/checkout/shared/checkout-summary";
+import Link from "next/link";
+import { FaCalendar, FaMapMarkerAlt } from "react-icons/fa";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { auth } from "@/lib/auth";
 import { formatMinor, parseCurrency } from "@/lib/currency";
 import { prisma } from "@/lib/db";
-
-import type { ShippingType as ClientShippingType } from "@/hooks/use-checkout-form";
-import type { ShippingType as ShippingTypeDb } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const fetchCache = "force-no-store";
 export const runtime = "nodejs";
 
-function mapShippingType(type: ShippingTypeDb | null): ClientShippingType {
-  if (type === "STORE") return "store";
-  if (type === "PICKUP") return "pickup";
-  return "home";
+// Helper para colores de estado
+function getStatusBadge(status: string) {
+  switch (status) {
+    case "PAID":
+      return (
+        <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+          Pagado
+        </span>
+      );
+    case "PENDING_PAYMENT":
+      return (
+        <span className="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
+          Pendiente de pago
+        </span>
+      );
+    case "CANCELLED":
+      return (
+        <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+          Cancelado
+        </span>
+      );
+    default:
+      return (
+        <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+          {status}
+        </span>
+      );
+  }
 }
 
 export default async function AccountOrdersPage() {
   const session = await auth();
-  if (!session?.user || !("id" in session.user)) {
-    // El layout ya debería redirigir antes de llegar aquí
-    return null;
-  }
-
-  const userId = (session.user as any).id as string;
+  if (!session?.user?.id) return null;
 
   const orders = await prisma.order.findMany({
-    where: { userId },
+    where: { userId: session.user.id },
     orderBy: { createdAt: "desc" },
     include: { items: true },
   });
 
   if (orders.length === 0) {
     return (
-      <section className="rounded-lb border bg-card p-4 text-sm">
-        <h2 className="text-base font-semibold">Mis pedidos</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Todavía no has realizado ningún pedido con esta cuenta.
+      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center animate-in fade-in-50">
+        <h3 className="mt-4 text-lg font-semibold">No tienes pedidos</h3>
+        <p className="mb-4 mt-2 text-sm text-muted-foreground">
+          Parece que aún no has comprado nada. ¡Echa un vistazo al catálogo!
         </p>
-      </section>
+        <Button asChild>
+          <Link href="/catalogo">Ir a la tienda</Link>
+        </Button>
+      </div>
     );
   }
 
   return (
-    <section className="space-y-3">
-      <h2 className="text-base font-semibold">Mis pedidos</h2>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight">Mis Pedidos</h2>
+        <p className="text-muted-foreground">
+          Historial de tus compras y su estado actual.
+        </p>
+      </div>
 
-      <div className="space-y-3">
+      <div className="grid gap-4">
         {orders.map((order) => {
           const currency = parseCurrency(order.currency);
-          const created = new Intl.DateTimeFormat("es-ES", {
-            dateStyle: "short",
-            timeStyle: "short",
-          }).format(order.createdAt);
-
+          const createdDate = new Date(order.createdAt).toLocaleDateString(
+            "es-ES",
+            {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            },
+          );
           const itemsCount = order.items.reduce(
-            (sum, item) => sum + item.quantity,
+            (acc, i) => acc + i.quantity,
             0,
           );
 
-          const shippingTypeClient = mapShippingType(order.shippingType);
-
-          const shipping = buildShippingSummary({
-            shippingType: shippingTypeClient,
-            street: order.street,
-            addressExtra: order.addressExtra,
-            postalCode: order.postalCode,
-            province: order.province,
-            city: order.city,
-            storeLocationId: order.storeLocationId,
-            pickupLocationId: order.pickupLocationId,
-            pickupSearch: order.pickupSearch,
-          });
-
           return (
-            <article
-              key={order.id}
-              className="rounded-lb border bg-card p-3 text-sm"
-            >
-              <header className="flex flex-wrap items-baseline justify-between gap-2">
-                <div className="space-y-0.5">
-                  <p className="font-mono text-[11px] text-muted-foreground">
-                    Pedido {order.id.slice()}
-                  </p>
-                  <p className="text-xs text-muted-foreground">{created}</p>
+            <Card key={order.id} className="overflow-hidden">
+              <CardHeader className="border-b bg-muted/40 p-4">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="grid gap-1">
+                    <CardTitle className="text-base">
+                      Pedido{" "}
+                      <span className="font-mono text-muted-foreground">
+                        #{order.id.slice(-8).toUpperCase()}
+                      </span>
+                    </CardTitle>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <FaCalendar className="h-3 w-3" />
+                      {createdDate}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {getStatusBadge(order.status)}
+                    <span className="text-lg font-bold">
+                      {formatMinor(order.totalMinor, currency)}
+                    </span>
+                  </div>
                 </div>
+              </CardHeader>
+              <CardContent className="p-4 text-sm">
+                <div className="flex flex-col gap-4 sm:flex-row sm:justify-between">
+                  <div className="space-y-1">
+                    <p className="font-medium">Artículos ({itemsCount})</p>
+                    <ul className="text-muted-foreground text-xs space-y-1">
+                      {order.items.slice(0, 3).map((item) => (
+                        <li key={item.id}>
+                          • {item.quantity}x {item.nameSnapshot}
+                        </li>
+                      ))}
+                      {order.items.length > 3 && (
+                        <li>... y {order.items.length - 3} más</li>
+                      )}
+                    </ul>
+                  </div>
 
-                <div className="text-right text-xs">
-                  <p className="font-semibold">
-                    {formatMinor(order.totalMinor, currency)}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground">
-                    {itemsCount} artículo{itemsCount !== 1 ? "s" : ""} ·{" "}
-                    {shipping.label}
-                  </p>
+                  <div className="space-y-1 text-right sm:text-left">
+                    <div className="flex items-center gap-1 font-medium sm:justify-end">
+                      <FaMapMarkerAlt className="h-3 w-3 text-muted-foreground" />
+                      Envío
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {order.shippingType === "HOME"
+                        ? "A domicilio"
+                        : "Recogida en tienda"}{" "}
+                      <br />
+                      {order.city}, {order.province}
+                    </p>
+                  </div>
                 </div>
-              </header>
-
-              {/* Si quieres, aquí podrías mostrar también `shipping.details` resumido */}
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                {shipping.details}
-              </p>
-            </article>
+              </CardContent>
+              {/* Opcional: Footer con botón de detalle si en el futuro se hace/account/orders/[id] */}
+              {/* <CardFooter className="bg-muted/10 p-2 flex justify-end">
+                  <Button variant="ghost" size="sm" className="text-xs h-8">
+                     Ver detalles <FaArrowRight className="ml-2 h-3 w-3"/>
+                  </Button>
+              </CardFooter> */}
+            </Card>
           );
         })}
       </div>
-    </section>
+    </div>
   );
 }

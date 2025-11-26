@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { type FormEvent, useState } from "react";
 
-import { Button, Input, Label } from "@/components/ui";
+import { Button, Input, Label, PasswordInput } from "@/components/ui";
 
 import { loginSchema } from "@/lib/validation/auth";
 
@@ -118,10 +118,9 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
       {/* PASSWORD */}
       <div className="space-y-1">
         <Label htmlFor="password">Contraseña</Label>
-        <Input
+        <PasswordInput
           id="password"
           name="password"
-          type="password"
           autoComplete="current-password"
           aria-invalid={!!fieldErrors.password}
         />
@@ -153,7 +152,25 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
         Continuar con GitHub
       </Button>
 
-      <p className="mt-2 text-xs text-muted-foreground">
+      <Button
+        type="button"
+        variant="outline"
+        className="w-full text-xs"
+        onClick={handleLoginWithGithub}
+      >
+        Continuar con Google
+      </Button>
+
+      <Button
+        type="button"
+        variant="outline"
+        className="w-full text-xs"
+        onClick={handleLoginWithGithub}
+      >
+        Continuar con Icloud
+      </Button>
+
+      <p className="mt-2 text-xs font-medium">
         ¿No tienes cuenta?{" "}
         <a
           href={`/auth/register?redirectTo=${encodeURIComponent(redirectToParam)}`}
@@ -162,6 +179,29 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
           Crear cuenta
         </a>
       </p>
+
+      {/* Lógica: Si venimos de un intento de compra, ofrecemos continuar como invitado */}
+      {redirectToParam.includes("checkout") && (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <span className="h-px flex-1 bg-border" />
+            <span>o</span>
+            <span className="h-px flex-1 bg-border" />
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full text-xs hover:cursor-pointer"
+            onClick={() => {
+              // Navegamos directamente al checkout sin loguearnos
+              router.push("/checkout");
+            }}
+          >
+            Continuar como invitado
+          </Button>
+        </div>
+      )}
     </form>
   );
 }

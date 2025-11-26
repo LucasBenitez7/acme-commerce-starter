@@ -24,7 +24,7 @@ export function BurgerButton({ open, onToggle, controlsId, className }: Props) {
         aria-expanded={open}
         aria-controls={controlsId}
         className={[
-          "group relative h-[30px] w-[32px] rounded-lb cursor-pointer select-none outline outline-white hover:outline hover:outline-slate-300 hover:bg-neutral-100 transition-all duration-200 ease-in-out",
+          "group relative h-[30px] w-[32px] rounded-lb cursor-pointer select-none outline-none hover:bg-neutral-100 transition-all duration-200 ease-in-out",
           className ?? "",
         ].join(" ")}
       >

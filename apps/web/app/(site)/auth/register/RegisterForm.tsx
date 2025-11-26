@@ -4,7 +4,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { type FormEvent, useState } from "react";
 
-import { Button, Input, Label } from "@/components/ui";
+import { Button, Input, Label, PasswordInput } from "@/components/ui";
 
 import { registerSchema } from "@/lib/validation/auth";
 
@@ -112,10 +112,9 @@ export function RegisterForm({ action, redirectTo }: Props) {
       {/* PASSWORD */}
       <div className="space-y-1">
         <Label htmlFor="password">Contraseña</Label>
-        <Input
+        <PasswordInput
           id="password"
           name="password"
-          type="password"
           autoComplete="new-password"
           aria-invalid={!!fieldErrors.password}
         />
@@ -130,10 +129,9 @@ export function RegisterForm({ action, redirectTo }: Props) {
       {/* CONFIRM PASSWORD */}
       <div className="space-y-1">
         <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
-        <Input
+        <PasswordInput
           id="confirmPassword"
           name="confirmPassword"
-          type="password"
           autoComplete="new-password"
           aria-invalid={!!fieldErrors.confirmPassword}
         />
@@ -149,7 +147,7 @@ export function RegisterForm({ action, redirectTo }: Props) {
       </Button>
 
       {/* Links footer... */}
-      <p className="mt-2 text-xs text-muted-foreground">
+      <p className="mt-2 text-xs font-medium">
         ¿Ya tienes cuenta?{" "}
         <a
           href={`/auth/login?redirectTo=${encodeURIComponent(redirectToParam)}`}

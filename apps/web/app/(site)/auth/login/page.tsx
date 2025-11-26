@@ -35,14 +35,18 @@ export default async function LoginPage({ searchParams }: Props) {
   }
 
   return (
-    <Container className="max-w-md py-8">
-      <h1 className="text-2xl font-semibold tracking-tight">Iniciar sesión</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Accede a tu cuenta para ver tus pedidos y datos guardados.
-      </p>
+    <Container className="bg-neutral-100 p-6 lg:p-8">
+      <div className="max-w-lg mx-auto border p-6 bg-background rounded-lb">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Iniciar sesión
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Accede a tu cuenta para ver tus pedidos y datos guardados.
+        </p>
 
-      <div className="mt-6">
-        <LoginForm redirectTo={redirectTo} />
+        <div className="mt-6">
+          <LoginForm redirectTo={redirectTo} />
+        </div>
       </div>
     </Container>
   );

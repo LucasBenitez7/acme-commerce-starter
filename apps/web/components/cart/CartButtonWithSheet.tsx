@@ -1,6 +1,8 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { CgClose } from "react-icons/cg";
 import { HiOutlineShoppingBag } from "react-icons/hi2";
@@ -28,6 +30,8 @@ import { selectCartTotalQty } from "@/store/cart.selectors";
 import { setQty, removeItem } from "@/store/cart.slice";
 
 export function CartButtonWithSheet() {
+  const router = useRouter();
+  const { data: session } = useSession();
   const [open, setOpen] = useState(false);
   const dispatch = useAppDispatch();
   const total = useAppSelector(selectCartTotalQty);
@@ -46,11 +50,12 @@ export function CartButtonWithSheet() {
   if (!mounted) {
     return (
       <Button
-        variant="hovers"
+        variant={"ghost"}
         type="button"
         aria-label="cesta"
         className="tip-bottom"
         data-tip="Cesta"
+        size={"icon-lg"}
       >
         <div className="relative flex items-center px-1 py-[6px]">
           <HiOutlineShoppingBag strokeWidth={2} className="size-[24px]" />
@@ -64,7 +69,7 @@ export function CartButtonWithSheet() {
       <SheetTrigger asChild>
         <Button
           asChild
-          variant={"hovers"}
+          variant={"ghost"}
           type="button"
           aria-label="cesta"
           aria-haspopup="dialog"
@@ -72,19 +77,19 @@ export function CartButtonWithSheet() {
           aria-controls="cart-sheet"
           className="tip-bottom"
           data-tip="Cesta"
+          size={"icon-lg"}
         >
           <div className="relative flex items-center px-1 py-[6px] hover:cursor-pointer">
             <HiOutlineShoppingBag strokeWidth={2} className="size-[24px]" />
             {total > 0 && (
               <span
-                className="absolute bottom-[12px] h-[4px] bg-transparent inline-flex items-center justify-center text-[10px] font-extrabold text-primary"
+                className="absolute bottom-[14px] h-[4px] bg-transparent inline-flex items-center justify-center text-[10px] font-extrabold text-primary"
                 aria-live="polite"
               >
                 <span aria-hidden="true">{badgeText}</span>
                 <span className="sr-only">{`Productos en la cesta: ${total}`}</span>
               </span>
             )}
-            <span className="sr-only">Cesta</span>
           </div>
         </Button>
       </SheetTrigger>
@@ -134,7 +139,7 @@ export function CartButtonWithSheet() {
                     className="grid grid-cols-[auto_1fr_auto] items-center gap-2 py-2 px-4"
                   >
                     <div
-                      className="relative aspect-[3/4] h-44 w-32 shrink-0 bg-neutral-100"
+                      className="relative aspect-[3/4] h-28 w-20 lg:h-40 lg:w-28 shrink-0 bg-neutral-100"
                       aria-hidden="true"
                     >
                       {d?.imageUrl && (
@@ -254,13 +259,21 @@ export function CartButtonWithSheet() {
                   </SheetClose>
                 </Button>
                 <SheetClose asChild>
-                  <Link
-                    href="/checkout"
-                    className="flex-1 py-2 px-2 rounded-lb text-sm text-white bg-green-600 hover:cursor-pointer hover:bg-green-700 transition-all duration-200 ease-in-out text-center"
+                  <Button
+                    type="button"
+                    className="bg-green-600 flex-1 hover:bg-green-700"
                     aria-label="Proceder al pago"
+                    onClick={() => {
+                      if (session?.user) {
+                        router.push("/checkout");
+                      } else {
+                        // Llevamos al usuario al login, pero le decimos que venía del checkout
+                        router.push("/auth/login?redirectTo=/checkout");
+                      }
+                    }}
                   >
                     Tramitar pedido
-                  </Link>
+                  </Button>
                 </SheetClose>
               </div>
             </div>

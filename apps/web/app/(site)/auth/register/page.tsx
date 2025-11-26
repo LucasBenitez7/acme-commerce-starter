@@ -25,15 +25,17 @@ export default async function RegisterPage({ searchParams }: Props) {
   }
 
   return (
-    <Container className="max-w-md py-8">
-      <h1 className="text-2xl font-semibold tracking-tight">Crear cuenta</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Regístrate para guardar tus datos y ver el historial de pedidos.
-      </p>
+    <Container className="bg-neutral-100 p-6 lg:p-8">
+      <div className="max-w-lg mx-auto border p-6 bg-background rounded-lb">
+        <h1 className="text-2xl font-semibold tracking-tight">Crear cuenta</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Regístrate para guardar tus datos y ver el historial de pedidos.
+        </p>
 
-      <div className="mt-6">
-        {/* Pasamos la acción directamente */}
-        <RegisterForm action={registerAction} redirectTo={redirectTo} />
+        <div className="mt-6">
+          {/* Pasamos la acción directamente */}
+          <RegisterForm action={registerAction} redirectTo={redirectTo} />
+        </div>
       </div>
     </Container>
   );

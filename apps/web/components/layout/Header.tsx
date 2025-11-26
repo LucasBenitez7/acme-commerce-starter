@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useRef, useState } from "react";
-import { FaRegUser, FaRegHeart } from "react-icons/fa6";
+import { FaSignOutAlt } from "react-icons/fa";
+import { FaRegUser, FaHeart, FaBoxOpen, FaUser } from "react-icons/fa6";
 import { IoSearch } from "react-icons/io5";
 
 import { CartButtonWithSheet } from "@/components/cart/CartButtonWithSheet";
@@ -18,6 +19,7 @@ import {
 
 import { useAutoCloseOnRouteChange } from "@/hooks/use-auto-close-on-route-change";
 import { useLockBodyScroll } from "@/hooks/use-lock-body-scroll";
+import { useMounted } from "@/hooks/use-mounted";
 import { useSheetSafety } from "@/hooks/use-sheet-safety";
 
 import { SiteSidebar } from "./SiteSidebar";
@@ -33,6 +35,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
   const safeRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
+  const mounted = useMounted(); // Hook para saber si estamos en cliente
 
   const { data: session, status: sessionStatus } = useSession();
   const user = session?.user ?? null;
@@ -42,7 +45,10 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
   const hideHeader = HIDE_HEADER_ON.includes(pathname);
   const isCartPage = pathname === "/cart";
 
-  useLockBodyScroll((open || accountMenuOpen) && !hideHeader);
+  // SOLUCIÓN SCROLL: Solo bloqueamos el scroll si está abierto el menú móvil (open).
+  // El menú flotante (accountMenuOpen) NO bloqueará el scroll.
+  useLockBodyScroll(open && !hideHeader);
+
   useAutoCloseOnRouteChange((open || accountMenuOpen) && !hideHeader, () => {
     setOpen(false);
     setAccountMenuOpen(false);
@@ -73,11 +79,8 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
       ? user.name.trim().charAt(0).toUpperCase()
       : (user?.email?.charAt(0)?.toUpperCase() ?? null);
 
-  const accountTooltip = isSessionLoading
-    ? "Cargando sesión…"
-    : user
-      ? "Mi cuenta"
-      : "Iniciar sesión";
+  const showTooltip = mounted && !isSessionLoading && !user;
+  const accountTooltip = showTooltip ? "Iniciar sesión" : undefined;
 
   function handleAccountClick() {
     if (isSessionLoading) return;
@@ -87,11 +90,17 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
       return;
     }
 
-    setAccountMenuOpen((prev) => !prev);
+    router.push("/account");
+    setAccountMenuOpen(false);
   }
 
   async function handleSignOut() {
     setAccountMenuOpen(false);
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem("cart.v1");
+      document.cookie =
+        "cart.v1=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+    }
     await signOut({ callbackUrl: "/" });
   }
 
@@ -130,8 +139,9 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
 
         {/*------------- LOGO ------------- */}
         {logo}
+
         {/*------------- NAV ------------- */}
-        <nav className="justify-self-end h-full flex items-center gap-2 text-sm">
+        <nav className="justify-self-end h-full flex items-center gap-3 text-sm">
           <div className="hidden sm:flex items-center gap-1 border-b border-neutral-500">
             <IoSearch className="size-[20px]" />
             <input
@@ -140,73 +150,99 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
               className="px-1 outline-none w-[200px]"
             />
           </div>
-          <div className="flex gap-1 relative">
-            <Button
-              type="button"
-              variant={"hovers"}
-              className="tip-bottom hover:cursor-pointer"
-              data-tip={accountTooltip}
-              aria-label={user ? "Menú de cuenta" : "Iniciar sesión"}
-              onClick={handleAccountClick}
-            >
-              {userInitial ? (
-                <span className="flex h-[28px] w-[28px] items-center justify-center rounded-full border border-neutral-400 text-[13px] font-semibold">
-                  {userInitial}
-                </span>
-              ) : (
-                <FaRegUser className="size-[20px]" aria-hidden="true" />
-              )}
-            </Button>
 
-            {user && accountMenuOpen && (
-              <div className="absolute right-0 top-full z-[120] mt-2 w-52 rounded-lb border bg-popover text-xs shadow-lg">
-                <div className="border-b px-3 py-2 text-[11px] text-muted-foreground">
-                  Sesión iniciada como
-                  <div className="truncate font-medium text-foreground">
-                    {user.name || user.email || "Usuario"}
+          <div className="flex gap-1 relative items-center h-full">
+            {/* WRAPPER para Hover en Desktop */}
+            <div
+              className="relative flex items-center h-full"
+              onMouseEnter={() => {
+                if (user) setAccountMenuOpen(true);
+              }}
+              onMouseLeave={() => setAccountMenuOpen(false)}
+            >
+              <Button
+                type="button"
+                variant={"ghost"}
+                // Solo mostramos la clase del tooltip si showTooltip es true
+                className={`${
+                  showTooltip ? "tip-bottom" : ""
+                } hover:cursor-pointer relative z-20`}
+                data-tip={accountTooltip}
+                aria-label={user ? "Mi cuenta" : "Iniciar sesión"}
+                onClick={handleAccountClick}
+                size={"icon-lg"}
+              >
+                {userInitial ? (
+                  <span className="flex h-[24px] w-[24px] items-center justify-center rounded-full border-2 border-foreground text-[14px] font-semibold bg-background">
+                    {userInitial}
+                  </span>
+                ) : (
+                  <FaRegUser className="size-[1.375rem]" aria-hidden="true" />
+                )}
+              </Button>
+
+              {/* MENÚ FLOTANTE */}
+              {user && accountMenuOpen && (
+                <div className="hidden lg:block absolute right-0 top-[calc(100%-18px)] pt-4 w-72 z-30 animate-in fade-in zoom-in-95 duration-200">
+                  <div className="rounded-lb border bg-popover shadow-xl overflow-hidden">
+                    {/* Cabecera del menú */}
+                    <div className="bg-muted/30 p-4 border-b flex items-center gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-lg">
+                        {userInitial}
+                      </div>
+                      <div className="flex-1 overflow-hidden">
+                        <p className="text-sm font-semibold truncate text-foreground">
+                          {user.name || "Usuario"}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {user.email}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Opciones de navegación */}
+                    <div className="p-2 space-y-1">
+                      <Link
+                        href="/account"
+                        className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lb hover:bg-neutral-100 transition-colors text-foreground/80 hover:text-foreground"
+                        onClick={() => setAccountMenuOpen(false)}
+                      >
+                        <FaUser className="size-4 text-muted-foreground" />
+                        Mi cuenta
+                      </Link>
+                      <Link
+                        href="/account/orders"
+                        className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lb hover:bg-neutral-100 transition-colors text-foreground/80 hover:text-foreground"
+                        onClick={() => setAccountMenuOpen(false)}
+                      >
+                        <FaBoxOpen className="size-4 text-muted-foreground" />
+                        Mis pedidos
+                      </Link>
+                      <Link
+                        href="/favoritos"
+                        className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lb hover:bg-neutral-100 transition-colors text-foreground/80 hover:text-foreground"
+                        onClick={() => setAccountMenuOpen(false)}
+                      >
+                        <FaHeart className="size-4 text-muted-foreground" />
+                        Mis Favoritos
+                      </Link>
+                    </div>
+
+                    {/* Footer acciones */}
+                    <div className="p-2 border-t bg-muted/10">
+                      <button
+                        type="button"
+                        onClick={handleSignOut}
+                        className="flex w-full hover:cursor-pointer items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lb text-red-600 hover:bg-red-50 transition-colors"
+                      >
+                        <FaSignOutAlt className="size-4" />
+                        Cerrar sesión
+                      </button>
+                    </div>
                   </div>
                 </div>
-
-                <nav className="py-1">
-                  <Link
-                    href="/account"
-                    className="block px-3 py-2 text-xs hover:bg-muted"
-                    onClick={() => setAccountMenuOpen(false)}
-                  >
-                    Mi cuenta
-                  </Link>
-                  <Link
-                    href="/account/orders"
-                    className="block px-3 py-2 text-xs hover:bg-muted"
-                    onClick={() => setAccountMenuOpen(false)}
-                  >
-                    Mis pedidos
-                  </Link>
-                  <button
-                    type="button"
-                    className="block w-full px-3 py-2 text-left text-xs text-destructive hover:bg-muted/80"
-                    onClick={handleSignOut}
-                  >
-                    Cerrar sesión
-                  </button>
-                </nav>
-              </div>
-            )}
-
-            <Button
-              asChild
-              variant={"hovers"}
-              className="tip-bottom"
-              data-tip="Favoritos"
-            >
-              <Link
-                href="/favoritos"
-                className="flex items-center"
-                aria-label="Favoritos"
-              >
-                <FaRegHeart className="size-[20px]" aria-hidden="true" />
-              </Link>
-            </Button>
+              )}
+            </div>
 
             <div
               style={isCartPage ? { pointerEvents: "none" } : undefined}
@@ -217,11 +253,11 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
             </div>
           </div>
 
-          <Button asChild variant={"outline"} className="text-base">
-            <Link href="/admin" className="px-4 text-base">
-              Admin
-            </Link>
-          </Button>
+          {/* <Button asChild variant={"outline"} className="text-base">
+						<Link href="/admin" className="px-4 text-base">
+							Admin
+						</Link>
+					</Button> */}
         </nav>
       </header>
       <div
