@@ -7,6 +7,7 @@ import { CheckoutHeader } from "@/components/checkout/layout/CheckoutHeader";
 import { CheckoutLocalFooter } from "@/components/checkout/layout/CheckoutLocalFooter";
 import { Container } from "@/components/ui";
 
+import { auth } from "@/lib/auth";
 import { formatMinor } from "@/lib/currency";
 import {
   buildOrderDraftFromCart,
@@ -40,6 +41,9 @@ function parseCartCookie(raw: string | undefined): CartLineInput[] {
 }
 
 export default async function CheckoutPage() {
+  const session = await auth();
+  const user = session?.user || null;
+
   const cookieStore = await cookies();
   const rawCart = cookieStore.get("cart.v1")?.value;
 
@@ -60,15 +64,12 @@ export default async function CheckoutPage() {
       <div className="grid lg:grid-cols-[minmax(0,2fr)_minmax(0,0.8fr)] lg:items-start">
         {/* Columna izquierda: header + formulario + footer (solo en desktop) */}
         <section className="flex flex-col lg:min-h-screen">
-          {/* Header local del checkout */}
           <CheckoutHeader />
 
-          {/* Contenido principal */}
           <div className="flex-1 px-4 py-4">
-            <CheckoutForm />
+            <CheckoutForm defaultName={user?.name} defaultEmail={user?.email} />
           </div>
 
-          {/* Footer local SOLO en desktop */}
           <CheckoutLocalFooter />
         </section>
 

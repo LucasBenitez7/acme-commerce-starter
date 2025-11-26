@@ -144,7 +144,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
             <Button
               type="button"
               variant={"hovers"}
-              className="tip-bottom"
+              className="tip-bottom hover:cursor-pointer"
               data-tip={accountTooltip}
               aria-label={user ? "Menú de cuenta" : "Iniciar sesión"}
               onClick={handleAccountClick}
