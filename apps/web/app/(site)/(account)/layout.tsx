@@ -23,9 +23,9 @@ type AccountLayoutProps = {
 export default async function AccountLayout({ children }: AccountLayoutProps) {
   const session = await auth();
 
-  // Si no hay sesión → redirigimos al flujo de login de NextAuth
   if (!session?.user) {
-    redirect("/api/auth/signin");
+    const redirectTo = "/account";
+    redirect(`/auth/login?redirectTo=${encodeURIComponent(redirectTo)}`);
   }
 
   const name = (session.user.name ?? "").trim() || "Tu cuenta";

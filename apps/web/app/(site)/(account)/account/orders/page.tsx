@@ -83,7 +83,7 @@ export default async function AccountOrdersPage() {
               <header className="flex flex-wrap items-baseline justify-between gap-2">
                 <div className="space-y-0.5">
                   <p className="font-mono text-[11px] text-muted-foreground">
-                    Pedido {order.id.slice(0, 8)}…
+                    Pedido {order.id.slice()}
                   </p>
                   <p className="text-xs text-muted-foreground">{created}</p>
                 </div>

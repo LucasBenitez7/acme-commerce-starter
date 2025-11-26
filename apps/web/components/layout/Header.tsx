@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useSession, signIn, signOut } from "next-auth/react";
+import { usePathname, useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import { useRef, useState } from "react";
 import { FaRegUser, FaRegHeart } from "react-icons/fa6";
 import { IoSearch } from "react-icons/io5";
@@ -32,6 +32,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
 
   const safeRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+  const router = useRouter();
 
   const { data: session, status: sessionStatus } = useSession();
   const user = session?.user ?? null;
@@ -41,7 +42,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
   const hideHeader = HIDE_HEADER_ON.includes(pathname);
   const isCartPage = pathname === "/cart";
 
-  useLockBodyScroll(open && !hideHeader);
+  useLockBodyScroll((open || accountMenuOpen) && !hideHeader);
   useAutoCloseOnRouteChange((open || accountMenuOpen) && !hideHeader, () => {
     setOpen(false);
     setAccountMenuOpen(false);
@@ -82,13 +83,16 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
     if (isSessionLoading) return;
 
     if (!user) {
-      // Usuario no logueado → iniciar sesión con GitHub
-      void signIn("github", { callbackUrl: "/account" });
+      router.push("/auth/login");
       return;
     }
 
-    // Usuario logueado → abrir / cerrar menú
     setAccountMenuOpen((prev) => !prev);
+  }
+
+  async function handleSignOut() {
+    setAccountMenuOpen(false);
+    await signOut({ callbackUrl: "/" });
   }
 
   return (
@@ -136,7 +140,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
               className="px-1 outline-none w-[200px]"
             />
           </div>
-          <div className="flex gap-1">
+          <div className="flex gap-1 relative">
             <Button
               type="button"
               variant={"hovers"}
@@ -181,10 +185,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
                   <button
                     type="button"
                     className="block w-full px-3 py-2 text-left text-xs text-destructive hover:bg-muted/80"
-                    onClick={() => {
-                      setAccountMenuOpen(false);
-                      void signOut({ callbackUrl: "/" });
-                    }}
+                    onClick={handleSignOut}
                   >
                     Cerrar sesión
                   </button>
