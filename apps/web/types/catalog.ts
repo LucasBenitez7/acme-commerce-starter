@@ -17,6 +17,7 @@ export type ProductListItem = {
   slug: string;
   name: string;
   priceCents: number;
+  stock: number;
   currency: SupportedCurrency;
   thumbnail: string | null;
 };
@@ -28,6 +29,7 @@ export type ProductDetail = {
   name: string;
   description: string;
   priceCents: number;
+  stock: number;
   currency: SupportedCurrency;
   images: ProductImage[];
   category: { slug: string; name: string };

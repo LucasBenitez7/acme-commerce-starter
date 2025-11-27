@@ -18,6 +18,7 @@ type SeedProduct = {
   name: string;
   description: string;
   priceCents: number;
+  stock: number;
   categorySlug: string;
   images: Array<{ url: string; alt: string; sort: number }>;
 };
@@ -34,11 +35,15 @@ function makeProducts(): SeedProduct[] {
       const id = i++;
       const name = `Producto ${id}`;
       const price = ((id * 3.99) % 200) + 9.99;
+      const stock =
+        Math.random() > 0.1 ? Math.floor(Math.random() * 50) + 1 : 0;
+
       base.push({
         slug: `producto-${id}`,
         name,
         description: `Descripción del ${name}.`,
         priceCents: euros(price),
+        stock,
         categorySlug: cat.slug,
         images: [
           {
@@ -59,7 +64,7 @@ async function main() {
   console.log("Seeding…");
 
   await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-    // 1) Upsert categorías con 'sort' según índice
+    // 1) Upsert categorías
     const cats: Record<string, string> = {};
     for (const [index, c] of CATEGORIES.entries()) {
       const r = await tx.category.upsert({
@@ -70,43 +75,27 @@ async function main() {
       cats[c.slug] = r.id;
     }
 
-    // 1.1) Reasignar productos de categorías sintéticas (si existen) y luego borrarlas
-    const syntheticSlugs: string[] = ["ver-todos", "todas-las-prendas"];
-    const synthetic: Array<{ id: string }> = await tx.category.findMany({
-      where: { slug: { in: syntheticSlugs } },
-      select: { id: true },
-    });
-
-    if (synthetic.length) {
-      // Fallback: chaquetas o la primera categoría real
-      const fallbackId =
-        cats["chaquetas"] ??
-        (await tx.category.findFirst({ select: { id: true } }))?.id;
-
-      if (!fallbackId)
-        throw new Error("No hay categoría fallback para reasignar.");
-
-      await tx.product.updateMany({
-        where: { categoryId: { in: synthetic.map((s) => s.id) } },
-        data: { categoryId: fallbackId },
-      });
-
-      await tx.category.deleteMany({
-        where: { id: { in: synthetic.map((s) => s.id) } },
-      });
-    }
-
-    // 2) Productos (upsert por slug). En update no tocamos imágenes.
+    // 2) Productos
     const products: SeedProduct[] = makeProducts();
 
     for (const p of products) {
       const categoryId = cats[p.categorySlug];
+
+      // Si por alguna razón la categoría no existe en el seed actual, saltamos (seguridad)
+      if (!categoryId) {
+        console.warn(
+          `Categoría ${p.categorySlug} no encontrada para ${p.name}`,
+        );
+        continue;
+      }
+
       await tx.product.upsert({
         where: { slug: p.slug },
         update: {
           name: p.name,
           description: p.description,
           priceCents: p.priceCents,
+          stock: p.stock,
           currency: "EUR",
           categoryId,
         },
@@ -115,6 +104,7 @@ async function main() {
           name: p.name,
           description: p.description,
           priceCents: p.priceCents,
+          stock: p.stock,
           currency: "EUR",
           categoryId,
           images: {

@@ -3,9 +3,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CgClose } from "react-icons/cg";
 import { HiOutlineShoppingBag } from "react-icons/hi2";
+import { ImSpinner8 } from "react-icons/im";
 
 import { CartUndoChip } from "@/components/cart/CartUndoChip";
 import { Button, FavoriteButton, RemoveButton } from "@/components/ui";
@@ -20,6 +21,7 @@ import {
 
 import { formatMinor, DEFAULT_CURRENCY } from "@/lib/currency";
 
+import { validateStockAction } from "@/app/(site)/(shop)/cart/actions";
 import { useAppDispatch } from "@/hooks/use-app-dispatch";
 import { useAppSelector } from "@/hooks/use-app-selector";
 import { useAutoCloseOnRouteChange } from "@/hooks/use-auto-close-on-route-change";
@@ -41,11 +43,47 @@ export function CartButtonWithSheet() {
 
   const mounted = useMounted();
 
+  const [isValidating, setIsValidating] = useState(false);
+  const [stockError, setStockError] = useState<string | null>(null);
+
   const isFavorite = false; // TODO: conectar con wishlist
 
   useAutoCloseOnRouteChange(open, () => setOpen(false));
 
   const badgeText = total > 9 ? "9+" : String(total);
+
+  useEffect(() => {
+    if (stockError) {
+      setStockError(null);
+    }
+  }, [rows, undoStack]);
+
+  async function handleCheckout() {
+    if (rows.length === 0) return;
+    setIsValidating(true);
+    setStockError(null);
+
+    const cartItems = rows.map((r) => ({
+      slug: r.slug,
+      qty: r.qty,
+    }));
+
+    const result = await validateStockAction(cartItems);
+
+    setIsValidating(false);
+
+    if (!result.success && result.error) {
+      setStockError(result.error);
+      return; // Detenemos la navegación
+    }
+
+    setOpen(false);
+    if (session?.user) {
+      router.push("/checkout");
+    } else {
+      router.push("/auth/login?redirectTo=/checkout");
+    }
+  }
 
   if (!mounted) {
     return (
@@ -117,7 +155,6 @@ export function CartButtonWithSheet() {
           </SheetHeader>
 
           <div className="flex-1 overflow-y-auto">
-            {/* Estado vacío solo si no hay filas NI undos */}
             {rows.length === 0 && !undoStack.length && (
               <div className="rounded-lb h-full p-6 text-sm justify-center items-center flex flex-col">
                 <p className="mb-3 font-medium">Tu cesta está vacía</p>
@@ -242,7 +279,12 @@ export function CartButtonWithSheet() {
           </div>
 
           {rows.length > 0 && (
-            <div className="shrink-0 border-t px-4">
+            <div className="shrink-0 px-4 border pt-4">
+              {/* Error de stock en el mini cart */}
+              {stockError && (
+                <div className="text-xs text-red-600">{stockError}</div>
+              )}
+
               <div className="flex items-center py-4 justify-between text-base font-medium">
                 <span>Subtotal</span>
                 <span>{formatMinor(subtotalMinor, DEFAULT_CURRENCY)}</span>
@@ -258,23 +300,18 @@ export function CartButtonWithSheet() {
                     <Link href="/cart">Ir a la cesta</Link>
                   </SheetClose>
                 </Button>
-                <SheetClose asChild>
-                  <Button
-                    type="button"
-                    className="bg-green-600 flex-1 hover:bg-green-700"
-                    aria-label="Proceder al pago"
-                    onClick={() => {
-                      if (session?.user) {
-                        router.push("/checkout");
-                      } else {
-                        // Llevamos al usuario al login, pero le decimos que venía del checkout
-                        router.push("/auth/login?redirectTo=/checkout");
-                      }
-                    }}
-                  >
-                    Tramitar pedido
-                  </Button>
-                </SheetClose>
+                <Button
+                  type="button"
+                  className="bg-green-600 flex-1 hover:bg-green-700"
+                  aria-label="Proceder al pago"
+                  disabled={isValidating || !!stockError}
+                  onClick={handleCheckout}
+                >
+                  {isValidating && (
+                    <ImSpinner8 className="animate-spin text-white" />
+                  )}
+                  {isValidating ? "..." : "Tramitar pedido"}
+                </Button>
               </div>
             </div>
           )}

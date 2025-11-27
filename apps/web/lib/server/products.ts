@@ -37,6 +37,7 @@ function toListItem(row: {
   slug: string;
   name: string;
   priceCents: number;
+  stock: number;
   currency: string | null;
   images: { url: string }[];
 }): ProductListItem {
@@ -45,6 +46,7 @@ function toListItem(row: {
     slug: row.slug,
     name: row.name,
     priceCents: row.priceCents,
+    stock: row.stock,
     currency: (row.currency ?? "EUR") as SupportedCurrency,
     thumbnail: row.images[0]?.url ?? null,
   };
@@ -56,6 +58,7 @@ export const productListSelect = {
   slug: true,
   name: true,
   priceCents: true,
+  stock: true,
   currency: true,
   images: {
     orderBy: [{ sort: "asc" }, { id: "asc" }],
@@ -141,6 +144,7 @@ export async function getProductFullBySlug(
       name: true,
       description: true,
       priceCents: true,
+      stock: true,
       currency: true,
       images: {
         orderBy: [{ sort: "asc" }, { id: "asc" }],
@@ -158,6 +162,7 @@ export async function getProductFullBySlug(
     name: p.name,
     description: p.description,
     priceCents: p.priceCents,
+    stock: p.stock,
     currency: (p.currency ?? "EUR") as SupportedCurrency,
     images: normalizeImages(p.name, p.images as any),
     category: p.category,

@@ -173,7 +173,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
                 size={"icon-lg"}
               >
                 {userInitial ? (
-                  <span className="flex h-[24px] w-[24px] items-center justify-center rounded-full border-2 border-foreground text-[14px] font-semibold bg-background">
+                  <span className="flex h-[24px] pt-[0.5px] w-[24px] items-center justify-center rounded-full border-2 border-foreground text-[14px] font-semibold bg-background">
                     {userInitial}
                   </span>
                 ) : (
@@ -183,7 +183,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
 
               {/* MENÚ FLOTANTE */}
               {user && accountMenuOpen && (
-                <div className="hidden lg:block absolute right-0 top-[calc(100%-18px)] pt-4 w-72 z-30 animate-in fade-in zoom-in-95 duration-200">
+                <div className="hidden lg:block absolute right-0 top-[calc(100%-20px)] pt-4 w-72 z-30 animate-in fade-in zoom-in-95 duration-200">
                   <div className="rounded-lb border bg-popover shadow-xl overflow-hidden">
                     {/* Cabecera del menú */}
                     <div className="bg-muted/30 p-4 border-b flex items-center gap-3">

@@ -2,6 +2,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { ImSpinner8 } from "react-icons/im";
 
 import { CartUndoChip } from "@/components/cart/CartUndoChip";
 import { Button, FavoriteButton, RemoveButton } from "@/components/ui";
@@ -13,6 +15,8 @@ import { useCartUndoRows } from "@/hooks/use-cart-undo-rows";
 import { useCartView } from "@/hooks/use-cart-view";
 import { setQty, removeItem } from "@/store/cart.slice";
 
+import { validateStockAction } from "./actions";
+
 export default function CartPage() {
   const { rows, subtotalMinor } = useCartView();
   const dispatch = useAppDispatch();
@@ -21,9 +25,44 @@ export default function CartPage() {
 
   const { undoStack, rowsWithUndo, handleUndo } = useCartUndoRows(rows);
 
-  const isFavorite = false; // TODO: conectar con wishlist
+  const [isValidating, setIsValidating] = useState(false);
+  const [stockError, setStockError] = useState<string | null>(null);
 
+  const isFavorite = false; // TODO: conectar con wishlist
   const hasItems = rows.length > 0;
+
+  useEffect(() => {
+    if (stockError) {
+      setStockError(null);
+    }
+  }, [rows, undoStack]);
+
+  async function handleCheckout() {
+    if (!hasItems) return;
+    setIsValidating(true);
+    setStockError(null);
+
+    const cartItems = rows.map((r) => ({
+      slug: r.slug,
+      qty: r.qty,
+    }));
+
+    const result = await validateStockAction(cartItems);
+
+    setIsValidating(false);
+
+    if (!result.success && result.error) {
+      setStockError(result.error);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    if (session?.user) {
+      router.push("/checkout");
+    } else {
+      router.push("/auth/login?redirectTo=/checkout");
+    }
+  }
 
   return (
     <main className="pt-2 pb-8 max-w-[1440px] mx-auto px-4">
@@ -42,6 +81,13 @@ export default function CartPage() {
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_minmax(320px,480px)]">
           <div className="border rounded-lb px-5 py-3 bg-background">
+            {/* Mensaje de error de stock en la lista principal */}
+            {stockError && (
+              <div className="mb-4 rounded-lb bg-red-50 p-3 font-medium text-sm text-red-600 border border-red-200 animate-in fade-in slide-in-from-top-2">
+                {stockError}
+              </div>
+            )}
+
             {rowsWithUndo.map((item) => {
               if (item.kind === "row") {
                 const r = item.row;
@@ -173,17 +219,13 @@ export default function CartPage() {
                 <Button
                   className="bg-green-600 flex-1 hover:bg-green-700"
                   aria-label="Proceder al pago"
-                  disabled={!hasItems}
-                  onClick={() => {
-                    if (!hasItems) return;
-                    if (session?.user) {
-                      router.push("/checkout");
-                    } else {
-                      router.push("/auth/login?redirectTo=/checkout");
-                    }
-                  }}
+                  disabled={!hasItems || isValidating || !!stockError}
+                  onClick={handleCheckout}
                 >
-                  Tramitar pedido
+                  {isValidating && (
+                    <ImSpinner8 className="animate-spin text-white" />
+                  )}
+                  {isValidating ? "Verificando..." : "Tramitar pedido"}
                 </Button>
               </div>
             </aside>

@@ -81,9 +81,7 @@ export async function createOrderAction(
   // Por ahora sólo aceptamos "card", pero dejamos preparado para el futuro
   const paymentMethod = paymentMethodRaw === "card" ? "card" : "card";
 
-  // ------------------------
   // Validaciones básicas
-  // ------------------------
   if (!isNonEmptyMin(firstName, 2)) {
     return { error: "Introduce tu nombre." };
   }
@@ -103,9 +101,7 @@ export async function createOrderAction(
     };
   }
 
-  // ------------------------
   // Validaciones según tipo de envío
-  // ------------------------
   if (shippingType === "home") {
     if (!isNonEmptyMin(street, 5)) {
       return {
@@ -139,9 +135,7 @@ export async function createOrderAction(
     }
   }
 
-  // ------------------------
   // Recalcular pedido a partir del cesta
-  // ------------------------
   const draft = await buildOrderDraftFromCart(lines);
 
   if (!draft.items.length || draft.totalMinor <= 0) {
@@ -151,48 +145,72 @@ export async function createOrderAction(
     };
   }
 
-  // ------------------------
   // Crear pedido en base de datos
-  // ------------------------
   let order;
   try {
-    order = await prisma.order.create({
-      data: {
-        userId,
-        email,
-        currency: draft.currency,
-        totalMinor: draft.totalMinor,
-        status: "PENDING_PAYMENT",
-        shippingType: shippingTypeDb,
-        firstName,
-        lastName,
-        phone,
-        street,
-        addressExtra,
-        postalCode,
-        province,
-        city,
-        storeLocationId: storeLocationId || null,
-        pickupLocationId: pickupLocationId || null,
-        pickupSearch: pickupSearch || null,
-        paymentMethod,
+    order = await prisma.$transaction(async (tx) => {
+      for (const item of draft.items) {
+        const product = await tx.product.findUnique({
+          where: { id: item.productId },
+          select: { stock: true, name: true },
+        });
 
-        items: {
-          create: draft.items.map((item) => ({
-            productId: item.productId,
-            nameSnapshot: item.name,
-            priceMinorSnapshot: item.unitPriceMinor,
-            quantity: item.quantity,
-            subtotalMinor: item.subtotalMinor,
-          })),
+        if (!product) {
+          throw new Error(`El producto "${item.name}" ya no existe.`);
+        }
+
+        if (product.stock < item.quantity) {
+          throw new Error(
+            `Stock insuficiente para "${item.name}". Quedan ${product.stock} unidades.`,
+          );
+        }
+
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { stock: { decrement: item.quantity } },
+        });
+      }
+
+      // C) Crear la orden (solo si todo lo anterior pasó)
+      return await tx.order.create({
+        data: {
+          userId,
+          email,
+          currency: draft.currency,
+          totalMinor: draft.totalMinor,
+          status: "PENDING_PAYMENT",
+          shippingType: shippingTypeDb,
+          firstName,
+          lastName,
+          phone,
+          street,
+          addressExtra,
+          postalCode,
+          province,
+          city,
+          storeLocationId: storeLocationId || null,
+          pickupLocationId: pickupLocationId || null,
+          pickupSearch: pickupSearch || null,
+          paymentMethod,
+          items: {
+            create: draft.items.map((item) => ({
+              productId: item.productId,
+              nameSnapshot: item.name,
+              priceMinorSnapshot: item.unitPriceMinor,
+              quantity: item.quantity,
+              subtotalMinor: item.subtotalMinor,
+            })),
+          },
         },
-      },
+      });
     });
-  } catch (e) {
-    console.error("[createOrderAction] Error al crear pedido:", e);
+  } catch (e: any) {
+    console.error("[createOrderAction] Error:", e);
+    // Si el error es nuestro (stock), mostramos el mensaje. Si no, genérico.
     return {
-      error:
-        "Ha ocurrido un error al procesar tu pedido. Inténtalo de nuevo en unos minutos.",
+      error: e.message.includes("Stock insuficiente")
+        ? e.message
+        : "Ha ocurrido un error al procesar tu pedido. Inténtalo de nuevo.",
     };
   }
 

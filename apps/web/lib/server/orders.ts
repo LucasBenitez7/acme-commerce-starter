@@ -16,6 +16,7 @@ export type OrderItemDraft = {
   quantity: number;
   subtotalMinor: number;
   imageUrl?: string | null;
+  stock: number;
 };
 
 export type OrderDraft = {
@@ -39,7 +40,6 @@ export async function buildOrderDraftFromCart(
     };
   }
 
-  // Normaliza por si hay slugs duplicados en el array de entrada.
   const qtyBySlug = new Map<string, number>();
 
   for (const line of lines) {
@@ -67,6 +67,7 @@ export async function buildOrderDraftFromCart(
       slug: true,
       name: true,
       priceCents: true,
+      stock: true,
       currency: true,
       images: {
         orderBy: [{ sort: "asc" }, { id: "asc" }],
@@ -92,8 +93,6 @@ export async function buildOrderDraftFromCart(
   for (const [slug, qty] of qtyBySlug.entries()) {
     const product = productsBySlug.get(slug);
     if (!product) {
-      // Producto eliminado o slug inválido: por ahora lo ignoramos.
-      // Más adelante podemos lanzar error si quieres.
       continue;
     }
 
@@ -108,6 +107,7 @@ export async function buildOrderDraftFromCart(
       quantity: qty,
       subtotalMinor,
       imageUrl: product.images[0]?.url ?? null,
+      stock: product.stock,
     });
   }
 
