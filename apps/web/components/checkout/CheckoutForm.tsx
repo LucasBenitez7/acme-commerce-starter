@@ -31,6 +31,11 @@ import {
   type CheckoutFormState,
 } from "@/hooks/use-checkout-form";
 
+type Props = {
+  defaultName?: string | null;
+  defaultEmail?: string | null;
+};
+
 const INITIAL_SERVER_STATE: CheckoutActionState = {
   error: undefined,
 };
@@ -49,7 +54,7 @@ function SubmitButton({ disabledBase }: { disabledBase: boolean }) {
   );
 }
 
-export function CheckoutForm() {
+export function CheckoutForm({ defaultName, defaultEmail }: Props) {
   const [serverState, formAction] = useActionState<
     CheckoutActionState,
     FormData
@@ -67,7 +72,12 @@ export function CheckoutForm() {
     handleNext,
     handlePrev,
     handleStepperClick,
-  } = useCheckoutForm();
+  } = useCheckoutForm({
+    defaults: {
+      name: defaultName,
+      email: defaultEmail,
+    },
+  });
 
   const { shippingType, storeLocationId, pickupLocationId } = form;
 

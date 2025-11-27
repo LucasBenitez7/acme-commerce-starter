@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 import { CartUndoChip } from "@/components/cart/CartUndoChip";
 import { Button, FavoriteButton, RemoveButton } from "@/components/ui";
@@ -16,6 +17,7 @@ export default function CartPage() {
   const { rows, subtotalMinor } = useCartView();
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const { data: session } = useSession();
 
   const { undoStack, rowsWithUndo, handleUndo } = useCartUndoRows(rows);
 
@@ -168,18 +170,21 @@ export default function CartPage() {
                 >
                   <Link href="/catalogo">Seguir comprando</Link>
                 </Button>
-                <button
-                  type="button"
-                  className="flex-1 py-2 px-2 rounded-lb text-sm text-white bg-green-600 hover:cursor-pointer hover:bg-green-700 transition-all duration-200 ease-in-out"
+                <Button
+                  className="bg-green-600 flex-1 hover:bg-green-700"
                   aria-label="Proceder al pago"
                   disabled={!hasItems}
                   onClick={() => {
                     if (!hasItems) return;
-                    router.push("/checkout");
+                    if (session?.user) {
+                      router.push("/checkout");
+                    } else {
+                      router.push("/auth/login?redirectTo=/checkout");
+                    }
                   }}
                 >
                   Tramitar pedido
-                </button>
+                </Button>
               </div>
             </aside>
           )}

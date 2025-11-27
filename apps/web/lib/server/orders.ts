@@ -24,10 +24,6 @@ export type OrderDraft = {
   totalMinor: number;
 };
 
-/**
- * Devuelve la moneda del sitio, asegurándote de que siempre sea
- * un SupportedCurrency ("EUR" | "PYG").
- */
 function getSiteCurrency(): SupportedCurrency {
   return parseCurrency(process.env.NEXT_PUBLIC_DEFAULT_CURRENCY);
 }

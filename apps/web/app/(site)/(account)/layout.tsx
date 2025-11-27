@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import { Container } from "@/components/ui";
 
@@ -23,12 +22,7 @@ type AccountLayoutProps = {
 export default async function AccountLayout({ children }: AccountLayoutProps) {
   const session = await auth();
 
-  // Si no hay sesión → redirigimos al flujo de login de NextAuth
-  if (!session?.user) {
-    redirect("/api/auth/signin");
-  }
-
-  const name = (session.user.name ?? "").trim() || "Tu cuenta";
+  const name = (session?.user.name ?? "").trim() || "Tu cuenta";
 
   return (
     <Container className="py-8">
