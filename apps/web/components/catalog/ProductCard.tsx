@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { AddToCartIcon } from "@/components/cart/AddToCartIcon";
 import {
+  Button,
   CardContent,
   CardHeader,
   CardTitle,
@@ -27,6 +27,8 @@ export function ProductCard({
   const img = item.thumbnail ?? "/og/default-products.jpg";
   const isFavorite = false; // TODO: conectar con wishlist
 
+  const isOutOfStock = item.totalStock === 0;
+
   return (
     <div className="overflow-hidden">
       <div className="relative aspect-[3/4] bg-neutral-100">
@@ -39,12 +41,21 @@ export function ProductCard({
             className="object-cover"
           />
         </Link>
+        {isOutOfStock && (
+          <div className="absolute top-2 left-2 bg-black/70 text-white text-[10px] font-bold px-2 py-1 uppercase tracking-wider rounded-sm">
+            Agotado
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col text-sm gap-2">
         <CardHeader className="flex items-center justify-between px-2 py-2">
           <CardTitle className="text-sm font-medium">
-            <Link href={`/product/${item.slug}`}>{item.name}</Link>
+            <Link href={`/product/${item.slug}`}>
+              <h3 className="text-sm font-medium leading-tight text-neutral-900 group-hover:underline decoration-neutral-400 underline-offset-4">
+                {item.name}
+              </h3>
+            </Link>
           </CardTitle>
           <FavoriteButton
             isFavorite={isFavorite}
@@ -61,16 +72,20 @@ export function ProductCard({
             <p>C1 C2 C3 C4</p>
             <p>XS S M L XL </p>
           </div>
+
           {showCartRow && (
-            <AddToCartButton
-              slug={item.slug}
-              details={{
-                slug: item.slug,
-                name: item.name,
-                priceMinor: item.priceCents,
-                imageUrl: img,
-              }}
-            />
+            <div className="pt-2">
+              <Button
+                asChild
+                variant="outline"
+                className="w-full h-8 text-xs"
+                disabled={isOutOfStock}
+              >
+                <Link href={`/product/${item.slug}`}>
+                  {isOutOfStock ? "Ver detalles" : "Seleccionar opciones"}
+                </Link>
+              </Button>
+            </div>
           )}
         </CardContent>
       </div>

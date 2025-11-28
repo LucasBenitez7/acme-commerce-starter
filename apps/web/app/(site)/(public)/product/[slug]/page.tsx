@@ -2,8 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { AddToCartButton } from "@/components/cart/AddToCartButton";
-import { Button, Separator } from "@/components/ui";
+import { ProductActions } from "@/components/catalog/ProductActions";
+import { Separator } from "@/components/ui";
 
 import { parseCurrency, toMajor, MINOR_UNITS } from "@/lib/currency";
 import { formatPrice } from "@/lib/format";
@@ -13,7 +13,7 @@ import {
   getProductSlugs,
 } from "@/lib/server/products";
 
-import type { ParamsSlug, ProductImage } from "@/types/catalog";
+import type { ParamsSlug } from "@/types/catalog";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -86,50 +86,63 @@ export default async function ProductPage({ params }: { params: ParamsSlug }) {
   const priceDecimals = MINOR_UNITS[currency];
 
   return (
-    <section className="space-y-6 px-4 py-6">
-      <nav className="text-sm text-neutral-500">
+    <section className="space-y-6 px-4 py-6 max-w-7xl mx-auto">
+      <nav className="text-sm text-neutral-500 overflow-x-auto whitespace-nowrap pb-2">
         <Link href="/">Inicio</Link> <span aria-hidden>›</span>{" "}
         <Link href="/catalogo">Todas las prendas</Link>{" "}
         <span aria-hidden>›</span>{" "}
         <Link href={`/cat/${p.category.slug}`}>{p.category.name}</Link>{" "}
         <span aria-hidden>›</span>{" "}
-        <span className="text-neutral-800">{p.name}</span>
+        <span className="text-neutral-800 font-medium">{p.name}</span>
       </nav>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-8 lg:grid-cols-2 lg:items-start">
+        {/* Galería / Imagen */}
         <div>
-          <div className="aspect-[3/4] relative bg-neutral-100">
+          <div className="aspect-[3/4] relative bg-neutral-100 rounded-lg overflow-hidden border">
             <Image
               src={imgMain}
               alt={p.name}
               fill
-              sizes="(max-width: 1280px) 50vw, 25vw"
+              sizes="(max-width: 768px) 100vw, 50vw"
               className="object-cover"
               priority
             />
           </div>
         </div>
 
-        {/* Info */}
-        <div className="space-y-4">
-          <h1 className="text-2xl font-semibold">{p.name}</h1>
-          <p className="text-lg text-neutral-800">
-            {formatPrice(p.priceCents, currency)}
-          </p>
+        {/* Info y Acciones */}
+        <div className="space-y-6 sticky top-24">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight text-neutral-900">
+              {p.name}
+            </h1>
+            <p className="text-2xl font-medium text-neutral-900">
+              {formatPrice(p.priceCents, currency)}
+            </p>
+          </div>
 
           <Separator />
 
-          <p className="text-sm text-neutral-700 leading-relaxed">
+          <p className="text-base text-neutral-700 leading-relaxed">
             {p.description}
           </p>
 
-          <div className="pt-2 flex items-center gap-4">
-            <Button variant="outline" asChild>
-              <Link href={`/?cat=${p.category.slug}`}>
-                Ver más de {p.category.name}
-              </Link>
-            </Button>
-            <AddToCartButton slug={p.slug} />
+          <div className="p-6 bg-neutral-50 rounded-xl border border-neutral-100">
+            <ProductActions
+              productSlug={p.slug}
+              productName={p.name}
+              priceMinor={p.priceCents}
+              imageUrl={imgMain}
+              variants={p.variants}
+            />
+          </div>
+
+          <div className="pt-4">
+            <p className="text-xs text-muted-foreground text-center">
+              Envío gratuito en pedidos superiores a 100€ · Devoluciones en 30
+              días
+            </p>
           </div>
         </div>
       </div>

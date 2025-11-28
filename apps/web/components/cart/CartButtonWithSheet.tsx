@@ -46,7 +46,7 @@ export function CartButtonWithSheet() {
   const [isValidating, setIsValidating] = useState(false);
   const [stockError, setStockError] = useState<string | null>(null);
 
-  const isFavorite = false; // TODO: conectar con wishlist
+  const isFavorite = false;
 
   useAutoCloseOnRouteChange(open, () => setOpen(false));
 
@@ -65,6 +65,7 @@ export function CartButtonWithSheet() {
 
     const cartItems = rows.map((r) => ({
       slug: r.slug,
+      variantId: r.variantId,
       qty: r.qty,
     }));
 
@@ -74,10 +75,11 @@ export function CartButtonWithSheet() {
 
     if (!result.success && result.error) {
       setStockError(result.error);
-      return; // Detenemos la navegación
+      return;
     }
 
     setOpen(false);
+
     if (session?.user) {
       router.push("/checkout");
     } else {
@@ -172,7 +174,7 @@ export function CartButtonWithSheet() {
 
                 return (
                   <div
-                    key={r.slug}
+                    key={`${r.slug}-${r.variantId}`}
                     className="grid grid-cols-[auto_1fr_auto] items-center gap-2 py-2 px-4"
                   >
                     <div
@@ -195,10 +197,11 @@ export function CartButtonWithSheet() {
                         <div className="truncate text-sm font-medium">
                           {d?.name ?? r.slug}
                         </div>
-                        <div className="text-xs flex gap-2 mb-1">
-                          <span className="border-r pr-2 uppercase">S</span>
-                          <span>Marrón</span>
-                        </div>
+                        {d?.variantName && (
+                          <div className="text-xs flex gap-2 mb-1">
+                            <span>{d.variantName}</span>
+                          </div>
+                        )}
                         {r.qty > 1 && (
                           <div className="text-xs font-medium text-muted-foreground">
                             {d
@@ -217,6 +220,7 @@ export function CartButtonWithSheet() {
                               dispatch(
                                 setQty({
                                   slug: r.slug,
+                                  variantId: r.variantId,
                                   qty: Math.max(0, r.qty - 1),
                                 }),
                               )
@@ -234,7 +238,13 @@ export function CartButtonWithSheet() {
                             className="text-base hover:cursor-pointer px-3 py-1 hover:bg-neutral-100"
                             aria-label="Sumar unidad"
                             onClick={() =>
-                              dispatch(setQty({ slug: r.slug, qty: r.qty + 1 }))
+                              dispatch(
+                                setQty({
+                                  slug: r.slug,
+                                  variantId: r.variantId,
+                                  qty: r.qty + 1,
+                                }),
+                              )
                             }
                           >
                             +
@@ -257,7 +267,14 @@ export function CartButtonWithSheet() {
 
                       <RemoveButton
                         className="mt-1"
-                        onRemove={() => dispatch(removeItem({ slug: r.slug }))}
+                        onRemove={() =>
+                          dispatch(
+                            removeItem({
+                              slug: r.slug,
+                              variantId: r.variantId,
+                            }),
+                          )
+                        }
                       />
                     </div>
                   </div>

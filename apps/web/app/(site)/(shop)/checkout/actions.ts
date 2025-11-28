@@ -41,6 +41,7 @@ export async function createOrderAction(
     };
   }
 
+  // 2. Recoger datos del formulario
   const firstName = String(formData.get("firstName") ?? "").trim();
   const lastName = String(formData.get("lastName") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
@@ -66,112 +67,75 @@ export async function createOrderAction(
         : "PICKUP";
 
   const storeLocationId = String(formData.get("storeLocationId") ?? "").trim();
-
   const pickupLocationId = String(
     formData.get("pickupLocationId") ?? "",
   ).trim();
-
-  const storeSearch = String(formData.get("storeSearch") ?? "").trim();
   const pickupSearch = String(formData.get("pickupSearch") ?? "").trim();
-
   const paymentMethodRaw = String(
     formData.get("paymentMethod") ?? "card",
   ).trim();
-
-  // Por ahora sólo aceptamos "card", pero dejamos preparado para el futuro
   const paymentMethod = paymentMethodRaw === "card" ? "card" : "card";
 
-  // Validaciones básicas
-  if (!isNonEmptyMin(firstName, 2)) {
-    return { error: "Introduce tu nombre." };
-  }
+  // 3. Validaciones de campos
+  if (!isNonEmptyMin(firstName, 2)) return { error: "Introduce tu nombre." };
+  if (!isNonEmptyMin(lastName, 2)) return { error: "Introduce tus apellidos." };
+  if (!isValidEmail(email)) return { error: "Introduce un email válido." };
+  if (!isValidPhone(phone)) return { error: "Introduce un teléfono válido." };
 
-  if (!isNonEmptyMin(lastName, 2)) {
-    return { error: "Introduce tus apellidos." };
-  }
-
-  if (!isValidEmail(email)) {
-    return { error: "Introduce un correo electrónico válido." };
-  }
-
-  if (!isValidPhone(phone)) {
-    return {
-      error:
-        "Introduce un número de teléfono válido (solo números y signos habituales).",
-    };
-  }
-
-  // Validaciones según tipo de envío
   if (shippingType === "home") {
-    if (!isNonEmptyMin(street, 5)) {
-      return {
-        error:
-          "Introduce una dirección de envío más detallada (calle y número).",
-      };
-    }
-
-    if (!isValidPostalCodeES(postalCode)) {
-      return {
-        error: "Introduce un código postal español válido (5 dígitos).",
-      };
-    }
-
-    if (!isNonEmptyMin(province, 2) || !isNonEmptyMin(city, 2)) {
-      return {
-        error: "Revisa que hayas completado correctamente provincia y ciudad.",
-      };
-    }
-  } else if (shippingType === "store") {
-    if (!storeLocationId) {
-      return {
-        error: "Selecciona una tienda para recoger tu pedido.",
-      };
-    }
-  } else if (shippingType === "pickup") {
-    if (!pickupLocationId) {
-      return {
-        error: "Selecciona un punto de recogida para tu pedido.",
-      };
-    }
+    if (!isNonEmptyMin(street, 5))
+      return { error: "Introduce una dirección completa." };
+    if (!isValidPostalCodeES(postalCode))
+      return { error: "Código postal inválido." };
+    if (!isNonEmptyMin(province, 2) || !isNonEmptyMin(city, 2))
+      return { error: "Falta ciudad o provincia." };
+  } else if (shippingType === "store" && !storeLocationId) {
+    return { error: "Selecciona una tienda." };
+  } else if (shippingType === "pickup" && !pickupLocationId) {
+    return { error: "Selecciona un punto de recogida." };
   }
 
-  // Recalcular pedido a partir del cesta
+  // 4. Construir borrador del pedido (Aquí se validan existencias generales)
   const draft = await buildOrderDraftFromCart(lines);
 
   if (!draft.items.length || draft.totalMinor <= 0) {
     return {
       error:
-        "No hemos podido recalcular tu pedido. Revisa tu cesta o actualiza la página e inténtalo de nuevo.",
+        "No hemos podido recalcular tu pedido. Revisa tu cesta o actualiza la página.",
     };
   }
 
-  // Crear pedido en base de datos
+  // 5. TRANSACCIÓN: Validar Stock real, Restar y Crear Orden
   let order;
   try {
     order = await prisma.$transaction(async (tx) => {
       for (const item of draft.items) {
-        const product = await tx.product.findUnique({
-          where: { id: item.productId },
-          select: { stock: true, name: true },
+        // A) Buscar la variante específica para asegurar stock
+        const variant = await tx.productVariant.findUnique({
+          where: { id: item.variantId },
+          select: { stock: true, size: true, color: true },
         });
 
-        if (!product) {
-          throw new Error(`El producto "${item.name}" ya no existe.`);
-        }
-
-        if (product.stock < item.quantity) {
+        if (!variant) {
           throw new Error(
-            `Stock insuficiente para "${item.name}". Quedan ${product.stock} unidades.`,
+            `El producto "${item.name}" (${item.variantName}) ya no está disponible.`,
           );
         }
 
-        await tx.product.update({
-          where: { id: item.productId },
+        if (variant.stock < item.quantity) {
+          throw new Error(
+            `Stock insuficiente para "${item.name} (${item.variantName})". Solo quedan ${variant.stock} unidades.`,
+          );
+        }
+
+        // B) Restar stock
+        await tx.productVariant.update({
+          where: { id: item.variantId },
           data: { stock: { decrement: item.quantity } },
         });
       }
 
-      // C) Crear la orden (solo si todo lo anterior pasó)
+      // C) Crear la orden
       return await tx.order.create({
         data: {
           userId,
@@ -192,29 +156,38 @@ export async function createOrderAction(
           pickupLocationId: pickupLocationId || null,
           pickupSearch: pickupSearch || null,
           paymentMethod,
+
           items: {
-            create: draft.items.map((item) => ({
-              productId: item.productId,
-              nameSnapshot: item.name,
-              priceMinorSnapshot: item.unitPriceMinor,
-              quantity: item.quantity,
-              subtotalMinor: item.subtotalMinor,
-            })),
+            create: draft.items.map((item) => {
+              const parts = item.variantName.split(" / ");
+              const size = parts[0] || "";
+              const color = parts[1] || "";
+
+              return {
+                productId: item.productId,
+                variantId: item.variantId,
+                nameSnapshot: item.name,
+                sizeSnapshot: size,
+                colorSnapshot: color,
+                priceMinorSnapshot: item.unitPriceMinor,
+                quantity: item.quantity,
+                subtotalMinor: item.subtotalMinor,
+              };
+            }),
           },
         },
       });
     });
   } catch (e: any) {
     console.error("[createOrderAction] Error:", e);
-    // Si el error es nuestro (stock), mostramos el mensaje. Si no, genérico.
-    return {
-      error: e.message.includes("Stock insuficiente")
-        ? e.message
-        : "Ha ocurrido un error al procesar tu pedido. Inténtalo de nuevo.",
-    };
+    // Mostrar mensaje amigable si es error de stock, sino genérico
+    const message = e.message.includes("Stock insuficiente")
+      ? e.message
+      : "Ha ocurrido un error al procesar tu pedido. Inténtalo de nuevo.";
+    return { error: message };
   }
 
-  // Vaciar cesta
+  // 6. Limpiar cookie y redirigir
   cookieStore.set(CART_COOKIE_NAME, "", {
     path: "/",
     maxAge: 0,

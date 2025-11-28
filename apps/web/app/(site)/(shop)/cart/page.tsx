@@ -44,6 +44,7 @@ export default function CartPage() {
 
     const cartItems = rows.map((r) => ({
       slug: r.slug,
+      variantId: r.variantId,
       qty: r.qty,
     }));
 
@@ -96,7 +97,7 @@ export default function CartPage() {
 
                 return (
                   <div
-                    key={r.slug}
+                    key={`${r.slug}-${r.variantId}`}
                     className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-2"
                   >
                     <div className="h-52 w-36 shrink-0 bg-muted">
@@ -116,8 +117,11 @@ export default function CartPage() {
                           {d?.name ?? r.slug}
                         </div>
                         <div className="flex gap-2 text-xs mb-1">
-                          <span className="border-r pr-2 uppercase">S</span>
-                          <span>Marrón</span>
+                          {d?.variantName && (
+                            <div className="text-xs flex gap-2 mb-1">
+                              <span>{d.variantName}</span>
+                            </div>
+                          )}
                         </div>
                         {r.qty > 1 && (
                           <div className="text-xs font-medium text-muted-foreground">
@@ -137,6 +141,7 @@ export default function CartPage() {
                               dispatch(
                                 setQty({
                                   slug: r.slug,
+                                  variantId: r.variantId,
                                   qty: Math.max(0, r.qty - 1),
                                 }),
                               )
@@ -154,7 +159,13 @@ export default function CartPage() {
                             className="text-base hover:cursor-pointer px-3 py-1 hover:bg-neutral-100"
                             aria-label="Sumar unidad"
                             onClick={() =>
-                              dispatch(setQty({ slug: r.slug, qty: r.qty + 1 }))
+                              dispatch(
+                                setQty({
+                                  slug: r.slug,
+                                  variantId: r.variantId,
+                                  qty: r.qty + 1,
+                                }),
+                              )
                             }
                           >
                             +
@@ -177,7 +188,14 @@ export default function CartPage() {
 
                       <RemoveButton
                         className="mt-1"
-                        onRemove={() => dispatch(removeItem({ slug: r.slug }))}
+                        onRemove={() =>
+                          dispatch(
+                            removeItem({
+                              slug: r.slug,
+                              variantId: r.variantId,
+                            }),
+                          )
+                        }
                       />
                     </div>
                   </div>

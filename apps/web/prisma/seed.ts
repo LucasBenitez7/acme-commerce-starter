@@ -3,28 +3,59 @@ import { type Prisma, PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 const CATEGORIES = [
-  { slug: "chaquetas", name: "Chaquetas" },
-  { slug: "pantalones", name: "Pantalones" },
-  { slug: "vestidos", name: "Vestidos" },
-  { slug: "jeans", name: "Jeans" },
-  { slug: "jerseys", name: "Jerseys" },
-  { slug: "camisetas", name: "Camisetas" },
-  { slug: "ropa-interior", name: "Ropa interior" },
-  { slug: "zapatillas", name: "Zapatillas" },
+  { slug: "chaquetas", name: "Chaquetas", type: "clothing" },
+  { slug: "pantalones", name: "Pantalones", type: "clothing" },
+  { slug: "vestidos", name: "Vestidos", type: "clothing" },
+  { slug: "jeans", name: "Jeans", type: "clothing" },
+  { slug: "jerseys", name: "Jerseys", type: "clothing" },
+  { slug: "camisetas", name: "Camisetas", type: "clothing" },
+  { slug: "ropa-interior", name: "Ropa interior", type: "clothing" },
+  { slug: "zapatillas", name: "Zapatillas", type: "shoes" },
 ] as const;
+
+// Definimos variantes posibles
+const CLOTHING_SIZES = ["XS", "S", "M", "L", "XL"];
+const SHOE_SIZES = ["38", "39", "40", "41", "42", "43", "44"];
+const COLORS = ["Negro", "Blanco", "Azul Marino", "Beige", "Rojo"];
+
+type SeedVariant = {
+  size: string;
+  color: string;
+  stock: number;
+};
 
 type SeedProduct = {
   slug: string;
   name: string;
   description: string;
   priceCents: number;
-  stock: number;
   categorySlug: string;
+  categoryType: "clothing" | "shoes";
   images: Array<{ url: string; alt: string; sort: number }>;
 };
 
 function euros(n: number) {
   return Math.round(n * 100);
+}
+
+// Generador de variantes aleatorias para un producto
+function generateVariants(type: "clothing" | "shoes"): SeedVariant[] {
+  const sizes = type === "clothing" ? CLOTHING_SIZES : SHOE_SIZES;
+  const variants: SeedVariant[] = [];
+
+  // Para no crear miles de variantes, elegimos 2 colores al azar por producto
+  const productColors = COLORS.sort(() => 0.5 - Math.random()).slice(0, 2);
+
+  for (const color of productColors) {
+    for (const size of sizes) {
+      // 80% de probabilidad de tener stock
+      const hasStock = Math.random() > 0.2;
+      const stock = hasStock ? Math.floor(Math.random() * 20) + 1 : 0;
+
+      variants.push({ size, color, stock });
+    }
+  }
+  return variants;
 }
 
 function makeProducts(): SeedProduct[] {
@@ -35,19 +66,17 @@ function makeProducts(): SeedProduct[] {
       const id = i++;
       const name = `Producto ${id}`;
       const price = ((id * 3.99) % 200) + 9.99;
-      const stock =
-        Math.random() > 0.1 ? Math.floor(Math.random() * 50) + 1 : 0;
 
       base.push({
         slug: `producto-${id}`,
         name,
         description: `Descripción del ${name}.`,
         priceCents: euros(price),
-        stock,
         categorySlug: cat.slug,
+        categoryType: cat.type as "clothing" | "shoes",
         images: [
           {
-            url: `https://plus.unsplash.com/premium_photo-1756137116701-ee9391c4bf62?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=687&title=${encodeURIComponent(
+            url: `https://plus.unsplash.com/premium_photo-1756137116701-ee9391c4bf62?ixlib=rb-4.1.0&auto=format&fit=crop&q=80&w=687&title=${encodeURIComponent(
               name,
             )}`,
             alt: name,
@@ -61,10 +90,10 @@ function makeProducts(): SeedProduct[] {
 }
 
 async function main() {
-  console.log("Seeding…");
+  console.log("Seeding con Variantes...");
 
   await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-    // 1) Upsert categorías
+    // 1) Upsert Categorías
     const cats: Record<string, string> = {};
     for (const [index, c] of CATEGORIES.entries()) {
       const r = await tx.category.upsert({
@@ -75,27 +104,24 @@ async function main() {
       cats[c.slug] = r.id;
     }
 
-    // 2) Productos
+    // 2) Productos y Variantes
     const products: SeedProduct[] = makeProducts();
 
     for (const p of products) {
       const categoryId = cats[p.categorySlug];
+      if (!categoryId) continue;
 
-      // Si por alguna razón la categoría no existe en el seed actual, saltamos (seguridad)
-      if (!categoryId) {
-        console.warn(
-          `Categoría ${p.categorySlug} no encontrada para ${p.name}`,
-        );
-        continue;
-      }
+      // Generamos las variantes en memoria
+      const variantsData = generateVariants(p.categoryType);
 
-      await tx.product.upsert({
+      // Upsert del Producto
+      const product = await tx.product.upsert({
         where: { slug: p.slug },
         update: {
           name: p.name,
           description: p.description,
           priceCents: p.priceCents,
-          stock: p.stock,
+          // No actualizamos stock aquí, eso va en variantes
           currency: "EUR",
           categoryId,
         },
@@ -104,28 +130,43 @@ async function main() {
           name: p.name,
           description: p.description,
           priceCents: p.priceCents,
-          stock: p.stock,
           currency: "EUR",
           categoryId,
           images: {
-            create: p.images.map(
-              (img: { url: string; alt: string; sort: number }) => ({
-                url: img.url,
-                alt: img.alt,
-                sort: img.sort,
-              }),
-            ),
+            create: p.images.map((img) => ({
+              url: img.url,
+              alt: img.alt,
+              sort: img.sort,
+            })),
           },
         },
       });
+
+      // Buscamos si ya tiene variantes
+      const existingVariants = await tx.productVariant.count({
+        where: { productId: product.id },
+      });
+
+      if (existingVariants === 0) {
+        await tx.productVariant.createMany({
+          data: variantsData.map((v) => ({
+            productId: product.id,
+            size: v.size,
+            color: v.color,
+            stock: v.stock,
+          })),
+        });
+      }
     }
   });
 
-  const [countProducts, countCats] = await Promise.all([
+  const [countProducts, countVariants] = await Promise.all([
     prisma.product.count(),
-    prisma.category.count(),
+    prisma.productVariant.count(),
   ]);
-  console.log(`OK: ${countProducts} productos / ${countCats} categorías.`);
+  console.log(
+    `OK: ${countProducts} productos y ${countVariants} variantes creadas.`,
+  );
 }
 
 main()

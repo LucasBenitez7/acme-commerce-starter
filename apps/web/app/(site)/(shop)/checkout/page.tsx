@@ -9,43 +9,15 @@ import { Container } from "@/components/ui";
 
 import { auth } from "@/lib/auth";
 import { formatMinor } from "@/lib/currency";
-import {
-  buildOrderDraftFromCart,
-  type CartLineInput,
-} from "@/lib/server/orders";
-
-type CartCookieV1 = {
-  v: 1;
-  items: { s: string; q: number }[];
-};
-
-function parseCartCookie(raw: string | undefined): CartLineInput[] {
-  if (!raw) return [];
-
-  try {
-    const data = JSON.parse(raw) as CartCookieV1;
-
-    if (data?.v !== 1 || !Array.isArray(data.items)) {
-      return [];
-    }
-
-    return data.items
-      .map((item) => ({
-        slug: item.s,
-        qty: item.q,
-      }))
-      .filter((line) => line.slug && line.qty > 0);
-  } catch {
-    return [];
-  }
-}
+import { CART_COOKIE_NAME, parseCartCookie } from "@/lib/server/cart-cookie";
+import { buildOrderDraftFromCart } from "@/lib/server/orders";
 
 export default async function CheckoutPage() {
   const session = await auth();
   const user = session?.user || null;
 
   const cookieStore = await cookies();
-  const rawCart = cookieStore.get("cart.v1")?.value;
+  const rawCart = cookieStore.get(CART_COOKIE_NAME)?.value;
 
   const lines = parseCartCookie(rawCart);
   const orderDraft = await buildOrderDraftFromCart(lines);
@@ -89,10 +61,11 @@ export default async function CheckoutPage() {
               <ul className="space-y-2 text-sm">
                 {orderDraft.items.map((item) => {
                   const lineTotalMinor = item.subtotalMinor;
+                  const key = `${item.productId}-${item.variantId}`;
 
                   return (
                     <li
-                      key={item.productId}
+                      key={key}
                       className="grid grid-cols-[auto_1fr_auto] items-center gap-2 py-1"
                     >
                       <div
@@ -113,9 +86,7 @@ export default async function CheckoutPage() {
                       <div className="flex h-full justify-between py-1 font-medium">
                         <div className="space-y-1">
                           <p className="text-sm">{item.name}</p>
-                          {/* TODO: tallas/colores reales en el futuro */}
-                          <p className="text-xs">M</p>
-                          <p className="text-xs">Negro</p>
+                          <p className="text-xs">{item.variantName}</p>
                           <div className="flex gap-1">
                             {item.quantity > 1 && (
                               <div className="text-xs text-muted-foreground">

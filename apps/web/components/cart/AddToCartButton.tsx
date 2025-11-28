@@ -7,19 +7,39 @@ import { addItem } from "@/store/cart.slice";
 
 import { Button } from "../ui";
 
+export type AddToCartProps = {
+  slug: string;
+  variantId: string;
+  variantName: string;
+  qty?: number;
+  details?: Omit<CartItemDetails, "variantId" | "variantName">;
+  disabled?: boolean;
+  className?: string;
+};
+
 export function AddToCartButton({
   slug,
+  variantId,
+  variantName,
   qty = 1,
   details,
-}: {
-  slug: string;
-  qty?: number;
-  details?: CartItemDetails;
-}) {
+  disabled,
+  className,
+}: AddToCartProps) {
   const dispatch = useAppDispatch();
   const onClick = () => {
-    if (details) upsertDetails(details);
-    dispatch(addItem({ slug, qty }));
+    if (!variantId) return;
+
+    if (details) {
+      upsertDetails({
+        ...details,
+        slug,
+        variantId,
+        variantName,
+      });
+    }
+
+    dispatch(addItem({ slug, variantId, qty }));
   };
 
   return (
@@ -27,6 +47,7 @@ export function AddToCartButton({
       type="button"
       onClick={onClick}
       variant={"default"}
+      disabled={disabled || !variantId}
       className="hover:cursor-pointer"
     >
       Añadir a la cesta

@@ -6,40 +6,35 @@ import { type CartItemMini } from "@/store/cart.types";
 
 export async function validateStockAction(items: CartItemMini[]) {
   try {
-    const slugs = items.map((i) => i.slug);
+    const variantIds = items.map((i) => i.variantId);
 
-    // 1. Buscamos los productos en DB para ver su stock real
-    const products = await prisma.product.findMany({
-      where: { slug: { in: slugs } },
-      select: {
-        slug: true,
-        stock: true,
-        name: true,
-      },
+    // Buscamos las variantes
+    const variants = await prisma.productVariant.findMany({
+      where: { id: { in: variantIds } },
+      include: { product: { select: { name: true } } },
     });
 
-    // 2. Comparamos lo que pide el usuario vs lo que hay en DB
     for (const item of items) {
-      const product = products.find((p) => p.slug === item.slug);
+      const variant = variants.find((v) => v.id === item.variantId);
 
-      if (!product) {
+      if (!variant) {
         return {
           success: false,
-          error: `El producto con referencia "${item.slug}" ya no existe. Elimínalo para continuar.`,
+          error: `Un producto de tu cesta ya no está disponible.`,
         };
       }
 
-      if (product.stock === 0) {
+      if (variant.stock === 0) {
         return {
           success: false,
-          error: `Stock insuficiente para "${product.name}". Quedan ${product.stock} unidades, elimínalo para continuar.`,
+          error: `Stock insuficiente para "${variant.product.name}". Quedan ${variant.stock} unidades, elimínalo para continuar.`,
         };
       }
 
-      if (product.stock < item.qty && product.stock > 0) {
+      if (variant.stock < item.qty && variant.stock > 0) {
         return {
           success: false,
-          error: `Stock insuficiente para "${product.name}". Nos quedan disponibles ${product.stock} unidades.`,
+          error: `Stock insuficiente para "${variant.product.name}". Nos quedan disponibles ${variant.stock} unidades.`,
         };
       }
     }

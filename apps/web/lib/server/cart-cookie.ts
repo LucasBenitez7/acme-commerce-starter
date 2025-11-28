@@ -6,7 +6,11 @@ export const CART_COOKIE_NAME = "cart.v1";
 
 type CartCookieV1 = {
   v: 1;
-  items: { s: string; q: number }[];
+  items: {
+    s: string;
+    v: string;
+    q: number;
+  }[];
 };
 
 export function parseCartCookie(raw: string | undefined): CartLineInput[] {
@@ -22,9 +26,10 @@ export function parseCartCookie(raw: string | undefined): CartLineInput[] {
     return data.items
       .map((item) => ({
         slug: item.s,
+        variantId: item.v,
         qty: item.q,
       }))
-      .filter((line) => line.slug && line.qty > 0);
+      .filter((line) => line.slug && line.variantId && line.qty > 0);
   } catch {
     return [];
   }

@@ -4,7 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import {
   readDetailsMap,
   DETAILS_LS_KEY,
+  DETAILS_EVENT_NAME,
   type DetailsMap,
+  makeKey,
 } from "@/lib/cart-details";
 
 import { useAppSelector } from "@/hooks/use-app-selector";
@@ -16,19 +18,31 @@ export function useCartView() {
 
   useEffect(() => {
     setDetails(readDetailsMap());
+
+    const update = () => setDetails(readDetailsMap());
+
     const onStorage = (e: StorageEvent) => {
-      if (e.key === DETAILS_LS_KEY) setDetails(readDetailsMap());
+      if (e.key === DETAILS_LS_KEY) update();
     };
+
+    const onCustomUpdate = () => update();
+
     window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    window.addEventListener(DETAILS_EVENT_NAME, onCustomUpdate);
+
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener(DETAILS_EVENT_NAME, onCustomUpdate);
+    };
   }, []);
 
   const rows = useMemo(
     () =>
       items.map((it) => ({
         slug: it.slug,
+        variantId: it.variantId,
         qty: it.qty,
-        detail: details[it.slug],
+        detail: details[makeKey(it.slug, it.variantId)],
       })),
     [items, details],
   );
