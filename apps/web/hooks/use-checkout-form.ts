@@ -19,8 +19,10 @@ import type { CheckoutStep } from "@/components/checkout/layout";
 // Definimos las props para recibir los defaults del usuario
 type UseCheckoutFormProps = {
   defaults?: {
-    name?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
     email?: string | null;
+    phone?: string | null;
   };
 };
 
@@ -83,9 +85,10 @@ export function useCheckoutForm({ defaults }: UseCheckoutFormProps = {}) {
   // 1. Inicializamos el estado con los defaults del usuario (si existen)
   const initialWithDefaults: CheckoutFormState = {
     ...INITIAL_FORM_STATE,
-    firstName: defaults?.name ? defaults.name.split(" ")[0] : "",
-    lastName: defaults?.name ? defaults.name.split(" ").slice(1).join(" ") : "",
+    firstName: defaults?.firstName || "",
+    lastName: defaults?.lastName || "",
     email: defaults?.email || "",
+    phone: defaults?.phone || "",
   };
 
   const [form, setForm] = useState<CheckoutFormState>(initialWithDefaults);

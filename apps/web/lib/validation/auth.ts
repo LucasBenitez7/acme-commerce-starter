@@ -4,17 +4,19 @@ export const loginSchema = z.object({
   email: z
     .string()
     .min(1, "Introduce tu email")
-    .email("Introduce un email válido"),
+    .email({ message: "Introduce un email válido" }),
   password: z.string().min(1, "Introduce tu contraseña"),
 });
 
 export const registerSchema = z
   .object({
-    name: z.string().min(1, "Introduce tu nombre"),
+    firstName: z.string().min(2, "Mínimo 2 letras"),
+    lastName: z.string().min(2, "Mínimo 2 letras"),
+    phone: z.string().min(9, "Teléfono inválido"),
     email: z
       .string()
       .min(1, "Introduce tu email")
-      .email("Introduce un email válido"),
+      .email({ message: "Introduce un email válido" }),
     password: z
       .string()
       .min(8, "Mínimo 8 caracteres")

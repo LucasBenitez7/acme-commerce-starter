@@ -35,7 +35,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
   const safeRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
-  const mounted = useMounted(); // Hook para saber si estamos en cliente
+  const mounted = useMounted();
 
   const { data: session, status: sessionStatus } = useSession();
   const user = session?.user ?? null;
@@ -45,8 +45,6 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
   const hideHeader = HIDE_HEADER_ON.includes(pathname);
   const isCartPage = pathname === "/cart";
 
-  // SOLUCIÓN SCROLL: Solo bloqueamos el scroll si está abierto el menú móvil (open).
-  // El menú flotante (accountMenuOpen) NO bloqueará el scroll.
   useLockBodyScroll(open && !hideHeader);
 
   useAutoCloseOnRouteChange((open || accountMenuOpen) && !hideHeader, () => {
@@ -163,7 +161,6 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
               <Button
                 type="button"
                 variant={"ghost"}
-                // Solo mostramos la clase del tooltip si showTooltip es true
                 className={`${
                   showTooltip ? "tip-bottom" : ""
                 } hover:cursor-pointer relative z-20`}
@@ -224,7 +221,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
                         onClick={() => setAccountMenuOpen(false)}
                       >
                         <FaHeart className="size-4 text-muted-foreground" />
-                        Mis Favoritos
+                        Mis favoritos
                       </Link>
                     </div>
 

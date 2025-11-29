@@ -19,39 +19,32 @@ model Category {
 }
 
 model Product {
-  id          String @id @default(cuid())
-  slug        String @unique
+  id          String           @id @default(cuid())
+  slug        String           @unique
   name        String
   description String
   priceCents  Int
-  currency    String @default("EUR")
-
-  categoryId String
-  category   Category @relation(fields: [categoryId], references: [id])
-
-  images     ProductImage[]
-  variants   ProductVariant[]
-  orderItems OrderItem[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  currency    String           @default("EUR")
+  categoryId  String
+  category    Category         @relation(fields: [categoryId], references: [id])
+  images      ProductImage[]
+  variants    ProductVariant[]
+  orderItems  OrderItem[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 
   @@index([categoryId])
 }
 
 model ProductVariant {
-  id        String  @id @default(cuid())
-  productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  // Atributos de la variante
-  size  String
-  color String
-  stock Int    @default(0)
-
+  id         String      @id @default(cuid())
+  productId  String
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  size       String
+  color      String
+  stock      Int         @default(0)
   orderItems OrderItem[]
 
-  // Evita duplicados: No puede haber dos variantes "M - Rojo" para el mismo producto
   @@unique([productId, size, color])
   @@index([productId])
 }
@@ -67,6 +60,7 @@ model ProductImage {
   @@unique([productId, sort])
 }
 
+// --- Pedidos ---
 enum OrderStatus {
   PENDING_PAYMENT
   PAID
@@ -93,7 +87,6 @@ model Order {
   userId String?
   user   User?   @relation(fields: [userId], references: [id])
 
-  // Datos de envío
   shippingType     ShippingType? @default(HOME)
   firstName        String?
   lastName         String?
@@ -127,14 +120,12 @@ model OrderItem {
   variantId String?
   variant   ProductVariant? @relation(fields: [variantId], references: [id])
 
-  // Snapshots (La foto de lo que compró en ese momento)
   nameSnapshot       String
   priceMinorSnapshot Int
   sizeSnapshot       String?
   colorSnapshot      String?
-
-  quantity      Int
-  subtotalMinor Int
+  quantity           Int
+  subtotalMinor      Int
 
   @@index([orderId])
   @@index([productId])
@@ -143,8 +134,15 @@ model OrderItem {
 
 // --- Usuarios & Auth ---
 model User {
-  id            String    @id @default(cuid())
-  name          String?
+  id String @id @default(cuid())
+
+  // Mantenemos 'name' para compatibilidad con NextAuth/GitHub, 
+  // pero usaremos firstName/lastName para el registro manual.
+  name String?
+
+  firstName     String?
+  lastName      String?
+  phone         String?
   email         String?   @unique
   emailVerified DateTime?
   image         String?

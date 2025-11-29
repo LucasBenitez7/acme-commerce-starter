@@ -109,6 +109,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
           <div className="space-y-1 ">
             <dd>{contact.fullName || "—"}</dd>
             <dd>{contact.phone || "—"}</dd>
+            <dd className="text-muted-foreground font-normal">{order.email}</dd>
           </div>
         </div>
         <div>
@@ -152,16 +153,23 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
                   <div className="space-y-1">
                     <p className="text-sm">{item.nameSnapshot}</p>
 
-                    <div className="flex flex-col items-baseline gap-1 text-xs">
-                      <p className="text-xs">Talla L</p>
-                      <p className="text-xs">Marrón</p>
-                      <div className="flex gap-1">
+                    <div className="flex flex-col items-baseline gap-1 text-xs text-muted-foreground">
+                      {/* MOSTRAR VARIANTES REALES */}
+                      {item.sizeSnapshot && (
+                        <p className="text-xs">Talla: {item.sizeSnapshot}</p>
+                      )}
+                      {item.colorSnapshot && (
+                        <p className="text-xs">Color: {item.colorSnapshot}</p>
+                      )}
+
+                      <div className="flex gap-1 pt-1 text-foreground">
+                        <span className="font-semibold">x{item.quantity}</span>
                         {item.quantity > 1 && (
-                          <span className="text-muted-foreground">
-                            {formatMinor(item.priceMinorSnapshot, currency)}
+                          <span className="text-muted-foreground font-normal">
+                            ({formatMinor(item.priceMinorSnapshot, currency)} /
+                            ud)
                           </span>
                         )}
-                        <span className="font-semibold">x{item.quantity}</span>
                       </div>
                     </div>
                   </div>

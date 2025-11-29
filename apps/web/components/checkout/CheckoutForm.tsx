@@ -32,8 +32,10 @@ import {
 } from "@/hooks/use-checkout-form";
 
 type Props = {
-  defaultName?: string | null;
+  defaultFirstName?: string | null;
+  defaultLastName?: string | null;
   defaultEmail?: string | null;
+  defaultPhone?: string | null;
 };
 
 const INITIAL_SERVER_STATE: CheckoutActionState = {
@@ -54,7 +56,12 @@ function SubmitButton({ disabledBase }: { disabledBase: boolean }) {
   );
 }
 
-export function CheckoutForm({ defaultName, defaultEmail }: Props) {
+export function CheckoutForm({
+  defaultFirstName,
+  defaultLastName,
+  defaultEmail,
+  defaultPhone,
+}: Props) {
   const [serverState, formAction] = useActionState<
     CheckoutActionState,
     FormData
@@ -74,17 +81,16 @@ export function CheckoutForm({ defaultName, defaultEmail }: Props) {
     handleStepperClick,
   } = useCheckoutForm({
     defaults: {
-      name: defaultName,
+      firstName: defaultFirstName,
+      lastName: defaultLastName,
       email: defaultEmail,
+      phone: defaultPhone,
     },
   });
 
   const { shippingType, storeLocationId, pickupLocationId } = form;
-
-  // Error del servidor que queremos poder limpiar
   const [serverError, setServerError] = useState<string | undefined>(undefined);
 
-  // Sincronizamos el último error que venga del serverAction
   useEffect(() => {
     setServerError(serverState.error);
   }, [serverState.error]);
@@ -140,7 +146,6 @@ export function CheckoutForm({ defaultName, defaultEmail }: Props) {
       handleNextWithClear();
       return;
     }
-    // step === 3 → dejamos que el form haga submit al serverAction
   }
 
   const isStep1 = step === 1;

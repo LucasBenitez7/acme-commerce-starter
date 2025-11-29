@@ -39,7 +39,12 @@ export default async function CheckoutPage() {
           <CheckoutHeader />
 
           <div className="flex-1 px-4 py-4">
-            <CheckoutForm defaultName={user?.name} defaultEmail={user?.email} />
+            <CheckoutForm
+              defaultFirstName={user?.firstName}
+              defaultLastName={user?.lastName}
+              defaultEmail={user?.email}
+              defaultPhone={user?.phone}
+            />
           </div>
 
           <CheckoutLocalFooter />

@@ -10,33 +10,30 @@ import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
-export const fetchCache = "force-no-store";
-export const runtime = "nodejs";
 
-// Helper para colores de estado
 function getStatusBadge(status: string) {
   switch (status) {
     case "PAID":
       return (
-        <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+        <span className="inline-flex items-center rounded-md bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
           Pagado
         </span>
       );
     case "PENDING_PAYMENT":
       return (
-        <span className="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
-          Pendiente de pago
+        <span className="inline-flex items-center rounded-md bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
+          Pendiente
         </span>
       );
     case "CANCELLED":
       return (
-        <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+        <span className="inline-flex items-center rounded-md bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
           Cancelado
         </span>
       );
     default:
       return (
-        <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+        <span className="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
           {status}
         </span>
       );
@@ -118,16 +115,27 @@ export default async function AccountOrdersPage() {
               </CardHeader>
               <CardContent className="p-4 text-sm">
                 <div className="flex flex-col gap-4 sm:flex-row sm:justify-between">
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <p className="font-medium">Artículos ({itemsCount})</p>
                     <ul className="text-muted-foreground text-xs space-y-1">
                       {order.items.slice(0, 3).map((item) => (
-                        <li key={item.id}>
-                          • {item.quantity}x {item.nameSnapshot}
+                        <li key={item.id} className="flex gap-2">
+                          <span className="font-medium text-foreground">
+                            {item.quantity}x
+                          </span>
+                          <span>{item.nameSnapshot}</span>
+                          {/* MOSTRAR VARIANTES (Talla/Color) */}
+                          {(item.sizeSnapshot || item.colorSnapshot) && (
+                            <span className="text-muted-foreground/70">
+                              ({item.sizeSnapshot} / {item.colorSnapshot})
+                            </span>
+                          )}
                         </li>
                       ))}
                       {order.items.length > 3 && (
-                        <li>... y {order.items.length - 3} más</li>
+                        <li className="pt-1 italic">
+                          ... y {order.items.length - 3} más
+                        </li>
                       )}
                     </ul>
                   </div>
@@ -147,12 +155,6 @@ export default async function AccountOrdersPage() {
                   </div>
                 </div>
               </CardContent>
-              {/* Opcional: Footer con botón de detalle si en el futuro se hace/account/orders/[id] */}
-              {/* <CardFooter className="bg-muted/10 p-2 flex justify-end">
-                  <Button variant="ghost" size="sm" className="text-xs h-8">
-                     Ver detalles <FaArrowRight className="ml-2 h-3 w-3"/>
-                  </Button>
-              </CardFooter> */}
             </Card>
           );
         })}

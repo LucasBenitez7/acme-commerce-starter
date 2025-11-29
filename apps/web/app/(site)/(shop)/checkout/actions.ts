@@ -27,8 +27,22 @@ export async function createOrderAction(
   formData: FormData,
 ): Promise<CheckoutActionState> {
   const session = await auth();
-  const userId =
-    session?.user && "id" in session.user ? (session.user as any).id : null;
+  let userId: string | null = null;
+
+  if (session?.user?.id) {
+    const userExists = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { id: true },
+    });
+
+    if (userExists) {
+      userId = userExists.id;
+    } else {
+      console.warn(
+        "Usuario de sesión no encontrado en DB. Creando orden como invitado.",
+      );
+    }
+  }
 
   const cookieStore = await cookies();
   const rawCart = cookieStore.get(CART_COOKIE_NAME)?.value;

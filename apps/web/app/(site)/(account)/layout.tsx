@@ -25,7 +25,7 @@ export default async function AccountLayout({ children }: AccountLayoutProps) {
   const name = (session?.user.name ?? "").trim() || "Tu cuenta";
 
   return (
-    <Container className="py-8">
+    <Container className="py-8 px-6 max-w-4xl">
       <header className="mb-6 flex flex-col gap-2 border-b pb-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Mi cuenta</h1>
@@ -33,15 +33,6 @@ export default async function AccountLayout({ children }: AccountLayoutProps) {
             Sesión iniciada como <span className="font-medium">{name}</span>
           </p>
         </div>
-
-        <nav className="mt-3 flex gap-3 text-sm sm:mt-0">
-          <Link href="/account" className="fx-underline-anim">
-            Resumen
-          </Link>
-          <Link href="/account/orders" className="fx-underline-anim">
-            Mis pedidos
-          </Link>
-        </nav>
       </header>
 
       <main>{children}</main>
