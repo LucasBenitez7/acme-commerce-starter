@@ -9,6 +9,7 @@ import { CartUndoChip } from "@/components/cart/CartUndoChip";
 import { Button, FavoriteButton, RemoveButton } from "@/components/ui";
 
 import { formatMinor, DEFAULT_CURRENCY } from "@/lib/currency";
+import { cn } from "@/lib/utils";
 
 import { useAppDispatch } from "@/hooks/use-app-dispatch";
 import { useCartUndoRows } from "@/hooks/use-cart-undo-rows";
@@ -84,7 +85,7 @@ export default function CartPage() {
           <div className="border rounded-xs px-5 py-3 bg-background">
             {/* Mensaje de error de stock en la lista principal */}
             {stockError && (
-              <div className="mb-4 rounded-xs bg-red-50 p-3 font-medium text-sm text-red-600 border border-red-200 animate-in fade-in slide-in-from-top-2">
+              <div className="mt-1 mb-2 rounded-xs bg-red-50 p-3 font-medium text-xs text-red-600 border border-red-200 animate-in fade-in slide-in-from-top-2">
                 {stockError}
               </div>
             )}
@@ -94,13 +95,16 @@ export default function CartPage() {
                 const r = item.row;
                 const d = r.detail;
                 const lineTotalMinor = (d?.priceMinor ?? 0) * r.qty;
+                const maxStock = d?.stock ?? 999;
+                const isMaxed = r.qty >= maxStock;
+                const isItemOutOfStock = d?.stock === 0;
 
                 return (
                   <div
                     key={`${r.slug}-${r.variantId}`}
                     className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-2"
                   >
-                    <div className="h-52 w-36 shrink-0 bg-muted">
+                    <div className="h-52 w-36 shrink-0 bg-muted relative">
                       {d?.imageUrl && (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -108,6 +112,13 @@ export default function CartPage() {
                           alt={d.name}
                           className="h-full w-full rounded-xs object-cover"
                         />
+                      )}
+                      {isItemOutOfStock && (
+                        <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none bg-black/50">
+                          <div className=" text-white/70 px-4 py-2 text-lg font-bold uppercase tracking-widest border-2 border-white/70">
+                            Agotado
+                          </div>
+                        </div>
                       )}
                     </div>
 
@@ -138,9 +149,14 @@ export default function CartPage() {
                       <div className="flex items-center gap-2">
                         <div className="flex items-center border rounded-xs">
                           <button
-                            className="text-base hover:cursor-pointer px-3 py-1  hover:bg-neutral-100"
+                            className={cn(
+                              "text-base hover:cursor-pointer px-3 py-1  hover:bg-neutral-100",
+                              r.qty <= 1 &&
+                                "pointer-events-none text-slate-300",
+                            )}
                             aria-label="Restar unidad"
                             onClick={() =>
+                              r.qty > 1 &&
                               dispatch(
                                 setQty({
                                   slug: r.slug,
@@ -159,8 +175,12 @@ export default function CartPage() {
                             {r.qty}
                           </span>
                           <button
-                            className="text-base hover:cursor-pointer px-3 py-1 hover:bg-neutral-100"
+                            className={cn(
+                              "text-base hover:cursor-pointer px-3 py-1 hover:bg-neutral-100",
+                              isMaxed && "pointer-events-none text-slate-300",
+                            )}
                             aria-label="Sumar unidad"
+                            disabled={isMaxed}
                             onClick={() =>
                               dispatch(
                                 setQty({

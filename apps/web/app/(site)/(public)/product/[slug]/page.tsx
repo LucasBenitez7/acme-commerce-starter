@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ProductActions } from "@/components/catalog/ProductActions";
-import { Separator } from "@/components/ui";
 
 import { parseCurrency, toMajor, MINOR_UNITS } from "@/lib/currency";
 import { formatPrice } from "@/lib/format";
@@ -81,6 +80,9 @@ export default async function ProductPage({ params }: { params: ParamsSlug }) {
   );
   const productUrlAbs = new URL(`/product/${p.slug}`, site).toString();
 
+  const totalStock = p.variants.reduce((acc, v) => acc + v.stock, 0);
+  const isOutOfStock = totalStock === 0;
+
   const currency = parseCurrency(p.currency ?? "EUR");
   const priceMajor = toMajor(p.priceCents ?? 0, currency);
   const priceDecimals = MINOR_UNITS[currency];
@@ -119,6 +121,13 @@ export default async function ProductPage({ params }: { params: ParamsSlug }) {
                 className="object-cover"
                 priority
               />
+              {isOutOfStock && (
+                <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none bg-black/50">
+                  <div className=" text-white/70 px-4 py-2 text-lg font-bold uppercase tracking-widest border-2 border-white/70">
+                    Agotado
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

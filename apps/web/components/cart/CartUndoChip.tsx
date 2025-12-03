@@ -17,8 +17,7 @@ export function CartUndoChip({
   className,
   size = "md",
 }: CartUndoChipProps) {
-  const textSize =
-    size === "sm" ? "text-xs sm:text-sm" : "text-sm sm:text-base";
+  const textSize = size === "sm" ? "text-xs sm:text-sm" : "text-xs sm:text-sm";
 
   return (
     <div className={cn(className)}>

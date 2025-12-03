@@ -47,7 +47,7 @@ export function AddToCartButton({
       type="button"
       onClick={onClick}
       variant={"default"}
-      disabled={disabled}
+      disabled={disabled || !variantId}
       className="hover:cursor-pointer w-full rounded-xs text-base"
     >
       Añadir a la cesta

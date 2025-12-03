@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/sheet";
 
 import { formatMinor, DEFAULT_CURRENCY } from "@/lib/currency";
+import { cn } from "@/lib/utils";
 
 import { validateStockAction } from "@/app/(site)/(shop)/cart/actions";
 import { useAppDispatch } from "@/hooks/use-app-dispatch";
@@ -171,6 +172,9 @@ export function CartButtonWithSheet() {
                 const r = item.row;
                 const d = r.detail;
                 const lineTotalMinor = (d?.priceMinor ?? 0) * r.qty;
+                const maxStock = d?.stock ?? 999;
+                const isMaxed = r.qty >= maxStock;
+                const isItemOutOfStock = d?.stock === 0;
 
                 return (
                   <div
@@ -189,6 +193,13 @@ export function CartButtonWithSheet() {
                           sizes="200px"
                           className="h-full w-full rounded-xs object-cover"
                         />
+                      )}
+                      {isItemOutOfStock && (
+                        <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none bg-black/50">
+                          <div className=" text-white/70 px-4 py-2 text-lg font-bold uppercase tracking-widest border-2 border-white/70">
+                            Agotado
+                          </div>
+                        </div>
                       )}
                     </div>
 
@@ -217,9 +228,14 @@ export function CartButtonWithSheet() {
                       <div className="flex items-center gap-2">
                         <div className="flex items-center border rounded-xs">
                           <button
-                            className="text-base hover:cursor-pointer px-3 py-1 hover:bg-neutral-100"
+                            className={cn(
+                              "text-base hover:cursor-pointer px-3 py-1 hover:bg-neutral-100",
+                              r.qty <= 1 &&
+                                "pointer-events-none text-slate-300",
+                            )}
                             aria-label="Restar unidad"
                             onClick={() =>
+                              r.qty > 1 &&
                               dispatch(
                                 setQty({
                                   slug: r.slug,
@@ -238,8 +254,12 @@ export function CartButtonWithSheet() {
                             {r.qty}
                           </span>
                           <button
-                            className="text-base hover:cursor-pointer px-3 py-1 hover:bg-neutral-100"
+                            className={cn(
+                              "text-base hover:cursor-pointer px-3 py-1 hover:bg-neutral-100",
+                              isMaxed && "pointer-events-none text-slate-300",
+                            )}
                             aria-label="Sumar unidad"
+                            disabled={isMaxed}
                             onClick={() =>
                               dispatch(
                                 setQty({
@@ -302,7 +322,7 @@ export function CartButtonWithSheet() {
             <div className="shrink-0 px-4 border pt-2">
               {/* Error de stock en el mini cart */}
               {stockError && (
-                <div className="text-xs text-red-600">{stockError}</div>
+                <div className="text-xs pt-1 text-red-600">{stockError}</div>
               )}
 
               <div className="flex items-center py-4 justify-between text-base font-medium">

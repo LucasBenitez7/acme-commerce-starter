@@ -5,6 +5,7 @@ export type CartItemDetails = {
   variantName: string;
   priceMinor: number;
   imageUrl?: string;
+  stock: number;
 };
 
 export type DetailsMap = Record<string, CartItemDetails>;

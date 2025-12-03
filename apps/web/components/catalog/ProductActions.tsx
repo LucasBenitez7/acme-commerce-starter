@@ -8,6 +8,9 @@ import { FavoriteButton } from "@/components/ui";
 import { sortSizes } from "@/lib/catalog/sort-sizes";
 import { cn } from "@/lib/utils";
 
+import { useAppSelector } from "@/hooks/use-app-selector";
+import { selectCartQtyByVariant } from "@/store/cart.selectors";
+
 import type { ProductVariant } from "@/types/catalog";
 
 export type Props = {
@@ -59,7 +62,19 @@ export function ProductActions({
   const isCombinationValid = selectedVariant
     ? selectedVariant.stock > 0
     : false;
+
+  const cartQty = useAppSelector((state) =>
+    selectCartQtyByVariant(state, selectedVariant?.id ?? ""),
+  );
+
   const isOutOfStock = selectedVariant ? selectedVariant.stock === 0 : false;
+
+  const canAdd = selectedVariant
+    ? selectedVariant.stock > 0 && cartQty < selectedVariant.stock
+    : false;
+
+  const isMaxedOut =
+    selectedVariant && cartQty >= selectedVariant.stock && !isOutOfStock;
 
   return (
     <div className="space-y-10">
@@ -176,12 +191,13 @@ export function ProductActions({
             slug={productSlug}
             variantId={selectedVariant?.id ?? ""}
             variantName={`${selectedSize} / ${selectedColor}`}
-            disabled={!isCombinationValid || isOutOfStock}
+            disabled={!isCombinationValid || isOutOfStock || !canAdd}
             details={{
               slug: productSlug,
               name: productName,
               priceMinor: priceMinor,
               imageUrl: imageUrl,
+              stock: selectedVariant?.stock ?? 0,
             }}
           />
         </div>

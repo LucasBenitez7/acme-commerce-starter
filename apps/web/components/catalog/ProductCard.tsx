@@ -11,6 +11,9 @@ import { sortSizes } from "@/lib/catalog/sort-sizes";
 import { formatMinor, DEFAULT_CURRENCY } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 
+import { useAppSelector } from "@/hooks/use-app-selector";
+import { selectCartQtyByVariant } from "@/store/cart.selectors";
+
 import { COLOR_MAP } from "./ProductActions";
 
 import type { ProductListItem } from "@/types/catalog";
@@ -65,9 +68,18 @@ export function ProductCard({ item }: { item: ProductListItem }) {
     );
   }, [item.variants, selectedSize, selectedColor]);
 
+  const cartQty = useAppSelector((state) =>
+    selectCartQtyByVariant(state, selectedVariant?.id ?? ""),
+  );
+
   const isCombinationValid = selectedVariant
-    ? selectedVariant.stock > 0
+    ? selectedVariant.stock > 0 && cartQty < selectedVariant.stock
     : false;
+
+  const isMaxedOut =
+    selectedVariant &&
+    cartQty >= selectedVariant.stock &&
+    selectedVariant.stock > 0;
 
   return (
     <div className="flex flex-col overflow-hidden bg-background transition-all h-full">
@@ -87,8 +99,10 @@ export function ProductCard({ item }: { item: ProductListItem }) {
 
         {/* Badge Agotado */}
         {isOutOfStock && (
-          <div className="absolute top-2 left-2 bg-black/70 text-white text-[10px] font-bold px-2 py-1 uppercase tracking-wider rounded-sm pointer-events-none">
-            Agotado
+          <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none bg-black/50">
+            <div className=" text-white/70 px-4 py-2 text-lg font-bold uppercase tracking-widest border-2 border-white/70">
+              Agotado
+            </div>
           </div>
         )}
 
@@ -157,7 +171,7 @@ export function ProductCard({ item }: { item: ProductListItem }) {
           <FavoriteButton
             isFavorite={isFavorite}
             onToggle={() => {}}
-            className="shrink-0 -mt-1"
+            className="shrink-0"
           />
         </div>
 
@@ -166,7 +180,9 @@ export function ProductCard({ item }: { item: ProductListItem }) {
           <div className="min-h-[1rem]">
             {selectedVariant && !isOutOfStock && (
               <p className="text-xs flex items-center gap-1 text-red-600 font-medium animate-in fade-in">
-                {!isCombinationValid && "Sin stock en la talla seleccionada"}
+                {!isMaxedOut &&
+                  !isCombinationValid &&
+                  "Sin stock en la talla seleccionada"}
               </p>
             )}
           </div>
@@ -244,6 +260,7 @@ export function ProductCard({ item }: { item: ProductListItem }) {
                   name: item.name,
                   priceMinor: item.priceCents,
                   imageUrl: img,
+                  stock: selectedVariant?.stock ?? 0,
                 }}
               />
             </div>

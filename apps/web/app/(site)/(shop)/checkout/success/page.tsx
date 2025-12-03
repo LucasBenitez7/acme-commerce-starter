@@ -79,7 +79,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
   });
 
   return (
-    <Container className="lg:py-6 py-4 px-4 max-w-4xl">
+    <Container className="lg:py-6 py-4 px-4 max-w-2xl">
       <ClearCartOnMount />
 
       <div className="flex flex-col gap-2 mb-4">
@@ -163,7 +163,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
                       )}
 
                       <div className="flex gap-1 pt-1 text-foreground">
-                        <span className="font-semibold">x{item.quantity}</span>
+                        <span className="font-medium">x{item.quantity}</span>
                         {item.quantity > 1 && (
                           <span className="text-muted-foreground font-normal">
                             {formatMinor(item.priceMinorSnapshot, currency)}
