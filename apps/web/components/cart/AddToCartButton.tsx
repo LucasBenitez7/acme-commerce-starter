@@ -1,5 +1,7 @@
 "use client";
 
+import { toast } from "sonner";
+
 import { upsertDetails, type CartItemDetails } from "@/lib/cart-details";
 
 import { useAppDispatch } from "@/hooks/use-app-dispatch";
@@ -40,6 +42,11 @@ export function AddToCartButton({
     }
 
     dispatch(addItem({ slug, variantId, qty }));
+
+    toast.success("Añadido correctamente", {
+      description: `${details?.name || slug} (${variantName})`,
+      duration: 2000,
+    });
   };
 
   return (

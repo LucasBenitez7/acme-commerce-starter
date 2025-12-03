@@ -27,21 +27,21 @@ export async function validateStockAction(items: CartItemMini[]) {
       if (variant.stock === 0) {
         return {
           success: false,
-          error: `Stock insuficiente para "${variant.product.name} ${variant.size}/${variant.color}" quedan ${variant.stock} unidades, elimínalo para continuar.`,
+          error: `Stock insuficiente para "${variant.product.name} (${variant.size}/${variant.color})" quedan ${variant.stock} unidades, elimínalo para continuar.`,
         };
       }
 
       if (variant.stock < item.qty && variant.stock === 1) {
         return {
           success: false,
-          error: `Stock insuficiente para "${variant.product.name} ${variant.size}/${variant.color}" queda disponible ${variant.stock} unidad.`,
+          error: `Stock insuficiente para "${variant.product.name} (${variant.size}/${variant.color})" queda disponible ${variant.stock} unidad.`,
         };
       }
 
       if (variant.stock < item.qty && variant.stock > 0) {
         return {
           success: false,
-          error: `Stock insuficiente para "${variant.product.name} ${variant.size}/${variant.color}" quedan disponibles ${variant.stock} unidades.`,
+          error: `Stock insuficiente para "${variant.product.name} (${variant.size}/${variant.color})" quedan disponibles ${variant.stock} unidades.`,
         };
       }
     }

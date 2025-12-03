@@ -1,5 +1,6 @@
 "use client";
 import { HiOutlineShoppingBag } from "react-icons/hi2";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui";
 
@@ -34,6 +35,11 @@ export function AddToCartIcon({
     }
 
     dispatch(addItem({ slug, variantId, qty }));
+
+    toast.success("Añadido correctamente", {
+      description: `${details?.name} (${variantName})`,
+      duration: 2000,
+    });
   };
 
   return (
@@ -50,17 +56,9 @@ export function AddToCartIcon({
           : "hover:bg-black hover:text-white bg-white border border-neutral-200 text-neutral-900 shadow-sm",
         className,
       )}
-      aria-label="Añadir al carrito"
+      aria-label="Añadir a la cesta"
     >
       <HiOutlineShoppingBag className="size-6" />
     </Button>
-    // <button
-    //   type="button"
-    //   onClick={onClick}
-    //   disabled={disabled || !variantId}
-    //   className="hover:cursor-pointer text-slate-800 hover:text-primary transition-all duration-200 ease-in-out relative top-[-1px]"
-    // >
-    //   <HiOutlineShoppingBag strokeWidth={1.5} className="size-[24px] " />
-    // </button>
   );
 }
