@@ -123,7 +123,12 @@ export default async function AccountOrdersPage() {
                           <span className="font-medium text-foreground">
                             {item.quantity}x
                           </span>
-                          <span>{item.nameSnapshot}</span>
+                          <Link
+                            href={`producto/${item.variantId}`}
+                            className="font-medium"
+                          >
+                            {item.nameSnapshot}
+                          </Link>
                           {/* MOSTRAR VARIANTES (Talla/Color) */}
                           {(item.sizeSnapshot || item.colorSnapshot) && (
                             <span className="text-muted-foreground/70">
