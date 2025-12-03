@@ -10,13 +10,13 @@ export default function NotFound() {
       <div className="mt-6 flex items-center justify-center gap-6">
         <Link
           href="/"
-          className="py-2 px-4 font-medium rounded-lb border border-slate-300 bg-background hover:bg-neutral-100"
+          className="py-2 px-4 font-medium rounded-xs border border-slate-300 bg-background hover:bg-neutral-100"
         >
           Volver al inicio
         </Link>
         <Link
           href="/catalogo"
-          className="py-2 px-4 font-medium rounded-lb border border-slate-300 bg-foreground text-background hover:bg-slate-800"
+          className="py-2 px-4 font-medium rounded-xs border border-slate-300 bg-foreground text-background hover:bg-slate-800"
         >
           Ir al catálogo
         </Link>

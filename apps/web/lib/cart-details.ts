@@ -1,12 +1,20 @@
 export type CartItemDetails = {
   slug: string;
+  variantId: string;
   name: string;
+  variantName: string;
   priceMinor: number;
   imageUrl?: string;
+  stock: number;
 };
 
 export type DetailsMap = Record<string, CartItemDetails>;
-export const DETAILS_LS_KEY = "cart.details.v1";
+export const DETAILS_LS_KEY = "cart.details.v2";
+export const DETAILS_EVENT_NAME = "cart-details-updated";
+
+export function makeKey(slug: string, variantId: string) {
+  return `${slug}:${variantId}`;
+}
 
 export function readDetailsMap(): DetailsMap {
   if (typeof window === "undefined") return {};
@@ -15,7 +23,11 @@ export function readDetailsMap(): DetailsMap {
     if (!raw) return {};
     const arr = JSON.parse(raw) as CartItemDetails[];
     const map: DetailsMap = {};
-    for (const d of arr) map[d.slug] = d;
+    for (const d of arr) {
+      if (d.slug && d.variantId) {
+        map[makeKey(d.slug, d.variantId)] = d;
+      }
+    }
     return map;
   } catch {
     return {};
@@ -27,12 +39,13 @@ export function writeDetailsMap(map: DetailsMap) {
   try {
     const arr = Object.values(map);
     window.localStorage.setItem(DETAILS_LS_KEY, JSON.stringify(arr));
+    window.dispatchEvent(new Event(DETAILS_EVENT_NAME));
   } catch {}
 }
 
 export function upsertDetails(details: CartItemDetails) {
   const map = readDetailsMap();
-  map[details.slug] = details;
+  map[makeKey(details.slug, details.variantId)] = details;
   writeDetailsMap(map);
 }
 

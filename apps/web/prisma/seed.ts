@@ -3,15 +3,26 @@ import { type Prisma, PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 const CATEGORIES = [
-  { slug: "chaquetas", name: "Chaquetas" },
-  { slug: "pantalones", name: "Pantalones" },
-  { slug: "vestidos", name: "Vestidos" },
-  { slug: "jeans", name: "Jeans" },
-  { slug: "jerseys", name: "Jerseys" },
-  { slug: "camisetas", name: "Camisetas" },
-  { slug: "ropa-interior", name: "Ropa interior" },
-  { slug: "zapatillas", name: "Zapatillas" },
+  { slug: "chaquetas", name: "Chaquetas", type: "clothing" },
+  { slug: "pantalones", name: "Pantalones", type: "clothing" },
+  { slug: "vestidos", name: "Vestidos", type: "clothing" },
+  { slug: "jeans", name: "Jeans", type: "clothing" },
+  { slug: "jerseys", name: "Jerseys", type: "clothing" },
+  { slug: "camisetas", name: "Camisetas", type: "clothing" },
+  { slug: "ropa-interior", name: "Ropa interior", type: "clothing" },
+  { slug: "zapatillas", name: "Zapatillas", type: "shoes" },
 ] as const;
+
+// Definimos variantes posibles
+const CLOTHING_SIZES = ["XXS", "XS", "S", "M", "L", "XL"];
+const SHOE_SIZES = ["37", "38", "39", "40", "41", "42", "43", "44"];
+const COLORS = ["Negro", "Blanco", "Azul Marino", "Beige", "Rojo"];
+
+type SeedVariant = {
+  size: string;
+  color: string;
+  stock: number;
+};
 
 type SeedProduct = {
   slug: string;
@@ -19,11 +30,34 @@ type SeedProduct = {
   description: string;
   priceCents: number;
   categorySlug: string;
+  categoryType: "clothing" | "shoes";
   images: Array<{ url: string; alt: string; sort: number }>;
 };
 
 function euros(n: number) {
   return Math.round(n * 100);
+}
+
+// Generador de variantes aleatorias para un producto
+function generateVariants(type: "clothing" | "shoes"): SeedVariant[] {
+  const sizes = type === "clothing" ? CLOTHING_SIZES : SHOE_SIZES;
+  const variants: SeedVariant[] = [];
+
+  const numColors = Math.floor(Math.random() * 3) + 2;
+  const productColors = COLORS.sort(() => 0.5 - Math.random()).slice(
+    0,
+    numColors,
+  );
+
+  for (const color of productColors) {
+    for (const size of sizes) {
+      const hasStock = Math.random() > 0.2;
+      const stock = hasStock ? Math.floor(Math.random() * 20) + 1 : 0;
+
+      variants.push({ size, color, stock });
+    }
+  }
+  return variants;
 }
 
 function makeProducts(): SeedProduct[] {
@@ -34,15 +68,17 @@ function makeProducts(): SeedProduct[] {
       const id = i++;
       const name = `Producto ${id}`;
       const price = ((id * 3.99) % 200) + 9.99;
+
       base.push({
         slug: `producto-${id}`,
         name,
         description: `Descripción del ${name}.`,
         priceCents: euros(price),
         categorySlug: cat.slug,
+        categoryType: cat.type as "clothing" | "shoes",
         images: [
           {
-            url: `https://plus.unsplash.com/premium_photo-1756137116701-ee9391c4bf62?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=687&title=${encodeURIComponent(
+            url: `https://plus.unsplash.com/premium_photo-1756137116701-ee9391c4bf62?ixlib=rb-4.1.0&auto=format&fit=crop&q=80&w=687&title=${encodeURIComponent(
               name,
             )}`,
             alt: name,
@@ -56,10 +92,10 @@ function makeProducts(): SeedProduct[] {
 }
 
 async function main() {
-  console.log("Seeding…");
+  console.log("Seeding con Variantes...");
 
   await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-    // 1) Upsert categorías con 'sort' según índice
+    // 1) Upsert Categorías
     const cats: Record<string, string> = {};
     for (const [index, c] of CATEGORIES.entries()) {
       const r = await tx.category.upsert({
@@ -70,38 +106,16 @@ async function main() {
       cats[c.slug] = r.id;
     }
 
-    // 1.1) Reasignar productos de categorías sintéticas (si existen) y luego borrarlas
-    const syntheticSlugs: string[] = ["ver-todos", "todas-las-prendas"];
-    const synthetic: Array<{ id: string }> = await tx.category.findMany({
-      where: { slug: { in: syntheticSlugs } },
-      select: { id: true },
-    });
-
-    if (synthetic.length) {
-      // Fallback: chaquetas o la primera categoría real
-      const fallbackId =
-        cats["chaquetas"] ??
-        (await tx.category.findFirst({ select: { id: true } }))?.id;
-
-      if (!fallbackId)
-        throw new Error("No hay categoría fallback para reasignar.");
-
-      await tx.product.updateMany({
-        where: { categoryId: { in: synthetic.map((s) => s.id) } },
-        data: { categoryId: fallbackId },
-      });
-
-      await tx.category.deleteMany({
-        where: { id: { in: synthetic.map((s) => s.id) } },
-      });
-    }
-
-    // 2) Productos (upsert por slug). En update no tocamos imágenes.
+    // 2) Productos y Variantes
     const products: SeedProduct[] = makeProducts();
 
     for (const p of products) {
       const categoryId = cats[p.categorySlug];
-      await tx.product.upsert({
+      if (!categoryId) continue;
+
+      const variantsData = generateVariants(p.categoryType);
+
+      const product = await tx.product.upsert({
         where: { slug: p.slug },
         update: {
           name: p.name,
@@ -118,24 +132,40 @@ async function main() {
           currency: "EUR",
           categoryId,
           images: {
-            create: p.images.map(
-              (img: { url: string; alt: string; sort: number }) => ({
-                url: img.url,
-                alt: img.alt,
-                sort: img.sort,
-              }),
-            ),
+            create: p.images.map((img) => ({
+              url: img.url,
+              alt: img.alt,
+              sort: img.sort,
+            })),
           },
         },
       });
+
+      // Buscamos si ya tiene variantes
+      const existingVariants = await tx.productVariant.count({
+        where: { productId: product.id },
+      });
+
+      if (existingVariants === 0) {
+        await tx.productVariant.createMany({
+          data: variantsData.map((v) => ({
+            productId: product.id,
+            size: v.size,
+            color: v.color,
+            stock: v.stock,
+          })),
+        });
+      }
     }
   });
 
-  const [countProducts, countCats] = await Promise.all([
+  const [countProducts, countVariants] = await Promise.all([
     prisma.product.count(),
-    prisma.category.count(),
+    prisma.productVariant.count(),
   ]);
-  console.log(`OK: ${countProducts} productos / ${countCats} categorías.`);
+  console.log(
+    `OK: ${countProducts} productos y ${countVariants} variantes creadas.`,
+  );
 }
 
 main()

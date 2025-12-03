@@ -43,7 +43,7 @@ export default async function CategoryPage({
   return (
     <section className="px-4">
       <SectionHeader title={String(cat.name)} />
-      <ProductGrid items={items} showCartRow={true} />
+      <ProductGrid items={items} />
       <PaginationNav
         page={page}
         totalPages={totalPages}

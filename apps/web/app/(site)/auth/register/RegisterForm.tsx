@@ -80,21 +80,49 @@ export function RegisterForm({ action, redirectTo }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* NOMBRE */}
+      {/* GRID PARA NOMBRE Y APELLIDO EN UNA FILA */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1">
+          <Label htmlFor="firstName">Nombre</Label>
+          <Input
+            id="firstName"
+            name="firstName"
+            autoComplete="given-name"
+            aria-invalid={!!fieldErrors.firstName}
+          />
+          {fieldErrors.firstName && (
+            <p className="text-xs text-red-600">{fieldErrors.firstName}</p>
+          )}
+        </div>
+
+        <div className="space-y-1">
+          <Label htmlFor="lastName">Apellidos</Label>
+          <Input
+            id="lastName"
+            name="lastName"
+            autoComplete="family-name"
+            aria-invalid={!!fieldErrors.lastName}
+          />
+          {fieldErrors.lastName && (
+            <p className="text-xs text-red-600">{fieldErrors.lastName}</p>
+          )}
+        </div>
+      </div>
+
       <div className="space-y-1">
-        <Label htmlFor="name">Nombre</Label>
+        <Label htmlFor="phone">Teléfono</Label>
         <Input
-          id="name"
-          name="name"
-          autoComplete="name"
-          aria-invalid={!!fieldErrors.name}
+          id="phone"
+          name="phone"
+          type="tel"
+          autoComplete="tel"
+          aria-invalid={!!fieldErrors.phone}
         />
-        {fieldErrors.name && (
-          <p className="text-xs text-red-600">{fieldErrors.name}</p>
+        {fieldErrors.phone && (
+          <p className="text-xs text-red-600">{fieldErrors.phone}</p>
         )}
       </div>
 
-      {/* EMAIL */}
       <div className="space-y-1">
         <Label htmlFor="email">Email</Label>
         <Input
@@ -109,7 +137,6 @@ export function RegisterForm({ action, redirectTo }: Props) {
         )}
       </div>
 
-      {/* PASSWORD */}
       <div className="space-y-1">
         <Label htmlFor="password">Contraseña</Label>
         <PasswordInput
@@ -126,7 +153,6 @@ export function RegisterForm({ action, redirectTo }: Props) {
         </p>
       </div>
 
-      {/* CONFIRM PASSWORD */}
       <div className="space-y-1">
         <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
         <PasswordInput
@@ -143,14 +169,13 @@ export function RegisterForm({ action, redirectTo }: Props) {
       {formError && <p className="text-xs text-red-600">{formError}</p>}
 
       <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? "Creando cuenta..." : "Crear cuenta"}
+        {isSubmitting ? "Registrando..." : "Crear cuenta"}
       </Button>
 
-      {/* Links footer... */}
-      <p className="mt-2 text-xs font-medium">
+      <p className="mt-2 text-xs text-muted-foreground">
         ¿Ya tienes cuenta?{" "}
         <a
-          href={`/auth/login?redirectTo=${encodeURIComponent(redirectToParam)}`}
+          href={`/auth/login?redirectTo=${encodeURIComponent(redirectTo)}`}
           className="fx-underline-anim"
         >
           Inicia sesión

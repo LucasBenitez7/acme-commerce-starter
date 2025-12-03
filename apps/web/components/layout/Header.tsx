@@ -35,7 +35,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
   const safeRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
-  const mounted = useMounted(); // Hook para saber si estamos en cliente
+  const mounted = useMounted();
 
   const { data: session, status: sessionStatus } = useSession();
   const user = session?.user ?? null;
@@ -45,8 +45,6 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
   const hideHeader = HIDE_HEADER_ON.includes(pathname);
   const isCartPage = pathname === "/cart";
 
-  // SOLUCIÓN SCROLL: Solo bloqueamos el scroll si está abierto el menú móvil (open).
-  // El menú flotante (accountMenuOpen) NO bloqueará el scroll.
   useLockBodyScroll(open && !hideHeader);
 
   useAutoCloseOnRouteChange((open || accountMenuOpen) && !hideHeader, () => {
@@ -163,7 +161,6 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
               <Button
                 type="button"
                 variant={"ghost"}
-                // Solo mostramos la clase del tooltip si showTooltip es true
                 className={`${
                   showTooltip ? "tip-bottom" : ""
                 } hover:cursor-pointer relative z-20`}
@@ -173,7 +170,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
                 size={"icon-lg"}
               >
                 {userInitial ? (
-                  <span className="flex h-[24px] w-[24px] items-center justify-center rounded-full border-2 border-foreground text-[14px] font-semibold bg-background">
+                  <span className="flex h-[24px] pt-[0.5px] w-[24px] items-center justify-center rounded-full border-2 border-foreground text-[14px] font-semibold bg-background">
                     {userInitial}
                   </span>
                 ) : (
@@ -183,8 +180,8 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
 
               {/* MENÚ FLOTANTE */}
               {user && accountMenuOpen && (
-                <div className="hidden lg:block absolute right-0 top-[calc(100%-18px)] pt-4 w-72 z-30 animate-in fade-in zoom-in-95 duration-200">
-                  <div className="rounded-lb border bg-popover shadow-xl overflow-hidden">
+                <div className="hidden lg:block absolute right-0 top-[calc(100%-20px)] pt-4 w-72 z-30 animate-in fade-in zoom-in-95 duration-200">
+                  <div className="rounded-xs border bg-popover shadow-xl overflow-hidden">
                     {/* Cabecera del menú */}
                     <div className="bg-muted/30 p-4 border-b flex items-center gap-3">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-lg">
@@ -204,7 +201,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
                     <div className="p-2 space-y-1">
                       <Link
                         href="/account"
-                        className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lb hover:bg-neutral-100 transition-colors text-foreground/80 hover:text-foreground"
+                        className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xs hover:bg-neutral-100 transition-colors text-foreground/80 hover:text-foreground"
                         onClick={() => setAccountMenuOpen(false)}
                       >
                         <FaUser className="size-4 text-muted-foreground" />
@@ -212,7 +209,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
                       </Link>
                       <Link
                         href="/account/orders"
-                        className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lb hover:bg-neutral-100 transition-colors text-foreground/80 hover:text-foreground"
+                        className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xs hover:bg-neutral-100 transition-colors text-foreground/80 hover:text-foreground"
                         onClick={() => setAccountMenuOpen(false)}
                       >
                         <FaBoxOpen className="size-4 text-muted-foreground" />
@@ -220,11 +217,11 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
                       </Link>
                       <Link
                         href="/favoritos"
-                        className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lb hover:bg-neutral-100 transition-colors text-foreground/80 hover:text-foreground"
+                        className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xs hover:bg-neutral-100 transition-colors text-foreground/80 hover:text-foreground"
                         onClick={() => setAccountMenuOpen(false)}
                       >
                         <FaHeart className="size-4 text-muted-foreground" />
-                        Mis Favoritos
+                        Mis favoritos
                       </Link>
                     </div>
 
@@ -233,7 +230,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
                       <button
                         type="button"
                         onClick={handleSignOut}
-                        className="flex w-full hover:cursor-pointer items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lb text-red-600 hover:bg-red-50 transition-colors"
+                        className="flex w-full hover:cursor-pointer items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xs text-red-600 hover:bg-red-50 transition-colors"
                       >
                         <FaSignOutAlt className="size-4" />
                         Cerrar sesión

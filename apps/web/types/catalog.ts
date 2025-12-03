@@ -11,14 +11,23 @@ export type ProductImage = {
   sort?: number;
 };
 
+export type ProductVariant = {
+  id: string;
+  size: string;
+  color: string;
+  stock: number;
+};
+
 // DTO para listas
 export type ProductListItem = {
   id: string;
   slug: string;
   name: string;
   priceCents: number;
+  totalStock: number;
   currency: SupportedCurrency;
   thumbnail: string | null;
+  variants: ProductVariant[];
 };
 
 // DTO para detalle
@@ -30,6 +39,7 @@ export type ProductDetail = {
   priceCents: number;
   currency: SupportedCurrency;
   images: ProductImage[];
+  variants: ProductVariant[];
   category: { slug: string; name: string };
 };
 

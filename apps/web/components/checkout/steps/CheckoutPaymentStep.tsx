@@ -26,7 +26,7 @@ export function CheckoutPaymentStep({
           return (
             <label
               key={option.id}
-              className={`flex cursor-pointer flex-col rounded-lb border p-3 py-6 text-sm text-left transition-colors
+              className={`flex cursor-pointer flex-col rounded-xs border p-3 py-6 text-sm text-left transition-colors
                 ${
                   isSelected
                     ? "border-primary"

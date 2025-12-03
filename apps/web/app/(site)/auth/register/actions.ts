@@ -14,7 +14,7 @@ export async function registerAction(formData: FormData) {
     return { error: "validation_error" };
   }
 
-  const { email, password, name } = result.data;
+  const { email, password, firstName, lastName, phone } = result.data;
   const emailLower = email.toLowerCase();
 
   try {
@@ -26,12 +26,18 @@ export async function registerAction(formData: FormData) {
       return { error: "exists" };
     }
 
-    // Crear usuario
     const passwordHash = await hash(password, 10);
+
+    // Concatenamos nombre completo para el campo legacy 'name'
+    const fullName = `${firstName} ${lastName}`.trim();
+
     await prisma.user.create({
       data: {
         email: emailLower,
-        name,
+        firstName,
+        lastName,
+        phone,
+        name: fullName,
         passwordHash,
         role: "user",
       },

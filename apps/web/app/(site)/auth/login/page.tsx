@@ -36,7 +36,7 @@ export default async function LoginPage({ searchParams }: Props) {
 
   return (
     <Container className="bg-neutral-100 p-6 lg:p-8">
-      <div className="max-w-lg mx-auto border p-6 bg-background rounded-lb">
+      <div className="max-w-lg mx-auto border p-6 bg-background rounded-xs">
         <h1 className="text-2xl font-semibold tracking-tight">
           Iniciar sesión
         </h1>
