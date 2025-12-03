@@ -39,7 +39,7 @@ function toListItem(row: {
   priceCents: number;
   currency: string | null;
   images: { url: string }[];
-  variants: { stock: number }[];
+  variants: { id: string; size: string; color: string; stock: number }[];
 }): ProductListItem {
   const totalStock = row.variants.reduce((acc, v) => acc + v.stock, 0);
 
@@ -51,6 +51,7 @@ function toListItem(row: {
     totalStock,
     currency: (row.currency ?? "EUR") as SupportedCurrency,
     thumbnail: row.images[0]?.url ?? null,
+    variants: row.variants,
   };
 }
 
@@ -68,7 +69,12 @@ export const productListSelect = {
   },
   // Traemos variantes solo para sumar el stock
   variants: {
-    select: { stock: true },
+    select: {
+      id: true,
+      size: true,
+      color: true,
+      stock: true,
+    },
   },
 } satisfies Prisma.ProductSelect;
 

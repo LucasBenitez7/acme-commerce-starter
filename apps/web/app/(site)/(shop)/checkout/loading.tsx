@@ -21,17 +21,17 @@ export default function CheckoutLoading() {
 
               {/* Tarjetas de envío / formulario */}
               <div className="space-y-3">
-                <div className="h-24 rounded-lb bg-neutral-100 animate-pulse" />
-                <div className="h-24 rounded-lb bg-neutral-100 animate-pulse" />
-                <div className="h-24 rounded-lb bg-neutral-100 animate-pulse" />
+                <div className="h-24 rounded-xs bg-neutral-100 animate-pulse" />
+                <div className="h-24 rounded-xs bg-neutral-100 animate-pulse" />
+                <div className="h-24 rounded-xs bg-neutral-100 animate-pulse" />
               </div>
 
               {/* Zona de navegación (botones) */}
               <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="h-4 w-32 rounded bg-neutral-200 animate-pulse" />
                 <div className="flex gap-2">
-                  <div className="h-9 w-40 rounded-lb bg-neutral-200 animate-pulse" />
-                  <div className="hidden h-9 w-40 rounded-lb bg-neutral-100 animate-pulse sm:block" />
+                  <div className="h-9 w-40 rounded-xs bg-neutral-200 animate-pulse" />
+                  <div className="hidden h-9 w-40 rounded-xs bg-neutral-100 animate-pulse sm:block" />
                 </div>
               </div>
             </div>
@@ -69,7 +69,7 @@ export default function CheckoutLoading() {
                     key={i}
                     className="grid grid-cols-[auto_1fr_auto] items-center gap-2"
                   >
-                    <div className="relative h-24 w-20 shrink-0 overflow-hidden rounded-lb bg-neutral-200 animate-pulse" />
+                    <div className="relative h-24 w-20 shrink-0 overflow-hidden rounded-xs bg-neutral-200 animate-pulse" />
                     <div className="flex h-full flex-col justify-between py-1">
                       <div className="h-4 w-32 rounded bg-neutral-200 animate-pulse" />
                       <div className="h-3 w-24 rounded bg-neutral-200 animate-pulse" />

@@ -1,6 +1,6 @@
 "use client";
 
-import { FaRegHeart, FaHeart } from "react-icons/fa6";
+import { FaRegHeart, FaHeart } from "react-icons/fa";
 
 type CartFavoriteButtonProps = {
   isFavorite: boolean;
@@ -17,7 +17,7 @@ export function FavoriteButton({
     <button
       type="button"
       className={`
-        group relative flex h-6 w-6 items-center justify-center rounded-lb hover:cursor-pointer
+        group relative flex h-5 w-5 items-center justify-center rounded-xs hover:cursor-pointer
         ${className ?? ""}
       `}
       aria-label={isFavorite ? "Quitar de favoritos" : "Agregar a favoritos"}
@@ -27,7 +27,7 @@ export function FavoriteButton({
       {/* Icono outline (por defecto) */}
       <FaRegHeart
         className={`
-          size-[20px] text-foreground transition-opacity
+          size-[18px] text-foreground transition-opacity stroke-0
           ${isFavorite ? "opacity-0" : "opacity-100 group-hover:opacity-0"}
         `}
         aria-hidden="true"
@@ -36,7 +36,7 @@ export function FavoriteButton({
       {/* Icono relleno (hover y/o activo) */}
       <FaHeart
         className={`
-          pointer-events-none absolute size-[20px] text-foreground transition-opacity
+          pointer-events-none absolute size-[18px] text-foreground transition-opacity
           ${isFavorite ? "opacity-100" : "opacity-0 group-hover:opacity-100"}
         `}
         aria-hidden="true"

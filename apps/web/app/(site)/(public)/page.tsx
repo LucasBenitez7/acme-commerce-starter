@@ -15,7 +15,7 @@ export default async function HomePage() {
   return (
     <section className="px-4">
       <SectionHeader title="Home" />
-      <ProductGrid items={items} showCartRow={true} />
+      <ProductGrid items={items} />
     </section>
   );
 }

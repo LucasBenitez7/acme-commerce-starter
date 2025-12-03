@@ -12,8 +12,8 @@ type Props = {
 
 export function BurgerButton({ open, onToggle, controlsId, className }: Props) {
   const barBase = open
-    ? "absolute -translate-x-1/2 h-[0.130rem] rounded-lb bg-primary group-transition-[transform,opacity,background-color,filter] duration-400 transform-gpu motion-reduce:transition-none "
-    : "absolute -translate-x-1/2 h-[0.130rem] rounded-lb bg-primary group-transition-[transform,opacity,background-color,filter] duration-200 transform-gpu motion-reduce:transition-none";
+    ? "absolute -translate-x-1/2 h-[0.130rem] rounded-xs bg-primary group-transition-[transform,opacity,background-color,filter] duration-400 transform-gpu motion-reduce:transition-none "
+    : "absolute -translate-x-1/2 h-[0.130rem] rounded-xs bg-primary group-transition-[transform,opacity,background-color,filter] duration-200 transform-gpu motion-reduce:transition-none";
 
   return (
     <div className="tip-right" data-tip={open ? "Cerrar menú" : "Abrir menú"}>
@@ -24,7 +24,7 @@ export function BurgerButton({ open, onToggle, controlsId, className }: Props) {
         aria-expanded={open}
         aria-controls={controlsId}
         className={[
-          "group relative h-[30px] w-[32px] rounded-lb cursor-pointer select-none outline-none hover:bg-neutral-100 transition-all duration-200 ease-in-out",
+          "group relative h-[30px] w-[32px] rounded-xs cursor-pointer select-none outline-none hover:bg-neutral-100 transition-all duration-200 ease-in-out",
           className ?? "",
         ].join(" ")}
       >

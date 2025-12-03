@@ -14,8 +14,8 @@ const CATEGORIES = [
 ] as const;
 
 // Definimos variantes posibles
-const CLOTHING_SIZES = ["XS", "S", "M", "L", "XL"];
-const SHOE_SIZES = ["38", "39", "40", "41", "42", "43", "44"];
+const CLOTHING_SIZES = ["XXS", "XS", "S", "M", "L", "XL"];
+const SHOE_SIZES = ["37", "38", "39", "40", "41", "42", "43", "44"];
 const COLORS = ["Negro", "Blanco", "Azul Marino", "Beige", "Rojo"];
 
 type SeedVariant = {
@@ -43,12 +43,14 @@ function generateVariants(type: "clothing" | "shoes"): SeedVariant[] {
   const sizes = type === "clothing" ? CLOTHING_SIZES : SHOE_SIZES;
   const variants: SeedVariant[] = [];
 
-  // Para no crear miles de variantes, elegimos 2 colores al azar por producto
-  const productColors = COLORS.sort(() => 0.5 - Math.random()).slice(0, 2);
+  const numColors = Math.floor(Math.random() * 3) + 2;
+  const productColors = COLORS.sort(() => 0.5 - Math.random()).slice(
+    0,
+    numColors,
+  );
 
   for (const color of productColors) {
     for (const size of sizes) {
-      // 80% de probabilidad de tener stock
       const hasStock = Math.random() > 0.2;
       const stock = hasStock ? Math.floor(Math.random() * 20) + 1 : 0;
 
@@ -111,17 +113,14 @@ async function main() {
       const categoryId = cats[p.categorySlug];
       if (!categoryId) continue;
 
-      // Generamos las variantes en memoria
       const variantsData = generateVariants(p.categoryType);
 
-      // Upsert del Producto
       const product = await tx.product.upsert({
         where: { slug: p.slug },
         update: {
           name: p.name,
           description: p.description,
           priceCents: p.priceCents,
-          // No actualizamos stock aquí, eso va en variantes
           currency: "EUR",
           categoryId,
         },

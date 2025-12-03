@@ -78,7 +78,7 @@ export function CheckoutReviewStep({
               Editar
             </button>
           </div>
-          <div className="flex flex-col space-y-1.5 text-sm text-foreground font-normal border rounded-lb p-3">
+          <div className="flex flex-col space-y-1.5 text-sm text-foreground font-normal border rounded-xs p-3">
             <dd>{contact.fullName || "—"}</dd>
             <dd>{contact.phone || "—"}</dd>
           </div>
@@ -95,7 +95,7 @@ export function CheckoutReviewStep({
               Editar
             </button>
           </div>
-          <div className="flex flex-col space-y-1.5 text-sm text-foreground font-normal border rounded-lb p-3">
+          <div className="flex flex-col space-y-1.5 text-sm text-foreground font-normal border rounded-xs p-3">
             <dd>{shipping.details || "—"}</dd>
           </div>
         </div>
@@ -111,7 +111,7 @@ export function CheckoutReviewStep({
               Editar
             </button>
           </div>
-          <p className="flex items-center border rounded-lb p-3 font-normal text-sm text-foreground">
+          <p className="flex items-center border rounded-xs p-3 font-normal text-sm text-foreground">
             {paymentLabel}
             {PaymentIcon && <PaymentIcon className="ml-2 inline h-4 w-4" />}
           </p>

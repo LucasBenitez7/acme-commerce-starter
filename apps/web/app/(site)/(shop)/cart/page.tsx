@@ -70,7 +70,7 @@ export default function CartPage() {
       <h1 className="py-4 text-2xl font-semibold">Cesta</h1>
 
       {!hasItems && !undoStack.length ? (
-        <div className="rounded-lb border p-4 text-sm">
+        <div className="rounded-xs border p-4 text-sm">
           <p className="mb-3 font-medium">Tu cesta está vacía</p>
           <p className="mb-4 text-muted-foreground">
             Explora en nuestra tienda para encontrar lo que necesitas
@@ -81,10 +81,10 @@ export default function CartPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_minmax(320px,480px)]">
-          <div className="border rounded-lb px-5 py-3 bg-background">
+          <div className="border rounded-xs px-5 py-3 bg-background">
             {/* Mensaje de error de stock en la lista principal */}
             {stockError && (
-              <div className="mb-4 rounded-lb bg-red-50 p-3 font-medium text-sm text-red-600 border border-red-200 animate-in fade-in slide-in-from-top-2">
+              <div className="mb-4 rounded-xs bg-red-50 p-3 font-medium text-sm text-red-600 border border-red-200 animate-in fade-in slide-in-from-top-2">
                 {stockError}
               </div>
             )}
@@ -106,25 +106,28 @@ export default function CartPage() {
                         <img
                           src={d.imageUrl}
                           alt={d.name}
-                          className="h-full w-full rounded-lb object-cover"
+                          className="h-full w-full rounded-xs object-cover"
                         />
                       )}
                     </div>
 
                     <div className="flex flex-col justify-between min-w-0 h-full py-1">
                       <div className="flex flex-col gap-2">
-                        <div className="truncate text-sm font-medium">
-                          {d?.name ?? r.slug}
-                        </div>
-                        <div className="flex gap-2 text-xs mb-1">
+                        <Link
+                          href={`/product/${d?.slug ?? r.slug}`}
+                          className="truncate text-sm font-medium fx-underline-anim w-max"
+                        >
+                          <span> {d?.name ?? r.slug}</span>
+                        </Link>
+                        <div className="flex gap-2 text-xs">
                           {d?.variantName && (
-                            <div className="text-xs flex gap-2 mb-1">
+                            <div className="text-xs font-medium flex gap-2 mb-0.5">
                               <span>{d.variantName}</span>
                             </div>
                           )}
                         </div>
                         {r.qty > 1 && (
-                          <div className="text-xs font-medium text-muted-foreground">
+                          <div className="text-xs font-normal text-muted-foreground">
                             {d
                               ? formatMinor(d.priceMinor, DEFAULT_CURRENCY)
                               : "—"}
@@ -133,7 +136,7 @@ export default function CartPage() {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <div className="flex items-center border rounded-lb">
+                        <div className="flex items-center border rounded-xs">
                           <button
                             className="text-base hover:cursor-pointer px-3 py-1  hover:bg-neutral-100"
                             aria-label="Restar unidad"
@@ -187,7 +190,6 @@ export default function CartPage() {
                       />
 
                       <RemoveButton
-                        className="mt-1"
                         onRemove={() =>
                           dispatch(
                             removeItem({
@@ -218,8 +220,8 @@ export default function CartPage() {
           </div>
 
           {rows.length > 0 && (
-            <aside className="lg:sticky lg:top-18 h-max border rounded-lb px-4 bg-background">
-              <div className="flex items-center justify-between text-lg  py-4 font-medium">
+            <aside className="lg:sticky lg:top-18 h-max border rounded-xs px-4 bg-background">
+              <div className="flex items-center justify-between text-lg py-4 font-medium">
                 <span>Subtotal</span>
                 <span className="text-base">
                   {formatMinor(subtotalMinor, DEFAULT_CURRENCY)}

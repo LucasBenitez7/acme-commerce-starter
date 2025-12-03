@@ -93,7 +93,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
         </p>
       </div>
 
-      <div className="mb-4 rounded-lb border bg-card p-4">
+      <div className="mb-4 rounded-xs border bg-card p-4">
         <p className="text-lg font-medium">
           Número de pedido:{" "}
           <span className="font-mono text-base md:text-sm">{order.id}</span>
@@ -103,7 +103,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
         </p>
       </div>
 
-      <section className="mb-4 flex flex-col space-y-4 text-xs text-foreground font-medium bg-card border rounded-lb p-4">
+      <section className="mb-4 flex flex-col space-y-4 text-xs text-foreground font-medium bg-card border rounded-xs p-4">
         <div>
           <p className="text-base font-semibold">Datos de contacto</p>
           <div className="space-y-1 ">
@@ -118,7 +118,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
         </div>
       </section>
 
-      <section className="space-y-4 rounded-lb border bg-card">
+      <section className="space-y-4 rounded-xs border bg-card">
         <div className="flex items-baseline justify-between gap-2">
           <h2 className="text-base font-semibold pt-4 px-4">
             Resumen de la compra <span className="text-base">({totalQty})</span>
@@ -136,7 +136,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
                 className="grid grid-cols-[auto_1fr_auto] items-center gap-2 py-1"
               >
                 <div
-                  className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lb bg-neutral-100"
+                  className="relative h-20 w-16 shrink-0 overflow-hidden rounded-xs bg-neutral-100"
                   aria-hidden="true"
                 >
                   {imageUrl && (
@@ -153,7 +153,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
                   <div className="space-y-1">
                     <p className="text-sm">{item.nameSnapshot}</p>
 
-                    <div className="flex flex-col items-baseline gap-1 text-xs text-muted-foreground">
+                    <div className="flex flex-col items-baseline gap-1 text-xs text-foreground">
                       {/* MOSTRAR VARIANTES REALES */}
                       {item.sizeSnapshot && (
                         <p className="text-xs">Talla: {item.sizeSnapshot}</p>
@@ -166,8 +166,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
                         <span className="font-semibold">x{item.quantity}</span>
                         {item.quantity > 1 && (
                           <span className="text-muted-foreground font-normal">
-                            ({formatMinor(item.priceMinorSnapshot, currency)} /
-                            ud)
+                            {formatMinor(item.priceMinorSnapshot, currency)}
                           </span>
                         )}
                       </div>

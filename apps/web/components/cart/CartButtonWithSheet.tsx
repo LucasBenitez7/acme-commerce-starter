@@ -140,15 +140,15 @@ export function CartButtonWithSheet() {
         className="z-[190] w-[min(100vw,500px)] p-0"
       >
         <div className="flex h-full flex-col">
-          <SheetHeader className="shrink-0 border-b mb-2 px-4">
+          <SheetHeader className="shrink-0 border-b px-4">
             <div className="flex flex-row justify-between items-center h-[var(--header-h)]">
-              <SheetTitle className="text-center rounded-lb text-xl font-medium">
+              <SheetTitle className="text-center rounded-xs text-xl font-medium">
                 Cesta
               </SheetTitle>
               <SheetClose asChild>
                 <button
                   aria-label="Cerrar cesta"
-                  className="p-[4px] text-sm hover:cursor-pointer border border-white hover:border-slate-300 focus:outline-none bg-background hover:bg-neutral-100 rounded-lb transition-all duration-200 ease-in-out"
+                  className="p-[4px] text-sm hover:cursor-pointer border border-white hover:border-slate-300 focus:outline-none bg-background hover:bg-neutral-100 rounded-xs transition-all duration-200 ease-in-out"
                 >
                   <CgClose className="size-[20px] stroke-[0.4px]" />
                 </button>
@@ -156,9 +156,9 @@ export function CartButtonWithSheet() {
             </div>
           </SheetHeader>
 
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto py-2">
             {rows.length === 0 && !undoStack.length && (
-              <div className="rounded-lb h-full p-6 text-sm justify-center items-center flex flex-col">
+              <div className="rounded-xs h-full p-6 text-sm justify-center items-center flex flex-col">
                 <p className="mb-3 font-medium">Tu cesta está vacía</p>
                 <p className="mb-4 text-muted-foreground">
                   Explora en nuestra tienda para encontrar lo que necesitas
@@ -187,23 +187,26 @@ export function CartButtonWithSheet() {
                           alt={d.name}
                           fill
                           sizes="200px"
-                          className="h-full w-full rounded-lb object-cover"
+                          className="h-full w-full rounded-xs object-cover"
                         />
                       )}
                     </div>
 
                     <div className="flex flex-col justify-between min-w-0 h-full py-1">
                       <div className="flex flex-col gap-2">
-                        <div className="truncate text-sm font-medium">
-                          {d?.name ?? r.slug}
-                        </div>
+                        <Link
+                          href={`/product/${d?.slug ?? r.slug}`}
+                          className="truncate text-sm font-medium fx-underline-anim w-max"
+                        >
+                          <span> {d?.name ?? r.slug}</span>
+                        </Link>
                         {d?.variantName && (
-                          <div className="text-xs flex gap-2 mb-1">
+                          <div className="text-xs flex gap-2 mb-0.5">
                             <span>{d.variantName}</span>
                           </div>
                         )}
                         {r.qty > 1 && (
-                          <div className="text-xs font-medium text-muted-foreground">
+                          <div className="text-xs font-normal text-muted-foreground">
                             {d
                               ? formatMinor(d.priceMinor, DEFAULT_CURRENCY)
                               : "—"}
@@ -212,7 +215,7 @@ export function CartButtonWithSheet() {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <div className="flex items-center border rounded-lb">
+                        <div className="flex items-center border rounded-xs">
                           <button
                             className="text-base hover:cursor-pointer px-3 py-1 hover:bg-neutral-100"
                             aria-label="Restar unidad"
@@ -266,7 +269,7 @@ export function CartButtonWithSheet() {
                       />
 
                       <RemoveButton
-                        className="mt-1"
+                        className="mb-1"
                         onRemove={() =>
                           dispatch(
                             removeItem({
@@ -296,7 +299,7 @@ export function CartButtonWithSheet() {
           </div>
 
           {rows.length > 0 && (
-            <div className="shrink-0 px-4 border pt-4">
+            <div className="shrink-0 px-4 border pt-2">
               {/* Error de stock en el mini cart */}
               {stockError && (
                 <div className="text-xs text-red-600">{stockError}</div>

@@ -74,7 +74,7 @@ export default async function CheckoutPage() {
                       className="grid grid-cols-[auto_1fr_auto] items-center gap-2 py-1"
                     >
                       <div
-                        className="relative h-32 w-24 shrink-0 overflow-hidden rounded-lb bg-neutral-100"
+                        className="relative h-32 w-24 shrink-0 overflow-hidden rounded-xs bg-neutral-100"
                         aria-hidden="true"
                       >
                         {item.imageUrl && (
@@ -93,6 +93,7 @@ export default async function CheckoutPage() {
                           <p className="text-sm">{item.name}</p>
                           <p className="text-xs">{item.variantName}</p>
                           <div className="flex gap-1">
+                            <p className="text-xs">x{item.quantity}</p>
                             {item.quantity > 1 && (
                               <div className="text-xs text-muted-foreground">
                                 {lineTotalMinor
@@ -103,7 +104,6 @@ export default async function CheckoutPage() {
                                   : "—"}
                               </div>
                             )}
-                            <p className="text-xs">x{item.quantity}</p>
                           </div>
                         </div>
 

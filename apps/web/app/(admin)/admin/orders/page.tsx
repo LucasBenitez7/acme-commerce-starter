@@ -73,7 +73,7 @@ export default async function OrdersPage({ searchParams }: Props) {
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         {/* Lista de pedidos */}
-        <section className="rounded-lb border bg-card">
+        <section className="rounded-xs border bg-card">
           <header className="flex items-center justify-between border-b px-3 py-3">
             <h2 className="text-sm font-semibold">Últimos pedidos</h2>
             <span className="text-xs text-muted-foreground">
@@ -154,7 +154,7 @@ export default async function OrdersPage({ searchParams }: Props) {
         </section>
 
         {/* Detalle del pedido seleccionado */}
-        <section className="rounded-lb border bg-card">
+        <section className="rounded-xs border bg-card">
           <header className="border-b px-3 py-3">
             <h2 className="text-sm font-semibold">Detalle del pedido</h2>
             {!selectedOrder && (

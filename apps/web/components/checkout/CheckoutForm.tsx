@@ -160,7 +160,7 @@ export function CheckoutForm({
       />
 
       <form
-        className="rounded-lb bg-background p-4"
+        className="rounded-xs bg-background p-4"
         action={formAction}
         noValidate
         onSubmit={handleSubmit}
@@ -169,7 +169,7 @@ export function CheckoutForm({
           <div
             ref={errorRef}
             tabIndex={-1}
-            className="mb-3 rounded-lb border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+            className="mb-3 rounded-xs border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
             role="alert"
             aria-live="assertive"
           >
@@ -224,7 +224,7 @@ export function CheckoutForm({
             {step === 1 && (
               <button
                 type="button"
-                className="text-muted-foreground fx-underline-anim hover:cursor-pointer hover:text-primary transition-all duration-200 ease-in-out"
+                className="text-muted-foreground hover:cursor-pointer hover:text-primary transition-all duration-200 ease-in-out"
                 onClick={() => setShowLeaveToCartDialog(true)}
               >
                 ← Volver a la cesta
@@ -233,7 +233,7 @@ export function CheckoutForm({
             {step > 1 && (
               <button
                 type="button"
-                className="fx-underline-anim text-muted-foreground transition-all duration-200 ease-in-out hover:cursor-pointer hover:text-primary"
+                className="text-muted-foreground transition-all duration-200 ease-in-out hover:cursor-pointer hover:text-primary"
                 onClick={handlePrevWithClear}
               >
                 {step === 2 && "← Volver al tipo de envío"}

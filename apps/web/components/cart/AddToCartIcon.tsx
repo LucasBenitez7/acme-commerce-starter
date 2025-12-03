@@ -38,15 +38,9 @@ export function AddToCartIcon({
       type="button"
       onClick={onClick}
       disabled={disabled || !variantId}
-      className="hover:cursor-pointer text-slate-800 hover:text-primary transition-all duration-200 ease-in-out relative"
+      className="hover:cursor-pointer text-slate-800 hover:text-primary transition-all duration-200 ease-in-out relative top-[-1px]"
     >
-      <HiOutlineShoppingBag strokeWidth={2} className="size-[24px]" />
-      <span
-        className="absolute top-0 h-[0px] right-[7px] bg-transparent text-lg font-semibold"
-        aria-live="polite"
-      >
-        +
-      </span>
+      <HiOutlineShoppingBag strokeWidth={1.5} className="size-[24px] " />
     </button>
   );
 }

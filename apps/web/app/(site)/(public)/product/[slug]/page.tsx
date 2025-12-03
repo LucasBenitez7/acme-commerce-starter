@@ -86,90 +86,100 @@ export default async function ProductPage({ params }: { params: ParamsSlug }) {
   const priceDecimals = MINOR_UNITS[currency];
 
   return (
-    <section className="space-y-6 px-4 py-6 max-w-7xl mx-auto">
-      <nav className="text-sm text-neutral-500 overflow-x-auto whitespace-nowrap pb-2">
-        <Link href="/">Inicio</Link> <span aria-hidden>›</span>{" "}
-        <Link href="/catalogo">Todas las prendas</Link>{" "}
-        <span aria-hidden>›</span>{" "}
-        <Link href={`/cat/${p.category.slug}`}>{p.category.name}</Link>{" "}
-        <span aria-hidden>›</span>{" "}
-        <span className="text-neutral-800 font-medium">{p.name}</span>
-      </nav>
+    <div className="bg-background w-full justify-center">
+      <section className="space-y-3 px-4 py-6 max-w-6xl mx-auto">
+        <nav className="text-sm text-muted-foreground overflow-x-auto whitespace-nowrap pb-2">
+          <Link className="hover:text-foreground" href="/">
+            Inicio
+          </Link>{" "}
+          <span aria-hidden>›</span>{" "}
+          <Link className="hover:text-foreground" href="/catalogo">
+            Todas las prendas
+          </Link>{" "}
+          <span aria-hidden>›</span>{" "}
+          <Link
+            className="hover:text-foreground"
+            href={`/cat/${p.category.slug}`}
+          >
+            {p.category.name}
+          </Link>{" "}
+          <span aria-hidden>›</span>{" "}
+          <span className="text-foreground">{p.name}</span>
+        </nav>
 
-      <div className="grid gap-8 lg:grid-cols-2 lg:items-start">
-        {/* Galería / Imagen */}
-        <div>
-          <div className="aspect-[3/4] relative bg-neutral-100 rounded-lg overflow-hidden border">
-            <Image
-              src={imgMain}
-              alt={p.name}
-              fill
-              sizes="(max-width: 768px) 100vw, 50vw"
-              className="object-cover"
-              priority
-            />
+        <div className="grid gap-8 lg:grid-cols-[minmax(300px,450px)auto] lg:items-start">
+          {/* Galería / Imagen */}
+          <div>
+            <div className="aspect-[3/4] relative bg-neutral-100  overflow-hidden">
+              <Image
+                src={imgMain}
+                alt={p.name}
+                fill
+                sizes="(max-width:608px) 60vw, 500px"
+                className="object-cover"
+                priority
+              />
+            </div>
+          </div>
+
+          {/* Info y Acciones */}
+          <div className="space-y-8 p-0 sticky top-17">
+            <div className="space-y-1">
+              <h1 className="text-lg font-semibold tracking-tight text-foreground">
+                {p.name}
+              </h1>
+              <p className="text-sm font-medium text-foreground">
+                {formatPrice(p.priceCents, currency)}
+              </p>
+
+              <p className="text-xs text-slate-700 leading-relaxed">
+                Mini descripción de cada producto
+              </p>
+            </div>
+
+            <div>
+              <ProductActions
+                productSlug={p.slug}
+                productName={p.name}
+                priceMinor={p.priceCents}
+                imageUrl={imgMain}
+                variants={p.variants}
+              />
+            </div>
+
+            <div className="pt-4">
+              <p className="text-xs text-muted-foreground text-center">
+                Envío gratuito en pedidos superiores a 50€ · Devoluciones en 30
+                días
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Info y Acciones */}
-        <div className="space-y-6 sticky top-24">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold tracking-tight text-neutral-900">
-              {p.name}
-            </h1>
-            <p className="text-2xl font-medium text-neutral-900">
-              {formatPrice(p.priceCents, currency)}
-            </p>
-          </div>
-
-          <Separator />
-
-          <p className="text-base text-neutral-700 leading-relaxed">
-            {p.description}
-          </p>
-
-          <div className="p-6 bg-neutral-50 rounded-xl border border-neutral-100">
-            <ProductActions
-              productSlug={p.slug}
-              productName={p.name}
-              priceMinor={p.priceCents}
-              imageUrl={imgMain}
-              variants={p.variants}
-            />
-          </div>
-
-          <div className="pt-4">
-            <p className="text-xs text-muted-foreground text-center">
-              Envío gratuito en pedidos superiores a 100€ · Devoluciones en 30
-              días
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* JSON-LD básico */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Product",
-            name: p.name,
-            description: p.description,
-            image: imageListAbs,
-            category: p.category.name,
-            offers: {
-              "@type": "Offer",
-              price: priceMajor.toFixed(priceDecimals),
-              priceCurrency: currency,
-              availability: "https://schema.org/InStock",
+        {/* JSON-LD básico */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Product",
+              name: p.name,
+              description: p.description,
+              image: imageListAbs,
+              category: p.category.name,
+              offers: {
+                "@type": "Offer",
+                price: priceMajor.toFixed(priceDecimals),
+                priceCurrency: currency,
+                availability: "https://schema.org/InStock",
+                url: productUrlAbs,
+              },
               url: productUrlAbs,
-            },
-            url: productUrlAbs,
-          }),
-        }}
-      />
-    </section>
+            }),
+          }}
+        />
+      </section>
+    </div>
   );
 }
 

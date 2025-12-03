@@ -65,7 +65,7 @@ export function CheckoutShippingPickup({
                 return (
                   <label
                     key={location.id}
-                    className={`flex w-full cursor-pointer flex-col rounded-lb space-y-1 border p-3 text-left text-xs sm:text-sm transition-colors ${
+                    className={`flex w-full cursor-pointer flex-col rounded-xs space-y-1 border p-3 text-left text-xs sm:text-sm transition-colors ${
                       isSelected
                         ? "border-primary bg-primary/5"
                         : "border-border hover:border-primary/60 hover:bg-neutral-50"
@@ -119,7 +119,7 @@ export function CheckoutShippingPickup({
             </button>
           </div>
 
-          <div className="rounded-lb border p-3 space-y-1 text-xs sm:text-sm">
+          <div className="rounded-xs border p-3 space-y-1 text-xs sm:text-sm">
             <p className="text-sm font-semibold">
               {selectedPickupLocation.name}
             </p>

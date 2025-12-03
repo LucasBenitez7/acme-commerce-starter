@@ -27,6 +27,7 @@ export type ProductListItem = {
   totalStock: number;
   currency: SupportedCurrency;
   thumbnail: string | null;
+  variants: ProductVariant[];
 };
 
 // DTO para detalle
