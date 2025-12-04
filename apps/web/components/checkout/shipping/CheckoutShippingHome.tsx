@@ -32,7 +32,7 @@ export function CheckoutShippingHome({
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-base font-medium text-foreground py-2">
+        <p className="text-base font-medium text-foreground pt-2 pb-1">
           Datos de contacto
         </p>
         <CheckoutContactFields
@@ -43,12 +43,14 @@ export function CheckoutShippingHome({
       </div>
 
       <div>
-        <p className="text-base font-medium text-foreground pb-2">
+        <p className="text-base font-medium text-foreground pb-1">
           Dirección de entrega
         </p>
-        <div className="space-y-4">
+        <div className="space-y-6 p-4 border ronded-lb">
           <div className="space-y-1">
-            <Label htmlFor="street">Calle y número*</Label>
+            <Label htmlFor="street" className="text-xs">
+              Calle y número*
+            </Label>
             <Input
               id="street"
               name="street"
@@ -67,20 +69,23 @@ export function CheckoutShippingHome({
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor="addressExtra">Escalera, piso... (opcional)</Label>
+            <Label htmlFor="addressExtra" className="text-xs">
+              Escalera, piso... (opcional)
+            </Label>
             <Input
               id="addressExtra"
               name="addressExtra"
               autoComplete="address-line2"
               value={addressExtra}
               onChange={(e) => onChange("addressExtra", e.target.value)}
-              placeholder="Escalera, portal, piso…"
             />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="space-y-1">
-              <Label htmlFor="postalCode">Código postal*</Label>
+              <Label htmlFor="postalCode" className="text-xs">
+                Código postal*
+              </Label>
               <Input
                 id="postalCode"
                 name="postalCode"
@@ -102,7 +107,9 @@ export function CheckoutShippingHome({
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="province">Provincia*</Label>
+              <Label htmlFor="province" className="text-xs">
+                Provincia*
+              </Label>
               <Input
                 id="province"
                 name="province"
@@ -121,8 +128,11 @@ export function CheckoutShippingHome({
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="city">Ciudad*</Label>
+              <Label htmlFor="city" className="text-xs">
+                Ciudad*
+              </Label>
               <Input
+                className="placeholder:font-medium"
                 id="city"
                 name="city"
                 autoComplete="address-level2"

@@ -16,6 +16,16 @@ import {
 
 import type { CheckoutStep } from "@/components/checkout/layout";
 
+// Definimos las props para recibir los defaults del usuario
+type UseCheckoutFormProps = {
+  defaults?: {
+    firstName?: string | null;
+    lastName?: string | null;
+    email?: string | null;
+    phone?: string | null;
+  };
+};
+
 export type ShippingType = "home" | "store" | "pickup";
 
 export type CheckoutFormState = {
@@ -71,21 +81,25 @@ const INITIAL_FORM_STATE: CheckoutFormState = {
   paymentMethod: "card",
 };
 
-export function useCheckoutForm() {
-  const [form, setForm] = useState<CheckoutFormState>(INITIAL_FORM_STATE);
+export function useCheckoutForm({ defaults }: UseCheckoutFormProps = {}) {
+  // 1. Inicializamos el estado con los defaults del usuario (si existen)
+  const initialWithDefaults: CheckoutFormState = {
+    ...INITIAL_FORM_STATE,
+    firstName: defaults?.firstName || "",
+    lastName: defaults?.lastName || "",
+    email: defaults?.email || "",
+    phone: defaults?.phone || "",
+  };
+
+  const [form, setForm] = useState<CheckoutFormState>(initialWithDefaults);
   const [isValid, setIsValid] = useState(false);
   const [step, setStep] = useState<CheckoutStep>(1);
 
-  // Ha intentado continuar (al menos una vez)
   const [showAllErrors, setShowAllErrors] = useState(false);
-
-  // Con qué tipo de envío falló el "Continuar"
   const [invalidShippingType, setInvalidShippingType] =
     useState<ShippingType | null>(null);
 
-  // ------------------------
-  // Restaurar desde localStorage
-  // ------------------------
+  // 1. Restaurar EL PASO desde localStorage
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -102,6 +116,7 @@ export function useCheckoutForm() {
     }
   }, []);
 
+  // 2. Restaurar EL FORMULARIO desde localStorage
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -164,32 +179,23 @@ export function useCheckoutForm() {
     }
   }, []);
 
-  // ------------------------
-  // Guardar en localStorage
-  // ------------------------
+  // Guardar PASO en localStorage al cambiar
   useEffect(() => {
     if (typeof window === "undefined") return;
-
     try {
       window.localStorage.setItem(STEP_STORAGE_KEY, String(step));
-    } catch {
-      // ignoramos errores
-    }
+    } catch {}
   }, [step]);
 
+  // Guardar FORM en localStorage al cambiar
   useEffect(() => {
     if (typeof window === "undefined") return;
-
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
-    } catch {
-      // ignoramos errores de almacenamiento
-    }
+    } catch {}
   }, [form]);
 
-  // ------------------------
   // Validación global (isValid)
-  // ------------------------
   useEffect(() => {
     const baseValid =
       isNonEmptyMin(form.firstName, 2) &&
@@ -220,9 +226,7 @@ export function useCheckoutForm() {
     invalidShippingType !== null &&
     invalidShippingType === form.shippingType;
 
-  // ------------------------
   // Errores de contacto (compartidos)
-  // ------------------------
   const firstNameError =
     (forceShowForCurrentShipping || form.firstName !== "") &&
     !isNonEmptyMin(form.firstName, 2);
@@ -239,9 +243,7 @@ export function useCheckoutForm() {
     (forceShowForCurrentShipping || form.phone !== "") &&
     !isValidPhone(form.phone);
 
-  // ------------------------
   // Errores específicos de envío
-  // ------------------------
   let streetError = false;
   let postalCodeError = false;
   let provinceError = false;
@@ -290,10 +292,7 @@ export function useCheckoutForm() {
     pickupSearch: pickupSearchError,
   };
 
-  // ------------------------
   // Handlers
-  // ------------------------
-
   function handleChange<K extends keyof CheckoutFormState>(
     key: K,
     value: CheckoutFormState[K],

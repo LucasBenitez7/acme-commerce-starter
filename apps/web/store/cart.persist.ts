@@ -7,7 +7,11 @@ export const CART_COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 días
 export function encodeCookie(items: CartItemMini[]): string {
   const payload = {
     v: 1 as const,
-    items: items.map((i) => ({ s: i.slug, q: i.qty })),
+    items: items.map((i) => ({
+      s: i.slug,
+      v: i.variantId,
+      q: i.qty,
+    })),
   };
   return JSON.stringify(payload);
 }
@@ -18,9 +22,14 @@ export function decodeCookie(raw: string | undefined | null): CartItemMini[] {
     const parsed = JSON.parse(raw);
     if (parsed && parsed.v === 1 && Array.isArray(parsed.items)) {
       return parsed.items
-        .map((x: any) => ({ slug: String(x.s), qty: Number(x.q) }))
+        .map((x: any) => ({
+          slug: String(x.s),
+          variantId: String(x.v || ""),
+          qty: Number(x.q),
+        }))
         .filter(
-          (i: CartItemMini) => i.slug && Number.isFinite(i.qty) && i.qty > 0,
+          (i: CartItemMini) =>
+            i.slug && i.variantId && Number.isFinite(i.qty) && i.qty > 0,
         );
     }
   } catch {}

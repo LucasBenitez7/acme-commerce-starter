@@ -29,7 +29,7 @@ export function CheckoutStepper({ currentStep, onStepClick }: Props) {
           const canClick = !!onStepClick && isPast;
 
           const baseClasses =
-            "flex items-center gap-2 rounded-lb text-sm font-medium px-2.5 py-1 transition-colors";
+            "flex items-center gap-2 rounded-xs text-sm font-medium px-2.5 py-1 transition-colors";
           const stateClasses = isCurrent
             ? "text-primary font-semibold"
             : isPast
@@ -70,7 +70,7 @@ export function CheckoutStepper({ currentStep, onStepClick }: Props) {
                   className="hidden flex-1 items-center sm:flex"
                 >
                   <span
-                    className={`block h-px w-full ${
+                    className={`block h-[2px] w-full ${
                       isPast ? "bg-primary" : "bg-border"
                     }`}
                   />

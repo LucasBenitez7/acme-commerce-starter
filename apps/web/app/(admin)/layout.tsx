@@ -1,28 +1,39 @@
-import Link from "next/link";
+import { redirect } from "next/navigation";
+import { Toaster } from "sonner";
 
-import type { ReactNode } from "react";
+import { auth } from "@/lib/auth";
+
+import { AdminSidebar } from "./components/AdminSidebar";
 
 export const metadata = {
-  title: "LSB Admin",
+  title: "Panel de Administración",
+  robots: { index: false, follow: false },
 };
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
+export default async function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const session = await auth();
+
+  if (!session?.user) {
+    redirect("/auth/login?redirectTo=/admin");
+  }
+
+  if (session.user.role !== "admin") {
+    redirect("/");
+  }
+
   return (
-    <div>
-      <header className="sticky top-0 z-[100] flex h-[var(--header-h)] w-full justify-center items-center border-b bg-background">
-        <Link
-          href="/"
-          type="button"
-          className="flex items-center px-2 text-3xl font-semibold focus:outline-none hover:cursor-pointer"
-        >
-          Logo lsb
-        </Link>
-      </header>
-      <main className="py-6">
-        <div className="grid min-h-[60svh] place-items-center content-start mx-auto max-w-7xl px-6 sm:px-8">
-          {children}
-        </div>
+    <div className="flex min-h-screen bg-neutral-50 font-sans text-foreground">
+      <AdminSidebar />
+
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8">{children}</div>
       </main>
+
+      <Toaster position="top-right" richColors closeButton />
     </div>
   );
 }

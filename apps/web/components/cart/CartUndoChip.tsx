@@ -17,14 +17,13 @@ export function CartUndoChip({
   className,
   size = "md",
 }: CartUndoChipProps) {
-  const textSize =
-    size === "sm" ? "text-xs sm:text-sm" : "text-sm sm:text-base";
+  const textSize = size === "sm" ? "text-xs sm:text-sm" : "text-xs sm:text-sm";
 
   return (
     <div className={cn(className)}>
       <div
         className={cn(
-          "flex items-center justify-between rounded-lb border px-2 py-4 font-semibold text-foreground bg-neutral-100",
+          "flex items-center justify-between rounded-xs border mt-2 px-2 py-4 font-semibold text-foreground",
           textSize,
         )}
       >

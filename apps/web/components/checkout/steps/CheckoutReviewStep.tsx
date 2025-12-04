@@ -8,9 +8,17 @@ import type { CheckoutFormState } from "@/hooks/use-checkout-form";
 
 type ReviewStepProps = {
   form: CheckoutFormState;
+  onEditShipping: () => void;
+  onEditContact: () => void;
+  onEditPayment: () => void;
 };
 
-export function CheckoutReviewStep({ form }: ReviewStepProps) {
+export function CheckoutReviewStep({
+  form,
+  onEditShipping,
+  onEditContact,
+  onEditPayment,
+}: ReviewStepProps) {
   const {
     firstName,
     lastName,
@@ -35,7 +43,7 @@ export function CheckoutReviewStep({ form }: ReviewStepProps) {
     paymentOption?.title ??
     (paymentMethod === "cash" ? "Pago en efectivo" : "Método de pago");
 
-  const PaymentIcon = paymentOption?.icon ?? "";
+  const PaymentIcon = paymentOption?.icon;
 
   const contact = buildContactSummary({
     firstName,
@@ -58,23 +66,52 @@ export function CheckoutReviewStep({ form }: ReviewStepProps) {
 
   return (
     <div>
-      <div className="space-y-4 pb-4 pt-2">
+      <div className="space-y-4 pb-4">
         <div>
-          <p className="text-base font-semibold">Contacto</p>
-          <div className="flex flex-col gap-1 text-xs text-foreground">
-            <dd className="gap-2 font-medium">
-              {contact.fullName || "—"} ·{" "}
-              <span className="text-xs">{contact.phone || "—"}</span>
-            </dd>
-            <dd className="font-medium">
-              {shipping.label} {shipping.details}
-            </dd>
+          <div className="flex items-center justify-between">
+            <p className="text-base font-semibold">Datos de contacto</p>
+            <button
+              type="button"
+              className="text-xs font-semibold fx-underline-anim mr-1"
+              onClick={onEditContact}
+            >
+              Editar
+            </button>
+          </div>
+          <div className="flex flex-col space-y-1.5 text-sm text-foreground font-normal border rounded-xs p-3">
+            <dd>{contact.fullName || "—"}</dd>
+            <dd>{contact.phone || "—"}</dd>
           </div>
         </div>
 
         <div>
-          <p className="text-base font-semibold">Método de pago</p>
-          <p className="flex items-center font-medium text-sm text-foreground">
+          <div className="flex items-center justify-between">
+            <p className="text-base font-semibold">{shipping.label || "—"}</p>
+            <button
+              type="button"
+              className="text-xs font-semibold fx-underline-anim mr-1"
+              onClick={onEditShipping}
+            >
+              Editar
+            </button>
+          </div>
+          <div className="flex flex-col space-y-1.5 text-sm text-foreground font-normal border rounded-xs p-3">
+            <dd>{shipping.details || "—"}</dd>
+          </div>
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between">
+            <p className="text-base font-semibold">Método de pago</p>
+            <button
+              type="button"
+              className="text-xs font-semibold fx-underline-anim mr-1"
+              onClick={onEditPayment}
+            >
+              Editar
+            </button>
+          </div>
+          <p className="flex items-center border rounded-xs p-3 font-normal text-sm text-foreground">
             {paymentLabel}
             {PaymentIcon && <PaymentIcon className="ml-2 inline h-4 w-4" />}
           </p>

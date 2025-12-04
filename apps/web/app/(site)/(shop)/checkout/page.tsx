@@ -7,41 +7,17 @@ import { CheckoutHeader } from "@/components/checkout/layout/CheckoutHeader";
 import { CheckoutLocalFooter } from "@/components/checkout/layout/CheckoutLocalFooter";
 import { Container } from "@/components/ui";
 
+import { auth } from "@/lib/auth";
 import { formatMinor } from "@/lib/currency";
-import {
-  buildOrderDraftFromCart,
-  type CartLineInput,
-} from "@/lib/server/orders";
-
-type CartCookieV1 = {
-  v: 1;
-  items: { s: string; q: number }[];
-};
-
-function parseCartCookie(raw: string | undefined): CartLineInput[] {
-  if (!raw) return [];
-
-  try {
-    const data = JSON.parse(raw) as CartCookieV1;
-
-    if (data?.v !== 1 || !Array.isArray(data.items)) {
-      return [];
-    }
-
-    return data.items
-      .map((item) => ({
-        slug: item.s,
-        qty: item.q,
-      }))
-      .filter((line) => line.slug && line.qty > 0);
-  } catch {
-    return [];
-  }
-}
+import { CART_COOKIE_NAME, parseCartCookie } from "@/lib/server/cart-cookie";
+import { buildOrderDraftFromCart } from "@/lib/server/orders";
 
 export default async function CheckoutPage() {
+  const session = await auth();
+  const user = session?.user || null;
+
   const cookieStore = await cookies();
-  const rawCart = cookieStore.get("cart.v1")?.value;
+  const rawCart = cookieStore.get(CART_COOKIE_NAME)?.value;
 
   const lines = parseCartCookie(rawCart);
   const orderDraft = await buildOrderDraftFromCart(lines);
@@ -56,24 +32,26 @@ export default async function CheckoutPage() {
   );
 
   return (
-    <Container className="px-0">
+    <Container className="px-0 bg-neutral-100">
       <div className="grid lg:grid-cols-[minmax(0,2fr)_minmax(0,0.8fr)] lg:items-start">
         {/* Columna izquierda: header + formulario + footer (solo en desktop) */}
-        <section className="flex flex-col px-4 lg:min-h-screen">
-          {/* Header local del checkout */}
+        <section className="flex flex-col lg:min-h-screen">
           <CheckoutHeader />
 
-          {/* Contenido principal */}
-          <div className="flex-1 py-4">
-            <CheckoutForm />
+          <div className="flex-1 px-4 py-4">
+            <CheckoutForm
+              defaultFirstName={user?.firstName}
+              defaultLastName={user?.lastName}
+              defaultEmail={user?.email}
+              defaultPhone={user?.phone}
+            />
           </div>
 
-          {/* Footer local SOLO en desktop */}
           <CheckoutLocalFooter />
         </section>
 
         {/* Columna derecha: resumen del pedido */}
-        <aside className="lg:sticky lg:top-0">
+        <aside className="lg:sticky lg:top-0 px-4 lg:px-0">
           <div className="flex h-full flex-col border bg-background lg:h-screen">
             {/* Header del resumen (siempre visible) */}
             <header className="shrink-0 px-4">
@@ -88,14 +66,15 @@ export default async function CheckoutPage() {
               <ul className="space-y-2 text-sm">
                 {orderDraft.items.map((item) => {
                   const lineTotalMinor = item.subtotalMinor;
+                  const key = `${item.productId}-${item.variantId}`;
 
                   return (
                     <li
-                      key={item.productId}
+                      key={key}
                       className="grid grid-cols-[auto_1fr_auto] items-center gap-2 py-1"
                     >
                       <div
-                        className="relative h-32 w-24 shrink-0 overflow-hidden rounded-lb bg-neutral-100"
+                        className="relative h-32 w-24 shrink-0 overflow-hidden rounded-xs bg-neutral-100"
                         aria-hidden="true"
                       >
                         {item.imageUrl && (
@@ -112,10 +91,9 @@ export default async function CheckoutPage() {
                       <div className="flex h-full justify-between py-1 font-medium">
                         <div className="space-y-1">
                           <p className="text-sm">{item.name}</p>
-                          {/* TODO: tallas/colores reales en el futuro */}
-                          <p className="text-xs">M</p>
-                          <p className="text-xs">Negro</p>
+                          <p className="text-xs">{item.variantName}</p>
                           <div className="flex gap-1">
+                            <p className="text-xs">x{item.quantity}</p>
                             {item.quantity > 1 && (
                               <div className="text-xs text-muted-foreground">
                                 {lineTotalMinor
@@ -126,7 +104,6 @@ export default async function CheckoutPage() {
                                   : "—"}
                               </div>
                             )}
-                            <p className="text-xs">x{item.quantity}</p>
                           </div>
                         </div>
 
