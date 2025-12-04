@@ -66,6 +66,7 @@ enum OrderStatus {
   PAID
   EXPIRED
   CANCELLED
+  RETURNED
 }
 
 enum ShippingType {
@@ -125,6 +126,7 @@ model OrderItem {
   sizeSnapshot       String?
   colorSnapshot      String?
   quantity           Int
+  quantityReturned   Int     @default(0)
   subtotalMinor      Int
 
   @@index([orderId])
