@@ -14,7 +14,8 @@
     "db:deploy": "dotenv -e .env.local -- prisma migrate deploy",
     "db:studio": "dotenv -e .env.local -- prisma studio",
     "db:seed": "dotenv -e .env.local -- tsx prisma/seed.ts",
-    "db:reset": "dotenv -e .env.local -- prisma migrate reset --force && dotenv -e .env.local -- tsx prisma/seed.ts"
+    "db:reset": "dotenv -e .env.local -- prisma migrate reset --force && dotenv -e .env.local -- tsx prisma/seed.ts",
+    "vercel-build": "prisma migrate deploy && next build"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
