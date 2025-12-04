@@ -15,11 +15,7 @@ export function Footer() {
   }
 
   return (
-<<<<<<< HEAD
     <footer className="border-t px-4 bg-background">
-=======
-    <footer className="border-t px-4">
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
       <Container className="py-8 text-sm text-neutral-600 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <p>
           © {new Date().getFullYear()} lsbstack. Todos los derechos reservados.

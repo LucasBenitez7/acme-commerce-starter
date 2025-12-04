@@ -8,11 +8,7 @@ export default function NotFound() {
       <div className="mt-6">
         <Link
           href="/"
-<<<<<<< HEAD
           className="py-2 px-4 font-medium rounded-xs border border-slate-300 bg-background hover:bg-neutral-100"
-=======
-          className="py-2 px-4 font-medium rounded-lb border border-slate-300 bg-background hover:bg-neutral-100"
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
         >
           Ir al inicio
         </Link>

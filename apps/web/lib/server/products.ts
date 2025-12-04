@@ -39,28 +39,19 @@ function toListItem(row: {
   priceCents: number;
   currency: string | null;
   images: { url: string }[];
-<<<<<<< HEAD
   variants: { id: string; size: string; color: string; stock: number }[];
 }): ProductListItem {
   const totalStock = row.variants.reduce((acc, v) => acc + v.stock, 0);
 
-=======
-}): ProductListItem {
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
   return {
     id: row.id,
     slug: row.slug,
     name: row.name,
     priceCents: row.priceCents,
-<<<<<<< HEAD
     totalStock,
     currency: (row.currency ?? "EUR") as SupportedCurrency,
     thumbnail: row.images[0]?.url ?? null,
     variants: row.variants,
-=======
-    currency: (row.currency ?? "EUR") as SupportedCurrency,
-    thumbnail: row.images[0]?.url ?? null,
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
   };
 }
 
@@ -170,13 +161,10 @@ export async function getProductFullBySlug(
         select: { url: true, alt: true, sort: true },
       },
       category: { select: { slug: true, name: true } },
-<<<<<<< HEAD
       variants: {
         select: { id: true, size: true, color: true, stock: true },
         orderBy: { size: "asc" },
       },
-=======
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
     },
   });
 
@@ -191,10 +179,7 @@ export async function getProductFullBySlug(
     currency: (p.currency ?? "EUR") as SupportedCurrency,
     images: normalizeImages(p.name, p.images as any),
     category: p.category,
-<<<<<<< HEAD
     variants: p.variants,
-=======
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
   };
 }
 

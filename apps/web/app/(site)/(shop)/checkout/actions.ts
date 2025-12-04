@@ -3,10 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-<<<<<<< HEAD
 import { auth } from "@/lib/auth";
-=======
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
 import { prisma } from "@/lib/db";
 import { CART_COOKIE_NAME, parseCartCookie } from "@/lib/server/cart-cookie";
 import { buildOrderDraftFromCart } from "@/lib/server/orders";
@@ -29,7 +26,6 @@ export async function createOrderAction(
   prevState: CheckoutActionState,
   formData: FormData,
 ): Promise<CheckoutActionState> {
-<<<<<<< HEAD
   const session = await auth();
   let userId: string | null = null;
 
@@ -48,8 +44,6 @@ export async function createOrderAction(
     }
   }
 
-=======
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
   const cookieStore = await cookies();
   const rawCart = cookieStore.get(CART_COOKIE_NAME)?.value;
   const lines = parseCartCookie(rawCart);
@@ -61,10 +55,7 @@ export async function createOrderAction(
     };
   }
 
-<<<<<<< HEAD
   // 2. Recoger datos del formulario
-=======
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
   const firstName = String(formData.get("firstName") ?? "").trim();
   const lastName = String(formData.get("lastName") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
@@ -90,7 +81,6 @@ export async function createOrderAction(
         : "PICKUP";
 
   const storeLocationId = String(formData.get("storeLocationId") ?? "").trim();
-<<<<<<< HEAD
   const pickupLocationId = String(
     formData.get("pickupLocationId") ?? "",
   ).trim();
@@ -120,96 +110,11 @@ export async function createOrderAction(
   }
 
   // 4. Construir borrador del pedido (Aquí se validan existencias generales)
-=======
-
-  const pickupLocationId = String(
-    formData.get("pickupLocationId") ?? "",
-  ).trim();
-
-  const storeSearch = String(formData.get("storeSearch") ?? "").trim();
-  const pickupSearch = String(formData.get("pickupSearch") ?? "").trim();
-
-  const paymentMethodRaw = String(
-    formData.get("paymentMethod") ?? "card",
-  ).trim();
-
-  // Por ahora sólo aceptamos "card", pero dejamos preparado para el futuro
-  const paymentMethod = paymentMethodRaw === "card" ? "card" : "card";
-
-  // ------------------------
-  // Validaciones básicas
-  // ------------------------
-  if (!isNonEmptyMin(firstName, 2)) {
-    return { error: "Introduce tu nombre." };
-  }
-
-  if (!isNonEmptyMin(lastName, 2)) {
-    return { error: "Introduce tus apellidos." };
-  }
-
-  if (!isValidEmail(email)) {
-    return { error: "Introduce un correo electrónico válido." };
-  }
-
-  if (!isValidPhone(phone)) {
-    return {
-      error:
-        "Introduce un número de teléfono válido (solo números y signos habituales).",
-    };
-  }
-
-  // ------------------------
-  // Validaciones según tipo de envío
-  // ------------------------
-  if (shippingType === "home") {
-    if (!isNonEmptyMin(street, 5)) {
-      return {
-        error:
-          "Introduce una dirección de envío más detallada (calle y número).",
-      };
-    }
-
-    if (!isValidPostalCodeES(postalCode)) {
-      return {
-        error: "Introduce un código postal español válido (5 dígitos).",
-      };
-    }
-
-    if (!isNonEmptyMin(province, 2) || !isNonEmptyMin(city, 2)) {
-      return {
-        error: "Revisa que hayas completado correctamente provincia y ciudad.",
-      };
-    }
-  } else if (shippingType === "store") {
-    if (!storeLocationId) {
-      return {
-        error: "Selecciona una tienda para recoger tu pedido.",
-      };
-    }
-  } else if (shippingType === "pickup") {
-    if (!pickupLocationId) {
-      return {
-        error: "Selecciona un punto de recogida para tu pedido.",
-      };
-    }
-
-    if (!isNonEmptyMin(pickupSearch, 3)) {
-      return {
-        error: "Introduce un código postal o zona para el punto de recogida.",
-      };
-    }
-  }
-
-  // ------------------------
-  // Recalcular pedido a partir del cesta
-  // ------------------------
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
   const draft = await buildOrderDraftFromCart(lines);
 
   if (!draft.items.length || draft.totalMinor <= 0) {
     return {
       error:
-<<<<<<< HEAD
         "No hemos podido recalcular tu pedido. Revisa tu cesta o actualiza la página.",
     };
   }
@@ -297,57 +202,6 @@ export async function createOrderAction(
   }
 
   // 6. Limpiar cookie y redirigir
-=======
-        "No hemos podido recalcular tu pedido. Revisa tu cesta o actualiza la página e inténtalo de nuevo.",
-    };
-  }
-
-  // ------------------------
-  // Crear pedido en base de datos
-  // ------------------------
-  let order;
-  try {
-    order = await prisma.order.create({
-      data: {
-        email,
-        currency: draft.currency,
-        totalMinor: draft.totalMinor,
-        status: "PENDING_PAYMENT",
-        shippingType: shippingTypeDb,
-        firstName,
-        lastName,
-        phone,
-        street,
-        addressExtra,
-        postalCode,
-        province,
-        city,
-        storeLocationId: storeLocationId || null,
-        pickupLocationId: pickupLocationId || null,
-        pickupSearch: pickupSearch || null,
-        paymentMethod,
-
-        items: {
-          create: draft.items.map((item) => ({
-            productId: item.productId,
-            nameSnapshot: item.name,
-            priceMinorSnapshot: item.unitPriceMinor,
-            quantity: item.quantity,
-            subtotalMinor: item.subtotalMinor,
-          })),
-        },
-      },
-    });
-  } catch (e) {
-    console.error("[createOrderAction] Error al crear pedido:", e);
-    return {
-      error:
-        "Ha ocurrido un error al procesar tu pedido. Inténtalo de nuevo en unos minutos.",
-    };
-  }
-
-  // Vaciar cesta
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
   cookieStore.set(CART_COOKIE_NAME, "", {
     path: "/",
     maxAge: 0,

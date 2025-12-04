@@ -87,11 +87,7 @@ export function CheckoutShippingStep({
                 key={option.id}
                 type="button"
                 onClick={() => onChange("shippingType", option.id)}
-<<<<<<< HEAD
                 className={`flex h-full flex-col items-center justify-center gap-2 rounded-xs border px-3 py-4 text-sm sm:text-sm transition-colors ${
-=======
-                className={`flex h-full flex-col items-center justify-center gap-2 rounded-lb border px-3 py-4 text-sm sm:text-sm transition-colors ${
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
                   isActive
                     ? "border-primary text-foreground"
                     : "border-border bg-neutral-100 hover:border-primary hover:cursor-pointer"

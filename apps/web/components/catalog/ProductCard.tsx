@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-<<<<<<< HEAD
 import { useState, useMemo, useRef, useEffect } from "react";
 
 import { AddToCartIcon } from "@/components/cart/AddToCartIcon";
@@ -16,26 +15,11 @@ import { useAppSelector } from "@/hooks/use-app-selector";
 import { selectCartQtyByVariant } from "@/store/cart.selectors";
 
 import { COLOR_MAP } from "./ProductActions";
-=======
-
-import { AddToCartIcon } from "@/components/cart/AddToCartIcon";
-import {
-  CardContent,
-  CardHeader,
-  CardTitle,
-  FavoriteButton,
-} from "@/components/ui";
-
-import { formatMinor, DEFAULT_CURRENCY } from "@/lib/currency";
-
-import { AddToCartButton } from "../cart/AddToCartButton";
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
 
 import type { ProductListItem } from "@/types/catalog";
 
 export function ProductCard({ item }: { item: ProductListItem }) {
   const img = item.thumbnail ?? "/og/default-products.jpg";
-<<<<<<< HEAD
   const isFavorite = false; // TODO: wishlist
 
   const isOutOfStock = item.totalStock === 0;
@@ -96,9 +80,6 @@ export function ProductCard({ item }: { item: ProductListItem }) {
     selectedVariant &&
     cartQty >= selectedVariant.stock &&
     selectedVariant.stock > 0;
-=======
-  const isFavorite = false; // TODO: conectar con wishlist
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
 
   return (
     <div className="flex flex-col overflow-hidden bg-background transition-all h-full">
@@ -174,7 +155,6 @@ export function ProductCard({ item }: { item: ProductListItem }) {
         )}
       </div>
 
-<<<<<<< HEAD
       {/* --- ZONA DE INFORMACIÓN --- */}
       <div className="flex flex-col gap-2 px-2 pt-3 pb-2 flex-1 space-y-2 bg-background z-10 relative">
         <div className="flex items-start justify-between gap-2">
@@ -286,40 +266,6 @@ export function ProductCard({ item }: { item: ProductListItem }) {
             </div>
           </div>
         </div>
-=======
-      <div className="flex flex-col text-sm gap-2">
-        <CardHeader className="flex items-center justify-between px-2 py-2">
-          <CardTitle className="text-sm font-medium">
-            <Link href={`/product/${item.slug}`}>{item.name}</Link>
-          </CardTitle>
-          <FavoriteButton
-            isFavorite={isFavorite}
-            onToggle={() => {
-              // TODO: dispatch(toggleWishlist({ slug: r.slug }))
-            }}
-          />
-        </CardHeader>
-        <CardContent className="flex flex-col text-xs font-medium gap-4 px-2 pb-2">
-          <p className="text-xs">
-            {formatMinor(item.priceCents, DEFAULT_CURRENCY)}
-          </p>
-          <div className="flex justify-between">
-            <p>C1 C2 C3 C4</p>
-            <p>XS S M L XL </p>
-          </div>
-          {showCartRow && (
-            <AddToCartButton
-              slug={item.slug}
-              details={{
-                slug: item.slug,
-                name: item.name,
-                priceMinor: item.priceCents,
-                imageUrl: img,
-              }}
-            />
-          )}
-        </CardContent>
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
       </div>
     </div>
   );

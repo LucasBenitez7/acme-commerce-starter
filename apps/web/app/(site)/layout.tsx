@@ -38,17 +38,10 @@ export default async function SiteLayout({
 
   return (
     <Providers preloadedState={preloadedState}>
-<<<<<<< HEAD
       <div className="flex min-h-dvh flex-col bg-neutral-100">
         <Header categories={categories} />
         <div className="flex-1">
           <Container className="bg-neutral-100">
-=======
-      <div className="flex min-h-dvh flex-col bg-background">
-        <Header categories={categories} />
-        <div className="flex-1">
-          <Container className="bg-background">
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
             <main>{children}</main>
           </Container>
         </div>

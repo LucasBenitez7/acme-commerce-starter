@@ -29,19 +29,12 @@ export function CheckoutContactFields({
   } = errors;
 
   return (
-<<<<<<< HEAD
     <div className="space-y-6 p-4 border ronded-lb">
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1">
           <Label htmlFor="firstName" className="text-xs">
             Nombre*
           </Label>
-=======
-    <div className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="firstName">Nombre*</Label>
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
           <Input
             id="firstName"
             name="firstName"
@@ -59,15 +52,10 @@ export function CheckoutContactFields({
           )}
         </div>
 
-<<<<<<< HEAD
         <div className="space-y-1">
           <Label htmlFor="lastName" className="text-xs">
             Apellidos*
           </Label>
-=======
-        <div className="space-y-2">
-          <Label htmlFor="lastName">Apellidos*</Label>
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
           <Input
             id="lastName"
             name="lastName"
@@ -87,15 +75,10 @@ export function CheckoutContactFields({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-<<<<<<< HEAD
         <div className="space-y-1">
           <Label htmlFor="email" className="text-xs">
             E-mail*
           </Label>
-=======
-        <div className="space-y-2">
-          <Label htmlFor="email">E-mail*</Label>
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
           <Input
             id="email"
             name="email"
@@ -114,15 +97,10 @@ export function CheckoutContactFields({
           )}
         </div>
 
-<<<<<<< HEAD
         <div className="space-y-1">
           <Label htmlFor="phone" className="text-xs">
             Teléfono*
           </Label>
-=======
-        <div className="space-y-2">
-          <Label htmlFor="phone">Teléfono*</Label>
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
           <Input
             id="phone"
             name="phone"

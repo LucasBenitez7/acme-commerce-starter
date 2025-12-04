@@ -17,22 +17,13 @@ export function CartUndoChip({
   className,
   size = "md",
 }: CartUndoChipProps) {
-<<<<<<< HEAD
   const textSize = size === "sm" ? "text-xs sm:text-sm" : "text-xs sm:text-sm";
-=======
-  const textSize =
-    size === "sm" ? "text-xs sm:text-sm" : "text-sm sm:text-base";
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
 
   return (
     <div className={cn(className)}>
       <div
         className={cn(
-<<<<<<< HEAD
           "flex items-center justify-between rounded-xs border mt-2 px-2 py-4 font-semibold text-foreground",
-=======
-          "flex items-center justify-between rounded-lb border px-2 py-4 font-semibold text-foreground bg-neutral-100",
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
           textSize,
         )}
       >

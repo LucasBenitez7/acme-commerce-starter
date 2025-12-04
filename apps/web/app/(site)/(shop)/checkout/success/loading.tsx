@@ -8,20 +8,12 @@ export default function CheckoutSuccessLoading() {
         <div className="h-4 w-72 rounded bg-neutral-200 animate-pulse" />
       </div>
 
-<<<<<<< HEAD
       <div className="mb-4 rounded-xs border bg-card p-4">
-=======
-      <div className="mb-4 rounded-lb border bg-card p-4">
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
         <div className="h-4 w-56 rounded bg-neutral-200 animate-pulse" />
         <div className="mt-2 h-3 w-64 rounded bg-neutral-200 animate-pulse" />
       </div>
 
-<<<<<<< HEAD
       <section className="space-y-4 rounded-xs border bg-card p-4 sm:p-6">
-=======
-      <section className="space-y-4 rounded-lb border bg-card p-4 sm:p-6">
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
         <div className="h-5 w-40 rounded bg-neutral-200 animate-pulse" />
 
         {[1, 2, 3].map((i) => (

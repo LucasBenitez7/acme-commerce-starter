@@ -7,15 +7,11 @@ export const CART_COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 días
 export function encodeCookie(items: CartItemMini[]): string {
   const payload = {
     v: 1 as const,
-<<<<<<< HEAD
     items: items.map((i) => ({
       s: i.slug,
       v: i.variantId,
       q: i.qty,
     })),
-=======
-    items: items.map((i) => ({ s: i.slug, q: i.qty })),
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
   };
   return JSON.stringify(payload);
 }
@@ -26,7 +22,6 @@ export function decodeCookie(raw: string | undefined | null): CartItemMini[] {
     const parsed = JSON.parse(raw);
     if (parsed && parsed.v === 1 && Array.isArray(parsed.items)) {
       return parsed.items
-<<<<<<< HEAD
         .map((x: any) => ({
           slug: String(x.s),
           variantId: String(x.v || ""),
@@ -35,11 +30,6 @@ export function decodeCookie(raw: string | undefined | null): CartItemMini[] {
         .filter(
           (i: CartItemMini) =>
             i.slug && i.variantId && Number.isFinite(i.qty) && i.qty > 0,
-=======
-        .map((x: any) => ({ slug: String(x.s), qty: Number(x.q) }))
-        .filter(
-          (i: CartItemMini) => i.slug && Number.isFinite(i.qty) && i.qty > 0,
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
         );
     }
   } catch {}

@@ -79,11 +79,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
   });
 
   return (
-<<<<<<< HEAD
     <Container className="lg:py-6 py-4 px-4 max-w-2xl">
-=======
-    <Container className="lg:py-6 py-4 px-4 max-w-4xl">
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
       <ClearCartOnMount />
 
       <div className="flex flex-col gap-2 mb-4">
@@ -97,11 +93,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
         </p>
       </div>
 
-<<<<<<< HEAD
       <div className="mb-4 rounded-xs border bg-card p-4">
-=======
-      <div className="mb-4 rounded-lb border bg-card p-4">
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
         <p className="text-lg font-medium">
           Número de pedido:{" "}
           <span className="font-mono text-base md:text-sm">{order.id}</span>
@@ -111,7 +103,6 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
         </p>
       </div>
 
-<<<<<<< HEAD
       <section className="mb-4 flex flex-col space-y-4 text-xs text-foreground font-medium bg-card border rounded-xs p-4">
         <div>
           <p className="text-base font-semibold">Datos de contacto</p>
@@ -128,22 +119,6 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
       </section>
 
       <section className="space-y-4 rounded-xs border bg-card">
-=======
-      <section className="mb-4 space-y-1 rounded-lb border bg-card p-4">
-        <p className="text-base font-semibold">Datos de contacto</p>
-        <div className="flex flex-col gap-1 text-xs text-foreground">
-          <dd className="gap-2 font-medium">
-            {contact.fullName || "—"} ·{" "}
-            <span className="text-xs">{contact.phone || "—"}</span>
-          </dd>
-          <dd className="font-medium">
-            {shipping.label} {shipping.details}
-          </dd>
-        </div>
-      </section>
-
-      <section className="space-y-4 rounded-lb border bg-card">
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
         <div className="flex items-baseline justify-between gap-2">
           <h2 className="text-base font-semibold pt-4 px-4">
             Resumen de la compra <span className="text-base">({totalQty})</span>
@@ -161,11 +136,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
                 className="grid grid-cols-[auto_1fr_auto] items-center gap-2 py-1"
               >
                 <div
-<<<<<<< HEAD
                   className="relative h-20 w-16 shrink-0 overflow-hidden rounded-xs bg-neutral-100"
-=======
-                  className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lb bg-neutral-100"
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
                   aria-hidden="true"
                 >
                   {imageUrl && (
@@ -182,7 +153,6 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
                   <div className="space-y-1">
                     <p className="text-sm">{item.nameSnapshot}</p>
 
-<<<<<<< HEAD
                     <div className="flex flex-col items-baseline gap-1 text-xs text-foreground">
                       {/* MOSTRAR VARIANTES REALES */}
                       {item.sizeSnapshot && (
@@ -199,18 +169,6 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
                             {formatMinor(item.priceMinorSnapshot, currency)}
                           </span>
                         )}
-=======
-                    <div className="flex flex-col items-baseline gap-1 text-xs">
-                      <p className="text-xs">Talla L</p>
-                      <p className="text-xs">Marrón</p>
-                      <div className="flex gap-1">
-                        {item.quantity > 1 && (
-                          <span className="text-muted-foreground">
-                            {formatMinor(item.priceMinorSnapshot, currency)}
-                          </span>
-                        )}
-                        <span className="font-semibold">x{item.quantity}</span>
->>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
                       </div>
                     </div>
                   </div>
