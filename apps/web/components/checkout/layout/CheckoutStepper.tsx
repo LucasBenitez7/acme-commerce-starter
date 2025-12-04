@@ -29,7 +29,11 @@ export function CheckoutStepper({ currentStep, onStepClick }: Props) {
           const canClick = !!onStepClick && isPast;
 
           const baseClasses =
+<<<<<<< HEAD
             "flex items-center gap-2 rounded-xs text-sm font-medium px-2.5 py-1 transition-colors";
+=======
+            "flex items-center gap-2 rounded-lb text-sm font-medium px-2.5 py-1 transition-colors";
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
           const stateClasses = isCurrent
             ? "text-primary font-semibold"
             : isPast
@@ -70,7 +74,11 @@ export function CheckoutStepper({ currentStep, onStepClick }: Props) {
                   className="hidden flex-1 items-center sm:flex"
                 >
                   <span
+<<<<<<< HEAD
                     className={`block h-[2px] w-full ${
+=======
+                    className={`block h-px w-full ${
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
                       isPast ? "bg-primary" : "bg-border"
                     }`}
                   />

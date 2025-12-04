@@ -29,7 +29,7 @@ export default async function CatalogoPage({
   return (
     <section className="px-4">
       <SectionHeader title="Todas las prendas" />
-      <ProductGrid items={items} />
+      <ProductGrid items={items} showCartRow={true} />
       <PaginationNav page={page} totalPages={totalPages} base="/catalogo" />
     </section>
   );

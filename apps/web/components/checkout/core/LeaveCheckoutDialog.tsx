@@ -65,7 +65,11 @@ export function LeaveCheckoutDialog({
         aria-labelledby="leave-checkout-title"
         aria-describedby="leave-checkout-description"
         tabIndex={-1}
+<<<<<<< HEAD
         className="w-full max-w-sm rounded-xs border bg-background p-4 shadow-lg sm:p-5"
+=======
+        className="w-full max-w-sm rounded-lb border bg-background p-4 shadow-lg sm:p-5"
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
       >
         <div className="space-y-2 text-center">
           <h2

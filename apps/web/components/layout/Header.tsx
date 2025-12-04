@@ -1,11 +1,17 @@
 "use client";
 
 import Link from "next/link";
+<<<<<<< HEAD
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useRef, useState } from "react";
 import { FaSignOutAlt } from "react-icons/fa";
 import { FaRegUser, FaHeart, FaBoxOpen, FaUser } from "react-icons/fa6";
+=======
+import { usePathname } from "next/navigation";
+import { useRef, useState } from "react";
+import { FaRegUser, FaRegHeart } from "react-icons/fa6";
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
 import { IoSearch } from "react-icons/io5";
 
 import { CartButtonWithSheet } from "@/components/cart/CartButtonWithSheet";
@@ -30,6 +36,7 @@ const SHEET_ID = "site-sidebar";
 
 export function Header({ categories }: { categories: CategoryLink[] }) {
   const [open, setOpen] = useState(false);
+<<<<<<< HEAD
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
   const safeRef = useRef<HTMLDivElement>(null);
@@ -41,16 +48,25 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
   const user = session?.user ?? null;
   const isSessionLoading = sessionStatus === "loading";
 
+=======
+  const safeRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
+
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
   const HIDE_HEADER_ON: string[] = ["/checkout"];
   const hideHeader = HIDE_HEADER_ON.includes(pathname);
   const isCartPage = pathname === "/cart";
 
   useLockBodyScroll(open && !hideHeader);
+<<<<<<< HEAD
 
   useAutoCloseOnRouteChange((open || accountMenuOpen) && !hideHeader, () => {
     setOpen(false);
     setAccountMenuOpen(false);
   });
+=======
+  useAutoCloseOnRouteChange(open && !hideHeader, () => setOpen(false));
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
 
   const {
     handlePointerLeaveHeader,
@@ -72,6 +88,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
     </Link>
   );
 
+<<<<<<< HEAD
   const userInitial =
     typeof user?.name === "string" && user.name.trim() !== ""
       ? user.name.trim().charAt(0).toUpperCase()
@@ -102,6 +119,8 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
     await signOut({ callbackUrl: "/" });
   }
 
+=======
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
   return (
     <>
       <header
@@ -137,9 +156,14 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
 
         {/*------------- LOGO ------------- */}
         {logo}
+<<<<<<< HEAD
 
         {/*------------- NAV ------------- */}
         <nav className="justify-self-end h-full flex items-center gap-3 text-sm">
+=======
+        {/*------------- NAV ------------- */}
+        <nav className="justify-self-end h-full flex items-center gap-2 text-sm">
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
           <div className="hidden sm:flex items-center gap-1 border-b border-neutral-500">
             <IoSearch className="size-[20px]" />
             <input
@@ -148,6 +172,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
               className="px-1 outline-none w-[200px]"
             />
           </div>
+<<<<<<< HEAD
 
           <div className="flex gap-1 relative items-center h-full">
             {/* WRAPPER para Hover en Desktop */}
@@ -240,6 +265,37 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
                 </div>
               )}
             </div>
+=======
+          <div className="flex gap-1">
+            <Button
+              asChild
+              variant={"hovers"}
+              className="tip-bottom"
+              data-tip="Mi Cuenta"
+            >
+              <Link
+                href="/account"
+                className="flex items-center"
+                aria-label="Cuenta"
+              >
+                <FaRegUser className="size-[20px]" aria-hidden="true" />
+              </Link>
+            </Button>
+            <Button
+              asChild
+              variant={"hovers"}
+              className="tip-bottom"
+              data-tip="Favoritos"
+            >
+              <Link
+                href="/favoritos"
+                className="flex items-center"
+                aria-label="Favoritos"
+              >
+                <FaRegHeart className="size-[20px]" aria-hidden="true" />
+              </Link>
+            </Button>
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
 
             <div
               style={isCartPage ? { pointerEvents: "none" } : undefined}
@@ -250,11 +306,19 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
             </div>
           </div>
 
+<<<<<<< HEAD
           {/* <Button asChild variant={"outline"} className="text-base">
 						<Link href="/admin" className="px-4 text-base">
 							Admin
 						</Link>
 					</Button> */}
+=======
+          <Button asChild variant={"outline"} className="text-base">
+            <Link href="/admin" className="px-4 text-base">
+              Admin
+            </Link>
+          </Button>
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
         </nav>
       </header>
       <div

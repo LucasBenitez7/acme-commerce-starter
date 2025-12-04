@@ -11,6 +11,7 @@ export type ProductImage = {
   sort?: number;
 };
 
+<<<<<<< HEAD
 export type ProductVariant = {
   id: string;
   size: string;
@@ -18,13 +19,18 @@ export type ProductVariant = {
   stock: number;
 };
 
+=======
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
 // DTO para listas
 export type ProductListItem = {
   id: string;
   slug: string;
   name: string;
   priceCents: number;
+<<<<<<< HEAD
   totalStock: number;
+=======
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
   currency: SupportedCurrency;
   thumbnail: string | null;
   variants: ProductVariant[];

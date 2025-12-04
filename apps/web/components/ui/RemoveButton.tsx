@@ -12,7 +12,11 @@ export function RemoveButton({ onRemove, className }: CartRemoveButtonProps) {
     <button
       type="button"
       className={`
+<<<<<<< HEAD
          group relative flex h-6 w-6 items-center justify-center rounded-xs hover:cursor-pointer
+=======
+         group relative flex h-6 w-6 items-center justify-center rounded-lb mb-1 hover:cursor-pointer
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
         ${className ?? ""}
       `}
       aria-label="Quitar de la cesta"

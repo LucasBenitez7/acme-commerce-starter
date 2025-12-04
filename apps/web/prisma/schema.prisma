@@ -9,6 +9,7 @@ datasource db {
 
 // --- Catálogo ---
 model Category {
+<<<<<<< HEAD
   id        String    @id @default(cuid())
   slug      String    @unique
   name      String
@@ -32,6 +33,33 @@ model Product {
   orderItems  OrderItem[]
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
+=======
+  id       String    @id @default(cuid())
+  slug     String    @unique
+  name     String
+  sort     Int       @default(0)
+  products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String
+  priceCents  Int
+  currency    String   @default("EUR")
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+
+  images ProductImage[]
+
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  orderItems OrderItem[]
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
 
   @@index([categoryId])
 }
@@ -60,7 +88,10 @@ model ProductImage {
   @@unique([productId, sort])
 }
 
+<<<<<<< HEAD
 // --- Pedidos ---
+=======
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
 enum OrderStatus {
   PENDING_PAYMENT
   PAID
@@ -79,6 +110,7 @@ model Order {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+<<<<<<< HEAD
   email      String
   currency   String
   totalMinor Int
@@ -86,6 +118,17 @@ model Order {
 
   userId String?
   user   User?   @relation(fields: [userId], references: [id])
+=======
+  /// Email de contacto del pedido 
+  email String
+
+  /// Moneda del pedido en minor units
+  currency   String
+  totalMinor Int
+
+  /// Estado general del pedido
+  status OrderStatus @default(PENDING_PAYMENT)
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
 
   shippingType     ShippingType? @default(HOME)
   firstName        String?
@@ -101,16 +144,24 @@ model Order {
   pickupSearch     String?
   paymentMethod    String?
 
+<<<<<<< HEAD
+=======
+  /// Relación con items
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
   items OrderItem[]
 
   @@index([createdAt])
   @@index([status, createdAt])
+<<<<<<< HEAD
   @@index([userId, createdAt])
+=======
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
 }
 
 model OrderItem {
   id String @id @default(cuid())
 
+<<<<<<< HEAD
   orderId String
   order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
@@ -187,4 +238,26 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+=======
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  /// Snapshot del nombre en el momento del pedido
+  nameSnapshot String
+
+  /// Precio unitario (minor units) en el momento del pedido
+  priceMinorSnapshot Int
+
+  /// Cantidad pedida
+  quantity Int
+
+  /// Subtotal = priceMinorSnapshot * quantity
+  subtotalMinor Int
+
+  @@index([orderId])
+  @@index([productId])
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
 }

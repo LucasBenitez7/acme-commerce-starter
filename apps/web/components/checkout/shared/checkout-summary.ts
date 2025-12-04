@@ -73,7 +73,11 @@ export function buildShippingSummary(
     if (store) {
       return {
         label: "Recogida en tienda",
+<<<<<<< HEAD
         details: `${store.name} ${store.addressLine1} ${store.addressLine2}`,
+=======
+        details: `${store.name} · ${store.addressLine1} · ${store.addressLine2}`,
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
       };
     }
 
@@ -94,9 +98,15 @@ export function buildShippingSummary(
     const pickup = findPickupLocation(pickupLocationId ?? undefined);
 
     if (pickup) {
+<<<<<<< HEAD
       const base = `${pickup.name} ${pickup.addressLine1} ${pickup.addressLine2}`;
       return {
         label: "Punto de recogida",
+=======
+      const base = `${pickup.name} · ${pickup.addressLine1} · ${pickup.addressLine2}`;
+      return {
+        label: "Punto de recogida en",
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
         details: pickupSearch ? `${base}` : base,
       };
     }
@@ -123,11 +133,19 @@ export function buildShippingSummary(
   const line3 = line3Parts.join(" ");
 
   const details =
+<<<<<<< HEAD
     [line1, line2, line3].filter((part) => part.trim() !== "").join(" ") ||
     "Dirección de entrega no completada.";
 
   return {
     label: "Dirección de envío",
+=======
+    [line1, line2, line3].filter((part) => part.trim() !== "").join(" · ") ||
+    "Dirección de entrega no completada.";
+
+  return {
+    label: "",
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
     details,
   };
 }

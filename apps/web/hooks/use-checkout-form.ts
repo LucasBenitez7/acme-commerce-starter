@@ -16,6 +16,7 @@ import {
 
 import type { CheckoutStep } from "@/components/checkout/layout";
 
+<<<<<<< HEAD
 // Definimos las props para recibir los defaults del usuario
 type UseCheckoutFormProps = {
   defaults?: {
@@ -26,6 +27,8 @@ type UseCheckoutFormProps = {
   };
 };
 
+=======
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
 export type ShippingType = "home" | "store" | "pickup";
 
 export type CheckoutFormState = {
@@ -81,6 +84,7 @@ const INITIAL_FORM_STATE: CheckoutFormState = {
   paymentMethod: "card",
 };
 
+<<<<<<< HEAD
 export function useCheckoutForm({ defaults }: UseCheckoutFormProps = {}) {
   // 1. Inicializamos el estado con los defaults del usuario (si existen)
   const initialWithDefaults: CheckoutFormState = {
@@ -100,6 +104,23 @@ export function useCheckoutForm({ defaults }: UseCheckoutFormProps = {}) {
     useState<ShippingType | null>(null);
 
   // 1. Restaurar EL PASO desde localStorage
+=======
+export function useCheckoutForm() {
+  const [form, setForm] = useState<CheckoutFormState>(INITIAL_FORM_STATE);
+  const [isValid, setIsValid] = useState(false);
+  const [step, setStep] = useState<CheckoutStep>(1);
+
+  // Ha intentado continuar (al menos una vez)
+  const [showAllErrors, setShowAllErrors] = useState(false);
+
+  // Con qué tipo de envío falló el "Continuar"
+  const [invalidShippingType, setInvalidShippingType] =
+    useState<ShippingType | null>(null);
+
+  // ------------------------
+  // Restaurar desde localStorage
+  // ------------------------
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -116,7 +137,10 @@ export function useCheckoutForm({ defaults }: UseCheckoutFormProps = {}) {
     }
   }, []);
 
+<<<<<<< HEAD
   // 2. Restaurar EL FORMULARIO desde localStorage
+=======
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -179,6 +203,7 @@ export function useCheckoutForm({ defaults }: UseCheckoutFormProps = {}) {
     }
   }, []);
 
+<<<<<<< HEAD
   // Guardar PASO en localStorage al cambiar
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -196,6 +221,34 @@ export function useCheckoutForm({ defaults }: UseCheckoutFormProps = {}) {
   }, [form]);
 
   // Validación global (isValid)
+=======
+  // ------------------------
+  // Guardar en localStorage
+  // ------------------------
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      window.localStorage.setItem(STEP_STORAGE_KEY, String(step));
+    } catch {
+      // ignoramos errores
+    }
+  }, [step]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
+    } catch {
+      // ignoramos errores de almacenamiento
+    }
+  }, [form]);
+
+  // ------------------------
+  // Validación global (isValid)
+  // ------------------------
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
   useEffect(() => {
     const baseValid =
       isNonEmptyMin(form.firstName, 2) &&
@@ -226,7 +279,13 @@ export function useCheckoutForm({ defaults }: UseCheckoutFormProps = {}) {
     invalidShippingType !== null &&
     invalidShippingType === form.shippingType;
 
+<<<<<<< HEAD
   // Errores de contacto (compartidos)
+=======
+  // ------------------------
+  // Errores de contacto (compartidos)
+  // ------------------------
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
   const firstNameError =
     (forceShowForCurrentShipping || form.firstName !== "") &&
     !isNonEmptyMin(form.firstName, 2);
@@ -243,7 +302,13 @@ export function useCheckoutForm({ defaults }: UseCheckoutFormProps = {}) {
     (forceShowForCurrentShipping || form.phone !== "") &&
     !isValidPhone(form.phone);
 
+<<<<<<< HEAD
   // Errores específicos de envío
+=======
+  // ------------------------
+  // Errores específicos de envío
+  // ------------------------
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
   let streetError = false;
   let postalCodeError = false;
   let provinceError = false;
@@ -292,7 +357,14 @@ export function useCheckoutForm({ defaults }: UseCheckoutFormProps = {}) {
     pickupSearch: pickupSearchError,
   };
 
+<<<<<<< HEAD
   // Handlers
+=======
+  // ------------------------
+  // Handlers
+  // ------------------------
+
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
   function handleChange<K extends keyof CheckoutFormState>(
     key: K,
     value: CheckoutFormState[K],

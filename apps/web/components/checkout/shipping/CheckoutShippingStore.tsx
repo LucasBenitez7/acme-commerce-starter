@@ -64,7 +64,11 @@ export function CheckoutShippingStore({
                 return (
                   <label
                     key={store.id}
+<<<<<<< HEAD
                     className={`flex w-full cursor-pointer flex-col rounded-xs space-y-1 border p-3 text-left text-xs sm:text-sm transition-colors ${
+=======
+                    className={`flex w-full cursor-pointer flex-col rounded-lb border p-3 text-left text-xs sm:text-sm transition-colors ${
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
                       isSelected
                         ? "border-primary bg-primary/5"
                         : "border-border hover:border-primary/60 hover:bg-neutral-50"
@@ -86,9 +90,17 @@ export function CheckoutShippingStore({
                       {store.addressLine2}
                     </p>
 
+<<<<<<< HEAD
                     <div className="flex flex-wrap items-center gap-2 text-[0.7rem] text-muted-foreground">
                       <span>{store.tag}</span>
                       <span>{store.distance}</span>
+=======
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-[0.7rem] text-muted-foreground">
+                      <span>{store.tag}</span>
+                      <span>·</span>
+                      <span>{store.distance}</span>
+                      <span>·</span>
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
                       <span>{store.schedule}</span>
                     </div>
                   </label>
@@ -116,7 +128,11 @@ export function CheckoutShippingStore({
             </button>
           </div>
 
+<<<<<<< HEAD
           <div className="rounded-xs space-y-1 border p-3 text-xs sm:text-sm">
+=======
+          <div className="rounded-lb border p-3 text-xs sm:text-sm">
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
             <p className="text-sm font-semibold">{selectedStore.name}</p>
             <p className="text-xs text-muted-foreground">
               {selectedStore.addressLine1}
@@ -125,14 +141,26 @@ export function CheckoutShippingStore({
               {selectedStore.addressLine2}
             </p>
 
+<<<<<<< HEAD
             <div className="flex flex-wrap items-center gap-2 text-[0.7rem] text-muted-foreground">
               <span>{selectedStore.tag}</span>
               <span>{selectedStore.distance}</span>
+=======
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-[0.7rem] text-muted-foreground">
+              <span>{selectedStore.tag}</span>
+              <span>·</span>
+              <span>{selectedStore.distance}</span>
+              <span>·</span>
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
               <span>{selectedStore.schedule}</span>
             </div>
           </div>
 
+<<<<<<< HEAD
           <div className="space-y-1 pt-6">
+=======
+          <div className="space-y-2 pt-6">
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
             <p className="text-base font-medium text-foreground">
               Datos de contacto
             </p>

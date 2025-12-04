@@ -2,7 +2,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+<<<<<<< HEAD
 import { ProductActions } from "@/components/catalog/ProductActions";
+=======
+import { AddToCartButton } from "@/components/cart/AddToCartButton";
+import { Button, Separator } from "@/components/ui";
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
 
 import { parseCurrency, toMajor, MINOR_UNITS } from "@/lib/currency";
 import { formatPrice } from "@/lib/format";
@@ -80,14 +85,18 @@ export default async function ProductPage({ params }: { params: ParamsSlug }) {
   );
   const productUrlAbs = new URL(`/product/${p.slug}`, site).toString();
 
+<<<<<<< HEAD
   const totalStock = p.variants.reduce((acc, v) => acc + v.stock, 0);
   const isOutOfStock = totalStock === 0;
 
+=======
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
   const currency = parseCurrency(p.currency ?? "EUR");
   const priceMajor = toMajor(p.priceCents ?? 0, currency);
   const priceDecimals = MINOR_UNITS[currency];
 
   return (
+<<<<<<< HEAD
     <div className="bg-background w-full justify-center">
       <section className="space-y-3 px-4 py-6 max-w-6xl mx-auto">
         <nav className="text-sm text-muted-foreground overflow-x-auto whitespace-nowrap pb-2">
@@ -189,6 +198,79 @@ export default async function ProductPage({ params }: { params: ParamsSlug }) {
         />
       </section>
     </div>
+=======
+    <section className="space-y-6 px-4 py-6">
+      <nav className="text-sm text-neutral-500">
+        <Link href="/">Inicio</Link> <span aria-hidden>›</span>{" "}
+        <Link href="/catalogo">Todas las prendas</Link>{" "}
+        <span aria-hidden>›</span>{" "}
+        <Link href={`/cat/${p.category.slug}`}>{p.category.name}</Link>{" "}
+        <span aria-hidden>›</span>{" "}
+        <span className="text-neutral-800">{p.name}</span>
+      </nav>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div>
+          <div className="aspect-[3/4] relative bg-neutral-100">
+            <Image
+              src={imgMain}
+              alt={p.name}
+              fill
+              sizes="(max-width: 1280px) 50vw, 25vw"
+              className="object-cover"
+              priority
+            />
+          </div>
+        </div>
+
+        {/* Info */}
+        <div className="space-y-4">
+          <h1 className="text-2xl font-semibold">{p.name}</h1>
+          <p className="text-lg text-neutral-800">
+            {formatPrice(p.priceCents, currency)}
+          </p>
+
+          <Separator />
+
+          <p className="text-sm text-neutral-700 leading-relaxed">
+            {p.description}
+          </p>
+
+          <div className="pt-2 flex items-center gap-4">
+            <Button variant="outline" asChild>
+              <Link href={`/?cat=${p.category.slug}`}>
+                Ver más de {p.category.name}
+              </Link>
+            </Button>
+            <AddToCartButton slug={p.slug} />
+          </div>
+        </div>
+      </div>
+
+      {/* JSON-LD básico */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Product",
+            name: p.name,
+            description: p.description,
+            image: imageListAbs,
+            category: p.category.name,
+            offers: {
+              "@type": "Offer",
+              price: priceMajor.toFixed(priceDecimals),
+              priceCurrency: currency,
+              availability: "https://schema.org/InStock",
+              url: productUrlAbs,
+            },
+            url: productUrlAbs,
+          }),
+        }}
+      />
+    </section>
+>>>>>>> b4c8f25 (feat(fase-6): pedidos con datos de envío en Prisma + vista demo de orders (#29))
   );
 }
 
