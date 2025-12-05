@@ -350,7 +350,7 @@ export function CartButtonWithSheet() {
                   {isValidating && (
                     <ImSpinner8 className="animate-spin text-white" />
                   )}
-                  {isValidating ? "..." : "Tramitar pedido"}
+                  {isValidating ? "Tramitando..." : "Tramitar pedido"}
                 </Button>
               </div>
             </div>

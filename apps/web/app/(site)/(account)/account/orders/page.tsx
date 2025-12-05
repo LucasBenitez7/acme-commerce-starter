@@ -1,8 +1,15 @@
 import Link from "next/link";
 import { FaCalendar, FaMapMarkerAlt } from "react-icons/fa";
 
+import { UserOrderActions } from "@/components/account/UserOrderActions";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 import { auth } from "@/lib/auth";
 import { formatMinor, parseCurrency } from "@/lib/currency";
@@ -15,25 +22,37 @@ function getStatusBadge(status: string) {
   switch (status) {
     case "PAID":
       return (
-        <span className="inline-flex items-center rounded-md bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+        <span className="inline-flex items-center rounded-xs bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
           Pagado
         </span>
       );
     case "PENDING_PAYMENT":
       return (
-        <span className="inline-flex items-center rounded-md bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
+        <span className="inline-flex items-center rounded-xs bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
           Pendiente
         </span>
       );
     case "CANCELLED":
       return (
-        <span className="inline-flex items-center rounded-md bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+        <span className="inline-flex items-center rounded-xs bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
           Cancelado
+        </span>
+      );
+    case "RETURN_REQUESTED":
+      return (
+        <span className="inline-flex items-center rounded-xs bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-800 border border-orange-200 animate-pulse">
+          Devolución Solicitada
+        </span>
+      );
+    case "RETURNED":
+      return (
+        <span className="inline-flex items-center rounded-xs bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 border border-blue-200">
+          Devuelto
         </span>
       );
     default:
       return (
-        <span className="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+        <span className="inline-flex items-center rounded-xs bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
           {status}
         </span>
       );
@@ -91,28 +110,32 @@ export default async function AccountOrdersPage() {
 
           return (
             <Card key={order.id} className="overflow-hidden">
-              <CardHeader className="border-b bg-muted/40 p-4">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="grid gap-1">
-                    <CardTitle className="text-base">
+              <div className="border-b bg-muted/40 p-4">
+                <div className="grid grid-cols-[1fr_auto] gap-4">
+                  <div className="grid gap-2">
+                    <div className="text-base">
                       Pedido{" "}
                       <span className="font-mono text-muted-foreground">
                         #{order.id.slice(-8).toUpperCase()}
                       </span>
-                    </CardTitle>
+                    </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <FaCalendar className="h-3 w-3" />
                       {createdDate}
                     </div>
+                    <span>{getStatusBadge(order.status)}</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    {getStatusBadge(order.status)}
-                    <span className="text-lg font-bold">
-                      {formatMinor(order.totalMinor, currency)}
-                    </span>
+
+                  <div className="grid gap-3 h-max">
+                    <Link
+                      href={`/account/orders/${order.id}`}
+                      className="border-b border-foreground text-xs font-medium hover:text-slate-700 hover:border-slate-600"
+                    >
+                      Ver detalles del pedido
+                    </Link>
                   </div>
                 </div>
-              </CardHeader>
+              </div>
               <CardContent className="p-4 text-sm">
                 <div className="flex flex-col gap-4 sm:flex-row sm:justify-between">
                   <div className="space-y-2">
@@ -129,7 +152,6 @@ export default async function AccountOrdersPage() {
                           >
                             {item.nameSnapshot}
                           </Link>
-                          {/* MOSTRAR VARIANTES (Talla/Color) */}
                           {(item.sizeSnapshot || item.colorSnapshot) && (
                             <span className="text-muted-foreground/70">
                               ({item.sizeSnapshot} / {item.colorSnapshot})
@@ -143,6 +165,9 @@ export default async function AccountOrdersPage() {
                         </li>
                       )}
                     </ul>
+                    <span className="text-xs font-semibold">
+                      {formatMinor(order.totalMinor, currency)}
+                    </span>
                   </div>
 
                   <div className="space-y-1 text-right sm:text-left">
@@ -151,15 +176,31 @@ export default async function AccountOrdersPage() {
                       Envío
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {order.shippingType === "HOME"
-                        ? "A domicilio"
-                        : "Recogida en tienda"}{" "}
-                      <br />
-                      {order.city}, {order.province}
+                      {order.shippingType === "HOME" && "Envío a domicilio"}
+                      {order.shippingType === "STORE" && "Retirar en tienda"}
+                      {order.shippingType === "PICKUP" && "Punto de recogida"}
+                      {order.pickupLocationId} - {order.postalCode} -{" "}
+                      {order.city} - {order.province} - {order.street} -{" "}
+                      {order.storeLocationId}
                     </p>
                   </div>
                 </div>
               </CardContent>
+
+              {(order.status === "PENDING_PAYMENT" ||
+                order.status === "PAID" ||
+                order.status === "RETURN_REQUESTED" ||
+                order.status === "RETURNED") && (
+                <div className="bg-muted/20 p-3 flex justify-end">
+                  <div className="w-full sm:w-auto">
+                    <UserOrderActions
+                      orderId={order.id}
+                      status={order.status}
+                      items={order.items}
+                    />
+                  </div>
+                </div>
+              )}
             </Card>
           );
         })}

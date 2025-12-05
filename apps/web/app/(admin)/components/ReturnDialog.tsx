@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaRotateLeft } from "react-icons/fa6";
 import { toast } from "sonner";
 
 import { Button, Input } from "@/components/ui";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +23,7 @@ type OrderItem = {
   colorSnapshot: string | null;
   quantity: number;
   quantityReturned: number;
+  quantityReturnRequested: number;
 };
 
 export function ReturnDialog({
@@ -33,30 +35,47 @@ export function ReturnDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  // Estado local para guardar cuánto devolvemos de cada item
-  // Mapa: { itemId: cantidad_a_devolver }
   const [returnMap, setReturnMap] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    if (open) {
+      const initialMap: Record<string, number> = {};
+      items.forEach((item) => {
+        if (item.quantityReturnRequested > 0) {
+          // Por defecto seleccionamos todo lo que el usuario pidió
+          initialMap[item.id] = item.quantityReturnRequested;
+        }
+      });
+      setReturnMap(initialMap);
+    }
+  }, [open, items]);
+
+  const handleToggleItem = (itemId: string, max: number, checked: boolean) => {
+    setReturnMap((prev) => {
+      const next = { ...prev };
+      if (checked) next[itemId] = max;
+      else delete next[itemId];
+      return next;
+    });
+  };
 
   const handleQtyChange = (itemId: string, val: string, max: number) => {
     const num = parseInt(val) || 0;
     if (num < 0) return;
-    if (num > max) return; // No dejar poner más de lo disponible
+    if (num > max) return;
 
     setReturnMap((prev) => ({ ...prev, [itemId]: num }));
   };
 
   const handleSubmit = async () => {
     setLoading(true);
-
-    // Convertimos el mapa a array para la server action
     const payload = Object.entries(returnMap)
       .filter(([_, qty]) => qty > 0)
       .map(([itemId, qty]) => ({ itemId, qtyToReturn: qty }));
 
     if (payload.length === 0) {
       setLoading(false);
-      toast.error("Selecciona al menos un artículo para devolver");
+      toast.error("No hay nada seleccionado para devolver");
       return;
     }
 
@@ -65,7 +84,7 @@ export function ReturnDialog({
     if (res.error) {
       toast.error(res.error);
     } else {
-      toast.success("Devolución procesada y stock restaurado");
+      toast.success("Devolución aceptada y stock restaurado");
       setOpen(false);
       setReturnMap({});
     }
@@ -73,11 +92,9 @@ export function ReturnDialog({
   };
 
   // Calculamos si queda algo por devolver en toda la orden
-  const canReturnSomething = items.some(
-    (i) => i.quantity - i.quantityReturned > 0,
-  );
+  const hasRequests = items.some((i) => i.quantityReturnRequested > 0);
 
-  if (!canReturnSomething) return null; // Si todo está devuelto, ocultamos botón
+  if (!hasRequests) return null;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -89,63 +106,74 @@ export function ReturnDialog({
       </DialogTrigger>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Procesar Devolución Parcial</DialogTitle>
+          <DialogTitle>Aceptar Devolución</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <p className="text-sm text-muted-foreground">
-            Selecciona la cantidad de artículos que el cliente ha devuelto. El
-            stock se sumará automáticamente al inventario.
+            Confirma los artículos que aceptas devolver
           </p>
-
-          <div className="space-y-3">
+          <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-2">
             {items.map((item) => {
-              const availableToReturn = item.quantity - item.quantityReturned;
-              if (availableToReturn <= 0) return null;
+              const requested = item.quantityReturnRequested;
+              if (requested <= 0) return null;
+
+              const isSelected = (returnMap[item.id] || 0) > 0;
 
               return (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between border p-3 rounded-md"
+                  className={`flex items-center gap-3 border p-3 rounded-md transition-colors ${isSelected ? "border-blue-500 bg-blue-50/50" : "border-neutral-200"}`}
                 >
-                  <div className="text-sm">
+                  {/* Checkbox de Selección */}
+                  <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={(c) =>
+                      handleToggleItem(item.id, requested, c as boolean)
+                    }
+                  />
+
+                  <div className="flex-1 text-sm">
                     <p className="font-medium">{item.nameSnapshot}</p>
                     <p className="text-muted-foreground text-xs">
                       {item.sizeSnapshot} / {item.colorSnapshot}
                     </p>
-                    <p className="text-xs mt-1 text-blue-600">
-                      Comprados: {item.quantity} | Devueltos:{" "}
-                      {item.quantityReturned}
+                    <p className="text-xs text-orange-600 font-semibold mt-1">
+                      El cliente quiere devolver: {requested}
                     </p>
                   </div>
+
+                  {/* Input de cantidad (Solo visible si seleccionado) */}
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">
-                      Devolver:
-                    </span>
-                    <Input
-                      type="number"
-                      min={0}
-                      max={availableToReturn}
-                      className="w-20 h-8 text-right"
-                      value={returnMap[item.id] || ""}
-                      placeholder="0"
-                      onChange={(e) =>
-                        handleQtyChange(
-                          item.id,
-                          e.target.value,
-                          availableToReturn,
-                        )
-                      }
-                    />
-                    <span className="text-xs text-muted-foreground w-12">
-                      / {availableToReturn}
-                    </span>
+                    {isSelected ? (
+                      <>
+                        <span className="text-xs text-muted-foreground">
+                          Aceptar:
+                        </span>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={requested} // MAXIMO LO SOLICITADO
+                          className="w-16 h-8 text-right bg-white"
+                          value={returnMap[item.id] || ""}
+                          onChange={(e) =>
+                            handleQtyChange(item.id, e.target.value, requested)
+                          }
+                        />
+                        <span className="text-xs text-muted-foreground">
+                          / {requested}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">
+                        Solicitado: {requested}
+                      </span>
+                    )}
                   </div>
                 </div>
               );
             })}
           </div>
-
           <Button
             onClick={handleSubmit}
             disabled={loading}
@@ -153,6 +181,7 @@ export function ReturnDialog({
           >
             {loading ? "Procesando..." : "Confirmar Devolución de Stock"}
           </Button>
+          1
         </div>
       </DialogContent>
     </Dialog>

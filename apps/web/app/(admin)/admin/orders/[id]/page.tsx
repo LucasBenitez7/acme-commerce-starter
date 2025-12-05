@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { FaExclamationTriangle } from "react-icons/fa";
 import { FaArrowLeft, FaBoxOpen, FaTruck, FaUser } from "react-icons/fa6";
 
 import {
@@ -14,8 +15,12 @@ import {
 import { formatMinor, parseCurrency } from "@/lib/currency";
 import { prisma } from "@/lib/db";
 
+import {
+  AdminCancelButton,
+  AdminPayButton,
+  AdminRejectButton,
+} from "../../../components/AdminOrderActions";
 import { ReturnDialog } from "../../../components/ReturnDialog";
-import { updateOrderStatusAction } from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -37,19 +42,6 @@ export default async function AdminOrderDetailPage({ params }: Props) {
   if (!order) notFound();
 
   const currency = parseCurrency(order.currency);
-
-  const ActionButton = ({ status, label, variant = "outline" }: any) => (
-    <form
-      action={async () => {
-        "use server";
-        await updateOrderStatusAction(id, status);
-      }}
-    >
-      <Button type="submit" variant={variant} size="sm">
-        {label}
-      </Button>
-    </form>
-  );
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -74,33 +66,64 @@ export default async function AdminOrderDetailPage({ params }: Props) {
           </p>
         </div>
 
-        {/* Botones de Acción Global */}
+        {/* CASO 1: Pendiente */}
         <div className="flex gap-2">
           {order.status === "PENDING_PAYMENT" && (
             <>
-              <ActionButton
-                status="PAID"
-                label="Marcar Pagado"
-                variant="default"
-              />
-              <ActionButton
-                status="CANCELLED"
-                label="Cancelar Pedido"
-                variant="destructive"
-              />
+              <AdminPayButton orderId={order.id} />
+              <AdminCancelButton orderId={order.id} />
             </>
           )}
 
+          {/* CASO 2: Si está Pagado*/}
           {order.status === "PAID" && (
-            <ActionButton
-              status="CANCELLED"
-              label="Reembolsar / Cancelar"
-              variant="outline"
-            />
+            <span className="text-xs text-muted-foreground border px-3 py-1.5 rounded bg-neutral-50">
+              Pedido completado. Esperando cliente.
+            </span>
           )}
 
-          {order.status === "PAID" && (
-            <ReturnDialog orderId={order.id} items={order.items} />
+          {/* CASO 3: El cliente pidió devolución (Admin actúa) */}
+          {order.status === "RETURN_REQUESTED" && (
+            <>
+              {/* Botón VERDE: Aceptar y devolver stock */}
+              <ReturnDialog orderId={order.id} items={order.items} />
+
+              {/* Botón ROJO: Rechazar solicitud (con motivo) */}
+              <AdminRejectButton orderId={order.id} />
+            </>
+          )}
+
+          {/* BLOQUE VISUAL DE MOTIVOS (Para que el admin sepa qué pasa) */}
+          {order.returnReason && (
+            <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-md">
+              <p className="font-bold text-xs uppercase tracking-wide mb-1">
+                Motivo del cliente:
+              </p>
+              <p className="text-sm">"{order.returnReason}"</p>
+            </div>
+          )}
+
+          {order.rejectionReason && order.status === "PAID" && (
+            <div className="bg-gray-100 border border-gray-200 text-gray-600 p-4 rounded-md">
+              <p className="font-bold text-xs uppercase tracking-wide mb-1">
+                Devolución rechazada anteriormente:
+              </p>
+              <p className="text-sm">"{order.rejectionReason}"</p>
+            </div>
+          )}
+
+          {order.status === "RETURN_REQUESTED" && (
+            <div className="bg-orange-50 border border-orange-200 text-orange-800 p-4 rounded-md flex items-center gap-3">
+              <FaExclamationTriangle className="h-5 w-5" />
+              <div>
+                <p className="font-bold text-sm">Solicitud de Devolución</p>
+                <p className="text-xs">
+                  El cliente ha solicitado devolver este pedido. Revisa los
+                  productos y usa el botón "Gestionar Devolución" para
+                  procesarlo.
+                </p>
+              </div>
+            </div>
           )}
         </div>
       </div>
@@ -202,9 +225,9 @@ export default async function AdminOrderDetailPage({ params }: Props) {
             </CardHeader>
             <CardContent className="text-sm">
               <p className="font-medium mb-1">
-                {order.shippingType === "HOME"
-                  ? "A domicilio"
-                  : "Recogida en tienda"}
+                {order.shippingType === "HOME" && "Envío a domicilio"}
+                {order.shippingType === "STORE" && "Recogida en tienda"}
+                {order.shippingType === "PICKUP" && "Punto de recogida"}
               </p>
               <div className="text-muted-foreground">
                 <p>{order.street}</p>
