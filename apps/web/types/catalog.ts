@@ -9,6 +9,7 @@ export type ProductImage = {
   url: string;
   alt: string;
   sort?: number;
+  color?: string | null;
 };
 
 export type ProductVariant = {

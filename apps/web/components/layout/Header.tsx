@@ -250,11 +250,11 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
             </div>
           </div>
 
-          {/* <Button asChild variant={"outline"} className="text-base">
-						<Link href="/admin" className="px-4 text-base">
-							Admin
-						</Link>
-					</Button> */}
+          <Button asChild variant={"outline"} className="text-base">
+            <Link href="/admin" className="px-4 text-base">
+              Admin
+            </Link>
+          </Button>
         </nav>
       </header>
       <div

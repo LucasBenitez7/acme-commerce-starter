@@ -8,13 +8,12 @@ import { AddToCartIcon } from "@/components/cart/AddToCartIcon";
 import { FavoriteButton } from "@/components/ui";
 
 import { sortSizes } from "@/lib/catalog/sort-sizes";
+import { COLOR_MAP } from "@/lib/constants";
 import { formatMinor, DEFAULT_CURRENCY } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 
 import { useAppSelector } from "@/hooks/use-app-selector";
 import { selectCartQtyByVariant } from "@/store/cart.selectors";
-
-import { COLOR_MAP } from "./ProductActions";
 
 import type { ProductListItem } from "@/types/catalog";
 
@@ -73,6 +72,10 @@ export function ProductCard({ item }: { item: ProductListItem }) {
   );
 
   const isCombinationValid = selectedVariant
+    ? selectedVariant.stock > 0
+    : false;
+
+  const canAdd = selectedVariant
     ? selectedVariant.stock > 0 && cartQty < selectedVariant.stock
     : false;
 
@@ -204,7 +207,8 @@ export function ProductCard({ item }: { item: ProductListItem }) {
                     : "text-foreground hover:text-foreground",
                 )}
               >
-                Ver tallas disponibles
+                Ver tallas disponibles({sizes.length})
+                {/* {showSizes ? "Ocultar tallas" : `+ ${sizes.length} tallas`} */}
               </button>
             ) : (
               <div className="h-6"></div>
@@ -217,6 +221,9 @@ export function ProductCard({ item }: { item: ProductListItem }) {
               {colors.map((color) => {
                 const bg = COLOR_MAP[color] ?? COLOR_MAP["Default"];
                 const isSelected = selectedColor === color;
+                const hasStock = item.variants.some(
+                  (v) => v.color === color && v.stock > 0,
+                );
 
                 return (
                   <button
@@ -247,7 +254,7 @@ export function ProductCard({ item }: { item: ProductListItem }) {
                 slug={item.slug}
                 variantId={selectedVariant?.id ?? ""}
                 variantName={`${selectedSize} / ${selectedColor}`}
-                disabled={!isCombinationValid || isOutOfStock}
+                disabled={!isCombinationValid || isOutOfStock || !canAdd}
                 className={cn(
                   "transition-all duration-300",
                   !selectedSize && !isOutOfStock

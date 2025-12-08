@@ -25,7 +25,7 @@ const NAV_ITEMS = [
     icon: FaClipboardList,
   },
   {
-    label: "Productos-Disabled",
+    label: "Productos",
     href: "/admin/products",
     icon: FaTags,
   },

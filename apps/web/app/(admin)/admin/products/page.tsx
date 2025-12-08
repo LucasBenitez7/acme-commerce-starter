@@ -124,35 +124,11 @@ export default async function AdminProductsPage() {
                           </span>
                         </td>
                         <td className="px-6 py-3 text-right">
-                          <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button
-                              asChild
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                            >
-                              <Link href={`/admin/products/${product.id}`}>
-                                <FaPencil className="h-3.5 w-3.5 text-blue-600" />
-                              </Link>
-                            </Button>
-
-                            {/* Formulario simple para borrar sin JS cliente complejo */}
-                            <form
-                              action={async () => {
-                                "use server";
-                                await deleteProductAction(product.id);
-                              }}
-                            >
-                              <Button
-                                type="submit"
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 hover:bg-red-50 hover:text-red-600"
-                              >
-                                <FaTrash className="h-3.5 w-3.5" />
-                              </Button>
-                            </form>
-                          </div>
+                          <Button asChild variant="outline" size="sm">
+                            <Link href={`/admin/products/${product.id}`}>
+                              Gestionar
+                            </Link>
+                          </Button>
                         </td>
                       </tr>
                     );

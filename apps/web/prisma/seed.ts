@@ -1,5 +1,7 @@
 import { type Prisma, PrismaClient } from "@prisma/client";
 
+import { CLOTHING_SIZES, SHOE_SIZES, PRODUCT_COLORS } from "@/lib/constants";
+
 const prisma = new PrismaClient();
 
 const CATEGORIES = [
@@ -14,9 +16,7 @@ const CATEGORIES = [
 ] as const;
 
 // Definimos variantes posibles
-const CLOTHING_SIZES = ["XXS", "XS", "S", "M", "L", "XL"];
-const SHOE_SIZES = ["37", "38", "39", "40", "41", "42", "43", "44"];
-const COLORS = ["Negro", "Blanco", "Azul Marino", "Beige", "Rojo"];
+const COLORS = PRODUCT_COLORS.map((c) => c.name);
 
 type SeedVariant = {
   size: string;

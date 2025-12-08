@@ -6,6 +6,7 @@ import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { FavoriteButton } from "@/components/ui";
 
 import { sortSizes } from "@/lib/catalog/sort-sizes";
+import { COLOR_MAP } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 import { useAppSelector } from "@/hooks/use-app-selector";
@@ -19,15 +20,6 @@ export type Props = {
   priceMinor: number;
   imageUrl?: string;
   variants: ProductVariant[];
-};
-
-export const COLOR_MAP: Record<string, string> = {
-  Negro: "#171717",
-  Blanco: "#FFFFFF",
-  "Azul Marino": "#1e3a8a",
-  Beige: "#d6c0a1",
-  Rojo: "#dc2626",
-  Default: "#e5e5e5",
 };
 
 export function ProductActions({
@@ -88,10 +80,11 @@ export function ProductActions({
           </div>
           <div className="flex flex-wrap gap-3">
             {colors.map((color) => {
+              const variantWithColor = variants.find((v) => v.color === color);
               const bg = COLOR_MAP[color] ?? COLOR_MAP["Default"];
               const isSelected = selectedColor === color;
 
-              const isColorAvailable = variants.some(
+              const hasStock = variants.some(
                 (v) => v.color === color && v.stock > 0,
               );
 
@@ -109,7 +102,7 @@ export function ProductActions({
                     isSelected
                       ? "shadow-[0_4px_0_0_#fff,0_5.5px_0_0_#000]"
                       : "hover:shadow-[0_4px_0_0_#fff,0_5.5px_0_0_#000]",
-                    !isColorAvailable && "opacity-50",
+                    !hasStock && "opacity-50",
                   )}
                   style={{ backgroundColor: bg }}
                 >
@@ -124,7 +117,7 @@ export function ProductActions({
         <div className="space-y-1.5">
           <div className="flex">
             <span className="text-sm font-medium capitalize">
-              Talla: {isCombinationValid ? selectedSize : ""}
+              Talla: {isCombinationValid ? selectedSize : "Selecciona una"}
             </span>
           </div>
           <div className="flex flex-wrap gap-2">
