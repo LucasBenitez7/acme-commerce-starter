@@ -125,7 +125,7 @@ export function AdminRejectButton({ orderId }: { orderId: string }) {
         <div className="py-4 space-y-3">
           <label className="text-sm font-medium">Motivo del rechazo</label>
           <select
-            className="w-full rounded-md border p-2 text-sm"
+            className="w-full rounded-xs border p-2 text-sm"
             value={selectedReason}
             onChange={(e) => setSelectedReason(e.target.value)}
           >

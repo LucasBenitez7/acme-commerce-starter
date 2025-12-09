@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { BiSolidCategory } from "react-icons/bi";
 import {
-  FaBoxOpen,
   FaChartPie,
   FaClipboardList,
   FaStore,
@@ -25,10 +25,16 @@ const NAV_ITEMS = [
     icon: FaClipboardList,
   },
   {
+    label: "Categorias",
+    href: "/admin/categories",
+    icon: BiSolidCategory,
+  },
+  {
     label: "Productos",
     href: "/admin/products",
     icon: FaTags,
   },
+
   {
     label: "Clientes-Disabled",
     href: "/admin/users",

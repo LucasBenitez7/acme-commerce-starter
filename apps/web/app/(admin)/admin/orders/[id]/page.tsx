@@ -95,7 +95,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
 
           {/* BLOQUE VISUAL DE MOTIVOS (Para que el admin sepa qué pasa) */}
           {order.returnReason && (
-            <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-md">
+            <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-xs">
               <p className="font-bold text-xs uppercase tracking-wide mb-1">
                 Motivo del cliente:
               </p>
@@ -104,7 +104,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
           )}
 
           {order.rejectionReason && order.status === "PAID" && (
-            <div className="bg-gray-100 border border-gray-200 text-gray-600 p-4 rounded-md">
+            <div className="bg-gray-100 border border-gray-200 text-gray-600 p-4 rounded-xs">
               <p className="font-bold text-xs uppercase tracking-wide mb-1">
                 Devolución rechazada anteriormente:
               </p>
@@ -113,7 +113,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
           )}
 
           {order.status === "RETURN_REQUESTED" && (
-            <div className="bg-orange-50 border border-orange-200 text-orange-800 p-4 rounded-md flex items-center gap-3">
+            <div className="bg-orange-50 border border-orange-200 text-orange-800 p-4 rounded-xs flex items-center gap-3">
               <FaExclamationTriangle className="h-5 w-5" />
               <div>
                 <p className="font-bold text-sm">Solicitud de Devolución</p>

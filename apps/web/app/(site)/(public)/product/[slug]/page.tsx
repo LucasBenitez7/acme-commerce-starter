@@ -81,6 +81,8 @@ export default async function ProductPage({ params }: { params: ParamsSlug }) {
   const productUrlAbs = new URL(`/product/${p.slug}`, site).toString();
 
   const totalStock = p.variants.reduce((acc, v) => acc + v.stock, 0);
+
+  const isArchived = p.isArchived;
   const isOutOfStock = totalStock === 0;
 
   const currency = parseCurrency(p.currency ?? "EUR");
@@ -111,7 +113,7 @@ export default async function ProductPage({ params }: { params: ParamsSlug }) {
 
         <div className="grid gap-8 lg:grid-cols-[minmax(300px,450px)auto] lg:items-start">
           {/* Galería / Imagen */}
-          <div>
+          <div className="relative sm:sticky sm:top-19">
             <div className="aspect-[3/4] relative bg-neutral-100  overflow-hidden">
               <Image
                 src={imgMain}
@@ -121,28 +123,25 @@ export default async function ProductPage({ params }: { params: ParamsSlug }) {
                 className="object-cover"
                 priority
               />
-              {isOutOfStock && (
-                <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none bg-black/50">
-                  <div className=" text-white/70 px-4 py-2 text-lg font-bold uppercase tracking-widest border-2 border-white/70">
-                    Agotado
+              {isOutOfStock ||
+                (isArchived && (
+                  <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none bg-black/50">
+                    <div className=" text-white/70 px-4 py-2 text-lg font-bold uppercase tracking-widest border-2 border-white/70">
+                      Agotado
+                    </div>
                   </div>
-                </div>
-              )}
+                ))}
             </div>
           </div>
 
           {/* Info y Acciones */}
-          <div className="space-y-8 p-0 sticky top-17">
-            <div className="space-y-1">
+          <div className="space-y-8 p-0">
+            <div className="space-y-0">
               <h1 className="text-lg font-semibold tracking-tight text-foreground">
                 {p.name}
               </h1>
-              <p className="text-sm font-medium text-foreground">
+              <p className="text-sm mb-2 font-medium text-foreground">
                 {formatPrice(p.priceCents, currency)}
-              </p>
-
-              <p className="text-xs text-slate-700 leading-relaxed">
-                Mini descripción de cada producto
               </p>
             </div>
 
@@ -153,13 +152,16 @@ export default async function ProductPage({ params }: { params: ParamsSlug }) {
                 priceMinor={p.priceCents}
                 imageUrl={imgMain}
                 variants={p.variants}
+                isArchived={isArchived}
               />
             </div>
 
-            <div className="pt-4">
-              <p className="text-xs text-muted-foreground text-center">
-                Envío gratuito en pedidos superiores a 50€ · Devoluciones en 30
-                días
+            <div className="space-y-1 border-t py-2 mt-15">
+              <h2 className="text-lg font-semibold text-foreground">
+                Descripción
+              </h2>
+              <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
+                {p.description}
               </p>
             </div>
           </div>

@@ -3,13 +3,7 @@ import { FaCalendar, FaMapMarkerAlt } from "react-icons/fa";
 
 import { UserOrderActions } from "@/components/account/UserOrderActions";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 
 import { auth } from "@/lib/auth";
 import { formatMinor, parseCurrency } from "@/lib/currency";
@@ -66,12 +60,18 @@ export default async function AccountOrdersPage() {
   const orders = await prisma.order.findMany({
     where: { userId: session.user.id },
     orderBy: { createdAt: "desc" },
-    include: { items: true },
+    include: {
+      items: {
+        include: {
+          product: { select: { slug: true } },
+        },
+      },
+    },
   });
 
   if (orders.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center animate-in fade-in-50">
+      <div className="flex flex-col items-center justify-center rounded-xs border border-dashed p-8 text-center animate-in fade-in-50">
         <h3 className="mt-4 text-lg font-semibold">No tienes pedidos</h3>
         <p className="mb-4 mt-2 text-sm text-muted-foreground">
           Parece que aún no has comprado nada. ¡Echa un vistazo al catálogo!
@@ -146,12 +146,19 @@ export default async function AccountOrdersPage() {
                           <span className="font-medium text-foreground">
                             {item.quantity}x
                           </span>
-                          <Link
-                            href={`producto/${item.variantId}`}
-                            className="font-medium"
-                          >
-                            {item.nameSnapshot}
-                          </Link>
+                          {item.product ? (
+                            <Link
+                              href={`/product/${item.product.slug}`}
+                              className="font-medium hover:underline"
+                            >
+                              {item.nameSnapshot}
+                            </Link>
+                          ) : (
+                            <span className="font-medium text-muted-foreground">
+                              {item.nameSnapshot}
+                            </span>
+                          )}
+
                           {(item.sizeSnapshot || item.colorSnapshot) && (
                             <span className="text-muted-foreground/70">
                               ({item.sizeSnapshot} / {item.colorSnapshot})

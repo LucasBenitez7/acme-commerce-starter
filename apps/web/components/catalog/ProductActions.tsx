@@ -20,6 +20,7 @@ export type Props = {
   priceMinor: number;
   imageUrl?: string;
   variants: ProductVariant[];
+  isArchived?: boolean;
 };
 
 export function ProductActions({
@@ -28,6 +29,7 @@ export function ProductActions({
   priceMinor,
   imageUrl,
   variants,
+  isArchived = false,
 }: Props) {
   const sizes = useMemo(() => {
     const uniqueSizes = Array.from(new Set(variants.map((v) => v.size)));
@@ -61,12 +63,11 @@ export function ProductActions({
 
   const isOutOfStock = selectedVariant ? selectedVariant.stock === 0 : false;
 
-  const canAdd = selectedVariant
-    ? selectedVariant.stock > 0 && cartQty < selectedVariant.stock
-    : false;
-
-  const isMaxedOut =
-    selectedVariant && cartQty >= selectedVariant.stock && !isOutOfStock;
+  const canAdd =
+    !isArchived &&
+    selectedVariant &&
+    selectedVariant.stock > 0 &&
+    cartQty < selectedVariant.stock;
 
   return (
     <div className="space-y-10">
@@ -74,14 +75,22 @@ export function ProductActions({
         {/* Selector de Color */}
         <div className="space-y-1.5">
           <div className="flex">
-            <span className="text-sm font-medium capitalize">
+            <span
+              className={cn(
+                "text-sm font-medium capitalize",
+                isArchived && "text-muted-foreground",
+              )}
+            >
               Color: {selectedColor || ""}
             </span>
           </div>
           <div className="flex flex-wrap gap-3">
             {colors.map((color) => {
               const variantWithColor = variants.find((v) => v.color === color);
-              const bg = COLOR_MAP[color] ?? COLOR_MAP["Default"];
+              const bg =
+                variantWithColor?.colorHex ||
+                COLOR_MAP[color] ||
+                COLOR_MAP["Default"];
               const isSelected = selectedColor === color;
 
               const hasStock = variants.some(
@@ -93,6 +102,7 @@ export function ProductActions({
                   key={color}
                   type="button"
                   title={color}
+                  disabled={!hasStock || isArchived}
                   onClick={(e) => {
                     e.preventDefault();
                     setSelectedColor(color);
@@ -102,7 +112,10 @@ export function ProductActions({
                     isSelected
                       ? "shadow-[0_4px_0_0_#fff,0_5.5px_0_0_#000]"
                       : "hover:shadow-[0_4px_0_0_#fff,0_5.5px_0_0_#000]",
-                    !hasStock && "opacity-50",
+                    !hasStock &&
+                      "opacity-50 hover:shadow-none hover:cursor-default",
+                    isArchived &&
+                      "opacity-50 hover:shadow-none hover:cursor-default",
                   )}
                   style={{ backgroundColor: bg }}
                 >
@@ -116,8 +129,13 @@ export function ProductActions({
         {/* Selector de Tallas */}
         <div className="space-y-1.5">
           <div className="flex">
-            <span className="text-sm font-medium capitalize">
-              Talla: {isCombinationValid ? selectedSize : "Selecciona una"}
+            <span
+              className={cn(
+                "text-sm font-medium capitalize",
+                isArchived && "text-muted-foreground",
+              )}
+            >
+              Talla: {isCombinationValid ? selectedSize : ""}
             </span>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -134,7 +152,7 @@ export function ProductActions({
                 <button
                   key={size}
                   type="button"
-                  disabled={!isAvailable}
+                  disabled={!isAvailable || isArchived}
                   onClick={() => setSelectedSize(size)}
                   className={cn(
                     "min-w-[2.5rem] px-2 py-1.5 text-sm font-medium border rounded-xs transition-all hover:cursor-pointer",
@@ -142,7 +160,9 @@ export function ProductActions({
                       ? "border-black"
                       : "bg-white text-foreground-700 hover:border-black",
                     !isAvailable &&
-                      "hover:cursor-not-allowed cursor-not-allowed bg-neutral-100 line-through hover:border-border border-border text-neutral-400",
+                      "hover:cursor-default bg-neutral-100 line-through hover:border-border border-border text-neutral-400",
+                    isArchived &&
+                      "hover:cursor-default bg-neutral-100 line-through hover:border-border border-border text-neutral-400",
                   )}
                 >
                   {size}
@@ -150,7 +170,13 @@ export function ProductActions({
               );
             })}
           </div>
-          <button className="text-xs text-muted-foreground underline decoration-neutral-300 underline-offset-4 hover:text-foreground">
+          <button
+            disabled={isArchived}
+            className={cn(
+              "text-xs text-muted-foreground underline decoration-neutral-300 underline-offset-4 hover:text-foreground",
+              isArchived && "hover:cursor-default hover:text-muted-foreground",
+            )}
+          >
             Guía de tallas
           </button>
         </div>
@@ -176,7 +202,7 @@ export function ProductActions({
           <FavoriteButton
             isFavorite={false}
             onToggle={() => {}}
-            className=" border border-foreground h-10 w-10 rounded-xs"
+            className="border border-foreground h-10 w-10 rounded-xs"
           />
         </div>
         <div>

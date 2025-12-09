@@ -123,7 +123,7 @@ export function ReturnDialog({
               return (
                 <div
                   key={item.id}
-                  className={`flex items-center gap-3 border p-3 rounded-md transition-colors ${isSelected ? "border-blue-500 bg-blue-50/50" : "border-neutral-200"}`}
+                  className={`flex items-center gap-3 border p-3 rounded-xs transition-colors ${isSelected ? "border-blue-500 bg-blue-50/50" : "border-neutral-200"}`}
                 >
                   {/* Checkbox de Selección */}
                   <Checkbox

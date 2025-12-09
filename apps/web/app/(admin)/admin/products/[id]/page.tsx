@@ -11,7 +11,6 @@ export default async function EditProductPage({
 }) {
   const { id } = await params;
 
-  // 1. Buscar producto con todo lo necesario
   const product = await prisma.product.findUnique({
     where: { id },
     include: {
@@ -27,10 +26,23 @@ export default async function EditProductPage({
     orderBy: { name: "asc" },
   });
 
+  const variantsData = await prisma.productVariant.findMany({
+    select: { size: true, color: true },
+    distinct: ["size", "color"],
+  });
+
+  const existingSizes = Array.from(new Set(variantsData.map((v) => v.size)));
+  const existingColors = Array.from(new Set(variantsData.map((v) => v.color)));
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold tracking-tight">Editar Producto</h1>
-      <ProductForm categories={categories} product={product} />
+      <ProductForm
+        categories={categories}
+        product={product}
+        existingSizes={existingSizes}
+        existingColors={existingColors}
+      />
     </div>
   );
 }

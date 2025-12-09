@@ -43,22 +43,14 @@ export function AddToCartIcon({
   };
 
   return (
-    <Button
+    <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      variant="ghost"
-      size="icon"
-      className={cn(
-        "rounded-full transition-all duration-200 h-8 w-8 flex items-center justify-center",
-        disabled
-          ? "cursor-not-allowed opacity-50 bg-neutral-100 text-neutral-400"
-          : "hover:bg-black hover:text-white bg-white border border-neutral-200 text-neutral-900 shadow-sm",
-        className,
-      )}
+      className={cn("", className)}
       aria-label="Añadir a la cesta"
     >
-      <HiOutlineShoppingBag className="size-6" />
-    </Button>
+      <HiOutlineShoppingBag className="size-6 hover:cursor-pointer" />
+    </button>
   );
 }

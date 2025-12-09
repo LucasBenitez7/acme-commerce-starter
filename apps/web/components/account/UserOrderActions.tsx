@@ -177,7 +177,7 @@ export function UserOrderActions({ orderId, status, items }: Props) {
                 return (
                   <div
                     key={item.id}
-                    className={`flex items-center gap-3 border p-3 rounded-md transition-colors ${isSelected ? "border-black bg-neutral-50" : "border-neutral-200"}`}
+                    className={`flex items-center gap-3 border p-3 rounded-xs transition-colors ${isSelected ? "border-black bg-neutral-50" : "border-neutral-200"}`}
                   >
                     <Checkbox
                       checked={isSelected}
@@ -215,7 +215,7 @@ export function UserOrderActions({ orderId, status, items }: Props) {
             <div className="space-y-2">
               <label className="text-sm font-medium">Motivo</label>
               <select
-                className="w-full rounded-md border p-2 text-sm"
+                className="w-full rounded-xs border p-2 text-sm"
                 value={selectedReason}
                 onChange={(e) => setSelectedReason(e.target.value)}
               >
@@ -272,7 +272,7 @@ export function UserOrderActions({ orderId, status, items }: Props) {
   // 4. DEVUELTO
   // if (status === "RETURNED") {
   // 	return (
-  // 		<div className="text-xs text-center text-green-600 font-medium w-full border border-green-200 bg-green-50 py-2 rounded-md">
+  // 		<div className="text-xs text-center text-green-600 font-medium w-full border border-green-200 bg-green-50 py-2 rounded-xs">
   // 			✓ Pedido Devuelto y Reembolsado
   // 		</div>
   // 	);

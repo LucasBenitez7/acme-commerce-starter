@@ -8,10 +8,23 @@ export default async function NewProductPage() {
     orderBy: { name: "asc" },
   });
 
+  const variantsData = await prisma.productVariant.findMany({
+    select: { size: true, color: true },
+    distinct: ["size", "color"], // Truco para sacar únicos (aunque sacará combinaciones, lo filtraremos en JS)
+  });
+
+  // Extraemos listas únicas
+  const existingSizes = Array.from(new Set(variantsData.map((v) => v.size)));
+  const existingColors = Array.from(new Set(variantsData.map((v) => v.color)));
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold tracking-tight">Nuevo Producto</h1>
-      <ProductForm categories={categories} />
+      <ProductForm
+        categories={categories}
+        existingSizes={existingSizes}
+        existingColors={existingColors}
+      />
     </div>
   );
 }

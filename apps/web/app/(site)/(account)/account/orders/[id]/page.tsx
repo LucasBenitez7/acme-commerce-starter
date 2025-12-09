@@ -70,14 +70,14 @@ export default async function UserOrderDetailPage({ params }: Props) {
 
       {/* Avisos de Estado */}
       {order.status === "RETURN_REQUESTED" && (
-        <div className="bg-orange-50 border border-orange-200 text-orange-800 p-4 rounded-md text-sm">
+        <div className="bg-orange-50 border border-orange-200 text-orange-800 p-4 rounded-xs text-sm">
           <strong>Devolución en proceso:</strong> Tu solicitud está siendo
           revisada por nuestro equipo.
         </div>
       )}
 
       {order.rejectionReason && order.status === "PAID" && (
-        <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-md text-sm">
+        <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-xs text-sm">
           <strong>Solicitud rechazada:</strong> {order.rejectionReason}
         </div>
       )}

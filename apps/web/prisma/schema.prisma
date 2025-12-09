@@ -19,19 +19,23 @@ model Category {
 }
 
 model Product {
-  id          String           @id @default(cuid())
-  slug        String           @unique
+  id          String @id @default(cuid())
+  slug        String @unique
   name        String
   description String
   priceCents  Int
-  currency    String           @default("EUR")
-  categoryId  String
-  category    Category         @relation(fields: [categoryId], references: [id])
-  images      ProductImage[]
-  variants    ProductVariant[]
-  orderItems  OrderItem[]
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  currency    String @default("EUR")
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  images     ProductImage[]
+  variants   ProductVariant[]
+  orderItems OrderItem[]
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  isArchived Boolean  @default(false)
 
   @@index([categoryId])
 }

@@ -146,7 +146,7 @@ export function ProductCard({ item }: { item: ProductListItem }) {
                         ? "border-b-2 border-foreground"
                         : "text-foreground hover:border-b-2 hover:border-foreground",
                       !isAvailable &&
-                        "opacity-50 hover:cursor-not-allowed border-transparent hover:border-transparent text-muted-foreground line-through",
+                        "opacity-50 hover:cursor-default border-transparent hover:border-transparent text-muted-foreground line-through",
                     )}
                   >
                     {size}
@@ -219,7 +219,13 @@ export function ProductCard({ item }: { item: ProductListItem }) {
           <div className="flex items-center justify-between">
             <div className="flex flex-wrap gap-2">
               {colors.map((color) => {
-                const bg = COLOR_MAP[color] ?? COLOR_MAP["Default"];
+                const variantWithColor = item.variants.find(
+                  (v) => v.color === color,
+                );
+                const bg =
+                  variantWithColor?.colorHex ||
+                  COLOR_MAP[color] ||
+                  COLOR_MAP["Default"];
                 const isSelected = selectedColor === color;
                 const hasStock = item.variants.some(
                   (v) => v.color === color && v.stock > 0,
@@ -247,30 +253,8 @@ export function ProductCard({ item }: { item: ProductListItem }) {
                 );
               })}
             </div>
-
             {/* Botón de Añadir */}
-            <div onClick={(e) => e.preventDefault()}>
-              <AddToCartIcon
-                slug={item.slug}
-                variantId={selectedVariant?.id ?? ""}
-                variantName={`${selectedSize} / ${selectedColor}`}
-                disabled={!isCombinationValid || isOutOfStock || !canAdd}
-                className={cn(
-                  "transition-all duration-300",
-                  !selectedSize && !isOutOfStock
-                    ? "opacity-30 grayscale cursor-not-allowed"
-                    : "opacity-100",
-                )}
-                qty={1}
-                details={{
-                  slug: item.slug,
-                  name: item.name,
-                  priceMinor: item.priceCents,
-                  imageUrl: img,
-                  stock: selectedVariant?.stock ?? 0,
-                }}
-              />
-            </div>
+            <span className="text-2xl font-medium lg:hidden">+</span>
           </div>
         </div>
       </div>

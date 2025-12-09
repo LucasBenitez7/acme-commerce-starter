@@ -8,13 +8,17 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
 function slugify(text: string) {
-  return text
+  const base = text
     .toString()
     .toLowerCase()
     .trim()
     .replace(/\s+/g, "-")
     .replace(/[^\w\-]+/g, "")
     .replace(/\-\-+/g, "-");
+
+  const randomSuffix = Math.floor(100000000 + Math.random() * 900000000);
+
+  return `${base}_${randomSuffix}`;
 }
 
 // Esquema de validación
@@ -60,13 +64,9 @@ export async function createProductAction(
 
   const rawImages = JSON.parse(String(formData.get("imagesJson") || "[]"));
   const rawVariants = JSON.parse(String(formData.get("variantsJson") || "[]"));
-
-  // Generación automática de slug si viene vacío
-  let slug = String(formData.get("slug") || "").trim();
   const name = String(formData.get("name") || "").trim();
-  if (!slug && name) {
-    slug = slugify(name);
-  }
+
+  const slug = slugify(name);
 
   const validated = productSchema.safeParse({
     name,
@@ -88,17 +88,6 @@ export async function createProductAction(
   const { data } = validated;
 
   try {
-    // Verificar si el slug existe ANTES de crear para dar mejor error
-    const existingSlug = await prisma.product.findUnique({
-      where: { slug: data.slug },
-    });
-    if (existingSlug) {
-      return {
-        errors: { slug: ["Este slug ya está en uso. Cámbialo."] },
-        message: "El slug ya existe.",
-      };
-    }
-
     await prisma.product.create({
       data: {
         name: data.name,
@@ -143,11 +132,9 @@ export async function updateProductAction(
 
   const rawImages = JSON.parse(String(formData.get("imagesJson") || "[]"));
   const rawVariants = JSON.parse(String(formData.get("variantsJson") || "[]"));
-  const slug = String(formData.get("slug") || "").trim();
 
   const validated = productSchema.safeParse({
     name: formData.get("name"),
-    slug,
     description: formData.get("description"),
     priceCents: formData.get("priceCents"),
     categoryId: formData.get("categoryId"),
@@ -171,7 +158,6 @@ export async function updateProductAction(
         where: { id },
         data: {
           name: data.name,
-          slug: data.slug,
           description: data.description,
           priceCents: data.priceCents,
           categoryId: data.categoryId,
@@ -229,14 +215,62 @@ export async function updateProductAction(
   redirect("/admin/products");
 }
 
+export async function toggleProductArchive(
+  productId: string,
+  isArchived: boolean,
+) {
+  const session = await auth();
+  if (session?.user?.role !== "admin") return { error: "No autorizado" };
+
+  try {
+    await prisma.product.update({
+      where: { id: productId },
+      data: { isArchived },
+    });
+
+    revalidatePath("/admin/products");
+    revalidatePath("/admin/products/archived"); // Nueva ruta
+    revalidatePath("/catalogo");
+
+    return { success: true };
+  } catch (error) {
+    return { error: "Error al cambiar el estado del producto." };
+  }
+}
+
+// --- ELIMINAR PRODUCTO ---
 export async function deleteProductAction(productId: string) {
   const session = await auth();
   if (session?.user?.role !== "admin") return { error: "No autorizado" };
+
   try {
+    // 1. Verificación estricta: ¿Está en algún pedido?
+    const usageCount = await prisma.orderItem.count({
+      where: { productId },
+    });
+
+    if (usageCount === 1) {
+      return {
+        error: `No se puede eliminar este producto porque ha sido vendido ${usageCount} vez. Si quieres eliminarlo, usa la opcion de 'Archivar' para ocultarlo de la tienda sin romper el historial de ventas.`,
+      };
+    }
+
+    if (usageCount > 1) {
+      return {
+        error: `No se puede eliminar este producto porque ha sido vendido ${usageCount} veces. Si quieres eliminarlo, usa la opcion de 'Archivar' para ocultarlo de la tienda sin romper el historial de ventas.`,
+      };
+    }
+
+    // 2. Si está limpio, borramos permanentemente
     await prisma.product.delete({ where: { id: productId } });
+
     revalidatePath("/admin/products");
+    revalidatePath("/admin/products/archived");
+    revalidatePath("/catalogo");
+
     return { success: true };
-  } catch (e) {
-    return { error: "Error al eliminar. Verifica si tiene pedidos activos." };
+  } catch (error: any) {
+    console.error("Error al eliminar:", error);
+    return { error: `Error técnico: ${error.message}` };
   }
 }

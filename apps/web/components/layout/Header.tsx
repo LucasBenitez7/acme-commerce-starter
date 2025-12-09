@@ -180,7 +180,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
 
               {/* MENÚ FLOTANTE */}
               {user && accountMenuOpen && (
-                <div className="hidden lg:block absolute right-0 top-[calc(100%-20px)] pt-4 w-72 z-30 animate-in fade-in zoom-in-95 duration-200">
+                <div className="hidden sm:block absolute right-0 top-[calc(100%-20px)] pt-4 w-72 z-30 animate-in fade-in zoom-in-95 duration-200">
                   <div className="rounded-xs border bg-popover shadow-xl overflow-hidden">
                     {/* Cabecera del menú */}
                     <div className="bg-muted/30 p-4 border-b flex items-center gap-3">

@@ -95,7 +95,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {successMessage && (
-        <div className="rounded-md bg-green-50 p-3 text-sm text-green-700 border border-green-200">
+        <div className="rounded-xs bg-green-50 p-3 text-sm text-green-700 border border-green-200">
           {successMessage}
         </div>
       )}

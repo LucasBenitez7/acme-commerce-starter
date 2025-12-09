@@ -67,3 +67,14 @@ export const REJECTION_REASONS = [
   "El producto no corresponde con el pedido original",
   "Otro motivo",
 ];
+
+export const INITIAL_CATEGORIES = [
+  { slug: "chaquetas", name: "Chaquetas" },
+  { slug: "pantalones", name: "Pantalones" },
+  { slug: "vestidos", name: "Vestidos" },
+  { slug: "jeans", name: "Jeans" },
+  { slug: "jerseys", name: "Jerseys" },
+  { slug: "camisetas", name: "Camisetas" },
+  { slug: "ropa-interior", name: "Ropa interior" },
+  { slug: "zapatillas", name: "Zapatillas" },
+] as const;

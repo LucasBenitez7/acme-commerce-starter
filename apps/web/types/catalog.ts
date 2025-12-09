@@ -16,6 +16,7 @@ export type ProductVariant = {
   id: string;
   size: string;
   color: string;
+  colorHex: string | null;
   stock: number;
 };
 
@@ -39,6 +40,7 @@ export type ProductDetail = {
   description: string;
   priceCents: number;
   currency: SupportedCurrency;
+  isArchived: boolean;
   images: ProductImage[];
   variants: ProductVariant[];
   category: { slug: string; name: string };

@@ -39,7 +39,13 @@ function toListItem(row: {
   priceCents: number;
   currency: string | null;
   images: { url: string }[];
-  variants: { id: string; size: string; color: string; stock: number }[];
+  variants: {
+    id: string;
+    size: string;
+    color: string;
+    colorHex: string | null;
+    stock: number;
+  }[];
 }): ProductListItem {
   const totalStock = row.variants.reduce((acc, v) => acc + v.stock, 0);
 
@@ -67,12 +73,13 @@ export const productListSelect = {
     take: 1,
     select: { url: true },
   },
-  // Traemos variantes solo para sumar el stock
+  // Traemos variantes para sumar el stock y mostrarlas en el grid
   variants: {
     select: {
       id: true,
       size: true,
       color: true,
+      colorHex: true,
       stock: true,
     },
   },
@@ -85,6 +92,7 @@ export async function fetchNewest({
   take: number;
 }): Promise<ProductListItem[]> {
   const rows = await prisma.product.findMany({
+    where: { isArchived: false },
     select: productListSelect,
     orderBy: { createdAt: "desc" },
     take,
@@ -101,15 +109,20 @@ export async function fetchProductsPage({
   perPage: number;
   where?: Prisma.ProductWhereInput;
 }): Promise<{ rows: ProductListItem[]; total: number }> {
+  const finalWhere: Prisma.ProductWhereInput = {
+    ...where,
+    isArchived: false,
+  };
+
   const [rows, total] = await Promise.all([
     prisma.product.findMany({
-      where,
+      where: finalWhere,
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: perPage,
       skip: (page - 1) * perPage,
       select: productListSelect,
     }),
-    prisma.product.count({ where }),
+    prisma.product.count({ where: finalWhere }),
   ]);
   return { rows: rows.map(toListItem), total };
 }
@@ -156,13 +169,20 @@ export async function getProductFullBySlug(
       description: true,
       priceCents: true,
       currency: true,
+      isArchived: true,
       images: {
         orderBy: [{ sort: "asc" }, { id: "asc" }],
         select: { url: true, alt: true, sort: true },
       },
       category: { select: { slug: true, name: true } },
       variants: {
-        select: { id: true, size: true, color: true, stock: true },
+        select: {
+          id: true,
+          size: true,
+          color: true,
+          colorHex: true,
+          stock: true,
+        },
         orderBy: { size: "asc" },
       },
     },
@@ -176,6 +196,7 @@ export async function getProductFullBySlug(
     name: p.name,
     description: p.description,
     priceCents: p.priceCents,
+    isArchived: p.isArchived,
     currency: (p.currency ?? "EUR") as SupportedCurrency,
     images: normalizeImages(p.name, p.images as any),
     category: p.category,
@@ -185,6 +206,7 @@ export async function getProductFullBySlug(
 
 export async function getProductSlugs(limit = 1000) {
   return prisma.product.findMany({
+    where: { isArchived: false },
     select: { slug: true },
     take: limit,
     orderBy: { createdAt: "desc" },

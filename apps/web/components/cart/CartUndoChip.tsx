@@ -28,8 +28,7 @@ export function CartUndoChip({
         )}
       >
         <div className="flex gap-1 truncate">
-          <span className="capitalize truncate">{entry.slug}</span>
-          <span className="shrink-0">- eliminado</span>
+          <span className="shrink-0">Articulo eliminado</span>
         </div>
         <button
           type="button"
