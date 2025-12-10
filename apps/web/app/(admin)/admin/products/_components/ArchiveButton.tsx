@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 
-import { toggleProductArchive } from "@/app/(admin)/admin/products/actions";
+import { toggleProductArchive } from "../actions";
 
 export function ArchiveButton({
   productId,

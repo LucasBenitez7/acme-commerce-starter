@@ -9,7 +9,7 @@ import {
   createCategoryAction,
   updateCategoryAction,
   type CategoryFormState,
-} from "@/app/(admin)/admin/categories/actions";
+} from "../actions";
 
 type Props = {
   category?: {

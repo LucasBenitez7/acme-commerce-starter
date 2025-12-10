@@ -4,8 +4,7 @@ import { useState, useEffect } from "react";
 import { FaRotateLeft } from "react-icons/fa6";
 import { toast } from "sonner";
 
-import { Button, Input } from "@/components/ui";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Button, Checkbox, Input } from "@/components/ui";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +13,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-import { processPartialReturnAction } from "@/app/(admin)/admin/orders/actions";
+import { processPartialReturnAction } from "../actions";
 
 type OrderItem = {
   id: string;

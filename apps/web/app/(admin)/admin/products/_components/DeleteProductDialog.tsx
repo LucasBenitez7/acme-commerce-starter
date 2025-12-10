@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 
-import { deleteProductAction } from "@/app/(admin)/admin/products/actions";
+import { deleteProductAction } from "../actions";
 
 export function DeleteProductDialog({
   productId,

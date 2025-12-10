@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { Card, CardContent } from "@/components/ui";
+import { Card, CardContent } from "@/components/ui/card";
 
 import { formatMinor, parseCurrency } from "@/lib/currency";
 import { prisma } from "@/lib/db";

@@ -1,9 +1,8 @@
 import { redirect } from "next/navigation";
-import { Toaster } from "sonner";
 
 import { auth } from "@/lib/auth";
 
-import { AdminSidebar } from "./components/AdminSidebar";
+import { AdminSidebar } from "./_components/AdminSidebar";
 
 export const metadata = {
   title: "Panel de Administración",

@@ -10,12 +10,14 @@ import {
   createProductAction,
   updateProductAction,
   type ProductFormState,
-} from "@/app/(admin)/admin/products/actions";
+} from "../actions";
 
-import { DangerZone } from "./form/DangerZone";
-import { GeneralSection } from "./form/GeneralSection";
-import { ImagesSection } from "./form/ImagesSection";
-import { VariantsSection } from "./form/VariantsSection";
+import {
+  DangerZone,
+  GeneralSection,
+  ImagesSection,
+  VariantsSection,
+} from "./form";
 
 import type {
   FormVariant,

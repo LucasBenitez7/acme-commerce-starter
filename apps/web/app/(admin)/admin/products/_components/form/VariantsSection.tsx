@@ -4,8 +4,7 @@ import { useState, useMemo } from "react";
 import { FaPlus, FaTrash, FaWandMagicSparkles } from "react-icons/fa6";
 import { toast } from "sonner";
 
-import { Button, Input, Label } from "@/components/ui";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Button, Input, Label, Checkbox } from "@/components/ui";
 import {
   Dialog,
   DialogContent,

@@ -19,8 +19,8 @@ import {
   AdminCancelButton,
   AdminPayButton,
   AdminRejectButton,
-} from "../../../components/AdminOrderActions";
-import { ReturnDialog } from "../../../components/ReturnDialog";
+} from "../_components/AdminOrderActions";
+import { ReturnDialog } from "../_components/ReturnDialog";
 
 export const dynamic = "force-dynamic";
 

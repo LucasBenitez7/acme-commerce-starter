@@ -8,7 +8,7 @@ import {
   FaArrowTrendUp,
 } from "react-icons/fa6";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 
 import { formatMinor, DEFAULT_CURRENCY } from "@/lib/currency";
 import { prisma } from "@/lib/db";

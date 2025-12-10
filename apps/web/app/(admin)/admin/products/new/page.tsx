@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 
-import { ProductForm } from "@/app/(admin)/components/products/ProductForm";
+import { ProductForm } from "../_components/ProductForm";
 
 export default async function NewProductPage() {
   const categories = await prisma.category.findMany({

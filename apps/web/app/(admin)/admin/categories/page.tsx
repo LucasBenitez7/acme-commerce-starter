@@ -1,17 +1,12 @@
 import Link from "next/link";
 import { FaPlus, FaPencil, FaTrash } from "react-icons/fa6";
 
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { prisma } from "@/lib/db";
 
-import { DeleteCategoryButton } from "@/app/(admin)/admin/categories/DeleteCategoryButton";
+import { DeleteCategoryButton } from "./_components/DeleteCategoryButton";
 
 export const dynamic = "force-dynamic";
 

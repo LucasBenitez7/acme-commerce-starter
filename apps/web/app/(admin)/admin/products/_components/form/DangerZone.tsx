@@ -6,7 +6,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
 import { toggleProductArchive } from "@/app/(admin)/admin/products/actions";
-import { DeleteProductDialog } from "@/app/(admin)/components/products/DeleteProductDialog";
+
+import { DeleteProductDialog } from "../DeleteProductDialog";
 
 type Props = {
   productId: string;

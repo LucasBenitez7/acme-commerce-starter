@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { FaPlus, FaPencil } from "react-icons/fa6";
+import { FaPlus } from "react-icons/fa6";
 
 import {
   Button,
@@ -14,7 +14,7 @@ import { formatMinor, parseCurrency } from "@/lib/currency";
 import { prisma } from "@/lib/db";
 import { cn } from "@/lib/utils";
 
-import { ProductListToolbar } from "@/app/(admin)/components/products/ProductListToolbar";
+import { ProductListToolbar } from "./_components/ProductListToolbar";
 
 import type { Prisma } from "@prisma/client";
 

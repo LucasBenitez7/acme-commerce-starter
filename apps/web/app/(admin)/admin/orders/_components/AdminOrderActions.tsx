@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,15 +11,11 @@ import {
   DialogTrigger,
   DialogFooter,
   DialogDescription,
-  Button,
-} from "@/components/ui";
+} from "@/components/ui/dialog";
 
 import { REJECTION_REASONS } from "@/lib/constants";
 
-import {
-  updateOrderStatusAction,
-  rejectReturnAction,
-} from "@/app/(admin)/admin/orders/actions";
+import { updateOrderStatusAction, rejectReturnAction } from "../actions";
 
 export function AdminCancelButton({ orderId }: { orderId: string }) {
   const [open, setOpen] = useState(false);

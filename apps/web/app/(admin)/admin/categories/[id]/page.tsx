@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 
 import { prisma } from "@/lib/db";
 
-import { CategoryForm } from "..//CategoryForm";
+import { CategoryForm } from "../_components/CategoryForm";
 
 export default async function EditCategoryPage({
   params,
