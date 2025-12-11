@@ -113,11 +113,28 @@ model Order {
   pickupSearch     String?
   paymentMethod    String?
 
-  items OrderItem[]
+  history OrderHistory[]
+  items   OrderItem[]
 
   @@index([createdAt])
   @@index([status, createdAt])
   @@index([userId, createdAt])
+}
+
+model OrderHistory {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  status OrderStatus
+  reason String?     @db.Text
+  actor  String
+
+  details Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
 }
 
 model OrderItem {

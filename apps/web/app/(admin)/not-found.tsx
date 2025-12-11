@@ -3,7 +3,7 @@ import { FaMagnifyingGlass } from "react-icons/fa6";
 
 import { Button } from "@/components/ui/button";
 
-export default function AdminNotFound() {
+export default function NotFound() {
   return (
     <div className="flex h-[60vh] flex-col items-center justify-center gap-4 text-center">
       <div className="rounded-full bg-neutral-100 p-6 text-neutral-500">

@@ -88,7 +88,7 @@ export default async function CheckoutPage() {
                         )}
                       </div>
 
-                      <div className="flex h-full justify-between py-1 font-medium">
+                      <div className="flex flex-col h-full justify-between py-1 font-medium">
                         <div className="space-y-1">
                           <p className="text-sm">{item.name}</p>
                           <p className="text-xs">{item.variantName}</p>

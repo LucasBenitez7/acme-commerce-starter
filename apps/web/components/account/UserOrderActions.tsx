@@ -269,14 +269,5 @@ export function UserOrderActions({ orderId, status, items }: Props) {
     );
   }
 
-  // 4. DEVUELTO
-  // if (status === "RETURNED") {
-  // 	return (
-  // 		<div className="text-xs text-center text-green-600 font-medium w-full border border-green-200 bg-green-50 py-2 rounded-xs">
-  // 			✓ Pedido Devuelto y Reembolsado
-  // 		</div>
-  // 	);
-  // }
-
   return null;
 }

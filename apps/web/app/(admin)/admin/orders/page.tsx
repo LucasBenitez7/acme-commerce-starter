@@ -6,18 +6,19 @@ import { formatMinor, parseCurrency } from "@/lib/currency";
 import { prisma } from "@/lib/db";
 import { cn } from "@/lib/utils";
 
-import type { OrderStatus } from "@prisma/client";
+import { OrderListToolbar } from "./_components/OrderListToolbar";
+
+import type { OrderStatus, Prisma } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
-function StatusBadge({ status }: { status: string }) {
+export function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
     PAID: "bg-green-100 text-green-800 border-green-200",
     PENDING_PAYMENT: "bg-yellow-100 text-yellow-800 border-yellow-200",
-    CANCELLED: "bg-red-100 text-red-800 border-red-200",
+    CANCELLED: "bg-neutra-100 text-neutral-800 border-neutral-200",
     EXPIRED: "bg-neutral-100 text-neutral-600 border-neutral-200",
-    RETURN_REQUESTED:
-      "bg-orange-100 text-orange-800 border-orange-200 animate-pulse",
+    RETURN_REQUESTED: "bg-red-100 text-red-800 border-red-200",
     RETURNED: "bg-blue-100 text-blue-800 border-blue-200",
   };
 
@@ -43,35 +44,60 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 type Props = {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{
+    status?: string;
+    status_filter?: string;
+    sort?: string;
+  }>;
 };
 
 export default async function AdminOrdersPage({ searchParams }: Props) {
   const sp = await searchParams;
   const statusParam = sp.status;
+  const filterStatuses = sp.status_filter
+    ?.split(",")
+    .filter(Boolean) as OrderStatus[];
 
-  let where: any = {};
+  let where: Prisma.OrderWhereInput = {};
 
-  if (statusParam === "PAID") {
-    where = { status: { in: ["PAID", "RETURN_REQUESTED"] } };
-  } else if (statusParam === "RETURNS") {
-    where = {
-      OR: [
-        { status: "RETURN_REQUESTED" },
-        { status: "RETURNED" },
-        {
-          status: "PAID",
-          items: { some: { quantityReturned: { gt: 0 } } },
-        },
-      ],
-    };
-  } else if (statusParam) {
-    where = { status: statusParam as OrderStatus };
+  if (filterStatuses && filterStatuses.length > 0) {
+    where = { status: { in: filterStatuses } };
+  } else {
+    // Lógica de Tabs (si no hay filtro avanzado)
+    if (statusParam === "PAID") {
+      where = { status: { in: ["PAID", "RETURN_REQUESTED"] } };
+    } else if (statusParam === "RETURNS") {
+      where = {
+        OR: [
+          { status: "RETURN_REQUESTED" },
+          { status: "RETURNED" },
+          { status: "PAID", items: { some: { quantityReturned: { gt: 0 } } } },
+        ],
+      };
+    } else if (statusParam) {
+      where = { status: statusParam as OrderStatus };
+    }
+  }
+
+  // 2. Lógica de Ordenación
+  let orderBy: Prisma.OrderOrderByWithRelationInput = { createdAt: "desc" };
+  switch (sp.sort) {
+    case "date_asc":
+      orderBy = { createdAt: "asc" };
+      break;
+    case "total_desc":
+      orderBy = { totalMinor: "desc" };
+      break;
+    case "total_asc":
+      orderBy = { totalMinor: "asc" };
+      break;
+    default:
+      orderBy = { createdAt: "desc" };
   }
 
   const orders = await prisma.order.findMany({
     where,
-    orderBy: { createdAt: "desc" },
+    orderBy,
     include: { user: true, items: true },
     take: 50,
   });
@@ -85,7 +111,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
   ];
 
   const isReturnsTab = statusParam === "RETURNS";
-  const totalLabel = isReturnsTab ? "Total Reembolsado" : "Total Pagado";
+  const totalLabel = isReturnsTab ? "Total Reembolsado" : "Total";
 
   return (
     <div className="space-y-4">
@@ -119,23 +145,34 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
       </div>
 
       <Card className="gap-0">
-        <div className="px-4 py-4 border-b bg-neutral-50/50">
-          <h2 className="text-lg font-semibold">Últimos movimientos</h2>
+        <div className="py-6 flex items-center justify-between relative">
+          <div className="flex items-center border">
+            {tabs.map((tab) => {
+              const isActive = statusParam === tab.value;
+              return (
+                <h2
+                  key={tab.label}
+                  className="text-base font-semibold absolute left-4 items-center"
+                >
+                  {isActive ? tab.label + ` (${orders.length})` : ""}
+                </h2>
+              );
+            })}
+          </div>
+          <OrderListToolbar />
         </div>
         <CardContent className="p-0">
           <div className="relative w-full overflow-auto">
             <table className="w-full text-sm text-left">
-              <thead className="text-xs text-foreground font-medium uppercase items-center border-b">
+              <thead className="text-xs text-foreground font-medium uppercase items-center border-y ">
                 <tr>
+                  <th className="px-4 py-4 font-semibold">Acciones</th>
                   <th className="px-4 py-4 font-semibold">ID Pedido</th>
                   <th className="px-4 py-4 font-semibold">Fecha</th>
                   <th className="px-4 py-4 font-semibold">Cliente</th>
-                  <th className="px-4 py-4 font-semibold text-left">Estado</th>
-                  <th className="px-4 py-4 font-semibold text-left">
+                  <th className="pl-4 py-4 font-semibold">Estado</th>
+                  <th className="px-4 py-4 font-semibold text-right">
                     {totalLabel}
-                  </th>
-                  <th className="px-4 py-4 font-semibold text-center">
-                    Acciones
                   </th>
                 </tr>
               </thead>
@@ -168,17 +205,25 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
                     const showPartialWarning =
                       !isReturnsTab &&
                       refundedAmount > 0 &&
-                      order.status !== "RETURNED";
+                      order.status === "RETURNED";
 
                     return (
                       <tr
                         key={order.id}
                         className="bg-white hover:bg-neutral-100 transition-colors"
                       >
-                        <td className="px-4 py-4 font-mono text-xs text-foreground">
-                          #{order.id.slice(-8).toUpperCase()}
+                        <td className="h-full pl-4 items-center text-foreground">
+                          <Link
+                            href={`/admin/orders/${order.id}`}
+                            className="flex h-full w-max items-center text-left border-b-2 border-transparent hover:border-foreground"
+                          >
+                            Ver detalles
+                          </Link>
                         </td>
-                        <td className="px-4 py-4 text-foreground font-medium text-xs">
+                        <td className="pl-4 py-4 font-mono text-xs text-foreground">
+                          {order.id.slice().toUpperCase()}
+                        </td>
+                        <td className="pl-4 py-4 text-foreground font-medium text-xs">
                           {new Date(order.createdAt).toLocaleDateString(
                             "es-ES",
                           )}
@@ -190,7 +235,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
                             )}
                           </span>
                         </td>
-                        <td className="px-4 py-4">
+                        <td className="pl-4 py-4">
                           <div className="font-medium text-neutral-900">
                             {order.firstName} {order.lastName}
                           </div>
@@ -198,31 +243,11 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
                             {order.email}
                           </div>
                         </td>
-                        <td className="px-4 py-4 text-left">
+                        <td className="pl-4 py-4 text-left">
                           <StatusBadge status={order.status} />
                         </td>
-                        <td className="px-4 py-4 text-left font-medium">
-                          <span
-                            className={
-                              isReturnsTab ? "text-red-600" : "text-neutral-900"
-                            }
-                          >
-                            {formatMinor(amountToShow, currency)}
-                          </span>
-                          {showPartialWarning && (
-                            <div className="text-[10px] text-red-500 mt-1">
-                              (-{formatMinor(refundedAmount, currency)}{" "}
-                              devuelto)
-                            </div>
-                          )}
-                        </td>
-                        <td className="h-full px-4 items-center justify-center text-foreground">
-                          <Link
-                            href={`/admin/orders/${order.id}`}
-                            className="flex h-full w-max mx-auto items-center justify-center border-b-2 border-transparent hover:border-foreground"
-                          >
-                            Ver detalles
-                          </Link>
+                        <td className="px-4 py-4 text-right font-medium">
+                          {formatMinor(amountToShow, currency)}
                         </td>
                       </tr>
                     );
