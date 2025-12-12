@@ -12,7 +12,7 @@ import type { OrderStatus, Prisma } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
-export function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
     PAID: "bg-green-100 text-green-800 border-green-200",
     PENDING_PAYMENT: "bg-yellow-100 text-yellow-800 border-yellow-200",
