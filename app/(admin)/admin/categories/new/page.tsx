@@ -1,0 +1,10 @@
+import { CategoryForm } from "../_components/CategoryForm";
+
+export default function NewCategoryPage() {
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold tracking-tight">Nueva Categoría</h1>
+      <CategoryForm />
+    </div>
+  );
+}

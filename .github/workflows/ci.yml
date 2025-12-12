@@ -6,7 +6,6 @@ on:
   push:
     branches: [main, development]
 
-# Evita jobs superpuestos del mismo PR
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -31,23 +30,14 @@ jobs:
           node-version: 22
           cache: pnpm
 
-      # (Opcional) Cache de Turbo para acelerar builds/lints
-      - name: Restore Turbo cache
-        uses: actions/cache@v4
-        with:
-          path: .turbo
-          key: ${{ runner.os }}-turbo-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-
-
       - name: Install deps
         run: pnpm install --frozen-lockfile
 
-      - name: Generate Prisma Client (apps/web)
-        run: pnpm -C apps/web exec prisma generate
+      - name: Generate Prisma Client
+        run: pnpm prisma generate
 
       - name: Lint
-        run: pnpm -w lint
+        run: pnpm lint
 
       - name: Typecheck
-        run: pnpm -w typecheck
+        run: pnpm typecheck
