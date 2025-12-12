@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { InventoryService } from "@/lib/services/inventory.service";
 
 import type { OrderStatus } from "@prisma/client";
 
@@ -12,7 +13,6 @@ type ReturnItemInput = {
   qtyToReturn: number;
 };
 
-// Helper para formatear historial de aceptación
 function formatHistoryDetails(
   orderItems: any[],
   actionItems: ReturnItemInput[],
@@ -34,16 +34,13 @@ function formatHistoryDetails(
     }));
 }
 
-// --- 1. ACTUALIZAR ESTADO GENERAL (Pagar, Cancelar manualmente) ---
+// --- 1. ACTUALIZAR ESTADO GENERAL ---
 export async function updateOrderStatusAction(
   orderId: string,
   newStatus: OrderStatus,
 ) {
   const session = await auth();
-
-  if (session?.user?.role !== "admin") {
-    return { error: "No autorizado" };
-  }
+  if (session?.user?.role !== "admin") return { error: "No autorizado" };
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -54,37 +51,42 @@ export async function updateOrderStatusAction(
 
       if (!order) throw new Error("Pedido no encontrado");
 
-      // Lógica de cancelación completa (Devuelve TODO el stock restante)
+      // Lógica de cancelación: Devolver stock
       if (
         newStatus === "CANCELLED" &&
-        order.status !== "CANCELLED" &&
-        order.status !== "EXPIRED" &&
-        order.status !== "RETURNED"
+        !["CANCELLED", "EXPIRED", "RETURNED"].includes(order.status)
       ) {
+        // Preparamos items para el servicio de inventario
+        const itemsToRestock: { variantId: string; quantity: number }[] = [];
+
         for (const item of order.items) {
           const remainingQty = item.quantity - item.quantityReturned;
+
           if (remainingQty > 0 && item.variantId) {
-            // Devolver stock
-            await tx.productVariant.update({
-              where: { id: item.variantId },
-              data: { stock: { increment: remainingQty } },
+            itemsToRestock.push({
+              variantId: item.variantId,
+              quantity: remainingQty,
             });
-            // Marcar items como devueltos (para consistencia contable)
+
+            // Actualizamos el item de la orden para reflejar la devolución
             await tx.orderItem.update({
               where: { id: item.id },
               data: { quantityReturned: item.quantity },
             });
           }
         }
+
+        // LLAMADA AL SERVICIO (Limpieza de código)
+        if (itemsToRestock.length > 0) {
+          await InventoryService.updateStock(itemsToRestock, "increment", tx);
+        }
       }
 
-      // Actualizar estado
       await tx.order.update({
         where: { id: orderId },
         data: { status: newStatus },
       });
 
-      // Historial
       await tx.orderHistory.create({
         data: {
           orderId,
@@ -104,7 +106,7 @@ export async function updateOrderStatusAction(
   }
 }
 
-// --- 2. RECHAZAR SOLICITUD DE DEVOLUCIÓN ---
+// ... (Mantén rejectReturnAction igual) ...
 export async function rejectReturnAction(orderId: string, reason: string) {
   const session = await auth();
   if (session?.user?.role !== "admin") return { error: "No autorizado" };
@@ -122,7 +124,7 @@ export async function rejectReturnAction(orderId: string, reason: string) {
 
       if (!order) throw new Error("No encontrado");
 
-      // Limpiar cantidades solicitadas en los items (resetear solicitud)
+      // Limpiar cantidades solicitadas
       for (const item of order.items) {
         if (item.quantityReturnRequested > 0) {
           await tx.orderItem.update({
@@ -132,7 +134,6 @@ export async function rejectReturnAction(orderId: string, reason: string) {
         }
       }
 
-      // Volver a estado PAID y guardar motivo en la orden principal
       await tx.order.update({
         where: { id: orderId },
         data: {
@@ -141,7 +142,6 @@ export async function rejectReturnAction(orderId: string, reason: string) {
         },
       });
 
-      // Historial con el motivo del rechazo
       await tx.orderHistory.create({
         data: {
           orderId,
@@ -160,7 +160,7 @@ export async function rejectReturnAction(orderId: string, reason: string) {
   }
 }
 
-// --- 3. PROCESAR DEVOLUCIÓN PARCIAL (Aceptar y Restaurar Stock) ---
+// --- 3. PROCESAR DEVOLUCIÓN PARCIAL ---
 export async function processPartialReturnAction(
   orderId: string,
   itemsToReturn: ReturnItemInput[],
@@ -180,8 +180,9 @@ export async function processPartialReturnAction(
 
       let totalReturnedSoFar = 0;
       let totalOriginalQty = 0;
+      const itemsToRestock: { variantId: string; quantity: number }[] = [];
 
-      // Calcular totales previos
+      // Calcular totales
       for (const item of order.items) {
         totalOriginalQty += item.quantity;
         totalReturnedSoFar += item.quantityReturned;
@@ -194,7 +195,6 @@ export async function processPartialReturnAction(
         const dbItem = order.items.find((i) => i.id === input.itemId);
         if (!dbItem) continue;
 
-        // Validar contra lo solicitado o lo disponible
         const maxLimit =
           dbItem.quantityReturnRequested > 0
             ? dbItem.quantityReturnRequested
@@ -206,7 +206,7 @@ export async function processPartialReturnAction(
           );
         }
 
-        // A) Actualizar Item: Sumar a returned, limpiar requested
+        // A) Actualizar Item
         await tx.orderItem.update({
           where: { id: input.itemId },
           data: {
@@ -217,16 +217,21 @@ export async function processPartialReturnAction(
 
         totalReturnedSoFar += input.qtyToReturn;
 
-        // B) Restaurar Stock a la variante
+        // B) Preparar para restaurar Stock (SOLO AGREGAMOS AL ARRAY)
         if (dbItem.variantId) {
-          await tx.productVariant.update({
-            where: { id: dbItem.variantId },
-            data: { stock: { increment: input.qtyToReturn } },
+          itemsToRestock.push({
+            variantId: dbItem.variantId,
+            quantity: input.qtyToReturn,
           });
         }
       }
 
-      // Limpieza general: Cualquier otro item que tuviera solicitud pendiente pero no se incluyó en el paylo
+      // LLAMADA AL SERVICIO (Restauración masiva y segura)
+      if (itemsToRestock.length > 0) {
+        await InventoryService.updateStock(itemsToRestock, "increment", tx);
+      }
+
+      // Limpieza general
       await tx.orderItem.updateMany({
         where: { orderId: orderId, quantityReturnRequested: { gt: 0 } },
         data: { quantityReturnRequested: 0 },
@@ -246,10 +251,8 @@ export async function processPartialReturnAction(
         },
       });
 
-      // --- HISTORIAL ---
-      // 1. Entrada de Aceptación (Con lista de items JSON)
+      // Historial...
       const acceptedDetails = formatHistoryDetails(order.items, itemsToReturn);
-
       await tx.orderHistory.create({
         data: {
           orderId,
@@ -260,7 +263,6 @@ export async function processPartialReturnAction(
         },
       });
 
-      // 2. Entrada de Rechazo Parcial (si hubo nota)
       if (rejectionNote) {
         await tx.orderHistory.create({
           data: {
@@ -268,7 +270,6 @@ export async function processPartialReturnAction(
             status: finalStatus,
             actor: "admin",
             reason: `Nota sobre productos no aceptados: ${rejectionNote}`,
-            // details: [formatHistoryDetails(order.items, )],
           },
         });
       }

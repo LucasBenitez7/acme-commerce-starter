@@ -4,14 +4,13 @@ import { revalidatePath } from "next/cache";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { InventoryService } from "@/lib/services/inventory.service";
 
-// Tipo para la solicitud de devolución
 type ReturnItemRequest = {
   itemId: string;
   qty: number;
 };
 
-// Helper para formatear detalles de historial (guardar qué pidió devolver)
 function formatHistoryDetails(
   items: any[],
   requestMap: Record<string, number>,
@@ -30,7 +29,7 @@ function formatHistoryDetails(
     }));
 }
 
-// 1. CANCELAR PEDIDO (Solo si está pendiente de pago)
+// 1. CANCELAR PEDIDO
 export async function cancelOrderUserAction(orderId: string) {
   const session = await auth();
   if (!session?.user?.id) return { error: "No autorizado" };
@@ -50,23 +49,25 @@ export async function cancelOrderUserAction(orderId: string) {
         throw new Error("Solo se pueden cancelar pedidos pendientes de pago.");
       }
 
-      // Devolver Stock
-      for (const item of order.items) {
-        if (item.variantId) {
-          await tx.productVariant.update({
-            where: { id: item.variantId },
-            data: { stock: { increment: item.quantity } },
-          });
-        }
+      // 1. Preparamos items para devolver stock
+      const itemsToRestock = order.items
+        .filter((i) => i.variantId)
+        .map((i) => ({
+          variantId: i.variantId!,
+          quantity: i.quantity,
+        }));
+
+      // 2. LLAMADA AL SERVICIO
+      if (itemsToRestock.length > 0) {
+        await InventoryService.updateStock(itemsToRestock, "increment", tx);
       }
 
-      // Actualizar Estado
+      // 3. Actualizar Estado
       await tx.order.update({
         where: { id: orderId },
         data: { status: "CANCELLED" },
       });
 
-      // Crear entrada en historial
       await tx.orderHistory.create({
         data: {
           orderId,
@@ -84,7 +85,7 @@ export async function cancelOrderUserAction(orderId: string) {
   }
 }
 
-// 2. SOLICITAR DEVOLUCIÓN (Con items específicos y motivo)
+// ... (Mantén requestReturnUserAction igual, ya que ese solo marca flags, no mueve stock) ...
 export async function requestReturnUserAction(
   orderId: string,
   reason: string,
@@ -113,17 +114,14 @@ export async function requestReturnUserAction(
       throw new Error("Solo se pueden devolver pedidos ya pagados.");
     }
 
-    // Mapa rápido para acceso
     const requestMap: Record<string, number> = {};
     items.forEach((i) => (requestMap[i.itemId] = i.qty));
 
     await prisma.$transaction(async (tx) => {
-      // A) Guardar items solicitados en la DB
       for (const req of items) {
         const item = order.items.find((i) => i.id === req.itemId);
         if (!item) continue;
 
-        // Validar cantidad máxima
         const maxReturnable = item.quantity - item.quantityReturned;
         if (req.qty > maxReturnable) {
           throw new Error(
@@ -139,16 +137,14 @@ export async function requestReturnUserAction(
         }
       }
 
-      // B) Actualizar Estado Global de la Orden
       await tx.order.update({
         where: { id: orderId },
         data: {
           status: "RETURN_REQUESTED",
-          returnReason: reason, // Guardamos el motivo principal
+          returnReason: reason,
         },
       });
 
-      // C) Crear Entrada en Historial con JSON detallado
       const historyDetails = formatHistoryDetails(order.items, requestMap);
 
       await tx.orderHistory.create({
@@ -157,13 +153,12 @@ export async function requestReturnUserAction(
           status: "RETURN_REQUESTED",
           reason: reason,
           actor: "user",
-          details: historyDetails, // Guardamos la lista de lo que pidió
+          details: historyDetails,
         },
       });
     });
 
     revalidatePath("/account/orders");
-    // Revalidar para que el admin lo vea al instante si está mirando
     revalidatePath(`/admin/orders/${orderId}/history`);
 
     return { success: true };
