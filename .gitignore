@@ -1,80 +1,44 @@
-# --- Monorepo (Turborepo + Next + PNPM) ---
-
-# Package managers
+# --- Dependencies ---
 **/node_modules/
 .pnpm-store/
 
-# Build / outputs
-**/dist/
-**/build/
-**/out/
-**/.next/
-**/dist-ssr/
-**/.turbo/
-**/.nx/cache/
-**/.vite/
-**/.parcel-cache/
-**/.cache/
-**/.tmp/
-**/temp/
-**/storybook-static/
+# --- Next.js / Build ---
+.next/
+out/
+build/
+dist/
+.vercel/
+*.tsbuildinfo
 
-# Vercel (links locales por app)
-**/.vercel/
+# --- Environment Variables ---
+.env
+.env*.local
+!.env.example
+!.env.template
 
-# Logs y diagnósticos
+# --- Logs ---
 logs/
-**/*.log
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-lerna-debug.log*
 
-# Testing / E2E
-**/coverage/
-**/.nyc_output/
-**/.vitest/
-**/test-results/
-**/playwright-report/
-**/.cypress/
-**/.cypress-cache/
+# --- Testing ---
+coverage/
+playwright-report/
+test-results/
 
-# TypeScript
-**/*.tsbuildinfo
-# OJO: no ignores next-env.d.ts; se comitea
-
-# Variables de entorno (solo plantillas al repo)
-.env
-.env.*
-!.env.example
-!.env.template
-!.env.local.example
-**/.envrc 
-**/*.local
-
-# Datos locales / DBs
+# --- Database / Docker Data ---
 *.db
-*.db-*
 *.sqlite
-*.sqlite3
 postgres-data/
-mongo-data/
+meili_data/
 docker-data/
 
-# Prisma
-# Mantén prisma/schema.prisma y prisma/migrations en el repo
-**/src/generated/prisma/
-
-# Editores / SO
+# --- IDEs / OS ---
 .vscode/*
 !.vscode/extensions.json
 .idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
 .DS_Store
 Thumbs.db
-desktop.ini

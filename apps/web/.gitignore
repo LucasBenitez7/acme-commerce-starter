@@ -1,7 +1,0 @@
-# App-local (si quieres aislarlo)
-.next
-out
-dist
-.vercel
-*.tsbuildinfo
-/generated/prisma
