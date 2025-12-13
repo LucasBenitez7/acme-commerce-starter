@@ -1,360 +1,116 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
+import { useForm, type DefaultValues } from "react-hook-form";
 
 import {
-  isPaymentMethod,
-  type PaymentMethod,
-} from "@/components/checkout/shared/methods";
-
-import {
-  isValidEmail,
-  isNonEmptyMin,
-  isValidPhone,
-  isValidPostalCodeES,
+  checkoutSchema,
+  defaultCheckoutValues,
+  type CheckoutFormValues,
 } from "@/lib/validation/checkout";
 
 import type { CheckoutStep } from "@/components/checkout/layout";
 
-// Definimos las props para recibir los defaults del usuario
+const STORAGE_KEY = "checkout.form.v2";
+
 type UseCheckoutFormProps = {
-  defaults?: {
-    firstName?: string | null;
-    lastName?: string | null;
-    email?: string | null;
-    phone?: string | null;
-  };
-};
-
-export type ShippingType = "home" | "store" | "pickup";
-
-export type CheckoutFormState = {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  street: string;
-  addressExtra: string;
-  postalCode: string;
-  province: string;
-  city: string;
-  shippingType: ShippingType;
-  storeLocationId: string;
-  pickupLocationId: string;
-  pickupSearch: string;
-  storeSearch: string;
-  paymentMethod: PaymentMethod;
-};
-
-export type CheckoutClientErrors = {
-  firstName: boolean;
-  lastName: boolean;
-  email: boolean;
-  phone: boolean;
-  street: boolean;
-  postalCode: boolean;
-  province: boolean;
-  city: boolean;
-  storeLocation: boolean;
-  pickupLocation: boolean;
-  pickupSearch: boolean;
-};
-
-const STORAGE_KEY = "checkout.form.v1";
-const STEP_STORAGE_KEY = "checkout.step.v1";
-
-const INITIAL_FORM_STATE: CheckoutFormState = {
-  firstName: "",
-  lastName: "",
-  email: "",
-  phone: "",
-  street: "",
-  addressExtra: "",
-  postalCode: "",
-  province: "",
-  city: "",
-  shippingType: "home",
-  storeLocationId: "",
-  pickupLocationId: "",
-  pickupSearch: "",
-  storeSearch: "",
-  paymentMethod: "card",
+  defaults?: Partial<CheckoutFormValues>;
 };
 
 export function useCheckoutForm({ defaults }: UseCheckoutFormProps = {}) {
-  // 1. Inicializamos el estado con los defaults del usuario (si existen)
-  const initialWithDefaults: CheckoutFormState = {
-    ...INITIAL_FORM_STATE,
-    firstName: defaults?.firstName || "",
-    lastName: defaults?.lastName || "",
-    email: defaults?.email || "",
-    phone: defaults?.phone || "",
-  };
-
-  const [form, setForm] = useState<CheckoutFormState>(initialWithDefaults);
-  const [isValid, setIsValid] = useState(false);
   const [step, setStep] = useState<CheckoutStep>(1);
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  const [showAllErrors, setShowAllErrors] = useState(false);
-  const [invalidShippingType, setInvalidShippingType] =
-    useState<ShippingType | null>(null);
+  const methods = useForm<CheckoutFormValues>({
+    resolver: zodResolver(checkoutSchema),
+    defaultValues: {
+      ...defaultCheckoutValues,
+      ...defaults,
+    } as DefaultValues<CheckoutFormValues>,
+    mode: "onChange",
+  });
 
-  // 1. Restaurar EL PASO desde localStorage
+  const { watch, reset, trigger } = methods;
+  const formValues = watch();
+
+  // 1. CARGA INICIAL (Solo una vez)
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    try {
-      const raw = window.localStorage.getItem(STEP_STORAGE_KEY);
-      if (!raw) return;
-
-      const parsed = Number.parseInt(raw, 10);
-      if (parsed === 1 || parsed === 2 || parsed === 3) {
-        setStep(parsed as CheckoutStep);
+    const storedForm = window.localStorage.getItem(STORAGE_KEY);
+    if (storedForm) {
+      try {
+        const parsed = JSON.parse(storedForm);
+        reset({ ...defaultCheckoutValues, ...defaults, ...parsed });
+      } catch (e) {
+        console.error("Error recuperando form:", e);
       }
-    } catch {
-      // ignoramos errores
     }
+
+    setIsLoaded(true);
   }, []);
 
-  // 2. Restaurar EL FORMULARIO desde localStorage
+  // 2. PERSISTENCIA (Guarda cambios)
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (!isLoaded || typeof window === "undefined") return;
 
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
+    const { shippingType, paymentMethod, ...persistentValues } = formValues;
 
-      const parsed = JSON.parse(raw) as Partial<CheckoutFormState>;
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(persistentValues));
+  }, [formValues, isLoaded]);
 
-      setForm((prev) => ({
-        ...prev,
-        firstName:
-          typeof parsed.firstName === "string"
-            ? parsed.firstName
-            : prev.firstName,
-        lastName:
-          typeof parsed.lastName === "string" ? parsed.lastName : prev.lastName,
-        email: typeof parsed.email === "string" ? parsed.email : prev.email,
-        phone: typeof parsed.phone === "string" ? parsed.phone : prev.phone,
-        street: typeof parsed.street === "string" ? parsed.street : prev.street,
-        addressExtra:
-          typeof parsed.addressExtra === "string"
-            ? parsed.addressExtra
-            : prev.addressExtra,
-        postalCode:
-          typeof parsed.postalCode === "string"
-            ? parsed.postalCode
-            : prev.postalCode,
-        province:
-          typeof parsed.province === "string" ? parsed.province : prev.province,
-        city: typeof parsed.city === "string" ? parsed.city : prev.city,
-        shippingType:
-          parsed.shippingType === "store" ||
-          parsed.shippingType === "pickup" ||
-          parsed.shippingType === "home"
-            ? parsed.shippingType
-            : prev.shippingType,
-        storeLocationId:
-          typeof (parsed as any).storeLocationId === "string"
-            ? (parsed as any).storeLocationId
-            : prev.storeLocationId,
-        pickupLocationId:
-          typeof (parsed as any).pickupLocationId === "string"
-            ? (parsed as any).pickupLocationId
-            : prev.pickupLocationId,
-        pickupSearch:
-          typeof parsed.pickupSearch === "string"
-            ? parsed.pickupSearch
-            : prev.pickupSearch,
-        storeSearch:
-          typeof parsed.storeSearch === "string"
-            ? parsed.storeSearch
-            : prev.storeSearch,
-        paymentMethod: isPaymentMethod(parsed.paymentMethod)
-          ? parsed.paymentMethod
-          : prev.paymentMethod,
-      }));
-    } catch {
-      // ignoramos errores de parseo
-    }
-  }, []);
+  // 3. NAVEGACIÓN
+  const handleNext = async () => {
+    let fieldsToValidate: (keyof CheckoutFormValues)[] = [];
 
-  // Guardar PASO en localStorage al cambiar
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      window.localStorage.setItem(STEP_STORAGE_KEY, String(step));
-    } catch {}
-  }, [step]);
+    if (step === 1) {
+      fieldsToValidate = [
+        "firstName",
+        "lastName",
+        "email",
+        "phone",
+        "shippingType",
+      ];
 
-  // Guardar FORM en localStorage al cambiar
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
-    } catch {}
-  }, [form]);
-
-  // Validación global (isValid)
-  useEffect(() => {
-    const baseValid =
-      isNonEmptyMin(form.firstName, 2) &&
-      isNonEmptyMin(form.lastName, 2) &&
-      isValidEmail(form.email) &&
-      isValidPhone(form.phone);
-
-    let extraValid = false;
-
-    if (form.shippingType === "home") {
-      extraValid =
-        isNonEmptyMin(form.street, 5) &&
-        isValidPostalCodeES(form.postalCode) &&
-        isNonEmptyMin(form.province, 2) &&
-        isNonEmptyMin(form.city, 2);
-    } else if (form.shippingType === "store") {
-      extraValid = !!form.storeLocationId;
-    } else if (form.shippingType === "pickup") {
-      extraValid = !!form.pickupLocationId;
+      const type = formValues.shippingType;
+      if (type === "home")
+        fieldsToValidate.push("street", "postalCode", "city", "province");
+      else if (type === "store") fieldsToValidate.push("storeLocationId");
+      else if (type === "pickup") fieldsToValidate.push("pickupLocationId");
+    } else if (step === 2) {
+      fieldsToValidate = ["paymentMethod" as keyof CheckoutFormValues];
     }
 
-    setIsValid(baseValid && extraValid);
-  }, [form]);
+    const isStepValid = await trigger(
+      fieldsToValidate.length > 0 ? fieldsToValidate : undefined,
+    );
 
-  // ¿Debemos forzar errores para el tipo actual?
-  const forceShowForCurrentShipping =
-    showAllErrors &&
-    invalidShippingType !== null &&
-    invalidShippingType === form.shippingType;
-
-  // Errores de contacto (compartidos)
-  const firstNameError =
-    (forceShowForCurrentShipping || form.firstName !== "") &&
-    !isNonEmptyMin(form.firstName, 2);
-
-  const lastNameError =
-    (forceShowForCurrentShipping || form.lastName !== "") &&
-    !isNonEmptyMin(form.lastName, 2);
-
-  const emailError =
-    (forceShowForCurrentShipping || form.email !== "") &&
-    !isValidEmail(form.email);
-
-  const phoneError =
-    (forceShowForCurrentShipping || form.phone !== "") &&
-    !isValidPhone(form.phone);
-
-  // Errores específicos de envío
-  let streetError = false;
-  let postalCodeError = false;
-  let provinceError = false;
-  let cityError = false;
-  let storeLocationError = false;
-  let pickupLocationError = false;
-  let pickupSearchError = false;
-
-  if (form.shippingType === "home" && forceShowForCurrentShipping) {
-    streetError =
-      (forceShowForCurrentShipping || form.street !== "") &&
-      !isNonEmptyMin(form.street, 5);
-
-    postalCodeError =
-      (forceShowForCurrentShipping || form.postalCode !== "") &&
-      !isValidPostalCodeES(form.postalCode);
-
-    provinceError =
-      (forceShowForCurrentShipping || form.province !== "") &&
-      !isNonEmptyMin(form.province, 2);
-
-    cityError =
-      (forceShowForCurrentShipping || form.city !== "") &&
-      !isNonEmptyMin(form.city, 2);
-  } else if (form.shippingType === "store" && forceShowForCurrentShipping) {
-    storeLocationError = !form.storeLocationId;
-  } else if (form.shippingType === "pickup" && forceShowForCurrentShipping) {
-    pickupLocationError = !form.pickupLocationId;
-
-    pickupSearchError =
-      (forceShowForCurrentShipping || form.pickupSearch !== "") &&
-      !isNonEmptyMin(form.pickupSearch, 3);
-  }
-
-  const errors: CheckoutClientErrors = {
-    firstName: firstNameError,
-    lastName: lastNameError,
-    email: emailError,
-    phone: phoneError,
-    street: streetError,
-    postalCode: postalCodeError,
-    province: provinceError,
-    city: cityError,
-    storeLocation: storeLocationError,
-    pickupLocation: pickupLocationError,
-    pickupSearch: pickupSearchError,
+    if (isStepValid) {
+      setStep((prev) => (prev < 3 ? ((prev + 1) as CheckoutStep) : prev));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
-  // Handlers
-  function handleChange<K extends keyof CheckoutFormState>(
-    key: K,
-    value: CheckoutFormState[K],
-  ) {
-    setForm((prev) => {
-      const next = {
-        ...prev,
-        [key]: value,
-      } as CheckoutFormState;
+  const handlePrev = () => {
+    setStep((prev) => (prev > 1 ? ((prev - 1) as CheckoutStep) : prev));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
-      return next;
-    });
-
-    if (key === "shippingType") {
-      setInvalidShippingType(null);
-    }
-  }
-
-  function handleNext() {
-    setStep((current) => {
-      if (current === 1 && !isValid) {
-        setShowAllErrors(true);
-        setInvalidShippingType(form.shippingType);
-        return current;
-      }
-
-      const next = (current + 1) as CheckoutStep;
-      return next;
-    });
-  }
-
-  function handlePrev() {
-    setStep((current) => {
-      if (current === 1) return current;
-      return (current - 1) as CheckoutStep;
-    });
-  }
-
-  function handleStepperClick(target: CheckoutStep) {
-    setStep((current) => {
-      if (target >= current) return current;
-      return target;
-    });
-  }
-
-  function resetForm() {
-    setForm(INITIAL_FORM_STATE);
-    setShowAllErrors(false);
+  // 4. LIMPIEZA EXITOSA
+  const clearProgress = () => {
+    if (typeof window === "undefined") return;
+    window.localStorage.removeItem(STORAGE_KEY);
     setStep(1);
-    setInvalidShippingType(null);
-  }
+  };
 
   return {
-    form,
-    isValid,
+    methods,
     step,
-    errors,
-    showShippingErrors: forceShowForCurrentShipping,
-    handleChange,
+    setStep,
     handleNext,
     handlePrev,
-    handleStepperClick,
-    resetForm,
+    clearProgress,
+    isLoading: !isLoaded,
   };
 }

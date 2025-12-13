@@ -1,30 +1,81 @@
-export function isValidEmail(email: string): boolean {
-  if (!email) return false;
+import { z } from "zod";
 
-  const trimmed = email.trim();
+// Validaciones básicas
+const phoneRegex = /^[0-9+\s()-]{6,20}$/;
+const postalCodeEsRegex = /^(?:0[1-9]|[1-4]\d|5[0-2])\d{3}$/;
 
-  if (trimmed.length < 5 || trimmed.length > 254) return false;
+const baseSchema = z.object({
+  firstName: z.string().min(2, "Mínimo 2 caracteres"),
+  lastName: z.string().min(2, "Mínimo 2 caracteres"),
+  email: z.string().email("Email inválido"),
+  phone: z.string().regex(phoneRegex, "Teléfono inválido"),
+  paymentMethod: z.enum(["card", "bizum", "transfer", "cash"]),
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  storeSearch: z.string().optional(),
+  pickupSearch: z.string().optional(),
+});
 
-  return emailRegex.test(trimmed);
-}
+// 2. Unión Discriminada para el Envío
+const shippingSchema = z.discriminatedUnion("shippingType", [
+  // CASO A: Domicilio
+  z.object({
+    shippingType: z.literal("home"),
+    street: z.string().min(5, "Dirección muy corta"),
+    addressExtra: z.string().optional(),
+    postalCode: z.string().regex(postalCodeEsRegex, "CP inválido"),
+    province: z.string().min(2, "Provincia requerida"),
+    city: z.string().min(2, "Ciudad requerida"),
+    // Los otros a null/undefined opcional
+    storeLocationId: z.string().optional().nullable(),
+    pickupLocationId: z.string().optional().nullable(),
+  }),
+  // CASO B: Tienda
+  z.object({
+    shippingType: z.literal("store"),
+    storeLocationId: z.string().min(1, "Selecciona una tienda"),
+    // Campos de home ignorados
+    street: z.string().optional().nullable(),
+    addressExtra: z.string().optional().nullable(),
+    postalCode: z.string().optional().nullable(),
+    province: z.string().optional().nullable(),
+    city: z.string().optional().nullable(),
+    pickupLocationId: z.string().optional().nullable(),
+  }),
+  // CASO C: Pickup
+  z.object({
+    shippingType: z.literal("pickup"),
+    pickupLocationId: z.string().min(1, "Selecciona un punto"),
+    street: z.string().optional().nullable(),
+    addressExtra: z.string().optional().nullable(),
+    postalCode: z.string().optional().nullable(),
+    province: z.string().optional().nullable(),
+    city: z.string().optional().nullable(),
+    storeLocationId: z.string().optional().nullable(),
+  }),
+]);
 
-export function isNonEmptyMin(text: string, min: number): boolean {
-  return text.trim().length >= min;
-}
+// 3. Esquema Final
+export const checkoutSchema = z.intersection(baseSchema, shippingSchema);
 
-export function isValidPhone(phone: string): boolean {
-  const trimmed = phone.trim();
-  if (!trimmed) return false;
+// 4. Tipos Inferidos
+export type CheckoutFormValues = z.infer<typeof checkoutSchema>;
 
-  return /^[0-9+\s()-]{6,20}$/.test(trimmed);
-}
+// Exportamos ShippingType explícitamente para usarlo en otros lados
+export type ShippingType = CheckoutFormValues["shippingType"];
 
-export function isValidPostalCodeES(postalCode: string): boolean {
-  const trimmed = postalCode.trim();
-  if (!/^\d{5}$/.test(trimmed)) return false;
-
-  const firstTwo = parseInt(trimmed.slice(0, 2), 10);
-  return firstTwo >= 1 && firstTwo <= 52;
-}
+// 5. Valores por defecto (Seguros)
+export const defaultCheckoutValues: Partial<CheckoutFormValues> = {
+  shippingType: "home",
+  paymentMethod: "card",
+  firstName: "",
+  lastName: "",
+  email: "",
+  phone: "",
+  street: "",
+  addressExtra: "",
+  postalCode: "",
+  province: "",
+  city: "",
+  storeSearch: "",
+  pickupSearch: "",
+};

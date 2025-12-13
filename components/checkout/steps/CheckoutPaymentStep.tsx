@@ -1,26 +1,19 @@
+import { useFormContext } from "react-hook-form";
+
 import { PAYMENT_METHOD_OPTIONS } from "@/components/checkout/shared/methods";
 
-import type { CheckoutFormState } from "@/hooks/use-checkout-form";
+import type { CheckoutFormValues } from "@/lib/validation/checkout";
 
-type CheckoutPaymentStepProps = {
-  form: CheckoutFormState;
-  onChange: <K extends keyof CheckoutFormState>(
-    key: K,
-    value: CheckoutFormState[K],
-  ) => void;
-};
+export function CheckoutPaymentStep() {
+  const { register, watch } = useFormContext<CheckoutFormValues>();
 
-export function CheckoutPaymentStep({
-  form,
-  onChange,
-}: CheckoutPaymentStepProps) {
-  const { paymentMethod } = form;
+  const currentMethod = watch("paymentMethod");
 
   return (
     <div className="space-y-4 pb-4">
       <div className="grid gap-3 sm:grid-cols-1">
         {PAYMENT_METHOD_OPTIONS.map((option) => {
-          const isSelected = paymentMethod === option.id;
+          const isSelected = currentMethod === option.id;
           const Icon = option.icon;
 
           return (
@@ -35,10 +28,8 @@ export function CheckoutPaymentStep({
             >
               <input
                 type="radio"
-                name="paymentMethod"
                 value={option.id}
-                checked={isSelected}
-                onChange={() => onChange("paymentMethod", option.id)}
+                {...register("paymentMethod")}
                 className="sr-only"
               />
 

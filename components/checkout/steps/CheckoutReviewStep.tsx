@@ -1,68 +1,49 @@
+"use client";
+
+import { useFormContext } from "react-hook-form";
+
 import {
   buildContactSummary,
   buildShippingSummary,
 } from "@/components/checkout/shared/checkout-summary";
 import { findPaymentMethod } from "@/components/checkout/shared/methods";
 
-import type { CheckoutFormState } from "@/hooks/use-checkout-form";
+import type { CheckoutFormValues } from "@/lib/validation/checkout";
 
 type ReviewStepProps = {
-  form: CheckoutFormState;
   onEditShipping: () => void;
-  onEditContact: () => void;
   onEditPayment: () => void;
+  onEditContact?: () => void;
 };
 
 export function CheckoutReviewStep({
-  form,
   onEditShipping,
-  onEditContact,
   onEditPayment,
 }: ReviewStepProps) {
-  const {
-    firstName,
-    lastName,
-    email,
-    phone,
-    street,
-    addressExtra,
-    postalCode,
-    province,
-    city,
-    shippingType,
-    storeLocationId,
-    pickupLocationId,
-    storeSearch,
-    pickupSearch,
-    paymentMethod,
-  } = form;
+  const values = useFormContext<CheckoutFormValues>().getValues();
 
-  const paymentOption = findPaymentMethod(paymentMethod);
-
-  const paymentLabel =
-    paymentOption?.title ??
-    (paymentMethod === "cash" ? "Pago en efectivo" : "Método de pago");
-
-  const PaymentIcon = paymentOption?.icon;
-
+  // 1. Preparamos el resumen de Contacto
   const contact = buildContactSummary({
-    firstName,
-    lastName,
-    email,
-    phone,
+    firstName: values.firstName,
+    lastName: values.lastName,
+    email: values.email,
+    phone: values.phone,
   });
 
+  // 2. Preparamos el resumen de Envío
   const shipping = buildShippingSummary({
-    shippingType,
-    street,
-    addressExtra,
-    postalCode,
-    province,
-    city,
-    storeLocationId,
-    pickupLocationId,
-    pickupSearch,
+    shippingType: values.shippingType,
+    street: values.street,
+    addressExtra: values.addressExtra,
+    postalCode: values.postalCode,
+    province: values.province,
+    city: values.city,
+    storeLocationId: values.storeLocationId,
+    pickupLocationId: values.pickupLocationId,
   });
+
+  const paymentOption = findPaymentMethod(values.paymentMethod);
+  const PaymentIcon = paymentOption?.icon;
 
   return (
     <div>
@@ -73,7 +54,7 @@ export function CheckoutReviewStep({
             <button
               type="button"
               className="text-xs font-semibold fx-underline-anim mr-1"
-              onClick={onEditContact}
+              onClick={onEditShipping}
             >
               Editar
             </button>
@@ -112,28 +93,11 @@ export function CheckoutReviewStep({
             </button>
           </div>
           <p className="flex items-center border rounded-xs p-3 font-normal text-sm text-foreground">
-            {paymentLabel}
+            {paymentOption?.title || "—"}
             {PaymentIcon && <PaymentIcon className="ml-2 inline h-4 w-4" />}
           </p>
         </div>
       </div>
-
-      {/* Inputs ocultos para enviar los datos al servidor en el submit */}
-      <input type="hidden" name="firstName" value={firstName} />
-      <input type="hidden" name="lastName" value={lastName} />
-      <input type="hidden" name="email" value={email} />
-      <input type="hidden" name="phone" value={phone} />
-      <input type="hidden" name="street" value={street} />
-      <input type="hidden" name="addressExtra" value={addressExtra} />
-      <input type="hidden" name="postalCode" value={postalCode} />
-      <input type="hidden" name="province" value={province} />
-      <input type="hidden" name="city" value={city} />
-      <input type="hidden" name="shippingType" value={shippingType} />
-      <input type="hidden" name="storeLocationId" value={storeLocationId} />
-      <input type="hidden" name="pickupLocationId" value={pickupLocationId} />
-      <input type="hidden" name="storeSearch" value={storeSearch} />
-      <input type="hidden" name="pickupSearch" value={pickupSearch} />
-      <input type="hidden" name="paymentMethod" value={paymentMethod} />
     </div>
   );
 }

@@ -7,25 +7,18 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { CART_COOKIE_NAME, parseCartCookie } from "@/lib/server/cart-cookie";
 import { buildOrderDraftFromCart } from "@/lib/server/orders";
-import {
-  isValidEmail,
-  isNonEmptyMin,
-  isValidPhone,
-  isValidPostalCodeES,
-} from "@/lib/validation/checkout";
-
-import type { ShippingType as ShippingTypeDb } from "@prisma/client";
+import { InventoryService } from "@/lib/services/inventory.service";
+import { checkoutSchema } from "@/lib/validation/checkout";
 
 export type CheckoutActionState = {
   error?: string;
 };
 
-type ShippingType = "home" | "store" | "pickup";
-
 export async function createOrderAction(
   prevState: CheckoutActionState,
   formData: FormData,
 ): Promise<CheckoutActionState> {
+  // 1. Obtener usuario (si existe)
   const session = await auth();
   let userId: string | null = null;
 
@@ -34,148 +27,82 @@ export async function createOrderAction(
       where: { id: session.user.id },
       select: { id: true },
     });
-
-    if (userExists) {
-      userId = userExists.id;
-    } else {
-      console.warn(
-        "Usuario de sesión no encontrado en DB. Creando orden como invitado.",
-      );
-    }
+    if (userExists) userId = userExists.id;
   }
 
+  // 2. Obtener carrito
   const cookieStore = await cookies();
   const rawCart = cookieStore.get(CART_COOKIE_NAME)?.value;
   const lines = parseCartCookie(rawCart);
 
   if (!lines.length) {
-    return {
-      error:
-        "Tu cesta está vacía. Añade algunos productos antes de finalizar el pedido.",
-    };
+    return { error: "Tu carrito está vacío." };
   }
 
-  // 2. Recoger datos del formulario
-  const firstName = String(formData.get("firstName") ?? "").trim();
-  const lastName = String(formData.get("lastName") ?? "").trim();
-  const email = String(formData.get("email") ?? "").trim();
-  const phone = String(formData.get("phone") ?? "").trim();
-  const street = String(formData.get("street") ?? "").trim();
-  const addressExtra = String(formData.get("addressExtra") ?? "").trim();
-  const postalCode = String(formData.get("postalCode") ?? "").trim();
-  const province = String(formData.get("province") ?? "").trim();
-  const city = String(formData.get("city") ?? "").trim();
+  // 3. Validar Datos con Zod (¡Usando tu esquema nuevo!)
+  const rawData = Object.fromEntries(formData.entries());
+  const validation = checkoutSchema.safeParse(rawData);
 
-  const shippingTypeRaw = String(formData.get("shippingType") ?? "home").trim();
-
-  let shippingType: ShippingType = "home";
-  if (shippingTypeRaw === "store" || shippingTypeRaw === "pickup") {
-    shippingType = shippingTypeRaw;
+  if (!validation.success) {
+    return { error: validation.error.issues[0].message };
   }
 
-  const shippingTypeDb: ShippingTypeDb =
-    shippingType === "home"
-      ? "HOME"
-      : shippingType === "store"
-        ? "STORE"
-        : "PICKUP";
+  const data = validation.data;
 
-  const storeLocationId = String(formData.get("storeLocationId") ?? "").trim();
-  const pickupLocationId = String(
-    formData.get("pickupLocationId") ?? "",
-  ).trim();
-  const pickupSearch = String(formData.get("pickupSearch") ?? "").trim();
-  const paymentMethodRaw = String(
-    formData.get("paymentMethod") ?? "card",
-  ).trim();
-  const paymentMethod = paymentMethodRaw === "card" ? "card" : "card";
-
-  // 3. Validaciones de campos
-  if (!isNonEmptyMin(firstName, 2)) return { error: "Introduce tu nombre." };
-  if (!isNonEmptyMin(lastName, 2)) return { error: "Introduce tus apellidos." };
-  if (!isValidEmail(email)) return { error: "Introduce un email válido." };
-  if (!isValidPhone(phone)) return { error: "Introduce un teléfono válido." };
-
-  if (shippingType === "home") {
-    if (!isNonEmptyMin(street, 5))
-      return { error: "Introduce una dirección completa." };
-    if (!isValidPostalCodeES(postalCode))
-      return { error: "Código postal inválido." };
-    if (!isNonEmptyMin(province, 2) || !isNonEmptyMin(city, 2))
-      return { error: "Falta ciudad o provincia." };
-  } else if (shippingType === "store" && !storeLocationId) {
-    return { error: "Selecciona una tienda." };
-  } else if (shippingType === "pickup" && !pickupLocationId) {
-    return { error: "Selecciona un punto de recogida." };
-  }
-
-  // 4. Construir borrador del pedido (Aquí se validan existencias generales)
+  // 4. Construir borrador de orden (cálculos de precio)
   const draft = await buildOrderDraftFromCart(lines);
 
-  if (!draft.items.length || draft.totalMinor <= 0) {
-    return {
-      error:
-        "No hemos podido recalcular tu pedido. Revisa tu cesta o actualiza la página.",
-    };
-  }
+  // 5. Crear Orden + Transacción Atómica
+  let orderId: string | undefined;
 
-  // 5. TRANSACCIÓN: Validar Stock real, Restar y Crear Orden
-  let order;
   try {
-    order = await prisma.$transaction(async (tx) => {
-      for (const item of draft.items) {
-        // A) Buscar la variante específica para asegurar stock
-        const variant = await tx.productVariant.findUnique({
-          where: { id: item.variantId },
-          select: { stock: true, size: true, color: true },
-        });
+    await prisma.$transaction(async (tx) => {
+      const itemsToCheck = draft.items.map((item) => ({
+        variantId: item.variantId,
+        quantity: item.quantity,
+      }));
 
-        if (!variant) {
-          throw new Error(
-            `El producto "${item.name}" (${item.variantName}) ya no está disponible.`,
-          );
-        }
+      await InventoryService.validateStock(itemsToCheck);
 
-        if (variant.stock < item.quantity) {
-          throw new Error(
-            `Stock insuficiente para "${item.name} (${item.variantName})". Solo quedan ${variant.stock} unidades.`,
-          );
-        }
+      await InventoryService.updateStock(itemsToCheck, "decrement", tx);
 
-        // B) Restar stock
-        await tx.productVariant.update({
-          where: { id: item.variantId },
-          data: { stock: { decrement: item.quantity } },
-        });
-      }
+      let shippingTypeDb: "HOME" | "STORE" | "PICKUP" = "HOME";
+      if (data.shippingType === "store") shippingTypeDb = "STORE";
+      if (data.shippingType === "pickup") shippingTypeDb = "PICKUP";
 
-      // C) Crear la orden
-      return await tx.order.create({
+      // C) Crear la Orden
+      const order = await tx.order.create({
         data: {
           userId,
-          email,
-          currency: draft.currency,
+          status: "PAID",
           totalMinor: draft.totalMinor,
-          status: "PENDING_PAYMENT",
+          currency: draft.currency,
+
+          // Datos validados
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phone: data.phone,
+          email: data.email,
+
           shippingType: shippingTypeDb,
-          firstName,
-          lastName,
-          phone,
-          street,
-          addressExtra,
-          postalCode,
-          province,
-          city,
-          storeLocationId: storeLocationId || null,
-          pickupLocationId: pickupLocationId || null,
-          pickupSearch: pickupSearch || null,
-          paymentMethod,
+          street: data.street || null,
+          addressExtra: data.addressExtra || null,
+          postalCode: data.postalCode || null,
+          province: data.province || null,
+          city: data.city || null,
+          storeLocationId: data.storeLocationId || null,
+          pickupLocationId: data.pickupLocationId || null,
+          pickupSearch: data.pickupSearch || null,
+
+          paymentMethod: data.paymentMethod,
 
           items: {
             create: draft.items.map((item) => {
-              const parts = item.variantName.split(" / ");
-              const size = parts[0] || "";
-              const color = parts[1] || "";
+              const parts = item.variantName
+                ? item.variantName.split(" / ")
+                : [];
+              const size = parts[0] || null;
+              const color = parts[1] || null;
 
               return {
                 productId: item.productId,
@@ -189,23 +116,35 @@ export async function createOrderAction(
               };
             }),
           },
+
+          // Historial inicial
+          history: {
+            create: {
+              status: "PAID",
+              reason: "Pedido creado correctamente",
+              actor: "system",
+            },
+          },
         },
       });
+
+      orderId = order.id;
     });
   } catch (e: any) {
-    console.error("[createOrderAction] Error:", e);
-    // Mostrar mensaje amigable si es error de stock, sino genérico
-    const message = e.message.includes("Stock insuficiente")
-      ? e.message
-      : "Ha ocurrido un error al procesar tu pedido. Inténtalo de nuevo.";
-    return { error: message };
+    console.error("[CreateOrder] Error:", e);
+    if (e.message && e.message.includes("Stock insuficiente")) {
+      return { error: e.message };
+    }
+    return {
+      error: "Hubo un problema al procesar tu pedido. Inténtalo de nuevo.",
+    };
   }
 
-  // 6. Limpiar cookie y redirigir
-  cookieStore.set(CART_COOKIE_NAME, "", {
-    path: "/",
-    maxAge: 0,
-  });
+  // 6. Limpiar cookie y redirigir (fuera del try/catch)
+  if (orderId) {
+    cookieStore.set(CART_COOKIE_NAME, "", { path: "/", maxAge: 0 });
+    redirect(`/checkout/success?orderId=${orderId}`);
+  }
 
-  redirect(`/checkout/success?orderId=${order.id}`);
+  return { error: "Error desconocido al crear el pedido." };
 }

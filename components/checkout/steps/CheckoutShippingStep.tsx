@@ -1,12 +1,13 @@
 "use client";
 
+import { useFormContext } from "react-hook-form";
 import {
   IoHomeOutline,
-  IoStorefront,
   IoHome,
+  IoStorefrontOutline,
+  IoStorefront,
   IoLocationOutline,
   IoLocationSharp,
-  IoStorefrontOutline,
 } from "react-icons/io5";
 
 import {
@@ -14,118 +15,98 @@ import {
   CheckoutShippingPickup,
   CheckoutShippingStore,
 } from "@/components/checkout/shipping";
+import { CheckoutContactFields } from "@/components/checkout/shipping/CheckoutContactFields";
 
-import type {
-  CheckoutClientErrors,
-  CheckoutFormState,
-  ShippingType,
-} from "@/hooks/use-checkout-form";
+import type { CheckoutFormValues } from "@/lib/validation/checkout";
 
-type ShippingStepProps = {
-  form: CheckoutFormState;
-  errors: CheckoutClientErrors;
-  onChange: <K extends keyof CheckoutFormState>(
-    key: K,
-    value: CheckoutFormState[K],
-  ) => void;
-};
+export function CheckoutShippingStep() {
+  const { watch, setValue } = useFormContext<CheckoutFormValues>();
 
-const SHIPPING_ICONS = {
-  home: {
-    outline: IoHomeOutline,
-    solid: IoHome,
-  },
-  store: {
-    outline: IoStorefrontOutline,
-    solid: IoStorefront,
-  },
-  pickup: {
-    outline: IoLocationOutline,
-    solid: IoLocationSharp,
-  },
-} as const;
+  const shippingType = watch("shippingType");
 
-const SHIPPING_OPTIONS: {
-  id: ShippingType;
-  title: string;
-}[] = [
-  {
-    id: "home",
-    title: "Envío a domicilio",
-  },
-  {
-    id: "pickup",
-    title: "Punto de recogida",
-  },
-  {
-    id: "store",
-    title: "Recogida en tienda",
-  },
-];
-
-export function CheckoutShippingStep({
-  form,
-  errors,
-  onChange,
-}: ShippingStepProps) {
-  const { shippingType } = form;
+  const handleTypeChange = (type: "home" | "store" | "pickup") => {
+    setValue("shippingType", type, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  };
 
   return (
-    <div className="space-y-4 pb-4">
-      {/* Selector de tipo de envío */}
-      <div className="space-y-3">
-        <div className="grid gap-3 sm:grid-cols-3">
-          {SHIPPING_OPTIONS.map((option) => {
-            const isActive = shippingType === option.id;
-            const Icon =
-              SHIPPING_ICONS[option.id as "home" | "store" | "pickup"][
-                isActive ? "solid" : "outline"
-              ];
+    <div className="space-y-8 animate-in fade-in duration-500">
+      {/* 1. SECCIÓN DE CONTACTO (Común) */}
+      <section>
+        <CheckoutContactFields />
+      </section>
 
-            return (
-              <button
-                key={option.id}
-                type="button"
-                onClick={() => onChange("shippingType", option.id)}
-                className={`flex h-full flex-col items-center justify-center gap-2 rounded-xs border px-3 py-4 text-sm sm:text-sm transition-colors ${
-                  isActive
-                    ? "border-primary text-foreground"
-                    : "border-border bg-neutral-100 hover:border-primary hover:cursor-pointer"
-                }`}
-                aria-pressed={isActive}
-              >
-                <span className="sm:text-lg">
-                  <Icon size={18} />
-                </span>
-                <span className="lg:text-sm sm:text-sm font-medium text-foreground">
-                  {option.title}
-                </span>
-              </button>
-            );
-          })}
+      {/* 2. SECCIÓN TIPO DE ENVÍO */}
+      <section className="space-y-4">
+        <h3 className="text-sm font-semibold text-foreground/80 px-1">
+          Método de entrega
+        </h3>
+
+        {/* Selector de Botones con Iconos */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <ShippingOptionButton
+            active={shippingType === "home"}
+            onClick={() => handleTypeChange("home")}
+            title="A domicilio"
+            iconActive={IoHome}
+            iconInactive={IoHomeOutline}
+          />
+          <ShippingOptionButton
+            active={shippingType === "pickup"}
+            onClick={() => handleTypeChange("pickup")}
+            title="Punto de recogida"
+            iconActive={IoLocationSharp}
+            iconInactive={IoLocationOutline}
+          />
+          <ShippingOptionButton
+            active={shippingType === "store"}
+            onClick={() => handleTypeChange("store")}
+            title="Tienda"
+            iconActive={IoStorefront}
+            iconInactive={IoStorefrontOutline}
+          />
         </div>
-      </div>
 
-      {/* Secciones específicas según tipo de envío */}
-      {shippingType === "home" && (
-        <CheckoutShippingHome form={form} errors={errors} onChange={onChange} />
-      )}
-
-      {shippingType === "pickup" && (
-        <CheckoutShippingPickup
-          form={form}
-          errors={errors}
-          onChange={onChange}
-        />
-      )}
-
-      {shippingType === "store" && (
-        <CheckoutShippingStore
-          form={form}
-          errors={errors}
-          onChange={onChange}
-        />
-      )}
+        {/* Renderizado condicional del formulario específico */}
+        <div className="pt-2">
+          {shippingType === "home" && <CheckoutShippingHome />}
+          {shippingType === "pickup" && <CheckoutShippingPickup />}
+          {shippingType === "store" && <CheckoutShippingStore />}
+        </div>
+      </section>
     </div>
+  );
+}
+
+// Componente pequeño local para limpiar el JSX del botón
+function ShippingOptionButton({
+  active,
+  onClick,
+  title,
+  iconActive: IconActive,
+  iconInactive: IconInactive,
+}: any) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`
+        flex flex-col items-center justify-center gap-2 rounded-lg border-2 p-4 transition-all duration-200
+        ${
+          active
+            ? "border-primary bg-primary/5 text-primary shadow-sm"
+            : "border-muted bg-card hover:border-primary/50 hover:bg-muted/50 text-muted-foreground"
+        }
+      `}
+    >
+      {active ? (
+        <IconActive className="h-6 w-6" />
+      ) : (
+        <IconInactive className="h-6 w-6" />
+      )}
+      <span className="text-sm font-medium">{title}</span>
+    </button>
   );
 }

@@ -1,121 +1,93 @@
+"use client";
+
+import { useFormContext } from "react-hook-form";
+
 import { Input, Label } from "@/components/ui";
 
-import type {
-  CheckoutClientErrors,
-  CheckoutFormState,
-} from "@/hooks/use-checkout-form";
+import type { CheckoutFormValues } from "@/lib/validation/checkout";
 
-type CheckoutContactFieldsProps = {
-  form: CheckoutFormState;
-  errors: CheckoutClientErrors;
-  onChange: <K extends keyof CheckoutFormState>(
-    key: K,
-    value: CheckoutFormState[K],
-  ) => void;
-};
-
-export function CheckoutContactFields({
-  form,
-  errors,
-  onChange,
-}: CheckoutContactFieldsProps) {
-  const { firstName, lastName, email, phone } = form;
-
+export function CheckoutContactFields() {
   const {
-    firstName: firstNameError,
-    lastName: lastNameError,
-    email: emailError,
-    phone: phoneError,
-  } = errors;
+    register,
+    formState: { errors },
+  } = useFormContext<CheckoutFormValues>();
 
   return (
-    <div className="space-y-6 p-4 border ronded-lb">
+    <div className="space-y-6 rounded-lg border bg-card p-4">
+      <h3 className="text-sm font-semibold text-foreground/80">
+        Datos de contacto
+      </h3>
+
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-1">
+        <div className="space-y-2">
           <Label htmlFor="firstName" className="text-xs">
             Nombre*
           </Label>
           <Input
             id="firstName"
-            name="firstName"
             autoComplete="given-name"
-            value={firstName}
-            onChange={(e) => onChange("firstName", e.target.value)}
-            required
-            aria-invalid={firstNameError || undefined}
-            aria-describedby={firstNameError ? "firstName-error" : undefined}
+            placeholder="Ej: Juan"
+            {...register("firstName")}
+            aria-invalid={!!errors.firstName}
           />
-          {firstNameError && (
-            <p id="firstName-error" className="text-xs text-destructive">
-              Introduce tu nombre.
+          {errors.firstName && (
+            <p className="text-xs text-destructive">
+              {errors.firstName.message}
             </p>
           )}
         </div>
 
-        <div className="space-y-1">
+        <div className="space-y-2">
           <Label htmlFor="lastName" className="text-xs">
             Apellidos*
           </Label>
           <Input
             id="lastName"
-            name="lastName"
             autoComplete="family-name"
-            value={lastName}
-            onChange={(e) => onChange("lastName", e.target.value)}
-            required
-            aria-invalid={lastNameError || undefined}
-            aria-describedby={lastNameError ? "lastName-error" : undefined}
+            placeholder="Ej: Pérez"
+            {...register("lastName")}
+            aria-invalid={!!errors.lastName}
           />
-          {lastNameError && (
-            <p id="lastName-error" className="text-xs text-destructive">
-              Introduce tus apellidos.
+          {errors.lastName && (
+            <p className="text-xs text-destructive">
+              {errors.lastName.message}
             </p>
           )}
         </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-1">
+        <div className="space-y-2">
           <Label htmlFor="email" className="text-xs">
             E-mail*
           </Label>
           <Input
             id="email"
-            name="email"
             type="email"
             autoComplete="email"
-            value={email}
-            onChange={(e) => onChange("email", e.target.value)}
-            required
-            aria-invalid={emailError || undefined}
-            aria-describedby={emailError ? "email-error" : undefined}
+            placeholder="tu@email.com"
+            {...register("email")}
+            aria-invalid={!!errors.email}
           />
-          {emailError && (
-            <p id="email-error" className="text-xs text-destructive">
-              Introduce un correo electrónico válido.
-            </p>
+          {errors.email && (
+            <p className="text-xs text-destructive">{errors.email.message}</p>
           )}
         </div>
 
-        <div className="space-y-1">
+        <div className="space-y-2">
           <Label htmlFor="phone" className="text-xs">
             Teléfono*
           </Label>
           <Input
             id="phone"
-            name="phone"
             type="tel"
             autoComplete="tel"
-            value={phone}
-            onChange={(e) => onChange("phone", e.target.value)}
-            required
-            aria-invalid={phoneError || undefined}
-            aria-describedby={phoneError ? "phone-error" : undefined}
+            placeholder="600 000 000"
+            {...register("phone")}
+            aria-invalid={!!errors.phone}
           />
-          {phoneError && (
-            <p id="phone-error" className="text-xs text-destructive">
-              Introduce un teléfono válido (solo números y signos habituales).
-            </p>
+          {errors.phone && (
+            <p className="text-xs text-destructive">{errors.phone.message}</p>
           )}
         </div>
       </div>

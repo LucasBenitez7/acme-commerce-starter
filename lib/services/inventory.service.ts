@@ -43,8 +43,6 @@ export class InventoryService {
       }),
     );
 
-    // Si ya estamos en una transacción, devolvemos las promesas para que el padre las espere.
-    // Si no, iniciamos una transacción nueva.
     if (tx) {
       return Promise.all(operations);
     } else {

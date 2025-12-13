@@ -1,147 +1,162 @@
+"use client";
+
+import { useFormContext } from "react-hook-form";
+
 import { STORE_LOCATIONS } from "@/components/checkout/shared/locations";
-import { CheckoutContactFields } from "@/components/checkout/shipping/CheckoutContactFields";
-import { Input, Label } from "@/components/ui";
+import { Input, Label, Button } from "@/components/ui";
 
-import type {
-  CheckoutClientErrors,
-  CheckoutFormState,
-} from "@/hooks/use-checkout-form";
+import type { CheckoutFormValues } from "@/lib/validation/checkout";
 
-type CheckoutShippingStoreProps = {
-  form: CheckoutFormState;
-  errors: CheckoutClientErrors;
-  onChange: <K extends keyof CheckoutFormState>(
-    key: K,
-    value: CheckoutFormState[K],
-  ) => void;
-};
+export function CheckoutShippingStore() {
+  const {
+    register,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useFormContext<CheckoutFormValues>();
 
-export function CheckoutShippingStore({
-  form,
-  errors,
-  onChange,
-}: CheckoutShippingStoreProps) {
-  const { storeLocationId, storeSearch } = form;
-  const { storeLocation: storeLocationError } = errors;
-
-  const hasSearch = storeSearch.trim().length > 0;
-  const hasSelectedLocation = Boolean(storeLocationId);
+  const storeLocationId = watch("storeLocationId");
+  const storeSearch = watch("storeSearch") || "";
 
   const selectedStore = STORE_LOCATIONS.find((s) => s.id === storeLocationId);
 
+  const filteredStores = STORE_LOCATIONS.filter((s) =>
+    s.name.toLowerCase().includes(storeSearch.toLowerCase()),
+  );
+
+  // Handlers para actualizar el formulario
+  const handleSelect = (id: string) => {
+    setValue("storeLocationId", id, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  };
+
+  const handleClear = () => {
+    setValue("storeLocationId", "", { shouldValidate: true });
+  };
+
   return (
-    <div className="space-y-3 pt-2">
-      {/* MODO SELECCIÓN: todavía no hay tienda elegida */}
-      {!hasSelectedLocation && (
-        <>
+    <div className="space-y-4 pt-2 animate-in fade-in slide-in-from-top-2">
+      {/* CASO 1: NO HAY TIENDA SELECCIONADA (MOSTRAR BUSCADOR Y LISTA) */}
+      {!selectedStore && (
+        <div className="space-y-4 rounded-lg border bg-card p-4">
           <div className="space-y-2">
             <Label htmlFor="storeSearch">
               Busca una tienda para recoger tu pedido
             </Label>
             <Input
               id="storeSearch"
-              name="storeSearch"
-              value={storeSearch}
-              onChange={(e) => onChange("storeSearch", e.target.value)}
-              placeholder="Ej. 15008 o A Coruña centro"
-              aria-invalid={storeLocationError || undefined}
-              aria-describedby={
-                storeLocationError ? "storeSearch-error" : undefined
-              }
+              placeholder="Ej. Centro..."
+              {...register("storeSearch")}
             />
-            {storeLocationError && (
-              <p id="storeSearch-error" className="text-xs text-destructive">
-                Introduce un código postal válido o zona para buscar tiendas
+            {/* Mensaje de ayuda si no hay resultados */}
+            {storeSearch && filteredStores.length === 0 && (
+              <p className="text-xs text-muted-foreground">
+                No encontramos tiendas con ese nombre.
               </p>
             )}
           </div>
 
-          {hasSearch && (
-            <div className="space-y-3">
-              {STORE_LOCATIONS.map((store) => {
-                const isSelected = storeLocationId === store.id;
-
-                return (
-                  <label
-                    key={store.id}
-                    className={`flex w-full cursor-pointer flex-col rounded-xs space-y-1 border p-3 text-left text-xs sm:text-sm transition-colors ${
-                      isSelected
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/60 hover:bg-neutral-50"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="storeLocationId"
-                      value={store.id}
-                      checked={isSelected}
-                      onChange={() => onChange("storeLocationId", store.id)}
-                      className="sr-only"
-                    />
-                    <p className="text-sm font-semibold">{store.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {store.addressLine1}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {store.addressLine2}
-                    </p>
-
-                    <div className="flex flex-wrap items-center gap-2 text-[0.7rem] text-muted-foreground">
-                      <span>{store.tag}</span>
-                      <span>{store.distance}</span>
-                      <span>{store.schedule}</span>
-                    </div>
-                  </label>
-                );
-              })}
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground font-medium">
+              Tiendas disponibles:
+            </p>
+            <div className="grid gap-2 max-h-[300px] overflow-y-auto">
+              {filteredStores.map((store) => (
+                <button
+                  key={store.id}
+                  type="button"
+                  onClick={() => handleSelect(store.id)}
+                  className="group flex flex-col items-start gap-1 rounded-md border p-3 text-left hover:bg-muted/50 hover:border-primary transition-all"
+                >
+                  <div className="flex w-full justify-between items-center">
+                    <span className="font-semibold text-sm group-hover:text-primary">
+                      {store.name}
+                    </span>
+                    <span className="text-[10px] bg-secondary px-1.5 py-0.5 rounded text-secondary-foreground">
+                      {store.distance}
+                    </span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {store.addressLine1}, {store.addressLine2}
+                  </span>
+                  <div className="flex gap-2 mt-1">
+                    <span className="text-[10px] border px-1 rounded text-muted-foreground">
+                      {store.tag}
+                    </span>
+                    <span className="text-[10px] border px-1 rounded text-muted-foreground">
+                      {store.schedule}
+                    </span>
+                  </div>
+                </button>
+              ))}
             </div>
+          </div>
+          {/* Error oculto (se muestra si intentas continuar sin seleccionar) */}
+          {errors.storeLocationId && (
+            <p className="text-sm text-destructive font-medium bg-destructive/10 p-2 rounded">
+              {errors.storeLocationId.message}
+            </p>
           )}
-        </>
+        </div>
       )}
 
-      {/* MODO YA SELECCIONADO: ocultar búsqueda, mostrar solo tienda elegida + contacto */}
-      {hasSelectedLocation && selectedStore && (
-        <div>
-          <div className="flex items-center justify-between pb-1">
+      {/* CASO 2: TIENDA YA SELECCIONADA (MOSTRAR RESUMEN) */}
+      {selectedStore && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
             <p className="text-base font-medium text-foreground">
               Tienda seleccionada
             </p>
-
-            <button
-              type="button"
-              className="text-sm mr-1 font-medium fx-underline-anim"
-              onClick={() => onChange("storeLocationId", "")}
+            <Button
+              variant="link"
+              size="sm"
+              onClick={handleClear}
+              className="h-auto p-0 text-primary"
             >
-              Editar
-            </button>
+              Cambiar tienda
+            </Button>
           </div>
 
-          <div className="rounded-xs space-y-1 border p-3 text-xs sm:text-sm">
-            <p className="text-sm font-semibold">{selectedStore.name}</p>
-            <p className="text-xs text-muted-foreground">
+          <div className="rounded-md border bg-primary/5 border-primary/20 p-4 space-y-1 text-sm relative">
+            {/* Badge de check */}
+            <div className="absolute top-3 right-3 text-primary">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+
+            <p className="font-bold text-base">{selectedStore.name}</p>
+            <p className="text-muted-foreground">
               {selectedStore.addressLine1}
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-muted-foreground">
               {selectedStore.addressLine2}
             </p>
 
-            <div className="flex flex-wrap items-center gap-2 text-[0.7rem] text-muted-foreground">
-              <span>{selectedStore.tag}</span>
-              <span>{selectedStore.distance}</span>
-              <span>{selectedStore.schedule}</span>
+            <div className="flex flex-wrap items-center gap-2 mt-2 pt-2 border-t border-primary/10">
+              <span className="text-xs bg-background border px-2 py-1 rounded shadow-sm">
+                {selectedStore.schedule}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {selectedStore.distance} de ti
+              </span>
             </div>
           </div>
 
-          <div className="space-y-1 pt-6">
-            <p className="text-base font-medium text-foreground">
-              Datos de contacto
-            </p>
-            <CheckoutContactFields
-              form={form}
-              errors={errors}
-              onChange={onChange}
-            />
-          </div>
+          {/* Input oculto real para que React Hook Form lo registre */}
+          <input type="hidden" {...register("storeLocationId")} />
         </div>
       )}
     </div>
