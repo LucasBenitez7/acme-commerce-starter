@@ -1,39 +1,37 @@
 "use client";
 
-import { useState, useEffect, useMemo, useActionState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
+import { useForm, FormProvider, type DefaultValues } from "react-hook-form";
 import { FaBoxArchive } from "react-icons/fa6";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 
 import {
-  createProductAction,
-  updateProductAction,
-  type ProductFormState,
-} from "../actions";
+  productSchema,
+  type ProductFormValues,
+} from "@/lib/validation/product";
 
 import {
-  DangerZone,
-  GeneralSection,
-  ImagesSection,
-  VariantsSection,
-} from "./form";
+  createProductAction,
+  updateProductAction,
+} from "@/app/(admin)/admin/products/actions";
 
-import type {
-  FormVariant,
-  FormImage,
-  Category,
-  ProductWithDetails,
-} from "./form/types";
+import { DangerZone } from "./form/DangerZone";
+import { GeneralSection } from "./form/GeneralSection";
+import { ImagesSection } from "./form/ImagesSection";
+import { VariantsSection } from "./form/VariantsSection";
+
+type ProductWithId = ProductFormValues & { id: string };
 
 type Props = {
-  categories: Category[];
+  categories: { id: string; name: string }[];
   existingSizes: string[];
   existingColors: string[];
-  product?: ProductWithDetails;
+  product?: Partial<ProductWithId> & { id?: string };
 };
-
-const INITIAL_STATE: ProductFormState = {};
 
 export function ProductForm({
   categories,
@@ -41,124 +39,137 @@ export function ProductForm({
   existingColors,
   product,
 }: Props) {
-  const isEditing = !!product;
-  const action = isEditing
-    ? updateProductAction.bind(null, product.id)
-    : createProductAction;
-  const [state, formAction, isPending] = useActionState(action, INITIAL_STATE);
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
 
-  // Estados
-  const [variants, setVariants] = useState<FormVariant[]>(
-    product?.variants || [{ size: "", color: "", colorHex: "", stock: 0 }],
-  );
-  const [images, setImages] = useState<FormImage[]>(
-    product?.images || [{ url: "", color: null }],
-  );
+  const defaultValues: DefaultValues<ProductFormValues> = {
+    name: product?.name || "",
+    description: product?.description || "",
+    priceCents: product?.priceCents || 0,
+    categoryId: product?.categoryId || "",
+    isArchived: product?.isArchived || false,
+    slug: product?.slug || undefined,
+    // Mapeamos para asegurar que coinciden con el esquema (especialmente opcionales)
+    images:
+      product?.images?.map((img) => ({
+        id: img.id,
+        url: img.url,
+        color: img.color || null,
+        sort: img.sort || 0,
+        alt: img.alt || "",
+      })) || [],
+    variants:
+      product?.variants?.map((v) => ({
+        id: v.id,
+        size: v.size,
+        color: v.color,
+        colorHex: v.colorHex || null,
+        stock: v.stock || 0,
+      })) || [],
+  };
 
-  // Colores activos para el select de imágenes
-  const activeColors = useMemo(() => {
-    return Array.from(new Set(variants.map((v) => v.color).filter(Boolean)));
-  }, [variants]);
+  const methods = useForm<ProductFormValues>({
+    resolver: zodResolver(productSchema) as any,
+    defaultValues,
+    mode: "onChange",
+  });
 
-  // Manejo de errores
-  useEffect(() => {
-    if (state.message) toast.error(state.message);
-    if (state.errors) {
-      const allErrors = Object.values(state.errors).flatMap(
-        (errs) => errs || [],
-      );
-      if (typeof allErrors[0] === "string") toast.error(allErrors[0]);
-    }
-  }, [state]);
+  const { handleSubmit } = methods;
 
-  const handlePreSubmit = (e: React.FormEvent) => {
-    const invalidVariants = variants.some(
-      (v) => !v.size.trim() || !v.color.trim(),
-    );
-    if (invalidVariants) {
-      e.preventDefault();
-      toast.error("Hay variantes incompletas.");
-      return;
-    }
-    const invalidImages = images.some((i) => !i.url.trim());
-    if (invalidImages) {
-      e.preventDefault();
-      toast.error("Hay imágenes sin URL.");
-      return;
-    }
-    if (variants.length === 0) {
-      e.preventDefault();
-      toast.error("Añade al menos una variante.");
-      return;
-    }
+  const onSubmit = (data: ProductFormValues) => {
+    startTransition(async () => {
+      const formData = new FormData();
+
+      // Mapeo simple de campos
+      formData.append("name", data.name);
+      formData.append("description", data.description || "");
+      formData.append("priceCents", String(data.priceCents));
+      formData.append("categoryId", data.categoryId);
+      formData.append("isArchived", String(data.isArchived));
+      if (data.slug) formData.append("slug", data.slug);
+
+      // SERIALIZACIÓN JSON (La clave para arrays complejos)
+      formData.append("imagesJson", JSON.stringify(data.images));
+      formData.append("variantsJson", JSON.stringify(data.variants));
+
+      const action = product?.id
+        ? updateProductAction.bind(null, product.id)
+        : createProductAction;
+
+      const result = await action({}, formData);
+
+      if (result?.errors) {
+        // Mostrar errores de servidor en un toast genérico o mapearlos
+        toast.error("Error en el formulario. Revisa los campos.");
+      } else if (result?.message) {
+        toast.error(result.message);
+      } else {
+        toast.success("Producto guardado correctamente");
+      }
+    });
   };
 
   return (
-    <div className="max-w-5xl mx-auto pb-20">
-      {/* Banner de Archivado */}
-      {product?.isArchived && (
-        <div className="mb-6 bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r shadow-sm flex items-center gap-3">
-          <FaBoxArchive className="text-amber-600" />
-          <div>
-            <p className="font-bold text-amber-800">Producto Archivado</p>
-            <p className="text-sm text-amber-700">Este producto está oculto.</p>
-          </div>
-        </div>
-      )}
-
+    <FormProvider {...methods}>
+      <h1 className="text-2xl font-bold">
+        {product ? "Editar Producto" : "Nuevo Producto"}
+      </h1>
       <form
-        action={formAction}
-        className="space-y-8"
-        onSubmit={handlePreSubmit}
+        onSubmit={handleSubmit(onSubmit)}
+        className="max-w-5xl mx-auto space-y-8"
       >
-        <GeneralSection
-          categories={categories}
-          defaultValues={product}
-          errors={state.errors}
-        />
+        {/* Banner Archivado */}
+        {product?.isArchived && (
+          <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r flex items-center gap-3">
+            <FaBoxArchive className="text-amber-600" />
+            <div>
+              <p className="font-bold text-amber-800">Producto Archivado</p>
+              <p className="text-sm text-amber-700">
+                No es visible en la tienda.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* SECCIONES DEL FORMULARIO */}
+        <GeneralSection categories={categories} />
 
         <VariantsSection
-          variants={variants}
-          setVariants={setVariants}
           suggestions={{ sizes: existingSizes, colors: existingColors }}
         />
 
-        <ImagesSection
-          images={images}
-          setImages={setImages}
-          availableColors={activeColors}
-        />
+        <ImagesSection />
 
-        {/* Footer flotante */}
-        <div className="flex items-center justify-end gap-4 pt-6 sticky bottom-0 bg-white/90 backdrop-blur p-4 border-t mt-8 z-10 shadow-lg border-x rounded-t-lg">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => window.history.back()}
-          >
-            Cancelar
-          </Button>
-          <Button
-            type="submit"
-            className="bg-black text-white px-8"
-            disabled={isPending}
-          >
-            {isPending
-              ? "Guardando..."
-              : isEditing
-                ? "Guardar Cambios"
-                : "Crear Producto"}
-          </Button>
+        <div className="flex items-center justify-end">
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => router.back()}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              disabled={isPending}
+              className="bg-black text-white"
+            >
+              {isPending ? "Guardando..." : "Guardar Producto"}
+            </Button>
+          </div>
         </div>
       </form>
 
-      {isEditing && product && (
-        <DangerZone
-          productId={product.id}
-          productName={product.name}
-          isArchived={product.isArchived}
-        />
+      {/* ZONA DE PELIGRO (Solo edición) */}
+      {product?.id && product.name && (
+        <div className="max-w-5xl mx-auto mb-6">
+          <DangerZone
+            productId={product.id}
+            productName={product.name}
+            isArchived={!!product.isArchived}
+          />
+        </div>
       )}
-    </div>
+    </FormProvider>
   );
 }

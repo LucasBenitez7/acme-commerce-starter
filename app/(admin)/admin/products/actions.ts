@@ -2,11 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { z } from "zod";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { productSchema } from "@/lib/validation/product";
 
+// Helper para slug
 function slugify(text: string) {
   const base = text
     .toString()
@@ -16,67 +17,39 @@ function slugify(text: string) {
     .replace(/[^\w\-]+/g, "")
     .replace(/\-\-+/g, "-");
 
-  const randomSuffix = Math.floor(100000000 + Math.random() * 900000000);
+  const randomSuffix = Math.floor(Math.random() * 10000);
 
   return `${base}_${randomSuffix}`;
 }
-
-// Esquema de validación
-const productSchema = z.object({
-  name: z.string().min(3, "El nombre es obligatorio"),
-  slug: z.string().optional(),
-  description: z.string().min(10, "Descripción muy corta"),
-  priceCents: z.coerce.number().min(1, "Precio inválido"),
-  categoryId: z.string().min(1, "Selecciona categoría"),
-  images: z
-    .array(
-      z.object({
-        url: z.string().url(),
-        color: z.string().optional().nullable(),
-      }),
-    )
-    .min(1, "Mínimo 1 imagen"),
-  variants: z
-    .array(
-      z.object({
-        id: z.string().optional(),
-        size: z.string().min(1),
-        color: z.string().min(1),
-        colorHex: z.string().optional().nullable(),
-        stock: z.coerce.number().min(0),
-      }),
-    )
-    .min(1, "Mínimo 1 variante"),
-});
 
 export type ProductFormState = {
   errors?: any;
   message?: string;
 };
 
-// --- CREAR PRODUCTO ---
-export async function createProductAction(
-  prevState: ProductFormState,
-  formData: FormData,
-) {
+// --- CREAR / ACTUALIZAR (Unificado en lógica interna) ---
+async function upsertProduct(id: string | null, formData: FormData) {
   const session = await auth();
   if (session?.user?.role !== "admin") return { message: "No autorizado" };
 
+  // 1. Parsear datos complejos del FormData
   const rawImages = JSON.parse(String(formData.get("imagesJson") || "[]"));
   const rawVariants = JSON.parse(String(formData.get("variantsJson") || "[]"));
-  const name = String(formData.get("name") || "").trim();
 
-  const slug = slugify(name);
-
-  const validated = productSchema.safeParse({
-    name,
-    slug,
+  // 2. Preparar objeto para validación
+  const rawData = {
+    name: formData.get("name"),
     description: formData.get("description"),
     priceCents: formData.get("priceCents"),
     categoryId: formData.get("categoryId"),
+    isArchived: formData.get("isArchived") === "true",
+    slug: formData.get("slug") || undefined,
     images: rawImages,
     variants: rawVariants,
-  });
+  };
+
+  // 3. Validar con Zod
+  const validated = productSchema.safeParse(rawData);
 
   if (!validated.success) {
     return {
@@ -86,135 +59,123 @@ export async function createProductAction(
   }
 
   const { data } = validated;
+  const finalSlug = data.slug || slugify(data.name);
 
   try {
-    await prisma.product.create({
-      data: {
-        name: data.name,
-        slug: data.slug!,
-        description: data.description,
-        priceCents: data.priceCents,
-        categoryId: data.categoryId,
-        images: {
-          create: data.images.map((img, index) => ({
-            url: img.url,
-            alt: data.name,
-            sort: index,
-            color: img.color || null,
-          })),
+    if (id) {
+      await prisma.$transaction(async (tx) => {
+        await tx.product.update({
+          where: { id },
+          data: {
+            name: data.name,
+            description: data.description || "",
+            priceCents: data.priceCents,
+            categoryId: data.categoryId,
+            isArchived: data.isArchived,
+          },
+        });
+
+        // Reemplazar imágenes
+        await tx.productImage.deleteMany({ where: { productId: id } });
+        if (data.images.length > 0) {
+          await tx.productImage.createMany({
+            data: data.images.map((img, idx) => ({
+              productId: id,
+              url: img.url,
+              alt: img.alt || data.name,
+              color: img.color || null,
+              sort: idx,
+            })),
+          });
+        }
+
+        // Sincronizar Variantes (Smart Sync)
+        const incomingIds = data.variants
+          .map((v) => v.id)
+          .filter(Boolean) as string[];
+        await tx.productVariant.deleteMany({
+          where: { productId: id, id: { notIn: incomingIds } },
+        });
+
+        for (const v of data.variants) {
+          if (v.id) {
+            await tx.productVariant.update({
+              where: { id: v.id },
+              data: {
+                size: v.size,
+                color: v.color,
+                colorHex: v.colorHex,
+                stock: v.stock,
+              },
+            });
+          } else {
+            await tx.productVariant.create({
+              data: {
+                productId: id,
+                size: v.size,
+                color: v.color,
+                colorHex: v.colorHex,
+                stock: v.stock,
+              },
+            });
+          }
+        }
+      });
+    } else {
+      // --- CREAR ---
+      await prisma.product.create({
+        data: {
+          name: data.name,
+          slug: finalSlug,
+          description: data.description || "",
+          priceCents: data.priceCents,
+          categoryId: data.categoryId,
+          isArchived: data.isArchived,
+          images: {
+            create: data.images.map((img, idx) => ({
+              url: img.url,
+              alt: data.name,
+              sort: idx,
+              color: img.color || null,
+            })),
+          },
+          variants: {
+            create: data.variants.map((v) => ({
+              size: v.size,
+              color: v.color,
+              colorHex: v.colorHex || null,
+              stock: v.stock,
+            })),
+          },
         },
-        variants: {
-          create: data.variants.map((v) => ({
-            size: v.size,
-            color: v.color,
-            colorHex: v.colorHex || null,
-            stock: v.stock,
-          })),
-        },
-      },
-    });
-  } catch (error: any) {
+      });
+    }
+  } catch (error) {
     console.error(error);
-    return { message: "Error interno al crear el producto." };
+    return { message: "Error interno de base de datos." };
   }
 
   revalidatePath("/admin/products");
+  revalidatePath("/catalogo");
   redirect("/admin/products");
+}
+
+export async function createProductAction(
+  state: ProductFormState,
+  formData: FormData,
+) {
+  return upsertProduct(null, formData);
 }
 
 export async function updateProductAction(
   id: string,
-  prevState: ProductFormState,
+  state: ProductFormState,
   formData: FormData,
 ) {
-  const session = await auth();
-  if (session?.user?.role !== "admin") return { message: "No autorizado" };
-
-  const rawImages = JSON.parse(String(formData.get("imagesJson") || "[]"));
-  const rawVariants = JSON.parse(String(formData.get("variantsJson") || "[]"));
-
-  const validated = productSchema.safeParse({
-    name: formData.get("name"),
-    description: formData.get("description"),
-    priceCents: formData.get("priceCents"),
-    categoryId: formData.get("categoryId"),
-    images: rawImages,
-    variants: rawVariants,
-  });
-
-  if (!validated.success) {
-    return {
-      errors: validated.error.flatten().fieldErrors,
-      message: "Error validación",
-    };
-  }
-
-  const { data } = validated;
-
-  try {
-    await prisma.$transaction(async (tx) => {
-      // 1. Datos básicos
-      await tx.product.update({
-        where: { id },
-        data: {
-          name: data.name,
-          description: data.description,
-          priceCents: data.priceCents,
-          categoryId: data.categoryId,
-        },
-      });
-
-      // 2. Imágenes (Recrear para actualizar orden y colores)
-      await tx.productImage.deleteMany({ where: { productId: id } });
-      await tx.productImage.createMany({
-        data: data.images.map((img, idx) => ({
-          productId: id,
-          url: img.url,
-          color: img.color || null,
-          alt: data.name,
-          sort: idx,
-        })),
-      });
-
-      // 3. Variantes (Sincronización inteligente)
-      const existingIds = data.variants.filter((v) => v.id).map((v) => v.id);
-      await tx.productVariant.deleteMany({
-        where: { productId: id, id: { notIn: existingIds as string[] } },
-      });
-
-      for (const v of data.variants) {
-        if (v.id) {
-          await tx.productVariant.update({
-            where: { id: v.id },
-            data: {
-              size: v.size,
-              color: v.color,
-              colorHex: v.colorHex || null,
-              stock: v.stock,
-            },
-          });
-        } else {
-          await tx.productVariant.create({
-            data: {
-              productId: id,
-              size: v.size,
-              color: v.color,
-              colorHex: v.colorHex || null,
-              stock: v.stock,
-            },
-          });
-        }
-      }
-    });
-  } catch (error) {
-    console.error(error);
-    return { message: "Error al guardar cambios." };
-  }
-  revalidatePath("/admin/products");
-  revalidatePath(`/product/${data.slug}`);
-  redirect("/admin/products");
+  return upsertProduct(id, formData);
 }
 
+// --- ARCHIVAR PRODUCTO ---
 export async function toggleProductArchive(
   productId: string,
   isArchived: boolean,
@@ -229,7 +190,7 @@ export async function toggleProductArchive(
     });
 
     revalidatePath("/admin/products");
-    revalidatePath("/admin/products/archived"); // Nueva ruta
+    revalidatePath("/admin/products/archived");
     revalidatePath("/catalogo");
 
     return { success: true };
@@ -249,13 +210,11 @@ export async function deleteProductAction(productId: string) {
       where: { productId },
     });
 
-    if (usageCount === 1) {
+    if (usageCount > 0 && usageCount < 2) {
       return {
         error: `No se puede eliminar este producto porque ha sido vendido ${usageCount} vez. Si quieres eliminarlo, usa la opcion de 'Archivar' para ocultarlo de la tienda sin romper el historial de ventas.`,
       };
-    }
-
-    if (usageCount > 1) {
+    } else if (usageCount > 1) {
       return {
         error: `No se puede eliminar este producto porque ha sido vendido ${usageCount} veces. Si quieres eliminarlo, usa la opcion de 'Archivar' para ocultarlo de la tienda sin romper el historial de ventas.`,
       };
