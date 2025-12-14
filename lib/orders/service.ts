@@ -112,19 +112,3 @@ export async function createOrder(input: CreateOrderInput) {
     return newOrder;
   });
 }
-
-// Helper para ver detalle de orden
-export async function getOrderById(orderId: string) {
-  return await prisma.order.findUnique({
-    where: { id: orderId },
-    include: {
-      items: {
-        include: {
-          product: true,
-          variant: true,
-        },
-      },
-      history: true,
-    },
-  });
-}

@@ -9,5 +9,5 @@ export function useAutoCloseOnRouteChange(open: boolean, onClose: () => void) {
   useEffect(() => {
     if (!open) return;
     onClose();
-  }, [pathname, search?.toString()]);
+  }, [pathname, search, onClose]);
 }

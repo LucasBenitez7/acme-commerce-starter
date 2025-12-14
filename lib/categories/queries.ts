@@ -3,7 +3,10 @@ import { unstable_cache } from "next/cache";
 
 import { prisma } from "@/lib/db";
 
-import type { CategoryLink } from "@/types/catalog";
+export type CategoryLink = {
+  slug: string;
+  label: string;
+};
 
 export const getHeaderCategories = unstable_cache(
   async (): Promise<CategoryLink[]> => {
@@ -14,7 +17,7 @@ export const getHeaderCategories = unstable_cache(
     return cats.map((c) => ({ slug: c.slug, label: c.name }));
   },
   ["header-categories@v1"],
-  { revalidate: 60 },
+  { revalidate: 3600 },
 );
 
 export async function getCategoryBySlug(slug: string) {
@@ -27,8 +30,8 @@ export async function getCategoryBySlug(slug: string) {
         select: { id: true, name: true, slug: true },
       });
     },
-    ["category-by-slug@v1", slug], // ← clave única por slug
-    { revalidate: 60 },
+    ["category-by-slug@v1", slug],
+    { revalidate: 3600 },
   );
 
   return cached();

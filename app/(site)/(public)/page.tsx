@@ -1,6 +1,6 @@
 import { ProductGrid, SectionHeader } from "@/components/catalog";
 
-import { PER_PAGE } from "@/lib/catalog/pagination";
+import { PER_PAGE } from "@/lib/pagination";
 import { fetchNewest } from "@/lib/server/products";
 
 export const dynamic = "force-dynamic";

@@ -6,7 +6,7 @@ import {
   SectionHeader,
 } from "@/components/catalog";
 
-import { PER_PAGE, parsePage } from "@/lib/catalog/pagination";
+import { PER_PAGE, parsePage } from "@/lib/pagination";
 import { getCategoryBySlug } from "@/lib/server/categories";
 import { fetchProductsPage } from "@/lib/server/products";
 

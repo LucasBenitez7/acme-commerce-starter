@@ -1,31 +1,13 @@
 import "server-only";
 import { prisma } from "@/lib/db";
 
-import type { ProductListItem, ProductImage, ProductDetail } from "./types";
+import { normalizeImages } from "./utils";
+
+import type { ProductListItem, ProductDetail } from "./types";
 import type { SupportedCurrency } from "@/lib/currency";
 import type { Prisma } from "@prisma/client";
 
 /* --- Helpers --- */
-function normalizeImages(
-  productName: string,
-  images: Array<{
-    url: string;
-    alt: string | null;
-    sort: number | null;
-    color: string | null;
-  }>,
-): ProductImage[] {
-  if (!images || images.length === 0) {
-    return [{ url: "/og/default-products.jpg", alt: productName, sort: 0 }];
-  }
-  return images.map((img, idx) => ({
-    url: img.url,
-    alt: img.alt || productName,
-    sort: img.sort ?? idx,
-    color: img.color,
-  }));
-}
-
 function toListItem(row: any): ProductListItem {
   const totalStock = row.variants.reduce(
     (acc: number, v: any) => acc + v.stock,

@@ -1,6 +1,6 @@
 import { Button, PendingLink } from "@/components/ui";
 
-import { makePageHref } from "@/lib/catalog/pagination";
+import { makePageHref } from "@/lib/pagination";
 
 export function PaginationNav({
   page,

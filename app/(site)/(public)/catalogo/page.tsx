@@ -4,7 +4,7 @@ import {
   SectionHeader,
 } from "@/components/catalog";
 
-import { PER_PAGE, parsePage } from "@/lib/catalog/pagination";
+import { PER_PAGE, parsePage } from "@/lib/pagination";
 import { fetchProductsPage } from "@/lib/server/products";
 
 import type { SP } from "@/types/catalog";

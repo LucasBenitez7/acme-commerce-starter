@@ -17,7 +17,7 @@ import {
   Button,
 } from "@/components/ui";
 
-import { useAutoCloseOnRouteChange } from "@/hooks/use-auto-close-on-route-change";
+import { useAutoCloseOnRouteChange } from "@/hooks/use-close-on-nav";
 import { useLockBodyScroll } from "@/hooks/use-lock-body-scroll";
 import { useMounted } from "@/hooks/use-mounted";
 import { useSheetSafety } from "@/hooks/use-sheet-safety";
