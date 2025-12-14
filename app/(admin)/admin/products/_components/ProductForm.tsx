@@ -14,10 +14,7 @@ import {
   type ProductFormValues,
 } from "@/lib/validation/product";
 
-import {
-  createProductAction,
-  updateProductAction,
-} from "@/app/(admin)/admin/products/actions";
+import { upsertProductAction } from "../actions";
 
 import { DangerZone } from "./form/DangerZone";
 import { GeneralSection } from "./form/GeneralSection";
@@ -80,6 +77,8 @@ export function ProductForm({
     startTransition(async () => {
       const formData = new FormData();
 
+      if (product?.id) formData.append("id", product.id);
+
       // Mapeo simple de campos
       formData.append("name", data.name);
       formData.append("description", data.description || "");
@@ -92,11 +91,7 @@ export function ProductForm({
       formData.append("imagesJson", JSON.stringify(data.images));
       formData.append("variantsJson", JSON.stringify(data.variants));
 
-      const action = product?.id
-        ? updateProductAction.bind(null, product.id)
-        : createProductAction;
-
-      const result = await action({}, formData);
+      const result = await upsertProductAction({}, formData);
 
       if (result?.errors) {
         // Mostrar errores de servidor en un toast genérico o mapearlos

@@ -25,7 +25,6 @@ const shippingSchema = z.discriminatedUnion("shippingType", [
     postalCode: z.string().regex(postalCodeEsRegex, "CP inválido"),
     province: z.string().min(2, "Provincia requerida"),
     city: z.string().min(2, "Ciudad requerida"),
-    // Los otros a null/undefined opcional
     storeLocationId: z.string().optional().nullable(),
     pickupLocationId: z.string().optional().nullable(),
   }),
@@ -33,7 +32,6 @@ const shippingSchema = z.discriminatedUnion("shippingType", [
   z.object({
     shippingType: z.literal("store"),
     storeLocationId: z.string().min(1, "Selecciona una tienda"),
-    // Campos de home ignorados
     street: z.string().optional().nullable(),
     addressExtra: z.string().optional().nullable(),
     postalCode: z.string().optional().nullable(),

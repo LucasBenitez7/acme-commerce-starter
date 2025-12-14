@@ -3,16 +3,20 @@ import { type Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 
 export class InventoryService {
-  // Verifica stock.
   static async validateStock(items: { variantId: string; quantity: number }[]) {
     for (const item of items) {
       const variant = await prisma.productVariant.findUnique({
         where: { id: item.variantId },
-        select: { stock: true, product: { select: { name: true } } },
+        select: {
+          stock: true,
+          isActive: true,
+          product: { select: { name: true } },
+        },
       });
 
-      if (!variant) {
-        throw new Error(`Variante ${item.variantId} no encontrada`);
+      // Validamos que exista Y que esté activa
+      if (!variant || !variant.isActive) {
+        throw new Error(`La variante seleccionada ya no está disponible.`);
       }
 
       if (variant.stock < item.quantity) {
@@ -53,8 +57,9 @@ export class InventoryService {
   static async getStockForVariant(variantId: string) {
     const variant = await prisma.productVariant.findUnique({
       where: { id: variantId },
-      select: { stock: true },
+      select: { stock: true, isActive: true },
     });
+    if (!variant?.isActive) return 0;
     return variant?.stock || 0;
   }
 }

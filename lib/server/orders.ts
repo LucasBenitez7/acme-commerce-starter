@@ -1,39 +1,17 @@
 import "server-only";
 
-import { parseCurrency, type SupportedCurrency } from "@/lib/currency";
+import { parseCurrency } from "@/lib/currency";
 import { prisma } from "@/lib/db";
 
-export type CartLineInput = {
-  slug: string;
-  variantId: string;
-  qty: number;
-};
+import type { CartItemRef } from "@/types/cart";
+import type { OrderDraft, OrderItemDraft } from "@/types/order";
 
-export type OrderItemDraft = {
-  productId: string;
-  variantId: string;
-  slug: string;
-  name: string;
-  variantName: string;
-  unitPriceMinor: number;
-  quantity: number;
-  subtotalMinor: number;
-  imageUrl?: string | null;
-  stock: number;
-};
-
-export type OrderDraft = {
-  currency: SupportedCurrency;
-  items: OrderItemDraft[];
-  totalMinor: number;
-};
-
-function getSiteCurrency(): SupportedCurrency {
+function getSiteCurrency() {
   return parseCurrency(process.env.NEXT_PUBLIC_DEFAULT_CURRENCY);
 }
 
 export async function buildOrderDraftFromCart(
-  lines: CartLineInput[],
+  lines: CartItemRef[],
 ): Promise<OrderDraft> {
   if (!lines.length) {
     return {
@@ -66,7 +44,10 @@ export async function buildOrderDraftFromCart(
 
   // Buscamos las variantes con su producto padre
   const variants = await prisma.productVariant.findMany({
-    where: { id: { in: variantIds } },
+    where: {
+      id: { in: variantIds },
+      isActive: true,
+    },
     include: {
       product: {
         select: {
@@ -75,6 +56,7 @@ export async function buildOrderDraftFromCart(
           name: true,
           priceCents: true,
           currency: true,
+          isArchived: true,
           images: {
             orderBy: [{ sort: "asc" }, { id: "asc" }],
             take: 1,
@@ -85,35 +67,33 @@ export async function buildOrderDraftFromCart(
     },
   });
 
+  const items: OrderItemDraft[] = [];
   const siteCurrency = getSiteCurrency();
   const firstCurrency = variants[0]?.product.currency
     ? parseCurrency(variants[0].product.currency)
     : siteCurrency;
 
-  const items: OrderItemDraft[] = [];
-
   for (const v of variants) {
-    const qty = qtyByVariant.get(v.id) ?? 0;
-    const p = v.product;
+    if (v.product.isArchived) continue;
 
-    const unitPriceMinor = p.priceCents;
-    const subtotalMinor = unitPriceMinor * qty;
+    const qty = qtyByVariant.get(v.id) ?? 0;
+    const unitPriceMinor = v.product.priceCents;
 
     items.push({
-      productId: p.id,
+      productId: v.product.id,
       variantId: v.id,
-      slug: p.slug,
-      name: p.name,
+      slug: v.product.slug,
+      name: v.product.name,
       variantName: `${v.size} / ${v.color}`,
       unitPriceMinor,
       quantity: qty,
-      subtotalMinor,
-      imageUrl: p.images[0]?.url ?? null,
+      subtotalMinor: unitPriceMinor * qty,
+      imageUrl: v.product.images[0]?.url,
       stock: v.stock,
     });
   }
 
-  const totalMinor = items.reduce((acc, item) => acc + item.subtotalMinor, 0);
+  const totalMinor = items.reduce((acc, i) => acc + i.subtotalMinor, 0);
 
   return {
     currency: firstCurrency,

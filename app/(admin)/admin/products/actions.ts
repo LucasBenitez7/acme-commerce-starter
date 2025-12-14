@@ -5,174 +5,73 @@ import { redirect } from "next/navigation";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import {
+  createProductInDb,
+  updateProductInDb,
+} from "@/lib/services/product.service";
 import { productSchema } from "@/lib/validation/product";
 
-// Helper para slug
-function slugify(text: string) {
-  const base = text
-    .toString()
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/[^\w\-]+/g, "")
-    .replace(/\-\-+/g, "-");
-
-  const randomSuffix = Math.floor(Math.random() * 10000);
-
-  return `${base}_${randomSuffix}`;
+async function assertAdmin() {
+  const session = await auth();
+  if (session?.user?.role !== "admin") {
+    throw new Error("Acceso denegado: Se requieren permisos de administrador.");
+  }
 }
 
 export type ProductFormState = {
-  errors?: any;
+  errors?: Record<string, string[]>;
   message?: string;
 };
 
-// --- CREAR / ACTUALIZAR (Unificado en lógica interna) ---
-async function upsertProduct(id: string | null, formData: FormData) {
-  const session = await auth();
-  if (session?.user?.role !== "admin") return { message: "No autorizado" };
+// --- ACCIÓN UNIFICADA ---
+export async function upsertProductAction(
+  prevState: ProductFormState,
+  formData: FormData,
+): Promise<ProductFormState> {
+  try {
+    await assertAdmin();
 
-  // 1. Parsear datos complejos del FormData
-  const rawImages = JSON.parse(String(formData.get("imagesJson") || "[]"));
-  const rawVariants = JSON.parse(String(formData.get("variantsJson") || "[]"));
+    // 2. Extracción limpia de datos
+    const rawData = {
+      id: formData.get("id") as string | null,
+      name: formData.get("name"),
+      description: formData.get("description"),
+      priceCents: formData.get("priceCents"),
+      categoryId: formData.get("categoryId"),
+      isArchived: formData.get("isArchived") === "true",
+      slug: formData.get("slug") || undefined,
+      // Parseamos los JSONs que vienen del frontend
+      images: JSON.parse(String(formData.get("imagesJson") || "[]")),
+      variants: JSON.parse(String(formData.get("variantsJson") || "[]")),
+    };
 
-  // 2. Preparar objeto para validación
-  const rawData = {
-    name: formData.get("name"),
-    description: formData.get("description"),
-    priceCents: formData.get("priceCents"),
-    categoryId: formData.get("categoryId"),
-    isArchived: formData.get("isArchived") === "true",
-    slug: formData.get("slug") || undefined,
-    images: rawImages,
-    variants: rawVariants,
-  };
+    // 3. Validación Zod
+    const validated = productSchema.safeParse(rawData);
+    if (!validated.success) {
+      return {
+        errors: validated.error.flatten().fieldErrors,
+        message: "Error de validación. Revisa los campos marcados en rojo.",
+      };
+    }
 
-  // 3. Validar con Zod
-  const validated = productSchema.safeParse(rawData);
-
-  if (!validated.success) {
+    // 4. Delegar a la Capa de Servicio
+    if (rawData.id) {
+      await updateProductInDb(rawData.id, validated.data);
+    } else {
+      await createProductInDb(validated.data);
+    }
+  } catch (error: any) {
+    console.error("Error en upsertProduct:", error);
     return {
-      errors: validated.error.flatten().fieldErrors,
-      message: "Error de validación. Revisa los campos.",
+      message:
+        error.message || "Ocurrió un error inesperado al guardar el producto.",
     };
   }
 
-  const { data } = validated;
-  const finalSlug = data.slug || slugify(data.name);
-
-  try {
-    if (id) {
-      await prisma.$transaction(async (tx) => {
-        await tx.product.update({
-          where: { id },
-          data: {
-            name: data.name,
-            description: data.description || "",
-            priceCents: data.priceCents,
-            categoryId: data.categoryId,
-            isArchived: data.isArchived,
-          },
-        });
-
-        // Reemplazar imágenes
-        await tx.productImage.deleteMany({ where: { productId: id } });
-        if (data.images.length > 0) {
-          await tx.productImage.createMany({
-            data: data.images.map((img, idx) => ({
-              productId: id,
-              url: img.url,
-              alt: img.alt || data.name,
-              color: img.color || null,
-              sort: idx,
-            })),
-          });
-        }
-
-        // Sincronizar Variantes (Smart Sync)
-        const incomingIds = data.variants
-          .map((v) => v.id)
-          .filter(Boolean) as string[];
-        await tx.productVariant.deleteMany({
-          where: { productId: id, id: { notIn: incomingIds } },
-        });
-
-        for (const v of data.variants) {
-          if (v.id) {
-            await tx.productVariant.update({
-              where: { id: v.id },
-              data: {
-                size: v.size,
-                color: v.color,
-                colorHex: v.colorHex,
-                stock: v.stock,
-              },
-            });
-          } else {
-            await tx.productVariant.create({
-              data: {
-                productId: id,
-                size: v.size,
-                color: v.color,
-                colorHex: v.colorHex,
-                stock: v.stock,
-              },
-            });
-          }
-        }
-      });
-    } else {
-      // --- CREAR ---
-      await prisma.product.create({
-        data: {
-          name: data.name,
-          slug: finalSlug,
-          description: data.description || "",
-          priceCents: data.priceCents,
-          categoryId: data.categoryId,
-          isArchived: data.isArchived,
-          images: {
-            create: data.images.map((img, idx) => ({
-              url: img.url,
-              alt: data.name,
-              sort: idx,
-              color: img.color || null,
-            })),
-          },
-          variants: {
-            create: data.variants.map((v) => ({
-              size: v.size,
-              color: v.color,
-              colorHex: v.colorHex || null,
-              stock: v.stock,
-            })),
-          },
-        },
-      });
-    }
-  } catch (error) {
-    console.error(error);
-    return { message: "Error interno de base de datos." };
-  }
-
+  // 5. Revalidación y Redirección (fuera del try/catch para evitar conflictos con redirect de Next.js)
   revalidatePath("/admin/products");
   revalidatePath("/catalogo");
   redirect("/admin/products");
-}
-
-export async function createProductAction(
-  state: ProductFormState,
-  formData: FormData,
-) {
-  return upsertProduct(null, formData);
-}
-
-export async function updateProductAction(
-  id: string,
-  state: ProductFormState,
-  formData: FormData,
-) {
-  return upsertProduct(id, formData);
 }
 
 // --- ARCHIVAR PRODUCTO ---

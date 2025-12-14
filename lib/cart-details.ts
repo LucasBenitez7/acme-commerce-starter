@@ -1,14 +1,5 @@
-export type CartItemDetails = {
-  slug: string;
-  variantId: string;
-  name: string;
-  variantName: string;
-  priceMinor: number;
-  imageUrl?: string;
-  stock: number;
-};
+import { type CartItemDetails, type DetailsMap } from "@/types/cart";
 
-export type DetailsMap = Record<string, CartItemDetails>;
 export const DETAILS_LS_KEY = "cart.details.v2";
 export const DETAILS_EVENT_NAME = "cart-details-updated";
 

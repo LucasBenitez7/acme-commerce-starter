@@ -15,7 +15,10 @@ export default async function EditProductPage({
     where: { id },
     include: {
       images: { orderBy: { sort: "asc" } },
-      variants: { orderBy: { size: "asc" } },
+      variants: {
+        where: { isActive: true },
+        orderBy: { size: "asc" },
+      },
     },
   });
 

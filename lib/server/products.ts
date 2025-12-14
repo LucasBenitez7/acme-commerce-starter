@@ -73,8 +73,8 @@ export const productListSelect = {
     take: 1,
     select: { url: true },
   },
-  // Traemos variantes para sumar el stock y mostrarlas en el grid
   variants: {
+    where: { isActive: true },
     select: {
       id: true,
       size: true,
@@ -176,6 +176,7 @@ export async function getProductFullBySlug(
       },
       category: { select: { slug: true, name: true } },
       variants: {
+        where: { isActive: true },
         select: {
           id: true,
           size: true,
