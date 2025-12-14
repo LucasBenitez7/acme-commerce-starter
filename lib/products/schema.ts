@@ -6,6 +6,7 @@ export const productVariantSchema = z.object({
   size: z.string().min(1, "La talla es obligatoria"),
   color: z.string().min(1, "El color es obligatorio"),
   colorHex: z.string().optional().nullable(),
+  priceCents: z.coerce.number().min(0).optional().nullable(),
   stock: z.coerce.number().min(0, "Stock inválido").default(0),
 });
 
@@ -21,7 +22,7 @@ export const productImageSchema = z.object({
 export const productSchema = z.object({
   name: z.string().min(3, "Mínimo 3 caracteres"),
   slug: z.string().optional(),
-  description: z.string().optional(), // Zod lo hace opcional | undefined
+  description: z.string().optional(),
   priceCents: z.coerce.number().min(1, "El precio debe ser mayor a 0"),
   categoryId: z.string().min(1, "Selecciona una categoría"),
   isArchived: z.boolean().default(false),

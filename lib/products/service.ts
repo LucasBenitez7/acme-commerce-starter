@@ -1,21 +1,14 @@
 import { prisma } from "@/lib/db";
-import { type ProductFormValues } from "@/lib/validation/product";
 
-// Helper para generar slug único
+import { type ProductFormValues } from "./schema";
+
 function generateSlug(name: string, explicitSlug?: string) {
-  const base =
-    explicitSlug ||
-    name
-      .toString()
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, "-")
-      .replace(/[^\w\-]+/g, "")
-      .replace(/\-\-+/g, "-");
-
-  const randomSuffix = Math.floor(Math.random() * 10000);
-
-  return `${base}_${randomSuffix}`;
+  const base = (explicitSlug || name)
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^\w\-]+/g, "");
+  return `${base}_${Math.floor(Math.random() * 1000)}`;
 }
 
 export async function createProductInDb(data: ProductFormValues) {
@@ -42,6 +35,7 @@ export async function createProductInDb(data: ProductFormValues) {
           size: v.size,
           color: v.color,
           colorHex: v.colorHex || null,
+          priceCents: v.priceCents || null,
           stock: v.stock,
           isActive: true,
         })),
@@ -54,6 +48,7 @@ export async function updateProductInDb(id: string, data: ProductFormValues) {
   const slug = data.slug ? generateSlug(data.name, data.slug) : undefined;
 
   return prisma.$transaction(async (tx) => {
+    // 1. Actualizar Datos Básicos
     await tx.product.update({
       where: { id },
       data: {
@@ -66,6 +61,7 @@ export async function updateProductInDb(id: string, data: ProductFormValues) {
       },
     });
 
+    // 2. Reemplazar Imágenes (Estrategia simple: borrar y crear)
     await tx.productImage.deleteMany({ where: { productId: id } });
     if (data.images.length > 0) {
       await tx.productImage.createMany({
@@ -79,46 +75,36 @@ export async function updateProductInDb(id: string, data: ProductFormValues) {
       });
     }
 
-    // 3. Variantes con "Soft Delete" (Borrado Lógico)
+    // 3. Gestionar Variantes (Smart Update)
     const incomingIds = data.variants
       .map((v) => v.id)
       .filter(Boolean) as string[];
 
-    // B. DESACTIVAR variantes que NO vienen en el formulario (en lugar de deleteMany)
+    // A. Desactivar variantes no enviadas (Soft Delete)
     await tx.productVariant.updateMany({
-      where: {
-        productId: id,
-        id: { notIn: incomingIds },
-      },
-      data: {
-        isActive: false,
-        stock: 0,
-      },
+      where: { productId: id, id: { notIn: incomingIds } },
+      data: { isActive: false, stock: 0 },
     });
 
-    // C. ACTUALIZAR o CREAR variantes entrantes
+    // B. Actualizar o Crear variantes
     for (const v of data.variants) {
+      const variantData = {
+        size: v.size,
+        color: v.color,
+        colorHex: v.colorHex,
+        priceCents: v.priceCents || null,
+        stock: v.stock,
+        isActive: true,
+      };
+
       if (v.id) {
         await tx.productVariant.update({
           where: { id: v.id },
-          data: {
-            size: v.size,
-            color: v.color,
-            colorHex: v.colorHex,
-            stock: v.stock,
-            isActive: true,
-          },
+          data: variantData,
         });
       } else {
         await tx.productVariant.create({
-          data: {
-            productId: id,
-            size: v.size,
-            color: v.color,
-            colorHex: v.colorHex,
-            stock: v.stock,
-            isActive: true,
-          },
+          data: { ...variantData, productId: id },
         });
       }
     }

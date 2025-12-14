@@ -9,13 +9,18 @@ datasource db {
 
 // --- Catálogo ---
 model Category {
-  id        String    @id @default(cuid())
-  slug      String    @unique
-  name      String
-  sort      Int       @default(0)
-  products  Product[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id   String @id @default(cuid())
+  slug String @unique
+  name String
+  sort Int    @default(0)
+
+  parentId String?
+  parent   Category?  @relation("SubCategories", fields: [parentId], references: [id])
+  children Category[] @relation("SubCategories")
+  products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Product {
@@ -23,8 +28,9 @@ model Product {
   slug        String @unique
   name        String
   description String
-  priceCents  Int
-  currency    String @default("EUR")
+
+  priceCents Int
+  currency   String @default("EUR")
 
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id])
@@ -38,16 +44,21 @@ model Product {
   isArchived Boolean  @default(false)
 
   @@index([categoryId])
+  @@index([isArchived])
 }
 
 model ProductVariant {
   id        String  @id @default(cuid())
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  size      String
-  color     String
-  colorHex  String?
-  stock     Int     @default(0)
+
+  size     String
+  color    String
+  colorHex String?
+
+  stock Int @default(0)
+
+  priceCents Int?
 
   isActive Boolean @default(true)
 
@@ -58,19 +69,21 @@ model ProductVariant {
 }
 
 model ProductImage {
-  id   String @id @default(cuid())
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
   url  String
   alt  String
   sort Int    @default(0)
 
-  color     String?
-  productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  color String?
 
   @@unique([productId, sort])
+  @@index([productId, color])
 }
 
-// --- Pedidos ---
+// --- Orders ---
 enum OrderStatus {
   PENDING_PAYMENT
   PAID
@@ -99,22 +112,24 @@ model Order {
   userId String?
   user   User?   @relation(fields: [userId], references: [id])
 
-  returnReason    String? @db.Text
-  rejectionReason String? @db.Text
+  shippingType ShippingType? @default(HOME)
+  firstName    String?
+  lastName     String?
+  phone        String?
+  street       String?
+  addressExtra String?
+  postalCode   String?
+  province     String?
+  city         String?
+  country      String?
 
-  shippingType     ShippingType? @default(HOME)
-  firstName        String?
-  lastName         String?
-  phone            String?
-  street           String?
-  addressExtra     String?
-  postalCode       String?
-  province         String?
-  city             String?
   storeLocationId  String?
   pickupLocationId String?
   pickupSearch     String?
   paymentMethod    String?
+
+  returnReason    String? @db.Text
+  rejectionReason String? @db.Text
 
   history OrderHistory[]
   items   OrderItem[]
@@ -133,8 +148,7 @@ model OrderHistory {
   reason String?     @db.Text
   actor  String
 
-  details Json?
-
+  details   Json?
   createdAt DateTime @default(now())
 
   @@index([orderId])
@@ -152,13 +166,14 @@ model OrderItem {
   variantId String?
   variant   ProductVariant? @relation(fields: [variantId], references: [id])
 
-  nameSnapshot            String
-  priceMinorSnapshot      Int
-  sizeSnapshot            String?
-  colorSnapshot           String?
+  nameSnapshot       String
+  priceMinorSnapshot Int
+  sizeSnapshot       String?
+  colorSnapshot      String?
+
   quantity                Int
-  quantityReturned        Int     @default(0)
-  quantityReturnRequested Int     @default(0)
+  quantityReturned        Int @default(0)
+  quantityReturnRequested Int @default(0)
   subtotalMinor           Int
 
   @@index([orderId])
@@ -168,10 +183,7 @@ model OrderItem {
 
 // --- Usuarios & Auth ---
 model User {
-  id String @id @default(cuid())
-
-  // Mantenemos 'name' para compatibilidad con NextAuth/GitHub, 
-  // pero usaremos firstName/lastName para el registro manual.
+  id   String  @id @default(cuid())
   name String?
 
   firstName     String?
@@ -186,6 +198,32 @@ model User {
   accounts Account[]
   sessions Session[]
   orders   Order[]
+
+  addresses UserAddress[]
+}
+
+model UserAddress {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name       String?
+  firstName  String
+  lastName   String
+  phone      String?
+  street     String
+  details    String?
+  city       String
+  province   String
+  postalCode String
+  country    String  @default("ES")
+
+  isDefault Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model Account {
