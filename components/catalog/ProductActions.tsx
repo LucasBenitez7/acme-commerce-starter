@@ -1,35 +1,39 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { FavoriteButton } from "@/components/ui";
 
-import { sortSizes } from "@/lib/catalog/sort-sizes";
 import { COLOR_MAP } from "@/lib/constants";
+import { sortSizes } from "@/lib/products/utils";
 import { cn } from "@/lib/utils";
 
-import { useAppSelector } from "@/hooks/use-app-selector";
-import { selectCartQtyByVariant } from "@/store/cart.selectors";
+import { useCartStore } from "@/store/cart";
+import { useStore } from "@/store/use-store";
 
-import type { ProductVariant } from "@/types/catalog";
+import type { ProductVariant } from "@/lib/products/types";
 
 export type Props = {
+  productId: string;
   productSlug: string;
   productName: string;
   priceMinor: number;
   imageUrl?: string;
   variants: ProductVariant[];
   isArchived?: boolean;
+  onColorChange?: (color: string) => void;
 };
 
 export function ProductActions({
+  productId,
   productSlug,
   productName,
   priceMinor,
   imageUrl,
   variants,
   isArchived = false,
+  onColorChange,
 }: Props) {
   const sizes = useMemo(() => {
     const uniqueSizes = Array.from(new Set(variants.map((v) => v.size)));
@@ -53,13 +57,24 @@ export function ProductActions({
     );
   }, [variants, selectedSize, selectedColor]);
 
+  const cartItems = useStore(useCartStore, (state) => state.items) ?? [];
+
+  useEffect(() => {
+    if (selectedColor && onColorChange) {
+      onColorChange(selectedColor);
+    }
+  }, [selectedColor, onColorChange]);
+
+  const cartQty = useMemo(() => {
+    if (!selectedVariant) return 0;
+    return (
+      cartItems.find((i) => i.variantId === selectedVariant.id)?.quantity ?? 0
+    );
+  }, [cartItems, selectedVariant]);
+
   const isCombinationValid = selectedVariant
     ? selectedVariant.stock > 0
     : false;
-
-  const cartQty = useAppSelector((state) =>
-    selectCartQtyByVariant(state, selectedVariant?.id ?? ""),
-  );
 
   const isOutOfStock = selectedVariant ? selectedVariant.stock === 0 : false;
 
@@ -207,17 +222,21 @@ export function ProductActions({
         </div>
         <div>
           <AddToCartButton
-            slug={productSlug}
-            variantId={selectedVariant?.id ?? ""}
-            variantName={`${selectedSize} / ${selectedColor}`}
-            disabled={!isCombinationValid || isOutOfStock || !canAdd}
-            details={{
+            product={{
+              id: productId,
               slug: productSlug,
               name: productName,
-              priceMinor: priceMinor,
-              imageUrl: imageUrl,
+              images: imageUrl ? [{ url: imageUrl }] : [],
+            }}
+            variant={{
+              id: selectedVariant?.id ?? "",
+              priceCents: priceMinor,
+              color: selectedColor ?? "",
+              size: selectedSize ?? "",
               stock: selectedVariant?.stock ?? 0,
             }}
+            disabled={!isCombinationValid || isOutOfStock || !canAdd}
+            className="h-12 text-lg w-full bg-black hover:bg-neutral-800 text-white"
           />
         </div>
       </div>

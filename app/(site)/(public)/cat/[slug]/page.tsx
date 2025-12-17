@@ -6,44 +6,39 @@ import {
   SectionHeader,
 } from "@/components/catalog";
 
+import { getCategoryBySlug } from "@/lib/categories/queries";
 import { PER_PAGE, parsePage } from "@/lib/pagination";
-import { getCategoryBySlug } from "@/lib/server/categories";
-import { fetchProductsPage } from "@/lib/server/products";
-
-import type { ParamsSlug, SP } from "@/types/catalog";
+import { fetchProductsPage } from "@/lib/products/queries";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
-export const fetchCache = "force-no-store";
-export const runtime = "nodejs";
 
-export default async function CategoryPage({
-  params,
-  searchParams,
-}: {
-  params: ParamsSlug;
-  searchParams: SP;
-}) {
+type Props = {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
+
+export default async function CategoryPage({ params, searchParams }: Props) {
   const { slug } = await params;
-  const sp = (await searchParams) ?? {};
+  const sp = await searchParams;
   const page = Math.max(1, parsePage(sp.page, 1));
 
+  // 1. Buscamos la categoría
   const cat = await getCategoryBySlug(slug);
   if (!cat) notFound();
 
+  // 2. Buscamos productos de esa categoría
   const { rows, total } = await fetchProductsPage({
     page,
     perPage: PER_PAGE,
-    where: { categoryId: cat.id },
+    where: { categoryId: cat.id }, // Prisma filtrará por ID de categoría
   });
 
-  const items = rows;
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
 
   return (
     <section className="px-4">
-      <SectionHeader title={String(cat.name)} />
-      <ProductGrid items={items} />
+      <SectionHeader title={cat.name} />
+      <ProductGrid items={rows} />
       <PaginationNav
         page={page}
         totalPages={totalPages}

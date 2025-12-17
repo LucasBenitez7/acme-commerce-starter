@@ -1,21 +1,21 @@
 import { ProductGrid, SectionHeader } from "@/components/catalog";
 
 import { PER_PAGE } from "@/lib/pagination";
-import { fetchNewest } from "@/lib/server/products";
+import { fetchProductsPage } from "@/lib/products/queries";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
-export const fetchCache = "force-no-store";
-export const runtime = "nodejs";
 
 export default async function HomePage() {
-  const rows = await fetchNewest({ take: PER_PAGE });
-  const items = rows;
+  const { rows } = await fetchProductsPage({
+    page: 1,
+    perPage: PER_PAGE,
+    where: {},
+  });
 
   return (
     <section className="px-4">
       <SectionHeader title="Home" />
-      <ProductGrid items={items} />
+      <ProductGrid items={rows} />
     </section>
   );
 }

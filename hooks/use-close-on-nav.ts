@@ -1,13 +1,13 @@
 "use client";
+
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
-export function useAutoCloseOnRouteChange(open: boolean, onClose: () => void) {
+export function useCloseOnNav(closeFn: () => void) {
   const pathname = usePathname();
-  const search = useSearchParams();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    if (!open) return;
-    onClose();
-  }, [pathname, search, onClose]);
+    closeFn();
+  }, [pathname, searchParams, closeFn]);
 }

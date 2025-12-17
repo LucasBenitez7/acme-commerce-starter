@@ -4,29 +4,84 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useMemo, useRef, useEffect } from "react";
 
-import { AddToCartIcon } from "@/components/cart/AddToCartIcon";
 import { FavoriteButton } from "@/components/ui";
 
-import { sortSizes } from "@/lib/catalog/sort-sizes";
 import { COLOR_MAP } from "@/lib/constants";
-import { formatMinor, DEFAULT_CURRENCY } from "@/lib/currency";
+import { formatCurrency, DEFAULT_CURRENCY } from "@/lib/currency";
+import { sortSizes } from "@/lib/products/utils";
 import { cn } from "@/lib/utils";
 
-import { useAppSelector } from "@/hooks/use-app-selector";
-import { selectCartQtyByVariant } from "@/store/cart.selectors";
+import { useCartStore } from "@/store/cart";
+import { useStore } from "@/store/use-store";
 
-import type { ProductListItem } from "@/types/catalog";
+import type { ProductListItem } from "@/lib/products/types";
+
+function getImageForColor(
+  images: { url: string; color?: string | null }[],
+  selectedColor: string | null,
+) {
+  if (!selectedColor) return images[0]?.url;
+  const match = images.find((img) => img.color === selectedColor);
+  if (match) return match.url;
+  return images[0]?.url;
+}
 
 export function ProductCard({ item }: { item: ProductListItem }) {
-  const img = item.thumbnail ?? "/og/default-products.jpg";
-  const isFavorite = false; // TODO: wishlist
+  const isFavorite = false;
 
   const isOutOfStock = item.totalStock === 0;
 
   const imageContainerRef = useRef<HTMLDivElement>(null);
   const [showSizes, setShowSizes] = useState(false);
 
-  // Cerrar el overlay de tallas si se hace clic fuera de la imagen
+  const cartItems = useStore(useCartStore, (state) => state.items) ?? [];
+
+  const sizes = useMemo(() => {
+    const unique = Array.from(new Set(item.variants.map((v) => v.size)));
+    return sortSizes(unique);
+  }, [item.variants]);
+
+  const colors = useMemo(() => {
+    return Array.from(new Set(item.variants.map((v) => v.color))).sort();
+  }, [item.variants]);
+
+  const [selectedSize, setSelectedSize] = useState<string | null>(
+    sizes.length === 1 ? sizes[0] : null,
+  );
+
+  const [selectedColor, setSelectedColor] = useState<string | null>(
+    colors.length > 0 ? colors[0] : null,
+  );
+
+  const displayImage = useMemo(() => {
+    // @ts-ignore: Si item.images no existe en el tipo todavía, usará thumbnail.
+    const allImages = item.images || [{ url: item.thumbnail }];
+    return (
+      getImageForColor(allImages, selectedColor) ?? "/og/default-products.jpg"
+    );
+  }, [item, selectedColor]);
+
+  const selectedVariant = useMemo(() => {
+    return item.variants.find(
+      (v) => v.size === selectedSize && v.color === selectedColor,
+    );
+  }, [item.variants, selectedSize, selectedColor]);
+
+  const cartQty = useMemo(() => {
+    if (!selectedVariant) return 0;
+    return (
+      cartItems.find((i) => i.variantId === selectedVariant.id)?.quantity ?? 0
+    );
+  }, [cartItems, selectedVariant]);
+
+  const isCombinationValid = selectedVariant
+    ? selectedVariant.stock > 0
+    : false;
+  const isMaxedOut =
+    selectedVariant &&
+    cartQty >= selectedVariant.stock &&
+    selectedVariant.stock > 0;
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -44,46 +99,6 @@ export function ProductCard({ item }: { item: ProductListItem }) {
     };
   }, [showSizes]);
 
-  // --- LÓGICA DE SELECCIÓN ---
-  const sizes = useMemo(() => {
-    const unique = Array.from(new Set(item.variants.map((v) => v.size)));
-    return sortSizes(unique);
-  }, [item.variants]);
-
-  const colors = useMemo(() => {
-    return Array.from(new Set(item.variants.map((v) => v.color))).sort();
-  }, [item.variants]);
-
-  const [selectedSize, setSelectedSize] = useState<string | null>(
-    sizes.length === 1 ? sizes[0] : null,
-  );
-  const [selectedColor, setSelectedColor] = useState<string | null>(
-    colors.length === 1 ? colors[0] : null,
-  );
-
-  const selectedVariant = useMemo(() => {
-    return item.variants.find(
-      (v) => v.size === selectedSize && v.color === selectedColor,
-    );
-  }, [item.variants, selectedSize, selectedColor]);
-
-  const cartQty = useAppSelector((state) =>
-    selectCartQtyByVariant(state, selectedVariant?.id ?? ""),
-  );
-
-  const isCombinationValid = selectedVariant
-    ? selectedVariant.stock > 0
-    : false;
-
-  const canAdd = selectedVariant
-    ? selectedVariant.stock > 0 && cartQty < selectedVariant.stock
-    : false;
-
-  const isMaxedOut =
-    selectedVariant &&
-    cartQty >= selectedVariant.stock &&
-    selectedVariant.stock > 0;
-
   return (
     <div className="flex flex-col overflow-hidden bg-background transition-all h-full">
       <div
@@ -92,7 +107,7 @@ export function ProductCard({ item }: { item: ProductListItem }) {
       >
         <Link href={`/product/${item.slug}`} className="block h-full w-full">
           <Image
-            src={img}
+            src={displayImage}
             alt={item.name}
             fill
             sizes="(max-width: 1280px) 50vw, 25vw"
@@ -168,7 +183,7 @@ export function ProductCard({ item }: { item: ProductListItem }) {
               </h3>
             </Link>
             <p className="text-xs font-medium text-foreground">
-              {formatMinor(item.priceCents, DEFAULT_CURRENCY)}
+              {formatCurrency(item.priceCents, DEFAULT_CURRENCY)}
             </p>
           </div>
           <FavoriteButton
@@ -227,9 +242,6 @@ export function ProductCard({ item }: { item: ProductListItem }) {
                   COLOR_MAP[color] ||
                   COLOR_MAP["Default"];
                 const isSelected = selectedColor === color;
-                const hasStock = item.variants.some(
-                  (v) => v.color === color && v.stock > 0,
-                );
 
                 return (
                   <button

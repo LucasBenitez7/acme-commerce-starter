@@ -1,22 +1,17 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
-// export type LastRemovedStackEntry = {
-//   slug: string;
-//   variantId: string;
-//   qty: number;
-//   removedAt: number;
-//   index: number;
-// };
-
 export type CartItem = {
   productId: string;
   variantId: string;
+
+  slug: string;
   name: string;
   price: number;
   image?: string;
   color: string;
   size: string;
+
   quantity: number;
   maxStock: number;
 };
@@ -25,10 +20,14 @@ interface CartState {
   items: CartItem[];
   isOpen: boolean;
 
+  // Acciones
   addItem: (item: CartItem) => void;
   removeItem: (variantId: string) => void;
   updateQuantity: (variantId: string, quantity: number) => void;
   clearCart: () => void;
+
+  openCart: () => void;
+  closeCart: () => void;
   toggleCart: () => void;
 
   getTotalPrice: () => number;
@@ -39,12 +38,12 @@ export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
-      isOpen: false,
+      isOpen: false, // Estado inicial del sidebar
 
       addItem: (newItem) => {
         const currentItems = get().items;
         const existingItem = currentItems.find(
-          (item) => item.variantId === newItem.variantId,
+          (i) => i.variantId === newItem.variantId,
         );
 
         if (existingItem) {
@@ -54,12 +53,12 @@ export const useCartStore = create<CartState>()(
           );
 
           set({
-            items: currentItems.map((item) =>
-              item.variantId === newItem.variantId
-                ? { ...item, quantity: newQuantity }
-                : item,
+            items: currentItems.map((i) =>
+              i.variantId === newItem.variantId
+                ? { ...i, quantity: newQuantity }
+                : i,
             ),
-            isOpen: true,
+            isOpen: true, // Abrimos carrito al añadir
           });
         } else {
           set({ items: [...currentItems, newItem], isOpen: true });
@@ -73,23 +72,21 @@ export const useCartStore = create<CartState>()(
       },
 
       updateQuantity: (variantId, quantity) => {
-        const { items } = get();
-        set({
-          items: items.map((item) => {
+        set((state) => ({
+          items: state.items.map((item) => {
             if (item.variantId === variantId) {
-              const validQuantity = Math.max(
-                1,
-                Math.min(quantity, item.maxStock),
-              );
-              return { ...item, quantity: validQuantity };
+              const safeQty = Math.max(1, Math.min(quantity, item.maxStock));
+              return { ...item, quantity: safeQty };
             }
             return item;
           }),
-        });
+        }));
       },
 
       clearCart: () => set({ items: [] }),
 
+      openCart: () => set({ isOpen: true }),
+      closeCart: () => set({ isOpen: false }),
       toggleCart: () => set((state) => ({ isOpen: !state.isOpen })),
 
       getTotalPrice: () => {

@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 
-import type { ProductFormValues } from "@/lib/validation/product";
+import type { ProductFormValues } from "@/lib/products/schema";
 
 type VariantItem = ProductFormValues["variants"][number];
 

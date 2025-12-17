@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { FaSignOutAlt } from "react-icons/fa";
 import { FaRegUser, FaHeart, FaBoxOpen, FaUser } from "react-icons/fa6";
 import { IoSearch } from "react-icons/io5";
@@ -17,14 +17,12 @@ import {
   Button,
 } from "@/components/ui";
 
-import { useAutoCloseOnRouteChange } from "@/hooks/use-close-on-nav";
-import { useLockBodyScroll } from "@/hooks/use-lock-body-scroll";
+import { useCloseOnNav } from "@/hooks/use-close-on-nav";
 import { useMounted } from "@/hooks/use-mounted";
-import { useSheetSafety } from "@/hooks/use-sheet-safety";
 
 import { SiteSidebar } from "./SiteSidebar";
 
-import type { CategoryLink } from "@/types/catalog";
+import type { CategoryLink } from "@/lib/categories/queries";
 
 const SHEET_ID = "site-sidebar";
 
@@ -32,7 +30,6 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
   const [open, setOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
-  const safeRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
   const mounted = useMounted();
@@ -44,24 +41,14 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
   const HIDE_HEADER_ON: string[] = ["/checkout"];
   const hideHeader = HIDE_HEADER_ON.includes(pathname);
   const isCartPage = pathname === "/cart";
+  const isAdmin = (user as any)?.role === "ADMIN";
 
-  useLockBodyScroll(open && !hideHeader);
-
-  useAutoCloseOnRouteChange((open || accountMenuOpen) && !hideHeader, () => {
+  useCloseOnNav(() => {
     setOpen(false);
     setAccountMenuOpen(false);
   });
 
-  const {
-    handlePointerLeaveHeader,
-    handlePointerLeaveSheet,
-    handleAnyNavClickCapture,
-    onInteractOutside,
-  } = useSheetSafety({ open, setOpen, safeRef, sheetId: SHEET_ID });
-
-  if (hideHeader) {
-    return null;
-  }
+  if (hideHeader) return null;
 
   const logo = (
     <Link
@@ -104,12 +91,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
 
   return (
     <>
-      <header
-        ref={safeRef}
-        onPointerLeave={handlePointerLeaveHeader}
-        onClickCapture={handleAnyNavClickCapture}
-        className="mx-auto w-full z-[100] sticky top-0 h-[var(--header-h)] grid grid-cols-[1fr_auto_1fr] items-center bg-background border-b px-4"
-      >
+      <header className="mx-auto w-full z-[100] sticky top-0 h-[var(--header-h)] grid grid-cols-[1fr_auto_1fr] items-center bg-background border-b px-4">
         <div className="flex justify-self-start items-center h-full content-center">
           <Sheet open={open} onOpenChange={setOpen} modal={false}>
             <BurgerButton
@@ -122,10 +104,10 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
               id={SHEET_ID}
               side="left"
               className="w-[min(360px,92vw)] sm:w-[360px] lg:w-[400px] outline-none"
-              onPointerLeave={handlePointerLeaveSheet}
-              onClickCapture={handleAnyNavClickCapture}
-              onInteractOutside={onInteractOutside}
+              overlayClassName="hidden"
               onEscapeKeyDown={() => setOpen(false)}
+              // Evitamos que clicks dentro del sheet cierren cosas accidentalmente
+              onInteractOutside={(e) => e.preventDefault()}
             >
               <div className="overflow-y-auto h-full focus:outline-none">
                 <SheetTitle className="hidden">Menu</SheetTitle>
@@ -250,15 +232,18 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
             </div>
           </div>
 
-          <Button asChild variant={"outline"} className="text-base">
-            <Link href="/admin" className="px-4 text-base">
-              Admin
-            </Link>
-          </Button>
+          {isAdmin && (
+            <Button asChild variant={"outline"} className="text-base">
+              <Link href="/admin" className="px-4 text-base">
+                Admin
+              </Link>
+            </Button>
+          )}
         </nav>
       </header>
       <div
         aria-hidden="true"
+        onMouseEnter={() => open && setOpen(false)}
         onClick={() => open && setOpen(false)}
         className={`fixed inset-x-0 bottom-0 top-[var(--header-h)] z-[70] bg-black print:hidden
               ${

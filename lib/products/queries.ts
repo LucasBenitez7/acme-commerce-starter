@@ -21,6 +21,10 @@ function toListItem(row: any): ProductListItem {
     totalStock,
     currency: (row.currency ?? "EUR") as SupportedCurrency,
     thumbnail: row.images[0]?.url ?? null,
+    images: row.images.map((img: any) => ({
+      url: img.url,
+      color: img.color,
+    })),
     variants: row.variants,
     category: row.category,
     isArchived: row.isArchived,
@@ -38,8 +42,7 @@ export const productListSelect = {
   category: { select: { name: true, slug: true } },
   images: {
     orderBy: [{ sort: "asc" }, { id: "asc" }],
-    take: 1,
-    select: { url: true },
+    select: { url: true, color: true },
   },
   variants: {
     where: { isActive: true },
@@ -125,5 +128,20 @@ export async function getProductSlugs(limit = 1000) {
     select: { slug: true },
     take: limit,
     orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function getProductMetaBySlug(slug: string) {
+  return prisma.product.findUnique({
+    where: { slug },
+    select: {
+      name: true,
+      description: true,
+      images: {
+        orderBy: [{ sort: "asc" }],
+        take: 1,
+        select: { url: true },
+      },
+    },
   });
 }

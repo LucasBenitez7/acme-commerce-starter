@@ -2,9 +2,12 @@
 
 import { prisma } from "@/lib/db";
 
-import { type CartItemMini } from "@/store/cart.types";
+type CartValidationItem = {
+  variantId: string;
+  qty: number;
+};
 
-export async function validateStockAction(items: CartItemMini[]) {
+export async function validateStockAction(items: CartValidationItem[]) {
   try {
     const variantIds = items.map((i) => i.variantId);
 

@@ -30,6 +30,7 @@ export type ProductListItem = Pick<
   totalStock: number;
   currency: SupportedCurrency;
   thumbnail: string | null;
+  images: { url: string; color: string | null }[];
   variants: ProductVariant[];
   category: Pick<DbCategory, "slug" | "name">;
 };
