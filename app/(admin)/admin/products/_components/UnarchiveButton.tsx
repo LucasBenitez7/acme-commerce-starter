@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { FaBoxOpen } from "react-icons/fa6";
+import { FaBoxOpen, FaSpinner } from "react-icons/fa6";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui";
+import { Button } from "@/components/ui/button";
 
 import { toggleProductArchive } from "../actions";
 
@@ -14,8 +14,12 @@ export function UnarchiveButton({ productId }: { productId: string }) {
   const handleUnarchive = async () => {
     setLoading(true);
     const res = await toggleProductArchive(productId, false);
-    if (res.error) toast.error(res.error);
-    else toast.success("Producto restaurado al catálogo");
+
+    if (res?.error) {
+      toast.error(res.error);
+    } else {
+      toast.success("Producto restaurado al catálogo");
+    }
     setLoading(false);
   };
 
@@ -25,10 +29,14 @@ export function UnarchiveButton({ productId }: { productId: string }) {
       disabled={loading}
       variant="outline"
       size="sm"
-      className="hover:bg-green-50 hover:text-green-700 hover:border-green-200"
+      className="hover:bg-green-50 hover:text-green-700 hover:border-green-200 transition-colors"
     >
-      <FaBoxOpen className="mr-2 h-3 w-3" />
-      {loading ? "..." : "Desarchivar"}
+      {loading ? (
+        <FaSpinner className="mr-2 h-3 w-3 animate-spin" />
+      ) : (
+        <FaBoxOpen className="mr-2 h-3 w-3" />
+      )}
+      Desarchivar
     </Button>
   );
 }

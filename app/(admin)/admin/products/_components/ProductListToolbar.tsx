@@ -1,8 +1,14 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
-import { FaFilter, FaSort, FaXmark, FaEuroSign } from "react-icons/fa6";
+import { useState, useEffect, useRef } from "react";
+import {
+  FaFilter,
+  FaSort,
+  FaXmark,
+  FaEuroSign,
+  FaMagnifyingGlass,
+} from "react-icons/fa6";
 
 import { Button, Input, Label } from "@/components/ui";
 import {
@@ -45,48 +51,56 @@ export function ProductListToolbar({ categories }: Props) {
     router.push(`/admin/products?${params.toString()}`);
   };
 
-  // --- ESTADOS DE FILTROS ---
+  // --- ESTADOS ---
   const activeSort = searchParams.get("sort") || "date_desc";
   const activeCats =
     searchParams.get("categories")?.split(",").filter(Boolean) || [];
 
-  // Estado local para inputs de precio
+  const [query, setQuery] = useState(searchParams.get("q") || "");
+
   const [minPrice, setMinPrice] = useState(searchParams.get("min") || "");
   const [maxPrice, setMaxPrice] = useState(searchParams.get("max") || "");
   const [priceOpen, setPriceOpen] = useState(false);
 
-  // Sincronizar inputs si cambia la URL externamente
   useEffect(() => {
+    setQuery(searchParams.get("q") || "");
     setMinPrice(searchParams.get("min") || "");
     setMaxPrice(searchParams.get("max") || "");
   }, [searchParams]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (query !== (searchParams.get("q") || "")) {
+        updateParams({ q: query || null });
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [query, searchParams]);
+
+  // --- HANDLERS ---
   const handleCategoryToggle = (catId: string) => {
     const newCats = activeCats.includes(catId)
       ? activeCats.filter((id) => id !== catId)
       : [...activeCats, catId];
-
     updateParams({ categories: newCats.length > 0 ? newCats.join(",") : null });
   };
 
   const applyPriceFilter = () => {
-    updateParams({
-      min: minPrice || null,
-      max: maxPrice || null,
-    });
+    updateParams({ min: minPrice || null, max: maxPrice || null });
     setPriceOpen(false);
   };
 
-  const clearPriceFilter = () => {
+  const clearAll = () => {
+    setQuery("");
     setMinPrice("");
     setMaxPrice("");
-    updateParams({ min: null, max: null });
-    setPriceOpen(false);
+    router.push("/admin/products");
   };
 
   const hasPriceFilter = !!searchParams.get("min") || !!searchParams.get("max");
+  const hasActiveFilters = activeCats.length > 0 || hasPriceFilter || !!query;
 
-  // Opciones de Ordenación
   const SORT_OPTIONS = [
     { label: "Más recientes", value: "date_desc" },
     { label: "Más antiguos", value: "date_asc" },
@@ -99,176 +113,195 @@ export function ProductListToolbar({ categories }: Props) {
   ];
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      {/* 1. FILTRO CATEGORÍAS (POPOVER MULTI-SELECT) */}
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button variant="outline" size="sm" className="h-8 border-dashed">
-            <FaFilter className="mr-2 h-3.5 w-3.5" />
-            Categorías
-            {activeCats.length > 0 && (
-              <span className="ml-1.5 rounded-full bg-black px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                {activeCats.length}
-              </span>
-            )}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[340px] p-4" align="start">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h4 className="font-medium leading-none">
-                Filtrar por Categoría
-              </h4>
-              {activeCats.length > 0 && (
-                <button
-                  onClick={() => updateParams({ categories: null })}
-                  className="text-xs text-muted-foreground hover:text-red-600 flex items-center gap-1"
-                >
-                  <FaXmark /> Limpiar
-                </button>
-              )}
-            </div>
+    <div className="space-y-3 w-full">
+      <div className="flex flex-col sm:flex-row gap-3 justify-between w-full">
+        {/* 1. BUSCADOR (Izquierda, expandible) */}
+        <div className="relative flex-1 max-w-sm">
+          <FaMagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Buscar producto..."
+            className="pl-9 h-9 bg-white"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          {query && (
+            <button
+              onClick={() => setQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <FaXmark className="h-3 w-3" />
+            </button>
+          )}
+        </div>
 
-            <div className="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-1">
-              {categories.map((cat) => {
-                const isSelected = activeCats.includes(cat.id);
-                return (
-                  <div
-                    key={cat.id}
-                    onClick={() => handleCategoryToggle(cat.id)}
-                    className={cn(
-                      "cursor-pointer flex items-center gap-2 p-2 rounded border text-xs transition-all select-none group",
-                      isSelected
-                        ? "bg-white border-black ring-1 ring-black shadow-sm z-10"
-                        : "bg-white border-neutral-200 hover:border-blue-400",
-                    )}
-                  >
+        {/* 2. FILTROS Y ORDENACIÓN (Derecha) */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+          {/* CATEGORÍAS */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "h-9 border-dashed",
+                  activeCats.length > 0 &&
+                    "bg-neutral-100 border-neutral-400 text-neutral-900",
+                )}
+              >
+                <FaFilter className="mr-2 h-3.5 w-3.5" />
+                Categorías
+                {activeCats.length > 0 && (
+                  <span className="ml-1.5 rounded-full bg-neutral-900 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-50 leading-none">
+                    {activeCats.length}
+                  </span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[240px] p-0" align="end">
+              <div className="p-3 border-b bg-neutral-50/50">
+                <h4 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">
+                  Filtrar por Categoría
+                </h4>
+              </div>
+              <div className="p-1 max-h-[240px] overflow-y-auto">
+                {categories.map((cat) => {
+                  const isSelected = activeCats.includes(cat.id);
+                  return (
                     <div
+                      key={cat.id}
+                      onClick={() => handleCategoryToggle(cat.id)}
                       className={cn(
-                        "h-3.5 w-3.5 rounded-full border flex items-center justify-center shrink-0 transition-colors",
+                        "flex items-center gap-2 px-2 py-2 rounded-sm text-sm cursor-pointer transition-colors",
                         isSelected
-                          ? "border-black bg-black"
-                          : "border-neutral-300 group-hover:border-blue-400",
+                          ? "bg-neutral-100 font-medium text-neutral-900"
+                          : "text-neutral-600 hover:bg-neutral-50",
                       )}
                     >
-                      {isSelected && (
-                        <div className="h-1.5 w-1.5 rounded-full bg-white" />
-                      )}
+                      <div
+                        className={cn(
+                          "h-4 w-4 border rounded flex items-center justify-center bg-white transition-colors",
+                          isSelected
+                            ? "bg-neutral-900 border-neutral-900 text-white"
+                            : "border-neutral-300",
+                        )}
+                      >
+                        {isSelected && <FaFilter className="h-2 w-2" />}
+                      </div>
+                      <span>{cat.name}</span>
                     </div>
-                    <span
-                      className={cn("truncate", isSelected && "font-medium")}
-                    >
-                      {cat.name}
-                    </span>
-                  </div>
-                );
-              })}
+                  );
+                })}
+                {categories.length === 0 && (
+                  <p className="text-xs text-muted-foreground p-2 text-center">
+                    Sin categorías.
+                  </p>
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
 
-              {categories.length === 0 && (
-                <p className="col-span-full text-center text-xs text-muted-foreground py-2">
-                  No hay categorías.
-                </p>
-              )}
-            </div>
-          </div>
-        </PopoverContent>
-      </Popover>
-      {/* 2. FILTRO PRECIO (POPOVER RANGO) */}
-      <Popover open={priceOpen} onOpenChange={setPriceOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-            className={cn(
-              "h-8 border-dashed",
-              hasPriceFilter && "bg-accent/50 border-black/20",
-            )}
+          {/* PRECIO */}
+          <Popover open={priceOpen} onOpenChange={setPriceOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "h-9 border-dashed",
+                  hasPriceFilter &&
+                    "bg-neutral-100 border-neutral-400 text-neutral-900",
+                )}
+              >
+                <FaEuroSign className="mr-2 h-3.5 w-3.5" />
+                Precio
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-72 p-4" align="end">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-medium text-sm">Rango de Precio</h4>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    placeholder="Min"
+                    className="h-8"
+                    value={minPrice}
+                    onChange={(e) => setMinPrice(e.target.value)}
+                  />
+                  <span className="text-muted-foreground">-</span>
+                  <Input
+                    type="number"
+                    placeholder="Max"
+                    className="h-8"
+                    value={maxPrice}
+                    onChange={(e) => setMaxPrice(e.target.value)}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => {
+                      setMinPrice("");
+                      setMaxPrice("");
+                    }}
+                  >
+                    Limpiar
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="flex-1 bg-black text-white"
+                    onClick={applyPriceFilter}
+                  >
+                    Aplicar
+                  </Button>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* ORDENAR */}
+          <Select
+            value={activeSort}
+            onValueChange={(val) => updateParams({ sort: val })}
           >
-            <FaEuroSign className="mr-2 h-3.5 w-3.5" />
-            Precio
-            {hasPriceFilter && (
-              <div className="ml-1.5 h-2 w-2 rounded-full bg-green-500" />
-            )}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-80 p-4" align="start">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h4 className="font-medium leading-none">Rango de Precio</h4>
-              {hasPriceFilter && (
-                <button
-                  onClick={clearPriceFilter}
-                  className="text-xs text-muted-foreground hover:text-red-600 flex items-center gap-1"
+            <SelectTrigger className="h-9 w-[160px] text-xs font-medium border-dashed focus:ring-0 bg-transparent">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <FaSort />
+                <span className="text-foreground">
+                  <SelectValue />
+                </span>
+              </div>
+            </SelectTrigger>
+            <SelectContent align="end">
+              {SORT_OPTIONS.map((option) => (
+                <SelectItem
+                  key={option.value}
+                  value={option.value}
+                  className="text-xs"
                 >
-                  <FaXmark /> Borrar
-                </button>
-              )}
-            </div>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-            <div className="flex items-center gap-2">
-              <div className="grid gap-1.5 flex-1">
-                <Label htmlFor="min-price" className="text-xs">
-                  Mínimo (€)
-                </Label>
-                <Input
-                  id="min-price"
-                  type="number"
-                  placeholder="0"
-                  className="h-8"
-                  value={minPrice}
-                  onChange={(e) => setMinPrice(e.target.value)}
-                />
-              </div>
-              <span className="text-muted-foreground mt-6">-</span>
-              <div className="grid gap-1.5 flex-1">
-                <Label htmlFor="max-price" className="text-xs">
-                  Máximo (€)
-                </Label>
-                <Input
-                  id="max-price"
-                  type="number"
-                  placeholder="Sin límite"
-                  className="h-8"
-                  value={maxPrice}
-                  onChange={(e) => setMaxPrice(e.target.value)}
-                />
-              </div>
-            </div>
-
+          {/* BOTÓN LIMPIAR TODO */}
+          {hasActiveFilters && (
             <Button
-              size="sm"
-              className="w-full bg-black text-white hover:bg-neutral-800"
-              onClick={applyPriceFilter}
+              variant="ghost"
+              size="icon"
+              onClick={clearAll}
+              className="h-9 w-9 text-muted-foreground hover:text-red-600 hover:bg-red-50"
+              title="Limpiar todos los filtros"
             >
-              Aplicar Rango
+              <FaXmark className="h-4 w-4" />
             </Button>
-          </div>
-        </PopoverContent>
-      </Popover>
-      <div className="flex-1" /> {/* Espaciador */}
-      {/* 3. ORDENAR (SELECT SINGLE) */}
-      <Select
-        value={activeSort}
-        onValueChange={(val) => updateParams({ sort: val })}
-      >
-        <SelectTrigger className="h-8 w-[180px] text-xs font-medium">
-          <div className="flex items-center gap-2">
-            <FaSort className="h-3.5 w-3.5 text-muted-foreground" />
-            <SelectValue placeholder="Ordenar por" />
-          </div>
-        </SelectTrigger>
-        <SelectContent align="end">
-          {SORT_OPTIONS.map((option) => (
-            <SelectItem
-              key={option.value}
-              value={option.value}
-              className="text-xs"
-            >
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

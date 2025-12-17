@@ -13,7 +13,7 @@ export const productVariantSchema = z.object({
 export const productImageSchema = z.object({
   id: z.string().optional(),
   url: z.string().url("URL inválida").min(1, "URL requerida"),
-  alt: z.string().optional(),
+  alt: z.string().optional().nullable(),
   color: z.string().optional().nullable(),
   sort: z.number().int().default(0),
 });

@@ -13,10 +13,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 import { quickCreateCategory } from "@/app/(admin)/admin/categories/actions";
 
-import type { ProductFormValues } from "@/lib/validation/product";
+import type { ProductFormValues } from "@/lib/products/schema";
 
 type Props = {
   categories: { id: string; name: string }[];
@@ -30,12 +31,23 @@ export function GeneralSection({ categories: initialCats }: Props) {
     watch,
   } = useFormContext<ProductFormValues>();
 
-  // Estado local para la creación de categorías (UI)
   const [categories, setCategories] = useState(initialCats);
   const [isCreatingCat, setIsCreatingCat] = useState(false);
   const [newCatName, setNewCatName] = useState("");
 
   const selectedCatId = watch("categoryId");
+  const priceCentsValue = watch("priceCents");
+
+  const [priceInEuros, setPriceInEuros] = useState(
+    priceCentsValue ? (priceCentsValue / 100).toFixed(2) : "",
+  );
+
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setPriceInEuros(val);
+    const cents = Math.round(parseFloat(val || "0") * 100);
+    setValue("priceCents", cents, { shouldValidate: true });
+  };
 
   const handleQuickCreateCat = async () => {
     if (!newCatName.trim()) return;
@@ -58,7 +70,7 @@ export function GeneralSection({ categories: initialCats }: Props) {
       </div>
 
       {/* NOMBRE */}
-      <div className="space-y-2">
+      <div className="space-y-2 col-span-2 md:col-span-1">
         <Label>Nombre del Producto</Label>
         <Input {...register("name")} placeholder="Ej: Camiseta Oversize" />
         {errors.name && (
@@ -66,61 +78,75 @@ export function GeneralSection({ categories: initialCats }: Props) {
         )}
       </div>
 
-      {/* PRECIO */}
-      <div className="space-y-2">
-        <Label>Precio (Céntimos)</Label>
+      {/* PRECIO INTELIGENTE */}
+      <div className="space-y-2 col-span-2 md:col-span-1">
+        <Label>Precio (Euros)</Label>
         <div className="relative">
-          <span className="absolute left-3 top-2.5 text-gray-500">€</span>
-          <Input type="number" {...register("priceCents")} className="pl-7" />
+          <span className="absolute left-3 top-2.5 text-neutral-500 font-medium">
+            €
+          </span>
+          <Input
+            type="number"
+            step="0.01"
+            min="0"
+            placeholder="0.00"
+            value={priceInEuros}
+            onChange={handlePriceChange}
+            className="pl-8"
+          />
+          {/* Input oculto real que se registra en Zod */}
+          <input type="hidden" {...register("priceCents")} />
         </div>
-        <p className="text-xs text-muted-foreground">Ej: 2500 = 25.00€</p>
         {errors.priceCents && (
-          <p className="text-red-500 text-xs">{errors.priceCents.message}</p>
+          <p className="text-red-500 text-xs">El precio es requerido</p>
         )}
       </div>
 
-      {/* CATEGORÍA (Con creación rápida) */}
-      <div className="space-y-2 col-span-2 md:col-span-1">
-        <div className="flex justify-between">
+      {/* CATEGORÍA */}
+      <div className="space-y-2 col-span-2">
+        <div className="flex justify-between items-end">
           <Label>Categoría</Label>
           {!isCreatingCat && (
             <button
               type="button"
               onClick={() => setIsCreatingCat(true)}
-              className="text-xs text-blue-600 hover:underline flex gap-1 items-center"
+              className="text-xs text-blue-600 hover:text-blue-800 hover:underline flex gap-1 items-center transition-colors"
             >
-              <FaPlus className="h-3 w-3" /> Nueva
+              <FaPlus className="h-3 w-3" /> Nueva categoría
             </button>
           )}
         </div>
 
         {isCreatingCat ? (
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center animate-in fade-in slide-in-from-left-2">
             <Input
               value={newCatName}
               onChange={(e) => setNewCatName(e.target.value)}
-              placeholder="Nombre..."
-              className="h-9 text-sm"
+              placeholder="Nombre de la nueva categoría..."
+              className="h-10"
+              autoFocus
             />
-            <Button type="button" size="sm" onClick={handleQuickCreateCat}>
-              <FaCheck />
+            <Button type="button" size="icon" onClick={handleQuickCreateCat}>
+              <FaCheck className="h-4 w-4" />
             </Button>
             <Button
               type="button"
-              size="sm"
+              size="icon"
               variant="ghost"
               onClick={() => setIsCreatingCat(false)}
             >
-              <FaXmark />
+              <FaXmark className="h-4 w-4" />
             </Button>
           </div>
         ) : (
           <Select
-            onValueChange={(val) => setValue("categoryId", val)}
+            onValueChange={(val) =>
+              setValue("categoryId", val, { shouldValidate: true })
+            }
             value={selectedCatId}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Selecciona..." />
+              <SelectValue placeholder="Selecciona una categoría..." />
             </SelectTrigger>
             <SelectContent>
               {categories.map((c) => (
@@ -131,18 +157,19 @@ export function GeneralSection({ categories: initialCats }: Props) {
             </SelectContent>
           </Select>
         )}
-        <input type="hidden" {...register("categoryId")} />
         {errors.categoryId && (
           <p className="text-red-500 text-xs">{errors.categoryId.message}</p>
         )}
+        <input type="hidden" {...register("categoryId")} />
       </div>
 
       {/* DESCRIPCIÓN */}
       <div className="col-span-2 space-y-2">
         <Label>Descripción</Label>
-        <textarea
+        <Textarea
           {...register("description")}
-          className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          placeholder="Detalles del producto, materiales, cuidados..."
+          className="min-h-[120px]"
         />
       </div>
     </div>

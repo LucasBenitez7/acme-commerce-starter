@@ -9,10 +9,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 
-import {
-  productSchema,
-  type ProductFormValues,
-} from "@/lib/validation/product";
+import { productSchema, type ProductFormValues } from "@/lib/products/schema";
 
 import { upsertProductAction } from "../actions";
 

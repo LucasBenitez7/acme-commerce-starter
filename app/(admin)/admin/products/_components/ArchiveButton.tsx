@@ -40,7 +40,7 @@ export function ArchiveButton({
       title="Archivar (Ocultar de la tienda)"
     >
       <FaBoxArchive className="h-3.5 w-3.5" />
-      <span className="">Archivar</span>
+      {/* <span className="">Archivar</span> */}
     </Button>
   );
 }

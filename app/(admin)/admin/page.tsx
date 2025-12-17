@@ -10,7 +10,7 @@ import {
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 
-import { formatMinor, DEFAULT_CURRENCY } from "@/lib/currency";
+import { formatCurrency, DEFAULT_CURRENCY } from "@/lib/currency";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -82,7 +82,7 @@ export default async function AdminPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {formatMinor(grossRevenue, DEFAULT_CURRENCY)}
+                {formatCurrency(grossRevenue, DEFAULT_CURRENCY)}
               </div>
               <p className="text-xs text-muted-foreground">
                 Volumen total transaccionado
@@ -100,7 +100,7 @@ export default async function AdminPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-red-600">
-                - {formatMinor(totalRefunds, DEFAULT_CURRENCY)}
+                - {formatCurrency(totalRefunds, DEFAULT_CURRENCY)}
               </div>
               <p className="text-xs text-muted-foreground">
                 Dinero devuelto a clientes
@@ -118,7 +118,7 @@ export default async function AdminPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-700">
-                {formatMinor(netRevenue, DEFAULT_CURRENCY)}
+                {formatCurrency(netRevenue, DEFAULT_CURRENCY)}
               </div>
               <p className="text-xs text-green-600 font-medium">
                 Beneficio real en caja

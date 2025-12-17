@@ -13,12 +13,11 @@ export default async function NewProductPage() {
     distinct: ["size", "color"],
   });
 
-  // Extraemos listas únicas
   const existingSizes = Array.from(new Set(variantsData.map((v) => v.size)));
   const existingColors = Array.from(new Set(variantsData.map((v) => v.color)));
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6">
       <ProductForm
         categories={categories}
         existingSizes={existingSizes}

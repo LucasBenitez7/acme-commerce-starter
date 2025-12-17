@@ -6,7 +6,13 @@ import type {
   Category as DbCategory,
 } from "@prisma/client";
 
-// --- Helpers de UI ---
+// Tipos para Admin products
+export type AdminProductItem = Product & {
+  category: DbCategory;
+  images: DbImage[];
+  variants: DbVariant[];
+  _totalStock: number; // Campo calculado
+};
 
 // Tipos para imágenes con soporte de color
 export type ProductImage = Pick<DbImage, "url" | "alt"> & {
