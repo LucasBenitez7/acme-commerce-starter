@@ -104,10 +104,17 @@ model Order {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  email      String
-  currency   String
-  totalMinor Int
-  status     OrderStatus @default(PENDING_PAYMENT)
+  email    String
+  currency String
+
+  itemsTotalMinor   Int
+  shippingCostMinor Int @default(0)
+  taxMinor          Int @default(0)
+  totalMinor        Int
+
+  status OrderStatus @default(PENDING_PAYMENT)
+
+  returnTrackingId String?
 
   userId String?
   user   User?   @relation(fields: [userId], references: [id])

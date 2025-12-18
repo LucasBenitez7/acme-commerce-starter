@@ -2,8 +2,8 @@
 
 import { hash } from "bcryptjs";
 
+import { registerSchema } from "@/lib/auth/schema";
 import { prisma } from "@/lib/db";
-import { registerSchema } from "@/lib/validation/auth";
 
 export async function registerAction(formData: FormData) {
   const rawData = Object.fromEntries(formData.entries());
