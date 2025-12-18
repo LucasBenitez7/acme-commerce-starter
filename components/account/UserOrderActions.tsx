@@ -4,6 +4,8 @@ import { useState } from "react";
 import { FaBan, FaRotateLeft, FaClock } from "react-icons/fa6";
 import { toast } from "sonner";
 
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -12,10 +14,17 @@ import {
   DialogTrigger,
   DialogFooter,
   DialogDescription,
-  Button,
-  Input,
-} from "@/components/ui";
-import { Checkbox } from "@/components/ui/checkbox";
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 import { RETURN_REASONS } from "@/lib/constants";
 
@@ -31,6 +40,7 @@ type OrderItem = {
   colorSnapshot: string | null;
   quantity: number;
   quantityReturned: number;
+  quantityReturnRequested?: number; // Asegúrate de que Prisma traiga esto si existe
 };
 
 type Props = {
@@ -45,13 +55,15 @@ export function UserOrderActions({ orderId, status, items }: Props) {
   const [loading, setLoading] = useState(false);
   const [selectedReason, setSelectedReason] = useState("");
   const [customReason, setCustomReason] = useState("");
+
+  // Mapa: itemId -> cantidad a devolver
   const [returnMap, setReturnMap] = useState<Record<string, number>>({});
 
-  // --- LÓGICA CANCELAR ---
+  // --- 1. CANCELAR PEDIDO ---
   const handleCancel = async () => {
     setLoading(true);
     const res = await cancelOrderUserAction(orderId);
-    if (res.error) {
+    if (res?.error) {
       toast.error(res.error);
     } else {
       toast.success("Pedido cancelado correctamente.");
@@ -60,25 +72,36 @@ export function UserOrderActions({ orderId, status, items }: Props) {
     setLoading(false);
   };
 
-  // Lógica Selección Cantidad
+  // --- 2. GESTIÓN DE SELECCIÓN ---
   const handleToggleItem = (itemId: string, max: number, checked: boolean) => {
     setReturnMap((prev) => {
       const next = { ...prev };
-      if (checked) next[itemId] = max;
-      else delete next[itemId];
+      if (checked) {
+        next[itemId] = max; // Seleccionar todo por defecto
+      } else {
+        delete next[itemId];
+      }
       return next;
     });
   };
 
   const handleQtyChange = (itemId: string, val: string, max: number) => {
     const num = parseInt(val) || 0;
+    // Si pone 0 o negativo, lo quitamos del mapa (desmarcar)
+    if (num <= 0) {
+      const next = { ...returnMap };
+      delete next[itemId];
+      setReturnMap(next);
+      return;
+    }
     setReturnMap((prev) => ({ ...prev, [itemId]: Math.min(num, max) }));
   };
 
-  // Lógica Enviar Solicitud
+  // --- 3. ENVIAR DEVOLUCIÓN ---
   const handleRequestReturn = async () => {
     const finalReason =
       selectedReason === "Otro motivo" ? customReason : selectedReason;
+
     if (!finalReason.trim()) return toast.error("Indica un motivo");
 
     const itemsPayload = Object.entries(returnMap)
@@ -95,15 +118,22 @@ export function UserOrderActions({ orderId, status, items }: Props) {
       itemsPayload,
     );
 
-    if (res.error) toast.error(res.error);
-    else {
-      toast.success("Solicitud enviada correctamente.");
+    if (res?.error) {
+      toast.error(res.error);
+    } else {
+      toast.success("Solicitud enviada. Recibirás instrucciones pronto.");
       setOpenReturn(false);
+      // Limpiar estado
+      setReturnMap({});
+      setSelectedReason("");
+      setCustomReason("");
     }
     setLoading(false);
   };
 
-  // 1. CASO PENDIENTE: Botón Cancelar con Confirmación
+  // --- RENDERIZADO CONDICIONAL ---
+
+  // CASO A: PENDIENTE (Cancelar)
   if (status === "PENDING_PAYMENT") {
     return (
       <Dialog open={openCancel} onOpenChange={setOpenCancel}>
@@ -111,7 +141,7 @@ export function UserOrderActions({ orderId, status, items }: Props) {
           <Button
             variant="outline"
             size="sm"
-            className="w-full border-red-200 text-red-600 hover:bg-red-50"
+            className="w-full border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
           >
             <FaBan className="mr-2 h-3 w-3" />
             Cancelar Pedido
@@ -121,8 +151,8 @@ export function UserOrderActions({ orderId, status, items }: Props) {
           <DialogHeader>
             <DialogTitle>¿Cancelar este pedido?</DialogTitle>
             <DialogDescription>
-              Esta acción no se puede deshacer. Si ya has realizado el pago, por
-              favor contáctanos.
+              Esta acción es irreversible. El stock será liberado
+              inmediatamente.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">
@@ -142,12 +172,17 @@ export function UserOrderActions({ orderId, status, items }: Props) {
     );
   }
 
-  // 2. CASO PAGADO: Botón Devolver con Selección
+  // CASO B: PAGADO (Devolver)
   if (status === "PAID") {
-    const returnableItems = items.filter(
-      (i) => i.quantity - i.quantityReturned > 0,
-    );
-    if (returnableItems.length === 0) return null;
+    // Calculamos qué se puede devolver (Item total - (devuelto + solicitado))
+    const returnableItems = items.filter((i) => {
+      // Asumimos que Prisma trae estos campos. Si no, pon 0 por defecto.
+      const returned = i.quantityReturned || 0;
+      const requested = i.quantityReturnRequested || 0;
+      return i.quantity - returned - requested > 0;
+    });
+
+    if (returnableItems.length === 0) return null; // Nada que devolver
 
     return (
       <Dialog open={openReturn} onOpenChange={setOpenReturn}>
@@ -157,81 +192,100 @@ export function UserOrderActions({ orderId, status, items }: Props) {
             Solicitar Devolución
           </Button>
         </DialogTrigger>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Solicitar Devolución</DialogTitle>
             <DialogDescription>
-              Selecciona el motivo principal.
+              Selecciona los productos y el motivo.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6 py-2">
-            {/* Selección de Items */}
+            {/* LISTA DE PRODUCTOS */}
             <div className="space-y-3">
-              <p className="text-sm font-medium">
-                ¿Qué productos quieres devolver?
-              </p>
-              {returnableItems.map((item) => {
-                const max = item.quantity - item.quantityReturned;
-                const isSelected = (returnMap[item.id] || 0) > 0;
-                return (
-                  <div
-                    key={item.id}
-                    className={`flex items-center gap-3 border p-3 rounded-xs transition-colors ${isSelected ? "border-black bg-neutral-50" : "border-neutral-200"}`}
-                  >
-                    <Checkbox
-                      checked={isSelected}
-                      onCheckedChange={(c) =>
-                        handleToggleItem(item.id, max, c as boolean)
-                      }
-                    />
-                    <div className="flex-1 text-sm">
-                      <p className="font-medium">{item.nameSnapshot}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {item.sizeSnapshot} / {item.colorSnapshot}
-                      </p>
-                    </div>
-                    {isSelected && (
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="number"
-                          min={1}
-                          max={max}
-                          className="w-16 h-8 text-right"
-                          value={returnMap[item.id] || ""}
-                          onChange={(e) =>
-                            handleQtyChange(item.id, e.target.value, max)
-                          }
-                        />
-                        <span className="text-xs">/ {max}</span>
+              <Label>Productos a devolver</Label>
+              <div className="max-h-[200px] overflow-y-auto pr-2 space-y-2">
+                {returnableItems.map((item) => {
+                  const max =
+                    item.quantity -
+                    (item.quantityReturned || 0) -
+                    (item.quantityReturnRequested || 0);
+                  const isSelected = (returnMap[item.id] || 0) > 0;
+
+                  return (
+                    <div
+                      key={item.id}
+                      className={`flex items-center gap-3 border p-3 rounded-md transition-colors ${
+                        isSelected
+                          ? "border-neutral-800 bg-neutral-50"
+                          : "border-neutral-200"
+                      }`}
+                    >
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={(c) =>
+                          handleToggleItem(item.id, max, c as boolean)
+                        }
+                      />
+                      <div className="flex-1 text-sm">
+                        <p className="font-medium truncate">
+                          {item.nameSnapshot}
+                        </p>
+                        {(item.sizeSnapshot || item.colorSnapshot) && (
+                          <p className="text-xs text-muted-foreground">
+                            {item.sizeSnapshot}{" "}
+                            {item.colorSnapshot
+                              ? `/ ${item.colorSnapshot}`
+                              : ""}
+                          </p>
+                        )}
                       </div>
-                    )}
-                  </div>
-                );
-              })}
+
+                      {isSelected && (
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="number"
+                            min={1}
+                            max={max}
+                            className="w-14 h-8 text-right px-2"
+                            value={returnMap[item.id] || ""}
+                            onChange={(e) =>
+                              handleQtyChange(item.id, e.target.value, max)
+                            }
+                          />
+                          <span className="text-xs text-muted-foreground">
+                            / {max}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
-            {/* Motivo */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Motivo</label>
-              <select
-                className="w-full rounded-xs border p-2 text-sm"
-                value={selectedReason}
-                onChange={(e) => setSelectedReason(e.target.value)}
-              >
-                <option value="">-- Selecciona --</option>
-                {RETURN_REASONS.map((r) => (
-                  <option key={r} value={r}>
-                    {r}
-                  </option>
-                ))}
-              </select>
+            {/* SELECTOR DE MOTIVO (SHADCN UI) */}
+            <div className="space-y-3">
+              <Label>Motivo de la devolución</Label>
+              <Select value={selectedReason} onValueChange={setSelectedReason}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona un motivo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {RETURN_REASONS.map((r) => (
+                    <SelectItem key={r} value={r}>
+                      {r}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
               {selectedReason === "Otro motivo" && (
-                <textarea
-                  className="w-full border rounded p-2 text-sm"
-                  placeholder="Cuéntanos más..."
+                <Textarea
+                  placeholder="Explícanos brevemente el problema..."
                   value={customReason}
                   onChange={(e) => setCustomReason(e.target.value)}
+                  className="min-h-[80px]"
                 />
               )}
             </div>
@@ -245,6 +299,7 @@ export function UserOrderActions({ orderId, status, items }: Props) {
                 !selectedReason ||
                 Object.keys(returnMap).length === 0
               }
+              className="w-full sm:w-auto"
             >
               {loading ? "Enviando..." : "Enviar Solicitud"}
             </Button>
@@ -254,14 +309,14 @@ export function UserOrderActions({ orderId, status, items }: Props) {
     );
   }
 
-  // 3. SOLICITADO (Feedback visual)
+  // CASO C: YA SOLICITADO (Feedback)
   if (status === "RETURN_REQUESTED") {
     return (
       <Button
         variant="secondary"
         size="sm"
         disabled
-        className="w-full opacity-100 cursor-default bg-orange-100 text-orange-800 hover:bg-orange-100"
+        className="w-full opacity-100 cursor-default bg-orange-100 text-orange-800 hover:bg-orange-100 border border-orange-200"
       >
         <FaClock className="mr-2 h-3 w-3" />
         Devolución en proceso

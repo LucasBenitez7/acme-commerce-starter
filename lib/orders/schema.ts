@@ -42,7 +42,6 @@ const shippingSchema = z.discriminatedUnion("shippingType", [
     pickupLocationId: z.string().optional().nullable(),
   }),
 
-  // CASO B: Tienda (STORE)
   z.object({
     shippingType: z.literal("store"),
     storeLocationId: z.string().min(1, "Selecciona una tienda"),

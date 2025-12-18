@@ -2,11 +2,12 @@ import Link from "next/link";
 import { FaCalendar, FaMapMarkerAlt } from "react-icons/fa";
 
 import { UserOrderActions } from "@/components/account/UserOrderActions";
+import { PaginationNav } from "@/components/catalog/PaginationNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 import { auth } from "@/lib/auth";
-import { formatMinor, parseCurrency } from "@/lib/currency";
+import { parseCurrency, formatCurrency } from "@/lib/currency";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -53,21 +54,39 @@ function getStatusBadge(status: string) {
   }
 }
 
-export default async function AccountOrdersPage() {
+export default async function AccountOrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const sp = await searchParams;
+  const page = Number(sp.page) || 1;
+  const take = 5;
+  const skip = (page - 1) * take;
+
   const session = await auth();
   if (!session?.user?.id) return null;
 
-  const orders = await prisma.order.findMany({
-    where: { userId: session.user.id },
-    orderBy: { createdAt: "desc" },
-    include: {
-      items: {
-        include: {
-          product: { select: { slug: true } },
+  const [orders, total] = await prisma.$transaction([
+    prisma.order.findMany({
+      where: { userId: session.user.id },
+      orderBy: { createdAt: "desc" },
+      include: {
+        items: {
+          include: {
+            product: {
+              select: { slug: true },
+            },
+          },
         },
       },
-    },
-  });
+      take,
+      skip,
+    }),
+    prisma.order.count({ where: { userId: session.user.id } }),
+  ]);
+
+  const totalPages = Math.ceil(total / take);
 
   if (orders.length === 0) {
     return (
@@ -120,8 +139,7 @@ export default async function AccountOrdersPage() {
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <FaCalendar className="h-3 w-3" />
-                      {createdDate}
+                      <FaCalendar className="h-3 w-3" /> {createdDate}
                     </div>
                     <span>{getStatusBadge(order.status)}</span>
                   </div>
@@ -173,22 +191,21 @@ export default async function AccountOrdersPage() {
                       )}
                     </ul>
                     <span className="text-xs font-semibold">
-                      {formatMinor(order.totalMinor, currency)}
+                      {formatCurrency(order.totalMinor, currency)}
                     </span>
                   </div>
 
                   <div className="space-y-1 text-right sm:text-left">
                     <div className="flex items-center gap-1 font-medium sm:justify-end">
-                      <FaMapMarkerAlt className="h-3 w-3 text-muted-foreground" />
+                      <FaMapMarkerAlt className="h-3 w-3 text-muted-foreground" />{" "}
                       Envío
                     </div>
                     <p className="text-xs text-muted-foreground">
                       {order.shippingType === "HOME" && "Envío a domicilio"}
                       {order.shippingType === "STORE" && "Retirar en tienda"}
                       {order.shippingType === "PICKUP" && "Punto de recogida"}
-                      {order.pickupLocationId} - {order.postalCode} -{" "}
-                      {order.city} - {order.province} - {order.street} -{" "}
-                      {order.storeLocationId}
+                      <br />
+                      {order.postalCode}, {order.city}
                     </p>
                   </div>
                 </div>
@@ -212,6 +229,8 @@ export default async function AccountOrdersPage() {
           );
         })}
       </div>
+
+      <PaginationNav totalPages={totalPages} page={page} />
     </div>
   );
 }

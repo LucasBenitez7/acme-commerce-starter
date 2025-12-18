@@ -15,7 +15,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 
 import { auth } from "@/lib/auth";
-import { formatMinor, parseCurrency } from "@/lib/currency";
+import { formatCurrency, parseCurrency } from "@/lib/currency";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -108,10 +108,10 @@ export default async function UserOrderDetailPage({ params }: Props) {
                     )}
                   </div>
                   <div className="text-right">
-                    <p>{formatMinor(item.subtotalMinor, currency)}</p>
+                    <p>{formatCurrency(item.subtotalMinor, currency)}</p>
                     <p className="text-xs text-muted-foreground">
                       {item.quantity} x{" "}
-                      {formatMinor(item.priceMinorSnapshot, currency)}
+                      {formatCurrency(item.priceMinorSnapshot, currency)}
                     </p>
                   </div>
                 </li>
@@ -131,13 +131,13 @@ export default async function UserOrderDetailPage({ params }: Props) {
             <CardContent className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Subtotal Pagado</span>
-                <span>{formatMinor(totalPaid, currency)}</span>
+                <span>{formatCurrency(totalPaid, currency)}</span>
               </div>
 
               {totalRefunded > 0 && (
                 <div className="flex justify-between text-red-600">
                   <span>Reembolsado</span>
-                  <span>- {formatMinor(totalRefunded, currency)}</span>
+                  <span>- {formatCurrency(totalRefunded, currency)}</span>
                 </div>
               )}
 
@@ -145,7 +145,7 @@ export default async function UserOrderDetailPage({ params }: Props) {
 
               <div className="flex justify-between font-bold text-base">
                 <span>Total Final</span>
-                <span>{formatMinor(finalTotal, currency)}</span>
+                <span>{formatCurrency(finalTotal, currency)}</span>
               </div>
             </CardContent>
 

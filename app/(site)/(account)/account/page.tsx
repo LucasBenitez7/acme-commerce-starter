@@ -1,108 +1,78 @@
-import Link from "next/link";
-import { FaSignOutAlt } from "react-icons/fa";
-import { FaUser, FaBoxOpen, FaPhone } from "react-icons/fa6";
-
+import { Input, Label } from "@/components/ui";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-  Button,
-} from "@/components/ui";
+  CardDescription,
+} from "@/components/ui/card";
 
-import { auth, signOut } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-
-export default async function AccountPage() {
+export default async function AccountProfilePage() {
   const session = await auth();
-  if (!session?.user) return null;
+  const user = session?.user;
 
-  // Extraemos los nuevos campos
-  const { name, email, role, firstName, lastName, phone } = session.user;
-
-  // Construimos el nombre completo real o usamos el fallback
-  const displayName =
-    firstName && lastName ? `${firstName} ${lastName}` : name || "Sin nombre";
+  if (!user) return null;
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 grid-cols-1">
-        {/* Tarjeta de Perfil */}
-        <Card className="py-4 px-4">
-          <CardHeader className="px-0 flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Información Personal
-            </CardTitle>
-            <FaUser className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="space-y-1 px-0">
-            <div className="text-2xl font-bold">{displayName}</div>
-            <p className="text-xs text-muted-foreground">{email}</p>
-            {phone && (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1">
-                <FaPhone className="h-3 w-3" />
-                <span>{phone}</span>
-              </div>
-            )}
-
-            {role === "admin" && (
-              <span className="mt-2 inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
-                Admin
-              </span>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Tarjeta de Acceso Rápido a Pedidos */}
-        <Card className="py-4 px-4">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-0">
-            <CardTitle className="text-sm font-medium px-0">
-              Mis Pedidos
-            </CardTitle>
-            <FaBoxOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="px-0">
-            <p className="text-xs text-muted-foreground mb-4">
-              Consulta el estado de tus compras recientes.
-            </p>
-            <Button asChild variant="outline" size="sm" className="w-full">
-              <Link href="/account/orders">Ver historial completo</Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Tarjeta de Sesión (Cerrar sesión) */}
-        <Card className="border-red-100 bg-red-50/50 dark:border-red-900/20 dark:bg-red-900/10 p-4">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-0">
-            <CardTitle className="text-sm font-medium text-red-600 px-0">
-              Zona de peligro
-            </CardTitle>
-            <FaSignOutAlt className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent className="px-0">
-            <p className="text-xs text-muted-foreground mb-4">
-              Cierra la sesión de este dispositivo.
-            </p>
-            <form
-              action={async () => {
-                "use server";
-                await signOut({ redirectTo: "/" });
-              }}
-            >
-              <Button
-                type="submit"
-                variant="destructive"
-                size="sm"
-                className="w-full"
-              >
-                Cerrar sesión
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight">Perfil</h2>
+        <p className="text-muted-foreground">
+          Gestiona tu información personal.
+        </p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Datos Personales</CardTitle>
+          <CardDescription>Información básica de tu cuenta.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Nombre</Label>
+              <Input
+                defaultValue={user.firstName || ""}
+                readOnly
+                className="bg-muted/50"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Apellidos</Label>
+              <Input
+                defaultValue={user.lastName || ""}
+                readOnly
+                className="bg-muted/50"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Email</Label>
+            <Input
+              defaultValue={user.email || ""}
+              readOnly
+              className="bg-muted/50"
+            />
+            <p className="text-xs text-muted-foreground">
+              El email no se puede cambiar por seguridad.
+            </p>
+          </div>
+
+          {user.phone && (
+            <div className="space-y-2">
+              <Label>Teléfono</Label>
+              <Input
+                defaultValue={user.phone}
+                readOnly
+                className="bg-muted/50"
+              />
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
