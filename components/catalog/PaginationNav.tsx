@@ -10,19 +10,24 @@ import { cn } from "@/lib/utils";
 
 interface Props {
   totalPages: number;
-  page: number; // Página actual
+  page: number;
+  base?: string;
 }
 
-export function PaginationNav({ totalPages, page }: Props) {
+export function PaginationNav({ totalPages, page, base }: Props) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  // Si nos pasan 'base', la usamos. Si no, usamos la ruta actual automática via usePathname.
+  const basePath = base ?? pathname;
 
   if (totalPages <= 1) return null;
 
   const createPageUrl = (pageNumber: number) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", pageNumber.toString());
-    return `${pathname}?${params.toString()}`;
+    // Usamos basePath en lugar de pathname directamente
+    return `${basePath}?${params.toString()}`;
   };
 
   const hasPrev = page > 1;

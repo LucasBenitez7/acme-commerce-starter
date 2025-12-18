@@ -1,181 +1,366 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
-import { FormProvider, type SubmitHandler } from "react-hook-form";
-
-import { LeaveCheckoutDialog } from "@/components/checkout/core/LeaveCheckoutDialog";
-import { CheckoutStepper } from "@/components/checkout/layout";
+import { useState, useTransition, useEffect } from "react";
+import { useForm } from "react-hook-form";
 import {
-  CheckoutPaymentStep,
-  CheckoutReviewStep,
-  CheckoutShippingStep,
-} from "@/components/checkout/steps";
-import { Button } from "@/components/ui";
+  FaUser,
+  FaTruck,
+  FaCreditCard,
+  FaLock,
+  FaHouse,
+  FaStore,
+} from "react-icons/fa6";
+import { toast } from "sonner";
+
+import { Button, Input, Label } from "@/components/ui";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { RadioGroup } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+
+import { checkoutSchema, type CheckoutFormValues } from "@/lib/checkout/schema";
+import { formatCurrency } from "@/lib/currency";
+import { STORE_LOCATIONS, PICKUP_LOCATIONS } from "@/lib/locations";
 
 import { createOrderAction } from "@/app/(site)/(shop)/checkout/actions";
-import { useCheckoutForm } from "@/hooks/use-checkout-form";
-
-import type { CheckoutFormValues } from "@/lib/validation/checkout";
+import { useCartStore } from "@/store/cart";
 
 type Props = {
-  defaultFirstName?: string | null;
-  defaultLastName?: string | null;
-  defaultEmail?: string | null;
-  defaultPhone?: string | null;
+  defaultValues?: Partial<CheckoutFormValues>;
+  savedAddresses?: any[];
 };
 
-export function CheckoutForm({
-  defaultFirstName,
-  defaultLastName,
-  defaultEmail,
-  defaultPhone,
-}: Props) {
+export function CheckoutForm({ defaultValues, savedAddresses = [] }: Props) {
   const router = useRouter();
-  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+  const { items, clearCart, getTotalPrice } = useCartStore();
   const [isPending, startTransition] = useTransition();
-  const [serverError, setServerError] = useState<string | null>(null);
+  const [selectedAddressId, setSelectedAddressId] = useState<string>(
+    savedAddresses.length > 0
+      ? savedAddresses.find((a) => a.isDefault)?.id || savedAddresses[0].id
+      : "new",
+  );
 
-  const {
-    methods,
-    step,
-    handleNext,
-    handlePrev,
-    setStep,
-    isLoading,
-    clearProgress,
-  } = useCheckoutForm({
-    defaults: {
-      firstName: defaultFirstName || "",
-      lastName: defaultLastName || "",
-      email: defaultEmail || "",
-      phone: defaultPhone || "",
+  const form = useForm({
+    resolver: zodResolver(checkoutSchema),
+    defaultValues: {
+      country: "ES",
+      shippingType: "home", // Default
+      paymentMethod: "card",
+      ...defaultValues,
     },
   });
 
-  const { handleSubmit } = methods;
+  // Observamos el tipo de envío para mostrar campos condicionales
+  const shippingType = form.watch("shippingType");
 
-  const onSubmit: SubmitHandler<CheckoutFormValues> = (data) => {
-    if (step !== 3) return;
+  // Efecto: Rellenar dirección guardada
+  useEffect(() => {
+    if (selectedAddressId !== "new" && shippingType === "home") {
+      const addr = savedAddresses.find((a) => a.id === selectedAddressId);
+      if (addr) {
+        form.setValue("firstName", addr.firstName);
+        form.setValue("lastName", addr.lastName);
+        form.setValue("phone", addr.phone || "");
+        form.setValue("street", addr.street);
+        form.setValue("details", addr.details || "");
+        form.setValue("postalCode", addr.postalCode);
+        form.setValue("city", addr.city);
+        form.setValue("province", addr.province);
+      }
+    }
+  }, [selectedAddressId, savedAddresses, form, shippingType]);
 
-    setServerError(null);
+  const onSubmit = (data: any) => {
+    if (items.length === 0) {
+      toast.error("Tu carrito está vacío");
+      router.push("/catalogo");
+      return;
+    }
 
     startTransition(async () => {
       const formData = new FormData();
-
       Object.entries(data).forEach(([key, val]) => {
-        if (val !== null && val !== undefined) {
-          formData.append(key, String(val));
-        }
+        if (val) formData.append(key, String(val));
       });
 
-      const result = await createOrderAction({ error: undefined }, formData);
+      const cartPayload = items.map((item) => ({
+        productId: item.productId,
+        variantId: item.variantId,
+        quantity: item.quantity,
+      }));
+      formData.append("cartItems", JSON.stringify(cartPayload));
 
-      if (result?.error) {
-        setServerError(result.error);
+      const res = await createOrderAction({ error: undefined }, formData);
+
+      if (res?.error) {
+        toast.error(res.error);
       } else {
-        if (clearProgress) clearProgress();
-        router.push("/checkout/success");
+        toast.success("¡Pedido realizado con éxito!");
+        clearCart();
       }
     });
   };
 
-  if (isLoading)
-    return <div className="p-10 text-center">Cargando checkout...</div>;
-
   return (
-    <FormProvider {...methods}>
-      <div className="border border-border rounded-lg bg-card">
-        <CheckoutStepper currentStep={step} onStepClick={setStep} />
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      {/* 1. CONTACTO */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <FaUser className="text-muted-foreground" /> Contacto
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label>Email</Label>
+            <Input {...form.register("email")} placeholder="tu@email.com" />
+            {form.formState.errors.email && (
+              <p className="text-xs text-red-500">
+                {form.formState.errors.email.message as string}
+              </p>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Nombre</Label>
+              <Input {...form.register("firstName")} />
+              {form.formState.errors.firstName && (
+                <p className="text-xs text-red-500">
+                  {form.formState.errors.firstName.message as string}
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label>Apellidos</Label>
+              <Input {...form.register("lastName")} />
+              {form.formState.errors.lastName && (
+                <p className="text-xs text-red-500">
+                  {form.formState.errors.lastName.message as string}
+                </p>
+              )}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Teléfono</Label>
+            <Input {...form.register("phone")} placeholder="+34..." />
+            {form.formState.errors.phone && (
+              <p className="text-xs text-red-500">
+                {form.formState.errors.phone.message as string}
+              </p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
-        <form onSubmit={(e) => e.preventDefault()} className="p-4 sm:p-6">
-          {serverError && (
-            <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-md text-sm border border-red-200">
-              Error: {serverError}
+      {/* 2. ENVÍO */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <FaTruck className="text-muted-foreground" /> Método de entrega
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* TIPO DE ENVÍO */}
+          <RadioGroup
+            value={shippingType}
+            onValueChange={(val) => form.setValue("shippingType", val as any)}
+            className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+          >
+            <div
+              className={`border rounded-md p-4 cursor-pointer hover:bg-neutral-50 ${shippingType === "home" ? "border-black bg-neutral-50" : ""}`}
+              onClick={() => form.setValue("shippingType", "home")}
+            >
+              <div className="flex items-center gap-2 mb-2 font-medium">
+                <FaHouse /> A domicilio
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Envío estándar a tu dirección.
+              </p>
+            </div>
+            <div
+              className={`border rounded-md p-4 cursor-pointer hover:bg-neutral-50 ${shippingType === "store" ? "border-black bg-neutral-50" : ""}`}
+              onClick={() => form.setValue("shippingType", "store")}
+            >
+              <div className="flex items-center gap-2 mb-2 font-medium">
+                <FaStore /> En Tienda
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Gratis. Recogida en nuestras tiendas.
+              </p>
+            </div>
+            <div
+              className={`border rounded-md p-4 cursor-pointer hover:bg-neutral-50 ${shippingType === "pickup" ? "border-black bg-neutral-50" : ""}`}
+              onClick={() => form.setValue("shippingType", "pickup")}
+            >
+              <div className="flex items-center gap-2 mb-2 font-medium">
+                <FaTruck /> Punto Pack
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Recoge en un punto cercano.
+              </p>
+            </div>
+          </RadioGroup>
+
+          <Separator />
+
+          {/* CAMPOS CONDICIONALES */}
+
+          {/* A) DOMICILIO */}
+          {shippingType === "home" && (
+            <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200">
+              {savedAddresses.length > 0 && (
+                <div className="space-y-3 mb-4">
+                  <Label>Mis direcciones</Label>
+                  <Select
+                    value={selectedAddressId}
+                    onValueChange={setSelectedAddressId}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona una dirección" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {savedAddresses.map((addr) => (
+                        <SelectItem key={addr.id} value={addr.id}>
+                          {addr.firstName} {addr.lastName} - {addr.street}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="new">Nueva dirección</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Calle y número</Label>
+                  <Input {...form.register("street")} />
+                  {form.formState.errors.street && (
+                    <p className="text-xs text-red-500">
+                      {form.formState.errors.street.message as string}
+                    </p>
+                  )}
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label>CP</Label>
+                    <Input {...form.register("postalCode")} />
+                    {form.formState.errors.postalCode && (
+                      <p className="text-xs text-red-500">
+                        {form.formState.errors.postalCode.message as string}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Ciudad</Label>
+                    <Input {...form.register("city")} />
+                    {form.formState.errors.city && (
+                      <p className="text-xs text-red-500">
+                        {form.formState.errors.city.message as string}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Provincia</Label>
+                    <Input {...form.register("province")} />
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
-          <h2 className="text-xl font-semibold mb-6">
-            {step === 1 && "Elige un método de envío"}
-            {step === 2 && "Elige un método de pago"}
-            {step === 3 && "Revisa y finaliza tu pedido"}
-          </h2>
-
-          {/* Renderizado condicional de Pasos */}
-          <div className={step === 1 ? "block" : "hidden"}>
-            <CheckoutShippingStep />
-          </div>
-
-          <div className={step === 2 ? "block" : "hidden"}>
-            <CheckoutPaymentStep />
-          </div>
-
-          <div className={step === 3 ? "block" : "hidden"}>
-            <CheckoutReviewStep
-              onEditShipping={() => setStep(1)}
-              onEditPayment={() => setStep(2)}
-            />
-          </div>
-
-          {/* Botones de Navegación */}
-          <div className="mt-8 flex flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-4">
-            {step === 1 ? (
-              <button
-                type="button"
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                onClick={() => setShowLeaveDialog(true)}
+          {/* B) TIENDA */}
+          {shippingType === "store" && (
+            <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200">
+              <Label>Selecciona una tienda</Label>
+              <Select
+                onValueChange={(val) => form.setValue("storeLocationId", val)}
               >
-                ← Volver a la cesta
-              </button>
-            ) : (
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={handlePrev}
-                disabled={isPending}
-              >
-                ← Volver
-              </Button>
-            )}
-
-            <div className="w-full sm:w-auto">
-              {step < 3 && (
-                <Button
-                  type="button"
-                  className="w-full hover:cursor-pointer p-3 sm:py-2 sm:w-auto"
-                  onClick={handleNext}
-                >
-                  Continuar
-                </Button>
-              )}
-
-              {step === 3 && (
-                <Button
-                  type="button"
-                  className="w-full px-4 text-sm hover:cursor-pointer md:w-auto bg-green-600 hover:bg-green-700 text-white shadow-md"
-                  disabled={isPending}
-                  onClick={handleSubmit(onSubmit)}
-                >
-                  {isPending ? "Procesando pedido..." : "Pagar y finalizar"}
-                </Button>
+                <SelectTrigger>
+                  <SelectValue placeholder="Elige tu tienda más cercana" />
+                </SelectTrigger>
+                <SelectContent>
+                  {STORE_LOCATIONS.map((loc) => (
+                    <SelectItem key={loc.id} value={loc.id}>
+                      <span className="font-medium">{loc.name}</span>
+                      <span className="text-muted-foreground ml-2 text-xs">
+                        ({loc.distance})
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {form.formState.errors.storeLocationId && (
+                <p className="text-xs text-red-500">
+                  Debes seleccionar una tienda
+                </p>
               )}
             </div>
-          </div>
-        </form>
+          )}
 
-        <LeaveCheckoutDialog
-          open={showLeaveDialog}
-          onClose={() => setShowLeaveDialog(false)}
-          onConfirm={() => {
-            setShowLeaveDialog(false);
-            router.push("/cart");
-          }}
-          title="¿Volver a la cesta?"
-          description="Perderás el progreso actual del checkout."
-          confirmLabel="Sí, volver"
-          cancelLabel="Quedarme"
-        />
-      </div>
-    </FormProvider>
+          {/* C) PICKUP */}
+          {shippingType === "pickup" && (
+            <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200">
+              <Label>Selecciona un punto de recogida</Label>
+              <Select
+                onValueChange={(val) => form.setValue("pickupLocationId", val)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Elige un punto de recogida" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PICKUP_LOCATIONS.map((loc) => (
+                    <SelectItem key={loc.id} value={loc.id}>
+                      <span className="font-medium">{loc.name}</span>
+                      <span className="text-muted-foreground ml-2 text-xs">
+                        ({loc.addressLine1})
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {form.formState.errors.pickupLocationId && (
+                <p className="text-xs text-red-500">
+                  Debes seleccionar un punto
+                </p>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* 3. PAGO */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <FaCreditCard className="text-muted-foreground" /> Pago
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="p-4 bg-neutral-50 border rounded-md text-sm text-muted-foreground text-center">
+            <p>🔒 Modo Simulación</p>
+            <p>El pedido se procesará como "Pagado" automáticamente.</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Button
+        type="submit"
+        className="w-full bg-black text-white py-6 text-lg shadow-lg hover:bg-neutral-800"
+        disabled={isPending}
+      >
+        {isPending
+          ? "Procesando..."
+          : `Pagar ${formatCurrency(getTotalPrice())}`}
+        {!isPending && <FaLock className="ml-2 h-4 w-4 opacity-70" />}
+      </Button>
+    </form>
   );
 }

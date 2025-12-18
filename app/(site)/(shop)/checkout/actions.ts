@@ -1,14 +1,10 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/lib/auth";
+import { checkoutSchema } from "@/lib/checkout/schema";
 import { prisma } from "@/lib/db";
-import { CART_COOKIE_NAME, parseCartCookie } from "@/lib/server/cart-cookie";
-import { buildOrderDraftFromCart } from "@/lib/server/orders";
-import { InventoryService } from "@/lib/services/inventory.service";
-import { checkoutSchema } from "@/lib/validation/checkout";
 
 export type CheckoutActionState = {
   error?: string;
@@ -18,111 +14,146 @@ export async function createOrderAction(
   prevState: CheckoutActionState,
   formData: FormData,
 ): Promise<CheckoutActionState> {
-  // 1. Obtener usuario (si existe)
+  // 1. Identificar Usuario (si existe)
   const session = await auth();
   let userId: string | null = null;
 
   if (session?.user?.id) {
-    const userExists = await prisma.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { id: true },
     });
-    if (userExists) userId = userExists.id;
+    if (user) userId = user.id;
   }
 
-  // 2. Obtener carrito
-  const cookieStore = await cookies();
-  const rawCart = cookieStore.get(CART_COOKIE_NAME)?.value;
-  const lines = parseCartCookie(rawCart);
+  // 2. Procesar Datos del Formulario
+  const rawData: Record<string, any> = {};
 
-  if (!lines.length) {
-    return { error: "Tu carrito está vacío." };
-  }
+  formData.forEach((value, key) => {
+    if (key === "cartItems") {
+      try {
+        rawData[key] = JSON.parse(value as string);
+      } catch {
+        rawData[key] = [];
+      }
+    } else {
+      rawData[key] = value;
+    }
+  });
 
-  // 3. Validar Datos con Zod (¡Usando tu esquema nuevo!)
-  const rawData = Object.fromEntries(formData.entries());
+  // 3. Validar con Zod
   const validation = checkoutSchema.safeParse(rawData);
 
   if (!validation.success) {
-    return { error: validation.error.issues[0].message };
+    console.error("Error validación checkout:", validation.error);
+    return {
+      error: "Datos incorrectos: " + validation.error.issues[0].message,
+    };
   }
 
   const data = validation.data;
 
-  // 4. Construir borrador de orden (cálculos de precio)
-  const draft = await buildOrderDraftFromCart(lines);
-
-  // 5. Crear Orden + Transacción Atómica
+  // 4. Procesar Pedido (Transacción Atómica)
   let orderId: string | undefined;
 
   try {
     await prisma.$transaction(async (tx) => {
-      const itemsToCheck = draft.items.map((item) => ({
-        variantId: item.variantId,
-        quantity: item.quantity,
-      }));
+      let itemsTotalMinor = 0;
+      const dbOrderItems = [];
 
-      await InventoryService.validateStock(itemsToCheck);
+      // A) Iterar items para validar Stock y Precio
+      for (const itemRequest of data.cartItems) {
+        const product = await tx.product.findUnique({
+          where: { id: itemRequest.productId },
+          include: { variants: true },
+        });
 
-      await InventoryService.updateStock(itemsToCheck, "decrement", tx);
+        if (!product)
+          throw new Error(
+            `Producto ${itemRequest.productId} no encontrado o descatalogado.`,
+          );
 
-      let shippingTypeDb: "HOME" | "STORE" | "PICKUP" = "HOME";
-      if (data.shippingType === "store") shippingTypeDb = "STORE";
-      if (data.shippingType === "pickup") shippingTypeDb = "PICKUP";
+        const variant = product.variants.find(
+          (v) => v.id === itemRequest.variantId,
+        );
 
-      // C) Crear la Orden
+        if (!variant)
+          throw new Error(`Variante no disponible para ${product.name}.`);
+
+        if (variant.stock < itemRequest.quantity) {
+          throw new Error(
+            `Stock insuficiente para ${product.name} (${variant.size}). Quedan ${variant.stock}.`,
+          );
+        }
+
+        await tx.productVariant.update({
+          where: { id: variant.id },
+          data: { stock: { decrement: itemRequest.quantity } },
+        });
+
+        const unitPrice = variant.priceCents ?? product.priceCents;
+        const subtotal = unitPrice * itemRequest.quantity;
+        itemsTotalMinor += subtotal;
+
+        dbOrderItems.push({
+          productId: product.id,
+          variantId: variant.id,
+          nameSnapshot: product.name,
+          sizeSnapshot: variant.size,
+          colorSnapshot: variant.color,
+          priceMinorSnapshot: unitPrice,
+          quantity: itemRequest.quantity,
+          subtotalMinor: subtotal,
+        });
+      }
+
+      // B) Calcular Totales Finales
+      const shippingCostMinor = 0;
+      const taxMinor = Math.round(itemsTotalMinor * 0.21);
+      const totalMinor = itemsTotalMinor + shippingCostMinor;
+
+      // C) Crear la Orden en DB
       const order = await tx.order.create({
         data: {
           userId,
+          email: data.email,
+          currency: "EUR",
           status: "PAID",
-          totalMinor: draft.totalMinor,
-          currency: draft.currency,
 
-          // Datos validados
+          itemsTotalMinor,
+          shippingCostMinor,
+          taxMinor,
+          totalMinor,
+
+          // Dirección
           firstName: data.firstName,
           lastName: data.lastName,
           phone: data.phone,
-          email: data.email,
-
-          shippingType: shippingTypeDb,
-          street: data.street || null,
-          addressExtra: data.addressExtra || null,
-          postalCode: data.postalCode || null,
-          province: data.province || null,
-          city: data.city || null,
-          storeLocationId: data.storeLocationId || null,
-          pickupLocationId: data.pickupLocationId || null,
-          pickupSearch: data.pickupSearch || null,
+          street: data.street,
+          addressExtra: data.details,
+          postalCode: data.postalCode,
+          city: data.city,
+          province: data.province,
+          country: data.country,
+          shippingType:
+            data.shippingType === "store"
+              ? "STORE"
+              : data.shippingType === "pickup"
+                ? "PICKUP"
+                : "HOME",
 
           paymentMethod: data.paymentMethod,
 
+          // Relación con Items
           items: {
-            create: draft.items.map((item) => {
-              const parts = item.variantName
-                ? item.variantName.split(" / ")
-                : [];
-              const size = parts[0] || null;
-              const color = parts[1] || null;
-
-              return {
-                productId: item.productId,
-                variantId: item.variantId,
-                nameSnapshot: item.name,
-                sizeSnapshot: size,
-                colorSnapshot: color,
-                priceMinorSnapshot: item.unitPriceMinor,
-                quantity: item.quantity,
-                subtotalMinor: item.subtotalMinor,
-              };
-            }),
+            create: dbOrderItems,
           },
 
           // Historial inicial
           history: {
             create: {
               status: "PAID",
-              reason: "Pedido creado correctamente",
               actor: "system",
+              reason: "Pedido creado vía web",
             },
           },
         },
@@ -130,21 +161,15 @@ export async function createOrderAction(
 
       orderId = order.id;
     });
-  } catch (e: any) {
-    console.error("[CreateOrder] Error:", e);
-    if (e.message && e.message.includes("Stock insuficiente")) {
-      return { error: e.message };
-    }
-    return {
-      error: "Hubo un problema al procesar tu pedido. Inténtalo de nuevo.",
-    };
+  } catch (error: any) {
+    console.error("Checkout Transaction Error:", error);
+    return { error: error.message || "Error al procesar el pedido." };
   }
 
-  // 6. Limpiar cookie y redirigir (fuera del try/catch)
+  // 5. Redirección Exitosa
   if (orderId) {
-    cookieStore.set(CART_COOKIE_NAME, "", { path: "/", maxAge: 0 });
     redirect(`/checkout/success?orderId=${orderId}`);
   }
 
-  return { error: "Error desconocido al crear el pedido." };
+  return { error: "Error desconocido." };
 }

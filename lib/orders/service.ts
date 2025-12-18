@@ -83,6 +83,10 @@ export async function createOrder(input: CreateOrderInput) {
         status: OrderStatus.PENDING_PAYMENT,
         email: email,
         currency: "EUR",
+        itemsTotalMinor: calculatedTotal,
+        shippingCostMinor: 0,
+        taxMinor: 0,
+
         totalMinor: calculatedTotal,
 
         firstName,
