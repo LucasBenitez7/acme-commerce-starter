@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useActionState } from "react";
 import { toast } from "sonner";
 
@@ -38,48 +39,75 @@ export function CategoryForm({ category }: Props) {
   >(action, INITIAL_STATE);
 
   useEffect(() => {
-    if (state.message && state.message !== "") {
+    if (state.message) {
       toast.error(state.message);
     }
   }, [state]);
 
   return (
-    <form
-      action={formAction}
-      className="space-y-6 max-w-lg bg-white p-6 rounded-xs border shadow-sm"
-    >
-      <div className="space-y-2">
-        <Label>Nombre (Menú)</Label>
-        <Input
-          name="name"
-          defaultValue={category?.name}
-          placeholder="Ej: Zapatillas"
-        />
-        {state.errors?.name && (
-          <p className="text-red-500 text-xs">{state.errors.name[0]}</p>
-        )}
+    <form action={formAction} className="space-y-6">
+      <div className="grid gap-4 bg-white p-6 rounded-lg border shadow-sm">
+        {/* NOMBRE */}
+        <div className="space-y-2">
+          <Label htmlFor="name">Nombre</Label>
+          <Input
+            id="name"
+            name="name"
+            defaultValue={category?.name}
+            placeholder="Ej: Zapatillas"
+            autoFocus={!isEditing}
+          />
+          {state.errors?.name && (
+            <p className="text-red-500 text-xs">{state.errors.name[0]}</p>
+          )}
+        </div>
+
+        {/* SLUG (Opcional visualmente, pero bueno para SEO) */}
+        <div className="space-y-2">
+          <Label htmlFor="slug">Slug (URL)</Label>
+          <Input
+            id="slug"
+            name="slug"
+            defaultValue={category?.slug}
+            placeholder="ej: zapatillas-deportivas"
+            className="font-mono text-sm"
+          />
+          <p className="text-[10px] text-muted-foreground">
+            Déjalo vacío para generarlo automáticamente desde el nombre.
+          </p>
+          {state.errors?.slug && (
+            <p className="text-red-500 text-xs">{state.errors.slug[0]}</p>
+          )}
+        </div>
+
+        {/* ORDEN */}
+        <div className="space-y-2">
+          <Label htmlFor="sort">Orden de prioridad</Label>
+          <Input
+            id="sort"
+            name="sort"
+            type="number"
+            defaultValue={category?.sort ?? 0}
+            className="max-w-[120px]"
+          />
+          <p className="text-[10px] text-muted-foreground">
+            Número menor aparece primero en el menú (0, 1, 2...).
+          </p>
+          {state.errors?.sort && (
+            <p className="text-red-500 text-xs">{state.errors.sort[0]}</p>
+          )}
+        </div>
       </div>
 
-      <div className="space-y-2">
-        <Label>Orden (Prioridad en menú)</Label>
-        <Input name="sort" type="number" defaultValue={category?.sort ?? 0} />
-        <p className="text-xs text-muted-foreground">
-          0 sale primero, 10 sale último.
-        </p>
-        {state.errors?.sort && (
-          <p className="text-red-500 text-xs">{state.errors.sort[0]}</p>
-        )}
-      </div>
-
-      <div className="flex justify-end gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => window.history.back()}
-        >
-          Cancelar
+      <div className="flex items-center justify-end gap-3">
+        <Button variant="outline" asChild>
+          <Link href="/admin/categories">Cancelar</Link>
         </Button>
-        <Button type="submit" disabled={isPending}>
+        <Button
+          type="submit"
+          disabled={isPending}
+          className="bg-black text-white"
+        >
           {isPending
             ? "Guardando..."
             : isEditing

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { FaLayerGroup } from "react-icons/fa6";
 
 import { prisma } from "@/lib/db";
 
@@ -12,7 +13,6 @@ interface Props {
 export default async function EditCategoryPage({ params }: Props) {
   const { id } = await params;
 
-  // 1. Incluimos _count para saber si tiene productos asociados
   const category = await prisma.category.findUnique({
     where: { id },
     include: {
@@ -26,25 +26,26 @@ export default async function EditCategoryPage({ params }: Props) {
     notFound();
   }
 
-  // Calculamos si tiene productos para pasarle al botón
   const hasProducts = category._count.products > 0;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-        <div>
-          <h1 className="text-xl font-semibold">Editar Categoría</h1>
-          <p className="text-slate-500 text-sm font-medium">
-            Modifica los detalles de {category.name}
-          </p>
+    <div className="max-w-xl mx-auto space-y-8">
+      {/* HEADER SIMPLE */}
+      <div className="flex items-start justify-between border-b pb-6">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <FaLayerGroup />
+            <span>Editar Categoría</span>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight">{category.name}</h1>
         </div>
-        {/* Aquí colocamos el botón de borrar alineado a la derecha */}
+
+        {/* Pasamos el botón que me mostraste antes */}
         <DeleteCategoryButton id={category.id} hasProducts={hasProducts} />
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-xs shadow-sm p-6">
-        <CategoryForm category={category} />
-      </div>
+      {/* FORMULARIO */}
+      <CategoryForm category={category} />
     </div>
   );
 }

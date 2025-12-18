@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { PaginationNav } from "@/components/catalog/PaginationNav";
 import {
   Button,
   Card,
@@ -26,12 +27,17 @@ type Props = {
     min?: string;
     max?: string;
     q?: string;
+    page?: string;
   }>;
 };
 
 export default async function AdminProductsPage({ searchParams }: Props) {
   const sp = await searchParams;
   const query = sp.q?.trim();
+
+  const currentPage = Number(sp.page) || 1;
+  const itemsPerPage = 15;
+  const skip = (currentPage - 1) * itemsPerPage;
 
   const isArchivedView = sp.status === "archived";
   const categoryIds = sp.categories?.split(",").filter(Boolean) || [];
@@ -89,7 +95,7 @@ export default async function AdminProductsPage({ searchParams }: Props) {
     }
   }
 
-  const [productsRaw, categories] = await Promise.all([
+  const [productsRaw, totalCount, categories] = await Promise.all([
     prisma.product.findMany({
       where,
       orderBy,
@@ -98,7 +104,10 @@ export default async function AdminProductsPage({ searchParams }: Props) {
         variants: true,
         images: { orderBy: { sort: "asc" }, take: 1 },
       },
+      take: itemsPerPage,
+      skip: skip,
     }),
+    prisma.product.count({ where }),
     prisma.category.findMany({ orderBy: { name: "asc" } }),
   ]);
 
@@ -119,6 +128,8 @@ export default async function AdminProductsPage({ searchParams }: Props) {
     { label: "Activos", value: undefined },
     { label: "Archivados / Papelera", value: "archived" },
   ];
+
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   return (
     <div className="space-y-6">
@@ -169,6 +180,10 @@ export default async function AdminProductsPage({ searchParams }: Props) {
         </CardHeader>
         <CardContent className="p-0">
           <ProductTable products={products} grandTotalStock={grandTotalStock} />
+
+          <div className="py-4 border-t flex justify-end px-4">
+            <PaginationNav totalPages={totalPages} page={currentPage} />
+          </div>
         </CardContent>
       </Card>
     </div>
