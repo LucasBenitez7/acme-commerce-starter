@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { FaSignOutAlt } from "react-icons/fa";
 import { FaRegUser, FaHeart, FaBoxOpen, FaUser } from "react-icons/fa6";
 import { IoSearch } from "react-icons/io5";
@@ -17,8 +17,8 @@ import {
   Button,
 } from "@/components/ui";
 
-import { useCloseOnNav } from "@/hooks/use-close-on-nav";
-import { useMounted } from "@/hooks/use-mounted";
+import { useMounted } from "@/hooks/common/use-mounted";
+import { useSheetSafety } from "@/hooks/use-sheet-safety";
 
 import { SiteSidebar } from "./SiteSidebar";
 
@@ -30,6 +30,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
   const [open, setOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
+  const safeRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
   const mounted = useMounted();
@@ -41,12 +42,14 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
   const HIDE_HEADER_ON: string[] = ["/checkout"];
   const hideHeader = HIDE_HEADER_ON.includes(pathname);
   const isCartPage = pathname === "/cart";
-  const isAdmin = (user as any)?.role === "ADMIN";
+  const isAdmin = user?.role === "admin";
 
-  useCloseOnNav(() => {
-    setOpen(false);
-    setAccountMenuOpen(false);
-  });
+  const {
+    handlePointerLeaveHeader,
+    handlePointerLeaveSheet,
+    handleAnyNavClickCapture,
+    onInteractOutside,
+  } = useSheetSafety({ open, setOpen, safeRef, sheetId: SHEET_ID });
 
   if (hideHeader) return null;
 
@@ -91,7 +94,12 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
 
   return (
     <>
-      <header className="mx-auto w-full z-[100] sticky top-0 h-[var(--header-h)] grid grid-cols-[1fr_auto_1fr] items-center bg-background border-b px-4">
+      <header
+        ref={safeRef}
+        onPointerLeave={handlePointerLeaveHeader}
+        onClickCapture={handleAnyNavClickCapture}
+        className="mx-auto w-full z-[100] sticky top-0 h-[var(--header-h)] grid grid-cols-[1fr_auto_1fr] items-center bg-background border-b px-4"
+      >
         <div className="flex justify-self-start items-center h-full content-center">
           <Sheet open={open} onOpenChange={setOpen} modal={false}>
             <BurgerButton
@@ -104,10 +112,10 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
               id={SHEET_ID}
               side="left"
               className="w-[min(360px,92vw)] sm:w-[360px] lg:w-[400px] outline-none"
-              overlayClassName="hidden"
+              onPointerLeave={handlePointerLeaveSheet}
+              onClickCapture={handleAnyNavClickCapture}
+              onInteractOutside={onInteractOutside}
               onEscapeKeyDown={() => setOpen(false)}
-              // Evitamos que clicks dentro del sheet cierren cosas accidentalmente
-              onInteractOutside={(e) => e.preventDefault()}
             >
               <div className="overflow-y-auto h-full focus:outline-none">
                 <SheetTitle className="hidden">Menu</SheetTitle>
@@ -162,7 +170,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
 
               {/* MENÚ FLOTANTE */}
               {user && accountMenuOpen && (
-                <div className="hidden sm:block absolute right-0 top-[calc(100%-20px)] pt-4 w-72 z-30 animate-in fade-in zoom-in-95 duration-200">
+                <div className="hidden sm:block absolute right-0 top-[calc(100%-20px)] pt-4 w-72 z-[100] animate-in fade-in zoom-in-95 duration-200">
                   <div className="rounded-xs border bg-popover shadow-xl overflow-hidden">
                     {/* Cabecera del menú */}
                     <div className="bg-muted/30 p-4 border-b flex items-center gap-3">
@@ -243,7 +251,6 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
       </header>
       <div
         aria-hidden="true"
-        onMouseEnter={() => open && setOpen(false)}
         onClick={() => open && setOpen(false)}
         className={`fixed inset-x-0 bottom-0 top-[var(--header-h)] z-[70] bg-black print:hidden
               ${

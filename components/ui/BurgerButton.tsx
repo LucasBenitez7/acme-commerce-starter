@@ -19,7 +19,7 @@ export function BurgerButton({ open, onToggle, controlsId, className }: Props) {
     <div className="tip-right" data-tip={open ? "Cerrar menú" : "Abrir menú"}>
       <button
         type="button"
-        onClick={onToggle}
+        onClick={() => onToggle}
         aria-label={open ? "Cerrar menú" : "Abrir menú"}
         aria-expanded={open}
         aria-controls={controlsId}

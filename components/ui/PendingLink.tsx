@@ -3,7 +3,7 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-import { useNavPending } from "@/hooks/use-nav-pending";
+import { useNavPending } from "@/hooks/common/use-nav-pending";
 
 export function PendingLink({
   href,
