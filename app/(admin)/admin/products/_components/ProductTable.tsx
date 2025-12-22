@@ -1,7 +1,18 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { FaEdit } from "react-icons/fa";
 
 import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 import { formatCurrency, parseCurrency } from "@/lib/currency";
 import { type AdminProductItem } from "@/lib/products/types";
@@ -9,34 +20,32 @@ import { cn } from "@/lib/utils";
 
 interface ProductTableProps {
   products: AdminProductItem[];
-  grandTotalStock: number;
+  grandTotalStock: number; // Mantenemos esto si lo usas en el header
 }
 
 export function ProductTable({ products, grandTotalStock }: ProductTableProps) {
   if (products.length === 0) {
     return (
-      <div className="text-center py-12 text-neutral-500">
-        No se encontraron productos con estos filtros.
+      <div className="flex flex-col items-center justify-center py-16 text-neutral-500 bg-white border border-dashed rounded-lg">
+        <p>No se encontraron productos con estos filtros.</p>
       </div>
     );
   }
 
   return (
-    <div className="relative w-full overflow-auto">
-      <table className="w-full text-sm text-left">
-        <thead className="text-xs text-foreground uppercase bg-neutral-50 border-b">
-          <tr>
-            <th className="px-6 py-3 font-semibold w-[80px]">Imagen</th>
-            <th className="px-6 py-3 font-semibold">Nombre</th>
-            <th className="px-6 py-3 font-semibold">Categoría</th>
-            <th className="px-6 py-3 font-semibold">Precio</th>
-            <th className="px-6 py-3 font-semibold">
-              Stock Total ({grandTotalStock})
-            </th>
-            <th className="px-6 py-3 font-semibold text-right">Acciones</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-neutral-100">
+    <div className="rounded-md border bg-white overflow-hidden">
+      <Table>
+        <TableHeader className="bg-neutral-50">
+          <TableRow>
+            <TableHead className="w-[80px]">Imagen</TableHead>
+            <TableHead>Nombre / Estado</TableHead>
+            <TableHead>Categoría</TableHead>
+            <TableHead>Precio</TableHead>
+            <TableHead className="text-right">Stock</TableHead>
+            <TableHead className="text-right">Acciones</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {products.map((product) => {
             const isArchived = product.isArchived;
             const img = product.images[0]?.url ?? "/og/default-product.jpg";
@@ -45,70 +54,92 @@ export function ProductTable({ products, grandTotalStock }: ProductTableProps) {
             const isOutOfStock = totalStock === 0;
 
             return (
-              <tr
-                key={product.id}
-                className="group hover:bg-neutral-50/50 transition-colors"
-              >
-                <td className="px-6 py-3">
-                  <div className="relative h-10 w-10 rounded overflow-hidden bg-neutral-100 border">
+              <TableRow key={product.id} className="hover:bg-neutral-50/50">
+                {/* 1. IMAGEN */}
+                <TableCell className="py-3">
+                  <div className="relative h-12 w-12 rounded-md border bg-neutral-100 overflow-hidden">
                     <Image
                       src={img}
                       alt={product.name}
                       fill
                       className="object-cover"
-                      sizes="40px"
+                      sizes="48px"
                     />
                   </div>
-                </td>
-                <td className="px-6 py-3 font-medium text-neutral-900">
-                  <div className="flex items-center gap-2">
-                    {product.name}
-                    {isOutOfStock && !isArchived && (
-                      <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-medium text-red-800">
-                        Agotado
+                </TableCell>
+
+                {/* 2. NOMBRE + BADGES */}
+                <TableCell>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-neutral-900 line-clamp-1">
+                        {product.name}
                       </span>
-                    )}
-                    {isArchived && (
-                      <span className="inline-flex items-center rounded-full bg-neutral-200 px-2 py-0.5 text-[10px] font-medium text-neutral-700">
-                        Archivado
-                      </span>
-                    )}
+
+                      {/* Badge de Archivado */}
+                      {isArchived && (
+                        <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">
+                          Archivado
+                        </span>
+                      )}
+
+                      {/* Badge de Agotado */}
+                      {isOutOfStock && !isArchived && (
+                        <span className="inline-flex items-center rounded-md bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
+                          Agotado
+                        </span>
+                      )}
+                    </div>
+                    {/* Subtítulo de variantes */}
+                    <span className="text-xs text-muted-foreground">
+                      {product.variants.length} variantes configuradas
+                    </span>
                   </div>
-                </td>
-                <td className="px-6 py-3 text-neutral-500">
+                </TableCell>
+
+                {/* 3. CATEGORÍA */}
+                <TableCell className="text-muted-foreground">
                   {product.category.name}
-                </td>
-                <td className="px-6 py-3 font-medium">
+                </TableCell>
+
+                {/* 4. PRECIO */}
+                <TableCell>
                   {formatCurrency(product.priceCents, currency)}
-                </td>
-                <td className="px-6 py-3">
-                  <span
-                    className={cn(
-                      "font-medium",
-                      isOutOfStock ? "text-red-600" : "text-green-600",
-                    )}
-                  >
-                    {totalStock} u.
-                  </span>
-                  <span className="text-xs text-muted-foreground ml-1">
-                    ({product.variants.length} var.)
-                  </span>
-                </td>
-                <td className="px-6 py-3 text-right">
+                </TableCell>
+
+                {/* 5. STOCK */}
+                <TableCell className="text-right">
+                  <div className="flex flex-col items-end">
+                    <span
+                      className={cn(
+                        "font-medium",
+                        isOutOfStock ? "text-red-600" : "text-neutral-700",
+                      )}
+                    >
+                      {totalStock} u.
+                    </span>
+                  </div>
+                </TableCell>
+
+                {/* 6. ACCIONES (Solo Editar) */}
+                <TableCell className="text-right">
                   <Button
-                    asChild
                     variant="ghost"
-                    size="sm"
-                    className="h-8 px-2 lg:px-3"
+                    size="icon"
+                    asChild
+                    className="h-8 w-8 text-neutral-500 hover:text-black"
                   >
-                    <Link href={`/admin/products/${product.id}`}>Editar</Link>
+                    <Link href={`/admin/products/${product.id}`}>
+                      <FaEdit className="h-4 w-4" />
+                      <span className="sr-only">Editar</span>
+                    </Link>
                   </Button>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             );
           })}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

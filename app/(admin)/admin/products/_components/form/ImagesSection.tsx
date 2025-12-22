@@ -17,14 +17,23 @@ import {
 import type { ProductFormValues } from "@/lib/products/schema";
 
 export function ImagesSection() {
-  const { control, watch, setValue } = useFormContext<ProductFormValues>();
+  const {
+    control,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useFormContext<ProductFormValues>();
   const { fields, append, remove } = useFieldArray({ control, name: "images" });
 
   const variants = watch("variants") || [];
-  // Obtenemos colores únicos para el select
-  const availableColors = Array.from(
+
+  const variantColors = Array.from(
     new Set(variants.map((v) => v.color).filter(Boolean)),
   );
+
+  const images = watch("images") || [];
+
+  const colorsWithImage = new Set(images.map((i) => i.color).filter(Boolean));
 
   return (
     <div className="bg-white p-6 rounded-lg border shadow-sm space-y-4">
@@ -86,6 +95,31 @@ export function ImagesSection() {
         </CldUploadWidget>
       </div>
 
+      <div className="flex flex-wrap gap-2 text-xs">
+        {variantColors.map((color) => {
+          const hasImg = colorsWithImage.has(color);
+          return (
+            <span
+              key={color}
+              className={`px-2 py-1 rounded-full border flex items-center gap-1 ${hasImg ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200 font-bold"}`}
+            >
+              <span
+                className={`w-2 h-2 rounded-full ${hasImg ? "bg-green-500" : "bg-red-500"}`}
+              />
+              {color}
+              {!hasImg && "(Falta foto)"}
+            </span>
+          );
+        })}
+      </div>
+
+      {/* Error de validación Zod */}
+      {errors.images?.message && (
+        <p className="text-sm text-red-600 font-medium flex items-center gap-2">
+          {errors.images.message}
+        </p>
+      )}
+
       {/* GRID DE IMÁGENES */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {fields.map((field, index) => {
@@ -133,8 +167,7 @@ export function ImagesSection() {
                       <SelectValue placeholder="Color..." />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">🌐 Todos los colores</SelectItem>
-                      {availableColors.map((c) => (
+                      {variantColors.map((c) => (
                         <SelectItem key={c} value={c}>
                           🎨 {c}
                         </SelectItem>

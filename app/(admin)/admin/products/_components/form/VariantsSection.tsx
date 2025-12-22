@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import {
   FaPlus,
@@ -22,13 +22,21 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 
-import { CLOTHING_SIZES, SHOE_SIZES } from "@/lib/constants";
+import { CLOTHING_SIZES, SHOE_SIZES, PRODUCT_COLORS } from "@/lib/constants";
 import { type ProductFormValues } from "@/lib/products/schema";
+import { capitalize } from "@/lib/products/utils";
 import { cn } from "@/lib/utils";
 
-import { useVariantGenerator } from "@/hooks/use-variant-generator";
+import { useVariantGenerator } from "@/hooks/products/use-variant-generator";
 
 type Props = {
   suggestions: { sizes: string[]; colors: string[] };
@@ -39,6 +47,7 @@ export function VariantsSection({ suggestions }: Props) {
     register,
     control,
     setValue,
+    watch,
     formState: { errors },
   } = useFormContext<ProductFormValues>();
 
@@ -49,32 +58,73 @@ export function VariantsSection({ suggestions }: Props) {
 
   const { generateVariants } = useVariantGenerator();
 
-  // --- ESTADO LOCAL DEL GENERADOR ---
   const [openGenerator, setOpenGenerator] = useState(false);
+
+  const [selectedPresetColor, setSelectedPresetColor] =
+    useState<string>("custom");
+
   const [genSizes, setGenSizes] = useState<string[]>([]);
-  const [genColor, setGenColor] = useState("");
+  const [genColorName, setGenColorName] = useState("");
   const [genColorHex, setGenColorHex] = useState("#000000");
   const [genStock, setGenStock] = useState(10);
 
-  const handleGenerate = () => {
-    if (!genColor)
-      return toast.error(
-        "Por favor, escribe un nombre para el color (ej: Rojo)",
-      );
-    if (genSizes.length === 0)
-      return toast.error("Selecciona al menos una talla");
+  useEffect(() => {
+    if (selectedPresetColor !== "custom") {
+      const preset = PRODUCT_COLORS.find((c) => c.name === selectedPresetColor);
+      if (preset) {
+        setGenColorName(preset.name);
+        setGenColorHex(preset.hex);
+      }
+    } else {
+      if (PRODUCT_COLORS.some((c) => c.name === genColorName)) {
+        setGenColorName("");
+        setGenColorHex("#000000");
+      }
+    }
+  }, [selectedPresetColor]);
 
+  const handleGenerate = () => {
+    // 1. Validaciones
+    if (!genColorName.trim())
+      return toast.error("Por favor, escribe o selecciona un color.");
+
+    if (genSizes.length === 0)
+      return toast.error("Selecciona al menos una talla.");
+
+    const finalColorName = capitalize(genColorName.trim());
+
+    // 2. Generación
     const newVars = generateVariants(
       genSizes,
-      [{ name: genColor, hex: genColorHex }],
+      [{ name: finalColorName, hex: genColorHex }],
       genStock,
     );
 
-    append(newVars);
+    const uniqueVars = newVars.filter((newVar) => {
+      const exists = fields.some(
+        (existingField) =>
+          existingField.size === newVar.size &&
+          existingField.color === newVar.color,
+      );
+      return !exists;
+    });
+
+    if (uniqueVars.length === 0) {
+      toast.info("Esas variantes ya existen en la lista.");
+      return;
+    }
+
+    append(uniqueVars);
+
     setOpenGenerator(false);
-    // Limpiamos solo las tallas para facilitar agregar otro color
     setGenSizes([]);
-    toast.success(`${newVars.length} variantes añadidas`);
+    if (uniqueVars.length < newVars.length) {
+      toast.success(
+        `Añadidas ${uniqueVars.length} variantes (se omitieron duplicados).`,
+      );
+    } else {
+      toast.success(`${uniqueVars.length} variantes añadidas.`);
+    }
   };
 
   const toggleSize = (s: string) => {
@@ -118,90 +168,142 @@ export function VariantsSection({ suggestions }: Props) {
               </DialogHeader>
 
               <div className="space-y-6 py-4">
-                {/* 1. Configuración de Color */}
+                {/* 1. CONFIGURACIÓN DE COLOR (MEJORADA) */}
                 <div className="bg-neutral-50 p-4 rounded-md border space-y-3">
                   <Label className="flex items-center gap-2">
                     <FaPalette /> Configuración del Color
                   </Label>
-                  <div className="flex gap-3 items-center">
-                    <div className="relative group cursor-pointer">
-                      <div
-                        className="w-10 h-10 rounded-full border-2 border-white shadow-sm"
-                        style={{ backgroundColor: genColorHex }}
-                      />
-                      <input
-                        type="color"
-                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                        value={genColorHex}
-                        onChange={(e) => setGenColorHex(e.target.value)}
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <Input
-                        placeholder="Nombre del color (Ej: Azul Marino)"
-                        value={genColor}
-                        onChange={(e) => setGenColor(e.target.value)}
-                      />
+
+                  <div className="grid gap-3">
+                    {/* Selector de Presets */}
+                    <Select
+                      value={selectedPresetColor}
+                      onValueChange={setSelectedPresetColor}
+                    >
+                      <SelectTrigger className="bg-white">
+                        <SelectValue placeholder="Elige un color base o personalizado" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="custom">
+                          ✨ Color Personalizado
+                        </SelectItem>
+                        {PRODUCT_COLORS.filter((c) => c.name !== "Default").map(
+                          (c) => (
+                            <SelectItem key={c.name} value={c.name}>
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className="w-3 h-3 rounded-full border"
+                                  style={{ background: c.hex }}
+                                />
+                                {c.name}
+                              </div>
+                            </SelectItem>
+                          ),
+                        )}
+                      </SelectContent>
+                    </Select>
+
+                    <div className="flex gap-3 items-center">
+                      {/* Picker Visual */}
+                      <div className="relative group cursor-pointer shrink-0">
+                        <div
+                          className="w-10 h-10 rounded-full border-2 border-white shadow-sm ring-1 ring-neutral-200"
+                          style={{ backgroundColor: genColorHex }}
+                        />
+                        {/* Solo permitimos cambiar el HEX si es Custom, o dejamos que lo cambien siempre para ajustar el tono */}
+                        <input
+                          type="color"
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                          value={genColorHex}
+                          onChange={(e) => {
+                            setGenColorHex(e.target.value);
+                            // Si cambia el hex manualmente, pasamos a custom visualmente para evitar confusiones
+                            if (selectedPresetColor !== "custom")
+                              setSelectedPresetColor("custom");
+                          }}
+                        />
+                      </div>
+
+                      {/* Input de Nombre */}
+                      <div className="flex-1">
+                        <Input
+                          placeholder="Nombre del color (Ej: Azul Marino)"
+                          value={genColorName}
+                          onChange={(e) => {
+                            setGenColorName(e.target.value);
+                            if (selectedPresetColor !== "custom")
+                              setSelectedPresetColor("custom");
+                          }}
+                          // Capitalización visual al perder foco (onBlur)
+                          onBlur={() =>
+                            setGenColorName((prev) => capitalize(prev))
+                          }
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* 2. Configuración de Tallas */}
+                {/* 2. CONFIGURACIÓN DE TALLAS (Reutiliza tus constantes) */}
                 <div className="space-y-3">
                   <Label className="flex items-center gap-2">
                     <FaTags /> Selecciona las Tallas
                   </Label>
 
-                  <div className="space-y-2">
-                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      Ropa
-                    </span>
-                    <div className="flex flex-wrap gap-2">
-                      {CLOTHING_SIZES.map((size) => (
-                        <div
-                          key={size}
-                          onClick={() => toggleSize(size)}
-                          className={cn(
-                            "cursor-pointer px-3 py-1.5 rounded-md text-sm border transition-all select-none",
-                            genSizes.includes(size)
-                              ? "bg-neutral-900 text-white border-neutral-900"
-                              : "bg-white text-neutral-700 hover:border-neutral-400",
-                          )}
-                        >
-                          {size}
-                        </div>
-                      ))}
+                  <div className="space-y-4 border p-4 rounded-md">
+                    {/* ROPA */}
+                    <div>
+                      <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2 block">
+                        Ropa
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        {CLOTHING_SIZES.map((size) => (
+                          <div
+                            key={size}
+                            onClick={() => toggleSize(size)}
+                            className={cn(
+                              "cursor-pointer px-3 py-1.5 rounded-md text-sm border transition-all select-none",
+                              genSizes.includes(size)
+                                ? "bg-neutral-900 text-white border-neutral-900"
+                                : "bg-white text-neutral-700 hover:border-neutral-400",
+                            )}
+                          >
+                            {size}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
 
-                  <Separator className="my-2" />
+                    <Separator />
 
-                  <div className="space-y-2">
-                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      Calzado
-                    </span>
-                    <div className="flex flex-wrap gap-2">
-                      {SHOE_SIZES.map((size) => (
-                        <div
-                          key={size}
-                          onClick={() => toggleSize(size)}
-                          className={cn(
-                            "cursor-pointer px-3 py-1.5 rounded-md text-sm border transition-all select-none",
-                            genSizes.includes(size)
-                              ? "bg-neutral-900 text-white border-neutral-900"
-                              : "bg-white text-neutral-700 hover:border-neutral-400",
-                          )}
-                        >
-                          {size}
-                        </div>
-                      ))}
+                    {/* CALZADO */}
+                    <div>
+                      <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2 block">
+                        Calzado
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        {SHOE_SIZES.map((size) => (
+                          <div
+                            key={size}
+                            onClick={() => toggleSize(size)}
+                            className={cn(
+                              "cursor-pointer px-3 py-1.5 rounded-md text-sm border transition-all select-none",
+                              genSizes.includes(size)
+                                ? "bg-neutral-900 text-white border-neutral-900"
+                                : "bg-white text-neutral-700 hover:border-neutral-400",
+                            )}
+                          >
+                            {size}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* 3. Stock Inicial */}
+                {/* 3. STOCK INICIAL */}
                 <div className="space-y-2">
-                  <Label>Stock inicial para estas variantes</Label>
+                  <Label>Stock inicial por variante</Label>
                   <Input
                     type="number"
                     min="0"
@@ -239,13 +341,12 @@ export function VariantsSection({ suggestions }: Props) {
 
       {errors.variants && (
         <div className="p-3 bg-red-50 border border-red-100 rounded text-red-600 text-sm">
-          ⚠️ {errors.variants.message || "Revisa las variantes, hay errores."}
+          {errors.variants.message || "Revisa las variantes, hay errores."}
         </div>
       )}
 
-      {/* --- TABLA DE EDICIÓN --- */}
+      {/* --- TABLA DE EDICIÓN (VISUAL MEJORADA) --- */}
       <div className="space-y-2">
-        {/* Header Desktop */}
         <div className="hidden md:grid grid-cols-12 gap-4 text-xs font-semibold text-neutral-500 uppercase px-3 py-2 bg-neutral-50 rounded-t-md border-b">
           <div className="col-span-3">Talla</div>
           <div className="col-span-5">Color (Hex + Nombre)</div>
@@ -260,18 +361,15 @@ export function VariantsSection({ suggestions }: Props) {
                 key={field.id}
                 className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center p-3 border rounded-md bg-white hover:shadow-sm transition-shadow relative"
               >
-                {/* Mobile Label */}
-                <div className="md:hidden text-xs font-bold text-neutral-400 uppercase mb-1">
-                  Talla
-                </div>
-
-                {/* TALLA INPUT */}
+                {/* TALLA */}
                 <div className="col-span-3">
+                  <span className="md:hidden text-xs font-bold text-neutral-400 uppercase mb-1 block">
+                    Talla
+                  </span>
                   <Input
                     {...register(`variants.${index}.size`)}
                     placeholder="Ej: XL"
                     className="uppercase font-medium"
-                    // Forzar mayúsculas visualmente y al escribir
                     onChange={(e) => {
                       setValue(
                         `variants.${index}.size`,
@@ -279,61 +377,51 @@ export function VariantsSection({ suggestions }: Props) {
                       );
                     }}
                   />
-                  {errors.variants?.[index]?.size && (
-                    <span className="text-[10px] text-red-500 mt-1 block">
-                      Requerido
-                    </span>
-                  )}
                 </div>
 
-                {/* Mobile Label */}
-                <div className="md:hidden text-xs font-bold text-neutral-400 uppercase mt-2 mb-1">
-                  Color
-                </div>
-
-                {/* COLOR INPUTS */}
-                <div className="col-span-5 flex gap-2 items-center">
-                  <div className="relative group shrink-0">
-                    <div className="w-10 h-10 rounded border shadow-sm overflow-hidden">
+                {/* COLOR */}
+                <div className="col-span-5">
+                  <span className="md:hidden text-xs font-bold text-neutral-400 uppercase mb-1 block">
+                    Color
+                  </span>
+                  <div className="flex gap-2 items-center">
+                    <div className="w-10 h-10 rounded border shadow-sm overflow-hidden shrink-0 relative">
                       <input
                         type="color"
-                        className="w-[150%] h-[150%] -m-[25%] cursor-pointer p-0 border-0"
+                        className="absolute inset-0 w-[150%] h-[150%] -m-[25%] cursor-pointer p-0 border-0"
                         {...register(`variants.${index}.colorHex`)}
                       />
                     </div>
-                  </div>
-                  <div className="flex-1">
                     <Input
                       {...register(`variants.${index}.color`)}
-                      placeholder="Nombre color"
+                      placeholder="Nombre"
+                      // Capitalizar al editar manualmente también
+                      onBlur={(e) => {
+                        setValue(
+                          `variants.${index}.color`,
+                          capitalize(e.target.value),
+                        );
+                      }}
                     />
                   </div>
                 </div>
 
-                {/* Mobile Label */}
-                <div className="md:hidden text-xs font-bold text-neutral-400 uppercase mt-2 mb-1">
-                  Stock
-                </div>
-
-                {/* STOCK INPUT */}
+                {/* STOCK */}
                 <div className="col-span-3">
+                  <span className="md:hidden text-xs font-bold text-neutral-400 uppercase mb-1 block">
+                    Stock
+                  </span>
                   <Input
                     type="number"
                     min="0"
                     {...register(`variants.${index}.stock`, {
                       valueAsNumber: true,
                     })}
-                    placeholder="0"
                   />
-                  {errors.variants?.[index]?.stock && (
-                    <span className="text-[10px] text-red-500 mt-1 block">
-                      Mínimo 0
-                    </span>
-                  )}
                 </div>
 
-                {/* DELETE BUTTON */}
-                <div className="col-span-1 flex justify-end md:justify-center mt-2 md:mt-0">
+                {/* DELETE */}
+                <div className="col-span-1 flex justify-end md:justify-center">
                   <Button
                     type="button"
                     variant="ghost"
@@ -353,7 +441,6 @@ export function VariantsSection({ suggestions }: Props) {
           <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed rounded-lg bg-neutral-50/50 text-neutral-400">
             <FaLayerGroup className="h-10 w-10 mb-3 opacity-20" />
             <p>No has añadido variantes.</p>
-            <p className="text-sm">Usa el generador o añade una manualmente.</p>
           </div>
         )}
       </div>

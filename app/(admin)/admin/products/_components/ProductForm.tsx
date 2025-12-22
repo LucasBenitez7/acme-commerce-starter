@@ -43,23 +43,8 @@ export function ProductForm({
     categoryId: product?.categoryId || "",
     isArchived: product?.isArchived || false,
     slug: product?.slug || undefined,
-    // Mapeamos para asegurar que coinciden con el esquema (especialmente opcionales)
-    images:
-      product?.images?.map((img) => ({
-        id: img.id,
-        url: img.url,
-        color: img.color || null,
-        sort: img.sort || 0,
-        alt: img.alt || "",
-      })) || [],
-    variants:
-      product?.variants?.map((v) => ({
-        id: v.id,
-        size: v.size,
-        color: v.color,
-        colorHex: v.colorHex || null,
-        stock: v.stock || 0,
-      })) || [],
+    images: product?.images || [],
+    variants: product?.variants || [],
   };
 
   const methods = useForm<ProductFormValues>({
@@ -68,7 +53,10 @@ export function ProductForm({
     mode: "onChange",
   });
 
-  const { handleSubmit } = methods;
+  const {
+    handleSubmit,
+    formState: { errors },
+  } = methods;
 
   const onSubmit = (data: ProductFormValues) => {
     startTransition(async () => {
@@ -84,19 +72,19 @@ export function ProductForm({
       formData.append("isArchived", String(data.isArchived));
       if (data.slug) formData.append("slug", data.slug);
 
-      // SERIALIZACIÓN JSON (La clave para arrays complejos)
+      // SERIALIZACIÓN JSON
       formData.append("imagesJson", JSON.stringify(data.images));
       formData.append("variantsJson", JSON.stringify(data.variants));
 
       const result = await upsertProductAction({}, formData);
 
       if (result?.errors) {
-        // Mostrar errores de servidor en un toast genérico o mapearlos
         toast.error("Error en el formulario. Revisa los campos.");
       } else if (result?.message) {
         toast.error(result.message);
       } else {
         toast.success("Producto guardado correctamente");
+        router.refresh();
       }
     });
   };
@@ -104,8 +92,15 @@ export function ProductForm({
   return (
     <FormProvider {...methods}>
       <h1 className="text-2xl font-bold">
-        {product ? "Editar Producto" : "Nuevo Producto"}
+        {product?.id ? "Editar Producto" : "Nuevo Producto"}
       </h1>
+      {errors.images?.message && (
+        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-md flex items-center gap-3 animate-in slide-in-from-top-2">
+          <div>
+            <p className="text-sm">{errors.images.message}</p>
+          </div>
+        </div>
+      )}
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="max-w-5xl mx-auto space-y-8"
