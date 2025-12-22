@@ -22,15 +22,13 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const sp = await searchParams;
   const page = Math.max(1, parsePage(sp.page, 1));
 
-  // 1. Buscamos la categoría
   const cat = await getCategoryBySlug(slug);
   if (!cat) notFound();
 
-  // 2. Buscamos productos de esa categoría
   const { rows, total } = await fetchProductsPage({
     page,
     perPage: PER_PAGE,
-    where: { categoryId: cat.id }, // Prisma filtrará por ID de categoría
+    where: { categoryId: cat.id },
   });
 
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));

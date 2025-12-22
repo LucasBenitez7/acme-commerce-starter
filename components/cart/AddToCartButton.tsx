@@ -61,7 +61,7 @@ export function AddToCartButton({
       variant={"default"}
       disabled={disabled || !variant?.id}
       className={
-        className ?? "hover:cursor-pointer w-full rounded-xs text-base"
+        className ?? "hover:cursor-pointer w-full rounded-xs text-base py-3"
       }
     >
       Añadir a la cesta

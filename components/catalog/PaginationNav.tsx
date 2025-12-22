@@ -18,7 +18,6 @@ export function PaginationNav({ totalPages, page, base }: Props) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Si nos pasan 'base', la usamos. Si no, usamos la ruta actual automática via usePathname.
   const basePath = base ?? pathname;
 
   if (totalPages <= 1) return null;
@@ -26,7 +25,6 @@ export function PaginationNav({ totalPages, page, base }: Props) {
   const createPageUrl = (pageNumber: number) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", pageNumber.toString());
-    // Usamos basePath en lugar de pathname directamente
     return `${basePath}?${params.toString()}`;
   };
 
@@ -38,7 +36,6 @@ export function PaginationNav({ totalPages, page, base }: Props) {
       aria-label="Paginación"
       className="flex items-center justify-center gap-2 mt-4"
     >
-      {/* Botón ANTERIOR */}
       <Button
         variant="outline"
         size="icon"
@@ -51,12 +48,10 @@ export function PaginationNav({ totalPages, page, base }: Props) {
         </Link>
       </Button>
 
-      {/* Indicador de Texto */}
       <span className="text-sm font-medium text-neutral-600 px-2">
         Página {page} de {totalPages}
       </span>
 
-      {/* Botón SIGUIENTE */}
       <Button
         variant="outline"
         size="icon"

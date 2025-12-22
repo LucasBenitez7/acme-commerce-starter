@@ -2,102 +2,35 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useMemo, useRef, useEffect } from "react";
 
 import { FavoriteButton } from "@/components/ui";
 
-import { COLOR_MAP } from "@/lib/constants";
 import { formatCurrency, DEFAULT_CURRENCY } from "@/lib/currency";
-import { sortSizes } from "@/lib/products/utils";
 import { cn } from "@/lib/utils";
 
-import { useCartStore } from "@/store/cart";
-import { useStore } from "@/store/use-store";
+import { useProductCard } from "@/hooks/products/use-product-card";
 
 import type { ProductListItem } from "@/lib/products/types";
 
-function getImageForColor(
-  images: { url: string; color?: string | null }[],
-  selectedColor: string | null,
-) {
-  if (!selectedColor) return images[0]?.url;
-  const match = images.find((img) => img.color === selectedColor);
-  if (match) return match.url;
-  return images[0]?.url;
-}
-
 export function ProductCard({ item }: { item: ProductListItem }) {
-  const isFavorite = false;
-
-  const isOutOfStock = item.totalStock === 0;
-
-  const imageContainerRef = useRef<HTMLDivElement>(null);
-  const [showSizes, setShowSizes] = useState(false);
-
-  const cartItems = useStore(useCartStore, (state) => state.items) ?? [];
-
-  const sizes = useMemo(() => {
-    const unique = Array.from(new Set(item.variants.map((v) => v.size)));
-    return sortSizes(unique);
-  }, [item.variants]);
-
-  const colors = useMemo(() => {
-    return Array.from(new Set(item.variants.map((v) => v.color))).sort();
-  }, [item.variants]);
-
-  const [selectedSize, setSelectedSize] = useState<string | null>(
-    sizes.length === 1 ? sizes[0] : null,
-  );
-
-  const [selectedColor, setSelectedColor] = useState<string | null>(
-    colors.length > 0 ? colors[0] : null,
-  );
-
-  const displayImage = useMemo(() => {
-    // @ts-ignore: Si item.images no existe en el tipo todavía, usará thumbnail.
-    const allImages = item.images || [{ url: item.thumbnail }];
-    return (
-      getImageForColor(allImages, selectedColor) ?? "/og/default-products.jpg"
-    );
-  }, [item, selectedColor]);
-
-  const selectedVariant = useMemo(() => {
-    return item.variants.find(
-      (v) => v.size === selectedSize && v.color === selectedColor,
-    );
-  }, [item.variants, selectedSize, selectedColor]);
-
-  const cartQty = useMemo(() => {
-    if (!selectedVariant) return 0;
-    return (
-      cartItems.find((i) => i.variantId === selectedVariant.id)?.quantity ?? 0
-    );
-  }, [cartItems, selectedVariant]);
-
-  const isCombinationValid = selectedVariant
-    ? selectedVariant.stock > 0
-    : false;
-  const isMaxedOut =
-    selectedVariant &&
-    cartQty >= selectedVariant.stock &&
-    selectedVariant.stock > 0;
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        imageContainerRef.current &&
-        !imageContainerRef.current.contains(event.target as Node)
-      ) {
-        setShowSizes(false);
-      }
-    }
-    if (showSizes) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [showSizes]);
+  const {
+    imageContainerRef,
+    showSizes,
+    setShowSizes,
+    sizes,
+    colors,
+    selectedColor,
+    selectedSize,
+    handleColorSelect,
+    displayImage,
+    selectedVariant,
+    productUrl,
+    isOutOfStock,
+    isCombinationValid,
+    isMaxedOut,
+    handleQuickAdd,
+    cartItems,
+  } = useProductCard(item);
 
   return (
     <div className="flex flex-col overflow-hidden bg-background transition-all h-full">
@@ -105,7 +38,7 @@ export function ProductCard({ item }: { item: ProductListItem }) {
         ref={imageContainerRef}
         className="group/image relative aspect-[3/4] bg-neutral-100 overflow-hidden shrink-0"
       >
-        <Link href={`/product/${item.slug}`} className="block h-full w-full">
+        <Link href={productUrl} className="block h-full w-full">
           <Image
             src={displayImage}
             alt={item.name}
@@ -118,7 +51,7 @@ export function ProductCard({ item }: { item: ProductListItem }) {
         {/* Badge Agotado */}
         {isOutOfStock && (
           <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none bg-black/50">
-            <div className=" text-white/70 px-4 py-2 text-lg font-bold uppercase tracking-widest border-2 border-white/70">
+            <div className="text-white/70 px-4 py-2 text-lg font-bold uppercase tracking-widest border-2 border-white/70">
               Agotado
             </div>
           </div>
@@ -128,7 +61,7 @@ export function ProductCard({ item }: { item: ProductListItem }) {
         {!isOutOfStock && sizes.length > 0 && (
           <div
             className={cn(
-              "absolute inset-x-0 bottom-0 p-4 items-end justify-center transition-all duration-300",
+              "absolute inset-x-0 bottom-0 p-3 items-end justify-center transition-all duration-300 text-foreground",
               "translate-y-4 opacity-0 hidden lg:flex",
               showSizes
                 ? "flex translate-y-0 opacity-100"
@@ -139,29 +72,49 @@ export function ProductCard({ item }: { item: ProductListItem }) {
             <div className="flex flex-wrap justify-center gap-1.5 w-full">
               {sizes.map((size) => {
                 const isSelected = selectedSize === size;
-                const isAvailable = item.variants.some(
+
+                const variantForButton = item.variants.find(
                   (v) =>
                     v.size === size &&
-                    (selectedColor ? v.color === selectedColor : true) &&
-                    v.stock > 0,
+                    (selectedColor ? v.color === selectedColor : true),
                 );
+
+                const isAvailable =
+                  variantForButton && variantForButton.stock > 0;
+
+                const qtyInCart =
+                  cartItems.find((i) => i.variantId === variantForButton?.id)
+                    ?.quantity ?? 0;
+
+                const isMaxedOutForThisSize = variantForButton
+                  ? qtyInCart >= variantForButton.stock
+                  : false;
+
+                const isDisabled = !isAvailable || isMaxedOutForThisSize;
+
                 return (
                   <button
                     key={size}
                     type="button"
-                    disabled={!isAvailable}
+                    disabled={isDisabled}
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      setSelectedSize(size);
+                      if (isAvailable) {
+                        handleQuickAdd(size);
+                      }
                     }}
                     className={cn(
-                      "h-5 mx-[4px] px-[1px] border-b-2 border-transparent text-sm font-medium transition-all hover:cursor-pointer",
-                      isSelected
-                        ? "border-b-2 border-foreground"
-                        : "text-foreground hover:border-b-2 hover:border-foreground",
-                      !isAvailable &&
+                      "h-5 mx-[4px] px-[1px] border-b-2 border-transparent text-sm font-semibold transition-all text-foreground",
+                      isDisabled &&
                         "opacity-50 hover:cursor-default border-transparent hover:border-transparent text-muted-foreground line-through",
+                      !isDisabled &&
+                        "hover:cursor-pointer hover:border-foreground text-foreground",
+                      !isDisabled && isSelected
+                        ? "border-foreground text-foreground"
+                        : !isDisabled
+                          ? "text-neutral-600"
+                          : "",
                     )}
                   >
                     {size}
@@ -177,8 +130,8 @@ export function ProductCard({ item }: { item: ProductListItem }) {
       <div className="flex flex-col gap-2 px-2 pt-3 pb-2 flex-1 space-y-2 bg-background z-10 relative">
         <div className="flex items-start justify-between gap-2">
           <div className="space-y-1 w-full">
-            <Link href={`/product/${item.slug}`} className="block w-max">
-              <h3 className="text-sm w-max font-medium leading-tight text-foreground line-clamp-1">
+            <Link href={productUrl} className="block w-max">
+              <h3 className="text-sm w-max font-medium leading-tight text-foreground line-clamp-1 hover:underline underline-offset-2">
                 {item.name}
               </h3>
             </Link>
@@ -187,7 +140,7 @@ export function ProductCard({ item }: { item: ProductListItem }) {
             </p>
           </div>
           <FavoriteButton
-            isFavorite={isFavorite}
+            isFavorite={false}
             onToggle={() => {}}
             className="shrink-0"
           />
@@ -212,7 +165,6 @@ export function ProductCard({ item }: { item: ProductListItem }) {
                 type="button"
                 onClick={(e) => {
                   e.preventDefault();
-                  1;
                   setShowSizes((prev) => !prev);
                 }}
                 className={cn(
@@ -222,25 +174,23 @@ export function ProductCard({ item }: { item: ProductListItem }) {
                     : "text-foreground hover:text-foreground",
                 )}
               >
-                Ver tallas disponibles({sizes.length})
-                {/* {showSizes ? "Ocultar tallas" : `+ ${sizes.length} tallas`} */}
+                {showSizes
+                  ? "Ocultar tallas"
+                  : `+ Ver tallas (${sizes.length})`}
               </button>
             ) : (
               <div className="h-6"></div>
             )}
           </div>
 
-          {/* COLORES */}
+          {/* COLORES (RESTAURADO CON COLOR_MAP) */}
           <div className="flex items-center justify-between">
             <div className="flex flex-wrap gap-2">
               {colors.map((color) => {
                 const variantWithColor = item.variants.find(
                   (v) => v.color === color,
                 );
-                const bg =
-                  variantWithColor?.colorHex ||
-                  COLOR_MAP[color] ||
-                  COLOR_MAP["Default"];
+                const hex = variantWithColor?.colorHex || "#e5e5e5";
                 const isSelected = selectedColor === color;
 
                 return (
@@ -250,7 +200,7 @@ export function ProductCard({ item }: { item: ProductListItem }) {
                     title={color}
                     onClick={(e) => {
                       e.preventDefault();
-                      setSelectedColor(color);
+                      handleColorSelect(color);
                     }}
                     className={cn(
                       "h-[16px] w-[16px] border transition-all focus:outline-none hover:cursor-pointer shadow-[0_8px_0_0_#fff]",
@@ -258,15 +208,13 @@ export function ProductCard({ item }: { item: ProductListItem }) {
                         ? "shadow-[0_2.5px_0_0_#fff,0_4px_0_0_#000]"
                         : "hover:shadow-[0_2.5px_0_0_#fff,0_4px_0_0_#000]",
                     )}
-                    style={{ backgroundColor: bg }}
+                    style={{ backgroundColor: hex }}
                   >
                     <span className="sr-only">{color}</span>
                   </button>
                 );
               })}
             </div>
-            {/* Botón de Añadir */}
-            <span className="text-2xl font-medium lg:hidden">+</span>
           </div>
         </div>
       </div>

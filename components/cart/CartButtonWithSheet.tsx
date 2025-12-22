@@ -23,8 +23,8 @@ import {
 import { formatCurrency, DEFAULT_CURRENCY } from "@/lib/currency";
 
 import { validateStockAction } from "@/app/(site)/(shop)/cart/actions";
-import { useCloseOnNav } from "@/hooks/use-close-on-nav";
-import { useMounted } from "@/hooks/use-mounted";
+import { useCloseOnNav } from "@/hooks/common/use-close-on-nav";
+import { useMounted } from "@/hooks/common/use-mounted";
 import { useCartStore } from "@/store/cart";
 import { useStore } from "@/store/use-store";
 
@@ -105,7 +105,7 @@ export function CartButtonWithSheet() {
           <div className="relative flex items-center px-1 py-[6px]">
             <HiOutlineShoppingBag strokeWidth={2} className="size-[24px]" />
             {totalQty > 0 && (
-              <span className="absolute bottom-[14px] h-[4px] bg-transparent inline-flex items-center justify-center text-[10px] font-extrabold text-primary">
+              <span className="absolute bottom-[12px] h-[4px] w-6 bg-transparent inline-flex items-center justify-center text-[10px] font-extrabold text-primary">
                 {badgeText}
               </span>
             )}
@@ -249,6 +249,10 @@ export function CartButtonWithSheet() {
               <span>Subtotal</span>
               <span>{formatCurrency(totalPrice, DEFAULT_CURRENCY)}</span>
             </div>
+
+            <SheetClose asChild>
+              <Link href="/cart">Ir a la cesta</Link>
+            </SheetClose>
 
             <Button
               className="w-full bg-green-600 hover:bg-green-700 h-11 text-base"
