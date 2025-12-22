@@ -46,7 +46,7 @@ export const productListSelect = {
   },
   variants: {
     where: { isActive: true },
-    select: { id: true, size: true, color: true, stock: true },
+    select: { id: true, size: true, color: true, stock: true, colorHex: true },
   },
 } satisfies Prisma.ProductSelect;
 
@@ -139,8 +139,7 @@ export async function getProductMetaBySlug(slug: string) {
       description: true,
       images: {
         orderBy: [{ sort: "asc" }],
-        take: 1,
-        select: { url: true },
+        select: { url: true, color: true },
       },
     },
   });

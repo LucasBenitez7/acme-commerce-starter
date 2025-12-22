@@ -38,7 +38,7 @@ export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
-      isOpen: false, // Estado inicial del sidebar
+      isOpen: false,
 
       addItem: (newItem) => {
         const currentItems = get().items;
@@ -58,10 +58,9 @@ export const useCartStore = create<CartState>()(
                 ? { ...i, quantity: newQuantity }
                 : i,
             ),
-            isOpen: true, // Abrimos carrito al añadir
           });
         } else {
-          set({ items: [...currentItems, newItem], isOpen: true });
+          set({ items: [...currentItems, newItem] });
         }
       },
 

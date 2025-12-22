@@ -110,3 +110,26 @@ export async function updateProductInDb(id: string, data: ProductFormValues) {
     }
   });
 }
+
+// Helper para obtener los datos que necesita el formulario (Categorías + Sugerencias)
+export async function getProductFormDependencies() {
+  const [categories, variantsData] = await Promise.all([
+    prisma.category.findMany({
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+    prisma.productVariant.findMany({
+      select: { size: true, color: true },
+      distinct: ["size", "color"],
+    }),
+  ]);
+
+  const existingSizes = Array.from(
+    new Set(variantsData.map((v) => v.size)),
+  ).sort();
+  const existingColors = Array.from(
+    new Set(variantsData.map((v) => v.color)),
+  ).sort();
+
+  return { categories, existingSizes, existingColors };
+}
