@@ -88,7 +88,7 @@ export function ProductActions({
           </span>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
           {allSizes.map((size) => {
             const isSelected = selectedSize === size;
             const variant = variants.find(

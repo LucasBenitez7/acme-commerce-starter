@@ -23,11 +23,8 @@ export function ProductCard({ item }: { item: ProductListItem }) {
     selectedSize,
     handleColorSelect,
     displayImage,
-    selectedVariant,
     productUrl,
     isOutOfStock,
-    isCombinationValid,
-    isMaxedOut,
     handleQuickAdd,
     cartItems,
   } = useProductCard(item);
@@ -105,16 +102,11 @@ export function ProductCard({ item }: { item: ProductListItem }) {
                       }
                     }}
                     className={cn(
-                      "h-5 mx-[4px] px-[1px] border-b-2 border-transparent text-sm font-semibold transition-all text-foreground",
+                      "h-7 w-8 lg:h-5 lg:w-auto rounded-xs mx-[4px] p-[1px] border-b-2 border-transparent text-sm font-medium transition-all text-foreground",
                       isDisabled &&
                         "opacity-50 hover:cursor-default border-transparent hover:border-transparent text-muted-foreground line-through",
                       !isDisabled &&
-                        "hover:cursor-pointer hover:border-foreground text-foreground",
-                      !isDisabled && isSelected
-                        ? "border-foreground text-foreground"
-                        : !isDisabled
-                          ? "text-neutral-600"
-                          : "",
+                        "hover:cursor-pointer hover:border-foreground active:bg-neutral-300 lg:active:bg-transparent  text-foreground",
                     )}
                   >
                     {size}
@@ -131,7 +123,7 @@ export function ProductCard({ item }: { item: ProductListItem }) {
         <div className="flex items-start justify-between gap-2">
           <div className="space-y-1 w-full">
             <Link href={productUrl} className="block w-max">
-              <h3 className="text-sm w-max font-medium leading-tight text-foreground line-clamp-1 hover:underline underline-offset-2">
+              <h3 className="text-sm w-max font-medium leading-tight text-foreground line-clamp-1 hover:underline active:underline underline-offset-4">
                 {item.name}
               </h3>
             </Link>
@@ -146,18 +138,7 @@ export function ProductCard({ item }: { item: ProductListItem }) {
           />
         </div>
 
-        <div className="space-y-1">
-          {/* Mensajes de Estado */}
-          <div className="min-h-[1rem]">
-            {selectedVariant && !isOutOfStock && (
-              <p className="text-xs flex items-center gap-1 text-red-600 font-medium animate-in fade-in">
-                {!isMaxedOut &&
-                  !isCombinationValid &&
-                  "Sin stock en la talla seleccionada"}
-              </p>
-            )}
-          </div>
-
+        <div className="space-y-4">
           {/* --- SELECTOR DE TALLAS (Mobile) --- */}
           <div className="lg:hidden">
             {sizes.length > 1 ? (
@@ -169,14 +150,9 @@ export function ProductCard({ item }: { item: ProductListItem }) {
                 }}
                 className={cn(
                   "text-xs font-medium w-max transition-colors hover:cursor-pointer items-center flex justify-start",
-                  showSizes
-                    ? "text-muted-foreground "
-                    : "text-foreground hover:text-foreground",
                 )}
               >
-                {showSizes
-                  ? "Ocultar tallas"
-                  : `+ Ver tallas (${sizes.length})`}
+                {showSizes ? "Ocultar tallas" : `Ver tallas (${sizes.length})`}
               </button>
             ) : (
               <div className="h-6"></div>

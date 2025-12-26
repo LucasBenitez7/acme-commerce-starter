@@ -73,7 +73,7 @@ export function Gallery({
 
         <div
           onClick={handleOpenZoom}
-          className="relative w-full aspect-[3/4] lg:aspect-auto lg:h-[85vh] lg:max-h-[600px] bg-neutral-50 rounded-xs overflow-hidden cursor-zoom-in group"
+          className="relative w-full aspect-[3/4] lg:aspect-auto lg:h-[85vh] lg:max-h-[800px] bg-neutral-50 rounded-xs overflow-hidden cursor-zoom-in group"
         >
           <Image
             src={mainImage}

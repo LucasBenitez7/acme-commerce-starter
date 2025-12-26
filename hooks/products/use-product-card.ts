@@ -106,23 +106,7 @@ export function useProductCard(item: ProductListItem) {
       description: `${item.name} - ${variantToAdd.size}`,
       duration: 2000,
     });
-
-    setShowSizes(false);
   };
-
-  // --- EFECTOS (Click Outside) ---
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        imageContainerRef.current &&
-        !imageContainerRef.current.contains(event.target as Node)
-      ) {
-        setShowSizes(false);
-      }
-    }
-    if (showSizes) document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showSizes]);
 
   return {
     // Refs & State UI
