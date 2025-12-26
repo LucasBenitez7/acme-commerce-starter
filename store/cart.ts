@@ -4,40 +4,44 @@ import { persist, createJSONStorage } from "zustand/middleware";
 export type CartItem = {
   productId: string;
   variantId: string;
-
   slug: string;
   name: string;
   price: number;
   image?: string;
   color: string;
   size: string;
-
   quantity: number;
   maxStock: number;
 };
 
+type RemovedItemEntry = {
+  item: CartItem;
+  removedAt: number;
+};
+
 interface CartState {
   items: CartItem[];
+  removedItems: RemovedItemEntry[];
   isOpen: boolean;
 
-  // Acciones
   addItem: (item: CartItem) => void;
   removeItem: (variantId: string) => void;
   updateQuantity: (variantId: string, quantity: number) => void;
+  restoreItem: () => void;
   clearCart: () => void;
-
   openCart: () => void;
   closeCart: () => void;
   toggleCart: () => void;
-
   getTotalPrice: () => number;
   getTotalItems: () => number;
+  dismissLastRemovedItem: () => void;
 }
 
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
+      removedItems: [],
       isOpen: false,
 
       addItem: (newItem) => {
@@ -45,13 +49,11 @@ export const useCartStore = create<CartState>()(
         const existingItem = currentItems.find(
           (i) => i.variantId === newItem.variantId,
         );
-
         if (existingItem) {
           const newQuantity = Math.min(
             existingItem.quantity + newItem.quantity,
             newItem.maxStock,
           );
-
           set({
             items: currentItems.map((i) =>
               i.variantId === newItem.variantId
@@ -65,9 +67,34 @@ export const useCartStore = create<CartState>()(
       },
 
       removeItem: (variantId) => {
-        set((state) => ({
+        const state = get();
+        const itemToRemove = state.items.find((i) => i.variantId === variantId);
+
+        if (!itemToRemove) return;
+
+        set({
           items: state.items.filter((i) => i.variantId !== variantId),
-        }));
+          removedItems: [
+            ...state.removedItems,
+            { item: itemToRemove, removedAt: Date.now() },
+          ],
+        });
+      },
+
+      restoreItem: () => {
+        const state = get();
+        if (state.removedItems.length === 0) return;
+        const lastEntry = state.removedItems[state.removedItems.length - 1];
+        const remainingRemoved = state.removedItems.slice(0, -1);
+        get().addItem(lastEntry.item);
+        set({ removedItems: remainingRemoved });
+      },
+
+      dismissLastRemovedItem: () => {
+        const state = get();
+        if (state.removedItems.length === 0) return;
+        const remainingRemoved = state.removedItems.slice(0, -1);
+        set({ removedItems: remainingRemoved });
       },
 
       updateQuantity: (variantId, quantity) => {
@@ -82,19 +109,16 @@ export const useCartStore = create<CartState>()(
         }));
       },
 
-      clearCart: () => set({ items: [] }),
-
+      clearCart: () => set({ items: [], removedItems: [] }),
       openCart: () => set({ isOpen: true }),
       closeCart: () => set({ isOpen: false }),
       toggleCart: () => set((state) => ({ isOpen: !state.isOpen })),
-
       getTotalPrice: () => {
         return get().items.reduce(
           (total, item) => total + item.price * item.quantity,
           0,
         );
       },
-
       getTotalItems: () => {
         return get().items.reduce((total, item) => total + item.quantity, 0);
       },
@@ -102,7 +126,6 @@ export const useCartStore = create<CartState>()(
     {
       name: "cart-storage",
       storage: createJSONStorage(() => localStorage),
-      skipHydration: true,
     },
   ),
 );
