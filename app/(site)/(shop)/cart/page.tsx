@@ -1,9 +1,6 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { useState } from "react";
 import { ImSpinner8 } from "react-icons/im";
 
 import { CartUndoNotification } from "@/components/cart/CartUndoNotification";
@@ -11,53 +8,21 @@ import { Button, RemoveButton, FavoriteButton } from "@/components/ui";
 
 import { formatCurrency, DEFAULT_CURRENCY } from "@/lib/currency";
 
-import { useCartStore } from "@/store/cart";
-import { useStore } from "@/store/use-store";
-
-import { validateStockAction } from "./actions";
+import { useCartLogic } from "@/hooks/cart/use-cart-logic";
 
 export default function CartPage() {
-  const router = useRouter();
-  const { data: session } = useSession();
-
-  const cartStore = useStore(useCartStore, (state) => state);
-  const items = cartStore?.items ?? [];
-  const totalQty = cartStore?.getTotalItems() ?? 0;
-  const totalPrice = cartStore?.getTotalPrice() ?? 0;
-
-  const updateQuantity = useCartStore((state) => state.updateQuantity);
-  const removeItem = useCartStore((state) => state.removeItem);
-
-  const [loading, setLoading] = useState(false);
-  const [stockError, setStockError] = useState<string | null>(null);
-
-  const hasItems = items.length > 0;
-
-  async function handleCheckout() {
-    if (items.length === 0) return;
-
-    setLoading(true);
-    setStockError(null);
-
-    const validationItems = items.map((r) => ({
-      variantId: r.variantId,
-      qty: r.quantity,
-    }));
-
-    const result = await validateStockAction(validationItems);
-
-    if (!result.success && result.error) {
-      setStockError(result.error);
-      setLoading(false);
-      return;
-    }
-
-    if (session?.user) {
-      router.push("/checkout");
-    } else {
-      router.push("/auth/login?redirectTo=/checkout");
-    }
-  }
+  const {
+    items,
+    totalQty,
+    totalPrice,
+    hasItems,
+    loading,
+    stockError,
+    cartStore,
+    handleUpdateQuantity,
+    handleRemoveItem,
+    handleCheckout,
+  } = useCartLogic();
 
   if (!cartStore) return null;
 
@@ -86,8 +51,8 @@ export default function CartPage() {
           {/* LISTA DE ITEMS */}
           <div className="space-y-4">
             {stockError && (
-              <div className="rounded-md bg-red-50 p-4 font-medium text-sm text-red-600 border border-red-200">
-                !{stockError}
+              <div className="rounded-xs bg-red-50 p-3 font-medium text-xs text-red-600 border border-red-200">
+                {stockError}
               </div>
             )}
 
@@ -113,7 +78,7 @@ export default function CartPage() {
 
                       {isOutOfStock && (
                         <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none bg-black/50">
-                          <div className=" text-white/70 px-4 py-2 text-lg font-bold uppercase tracking-widest border-2 border-white/70">
+                          <div className=" text-white/70 mx-2 p-1 text-base font-semibold uppercase  border-2 border-white/70">
                             Agotado
                           </div>
                         </div>
@@ -157,7 +122,7 @@ export default function CartPage() {
                           <div className="flex items-center font-semibold border rounded-xs h-8">
                             <button
                               onClick={() =>
-                                updateQuantity(
+                                handleUpdateQuantity(
                                   item.variantId,
                                   item.quantity - 1,
                                 )
@@ -173,7 +138,7 @@ export default function CartPage() {
                             </span>
                             <button
                               onClick={() =>
-                                updateQuantity(
+                                handleUpdateQuantity(
                                   item.variantId,
                                   item.quantity + 1,
                                 )
@@ -189,9 +154,7 @@ export default function CartPage() {
 
                         <RemoveButton
                           className="text-muted-foreground hover:text-red-600 size-4 mr-[3px]"
-                          onRemove={() => {
-                            removeItem(item.variantId);
-                          }}
+                          onRemove={() => handleRemoveItem(item.variantId)}
                         />
                       </div>
                     </div>

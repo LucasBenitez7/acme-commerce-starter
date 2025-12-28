@@ -2,9 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { useState } from "react";
 import { CgClose } from "react-icons/cg";
 import { HiOutlineShoppingBag } from "react-icons/hi2";
 import { ImSpinner8 } from "react-icons/im";
@@ -22,63 +19,31 @@ import {
 
 import { formatCurrency, DEFAULT_CURRENCY } from "@/lib/currency";
 
-import { validateStockAction } from "@/app/(site)/(shop)/cart/actions";
+import { useCartLogic } from "@/hooks/cart/use-cart-logic";
 import { useCloseOnNav } from "@/hooks/common/use-close-on-nav";
 import { useMounted } from "@/hooks/common/use-mounted";
 import { useCartStore } from "@/store/cart";
-import { useStore } from "@/store/use-store";
 
 export function CartButtonWithSheet() {
-  const router = useRouter();
-  const { data: session } = useSession();
-
-  const cartStore = useStore(useCartStore, (state) => state);
-  const items = cartStore?.items ?? [];
-  const isOpen = cartStore?.isOpen ?? false;
-  const totalQty = cartStore?.getTotalItems() ?? 0;
-  const totalPrice = cartStore?.getTotalPrice() ?? 0;
-
-  const closeCart = useCartStore((state) => state.closeCart);
+  const isOpen = useCartStore((state) => state.isOpen);
   const openCart = useCartStore((state) => state.openCart);
-
-  const updateQuantity = useCartStore((state) => state.updateQuantity);
-  const removeItem = useCartStore((state) => state.removeItem);
-
-  const mounted = useMounted();
-  const [loading, setLoading] = useState(false);
-  const [stockError, setStockError] = useState<string | null>(null);
+  const closeCart = useCartStore((state) => state.closeCart);
 
   useCloseOnNav(closeCart);
+  const mounted = useMounted();
+
+  const {
+    items,
+    totalQty,
+    totalPrice,
+    loading,
+    stockError,
+    handleUpdateQuantity,
+    handleRemoveItem,
+    handleCheckout,
+  } = useCartLogic();
 
   const badgeText = totalQty > 9 ? "9+" : String(totalQty);
-
-  async function handleCheckout() {
-    if (items.length === 0) return;
-
-    setLoading(true);
-    setStockError(null);
-
-    const validationItems = items.map((r) => ({
-      variantId: r.variantId,
-      qty: r.quantity,
-    }));
-
-    const result = await validateStockAction(validationItems);
-
-    if (!result.success && result.error) {
-      setStockError(result.error);
-      setLoading(false);
-      return;
-    }
-
-    closeCart();
-
-    if (session?.user) {
-      router.push("/checkout");
-    } else {
-      router.push("/auth/login?redirectTo=/checkout");
-    }
-  }
 
   if (!mounted) {
     return (
@@ -170,7 +135,7 @@ export function CartButtonWithSheet() {
                       )}
                       {isOutOfStock && (
                         <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none bg-black/50">
-                          <div className=" text-white/70 px-4 py-2 text-lg font-bold uppercase tracking-widest border-2 border-white/70">
+                          <div className=" text-white/70 mx-2 p-1 text-sm font-semibold uppercase border-2 border-white/70">
                             Agotado
                           </div>
                         </div>
@@ -206,7 +171,10 @@ export function CartButtonWithSheet() {
                         <div className="flex items-center font-semibold border rounded-xs h-8">
                           <button
                             onClick={() =>
-                              updateQuantity(item.variantId, item.quantity - 1)
+                              handleUpdateQuantity(
+                                item.variantId,
+                                item.quantity - 1,
+                              )
                             }
                             disabled={item.quantity <= 1}
                             className="px-3 hover:cursor-pointer
@@ -219,7 +187,10 @@ export function CartButtonWithSheet() {
                           </span>
                           <button
                             onClick={() =>
-                              updateQuantity(item.variantId, item.quantity + 1)
+                              handleUpdateQuantity(
+                                item.variantId,
+                                item.quantity + 1,
+                              )
                             }
                             disabled={isMaxed}
                             className="px-3 hover:cursor-pointer
@@ -231,9 +202,7 @@ export function CartButtonWithSheet() {
 
                         <RemoveButton
                           className="text-muted-foreground hover:text-red-600 size-3.5 mb-[2px]"
-                          onRemove={() => {
-                            removeItem(item.variantId);
-                          }}
+                          onRemove={() => handleRemoveItem(item.variantId)}
                         />
                       </div>
                     </div>

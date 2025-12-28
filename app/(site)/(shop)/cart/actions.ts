@@ -19,20 +19,25 @@ export async function validateStockAction(items: CartValidationItem[]) {
     for (const item of items) {
       const variant = variants.find((v) => v.id === item.variantId);
 
+      // CASO 1: Ya no existe o inactivo
       if (!variant || !variant.isActive) {
         return {
           success: false,
           error: `Un producto de tu cesta ya no está disponible.`,
+          stockUpdate: { variantId: item.variantId, realStock: 0 },
         };
       }
 
+      // CASO 2: Stock 0 (Agotado)
       if (variant.stock === 0) {
         return {
           success: false,
-          error: `Stock insuficiente para "${variant.product.name} (${variant.size}/${variant.color})" quedan ${variant.stock} unidades.`,
+          error: `Stock insuficiente para "${variant.product.name} (${variant.size} / ${variant.color})" (Agotado).`,
+          stockUpdate: { variantId: variant.id, realStock: 0 },
         };
       }
 
+      // CASO 3: Stock insuficiente (Pides 7, hay 1)
       if (variant.stock < item.qty) {
         const msg =
           variant.stock === 1
@@ -40,7 +45,8 @@ export async function validateStockAction(items: CartValidationItem[]) {
             : `quedan disponibles ${variant.stock} unidades`;
         return {
           success: false,
-          error: `Stock insuficiente para "${variant.product.name} (${variant.size}/${variant.color})" ${msg}.`,
+          error: `Stock insuficiente para "${variant.product.name} (${variant.size} / ${variant.color})", ${msg}.`,
+          stockUpdate: { variantId: variant.id, realStock: variant.stock },
         };
       }
     }

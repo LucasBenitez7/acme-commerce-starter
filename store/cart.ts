@@ -35,6 +35,7 @@ interface CartState {
   getTotalPrice: () => number;
   getTotalItems: () => number;
   dismissLastRemovedItem: () => void;
+  syncMaxStock: (variantId: string, newMaxStock: number) => void;
 }
 
 export const useCartStore = create<CartState>()(
@@ -64,6 +65,20 @@ export const useCartStore = create<CartState>()(
         } else {
           set({ items: [...currentItems, newItem] });
         }
+      },
+
+      syncMaxStock: (variantId, newMaxStock) => {
+        set((state) => ({
+          items: state.items.map((item) => {
+            if (item.variantId === variantId) {
+              return {
+                ...item,
+                maxStock: newMaxStock,
+              };
+            }
+            return item;
+          }),
+        }));
       },
 
       removeItem: (variantId) => {
@@ -101,7 +116,7 @@ export const useCartStore = create<CartState>()(
         set((state) => ({
           items: state.items.map((item) => {
             if (item.variantId === variantId) {
-              const safeQty = Math.max(1, Math.min(quantity, item.maxStock));
+              const safeQty = Math.max(1, quantity);
               return { ...item, quantity: safeQty };
             }
             return item;
