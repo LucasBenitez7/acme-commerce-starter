@@ -2,7 +2,7 @@
 
 import { type UserAddress } from "@prisma/client";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -22,9 +22,8 @@ type Props = {
 export function CheckoutForm({ savedAddresses = [] }: Props) {
   const router = useRouter();
   const { items } = useCartStore();
-  const [isRedirecting, setIsRedirecting] = useState(false);
+
   const { handleSubmit, watch } = useFormContext<CheckoutFormValues>();
-  const [isPending, startTransition] = useTransition();
 
   const [selectedAddressId, setSelectedAddressId] = useState<string>(() => {
     if (savedAddresses.length > 0) {
@@ -44,7 +43,7 @@ export function CheckoutForm({ savedAddresses = [] }: Props) {
     }
   };
 
-  const onSubmit = (data: CheckoutFormValues) => {
+  const onSubmit = async (data: CheckoutFormValues) => {
     if (items.length === 0) {
       toast.error("Carrito vacío");
       router.push("/catalogo");
@@ -62,34 +61,35 @@ export function CheckoutForm({ savedAddresses = [] }: Props) {
       }
     }
 
-    startTransition(async () => {
-      try {
-        const formData = new FormData();
-        Object.entries(data).forEach(([key, val]) => {
-          if (val !== null && val !== undefined && key !== "cartItems") {
-            formData.append(key, String(val));
-          }
-        });
-        const cartPayload = items.map((item) => ({
-          productId: item.productId,
-          variantId: item.variantId,
-          quantity: item.quantity,
-        }));
-        formData.append("cartItems", JSON.stringify(cartPayload));
-
-        const res = await createOrderAction({ error: undefined }, formData);
-
-        if (res?.error) {
-          toast.error(res.error);
-        } else if (res?.success && res?.orderId) {
-          setIsRedirecting(true);
-          router.push(`/checkout/success?orderId=${res.orderId}`);
+    try {
+      const formData = new FormData();
+      Object.entries(data).forEach(([key, val]) => {
+        if (val !== null && val !== undefined && key !== "cartItems") {
+          formData.append(key, String(val));
         }
-      } catch (err) {
-        console.error(err);
-        toast.error("Error de conexión al procesar el pedido.");
+      });
+
+      const cartPayload = items.map((item) => ({
+        productId: item.productId,
+        variantId: item.variantId,
+        quantity: item.quantity,
+      }));
+      formData.append("cartItems", JSON.stringify(cartPayload));
+
+      const res = await createOrderAction({ error: undefined }, formData);
+
+      if (res?.error) {
+        toast.error(res.error);
+      } else if (res?.success && res?.orderId) {
+        toast.success("Pedido procesado correctamente");
+        router.push(`/checkout/success?orderId=${res.orderId}`);
+
+        await new Promise(() => {});
       }
-    });
+    } catch (err) {
+      console.error(err);
+      toast.error("Error de conexión al procesar el pedido.");
+    }
   };
 
   return (
