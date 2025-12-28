@@ -81,7 +81,6 @@ export function CheckoutForm({ savedAddresses = [] }: Props) {
       if (res?.error) {
         toast.error(res.error);
       } else if (res?.success && res?.orderId) {
-        toast.success("Pedido procesado correctamente");
         router.push(`/checkout/success?orderId=${res.orderId}`);
 
         await new Promise(() => {});

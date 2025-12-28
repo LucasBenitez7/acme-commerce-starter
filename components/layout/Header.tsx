@@ -44,7 +44,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
 
   const HIDE_HEADER_ON: string[] = ["/checkout"];
   const hideHeader = HIDE_HEADER_ON.includes(pathname);
-  const isCartPage = pathname === "/cart";
+  const isCartPage = pathname === "/cart" || pathname === "/checkout/success";
   const isAdmin = user?.role === "admin";
 
   const closeMenu = useCallback(() => {

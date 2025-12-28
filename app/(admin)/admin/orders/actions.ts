@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { InventoryService } from "@/lib/services/inventory.service";
 
 import type { OrderStatus } from "@prisma/client";
 
@@ -77,9 +76,9 @@ export async function updateOrderStatusAction(
         }
 
         // LLAMADA AL SERVICIO (Limpieza de código)
-        if (itemsToRestock.length > 0) {
-          await InventoryService.updateStock(itemsToRestock, "increment", tx);
-        }
+        // if (itemsToRestock.length > 0) {
+        //   await InventoryService.updateStock(itemsToRestock, "increment", tx);
+        // }
       }
 
       await tx.order.update({
@@ -227,9 +226,9 @@ export async function processPartialReturnAction(
       }
 
       // LLAMADA AL SERVICIO (Restauración masiva y segura)
-      if (itemsToRestock.length > 0) {
-        await InventoryService.updateStock(itemsToRestock, "increment", tx);
-      }
+      // if (itemsToRestock.length > 0) {
+      //   await InventoryService.updateStock(itemsToRestock, "increment", tx);
+      // }
 
       // Limpieza general
       await tx.orderItem.updateMany({

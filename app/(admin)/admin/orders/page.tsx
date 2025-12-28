@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { Card, CardContent } from "@/components/ui/card";
 
-import { formatMinor, parseCurrency } from "@/lib/currency";
+import { formatCurrency, parseCurrency } from "@/lib/currency";
 import { prisma } from "@/lib/db";
 import { cn } from "@/lib/utils";
 
@@ -247,7 +247,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
                           <StatusBadge status={order.status} />
                         </td>
                         <td className="px-4 py-4 text-right font-medium">
-                          {formatMinor(amountToShow, currency)}
+                          {formatCurrency(amountToShow, currency)}
                         </td>
                       </tr>
                     );

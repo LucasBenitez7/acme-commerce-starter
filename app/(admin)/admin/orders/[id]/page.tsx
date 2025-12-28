@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { formatMinor, parseCurrency } from "@/lib/currency";
+import { formatCurrency, parseCurrency } from "@/lib/currency";
 import { prisma } from "@/lib/db";
 import { cn } from "@/lib/utils";
 
@@ -192,7 +192,10 @@ export default async function AdminOrderDetailPage({ params }: Props) {
                           <div className="text-xs flex gap-1">
                             <span className="text-xs">x{item.quantity}</span>
                             <span className="text-muted-foreground">
-                              {formatMinor(item.priceMinorSnapshot, currency)}
+                              {formatCurrency(
+                                item.priceMinorSnapshot,
+                                currency,
+                              )}
                             </span>
                           </div>
                           {item.quantityReturned > 0 && (
@@ -202,7 +205,9 @@ export default async function AdminOrderDetailPage({ params }: Props) {
                           )}
                         </div>
                         <div className="text-right">
-                          <div>{formatMinor(item.subtotalMinor, currency)}</div>
+                          <div>
+                            {formatCurrency(item.subtotalMinor, currency)}
+                          </div>
                         </div>
                       </li>
                     ))}
@@ -214,13 +219,15 @@ export default async function AdminOrderDetailPage({ params }: Props) {
               <div className=" pt-4 pb-1 space-y-1 border-t">
                 <div className="flex justify-between text-sm text-muted-foreground">
                   <span>Subtotal ({originalQuantity})</span>
-                  <span>{formatMinor(order.totalMinor, currency)}</span>
+                  <span>{formatCurrency(order.totalMinor, currency)}</span>
                 </div>
 
                 {returnedAmountMinor > 0 && (
                   <div className="flex justify-between text-sm text-red-600 font-medium">
                     <span>Devueltos ({returnedQuantity})</span>
-                    <span>- {formatMinor(returnedAmountMinor, currency)}</span>
+                    <span>
+                      - {formatCurrency(returnedAmountMinor, currency)}
+                    </span>
                   </div>
                 )}
 
@@ -230,7 +237,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
                     <span className="text-base">({netQuantity})</span>
                   </span>
                   <span className="flex text-base gap-2">
-                    {formatMinor(netTotalMinor, currency)}
+                    {formatCurrency(netTotalMinor, currency)}
                   </span>
                 </div>
               </div>

@@ -3,16 +3,24 @@ import { prisma } from "@/lib/db";
 
 import type { OrderStatus } from "@prisma/client";
 
-export async function getOrderById(orderId: string) {
+export async function getOrderFullDetails(orderId: string) {
   return await prisma.order.findUnique({
     where: { id: orderId },
     include: {
       items: {
         include: {
-          product: true,
-          variant: true,
+          product: {
+            select: {
+              slug: true,
+              images: {
+                orderBy: { sort: "asc" },
+                select: { url: true, color: true },
+              },
+            },
+          },
         },
       },
+
       history: { orderBy: { createdAt: "desc" } },
     },
   });
