@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 import { auth } from "@/lib/auth";
+import { SHIPPING_METHOD_LABELS } from "@/lib/constants";
 import { parseCurrency, formatCurrency } from "@/lib/currency";
 import { prisma } from "@/lib/db";
 
@@ -201,11 +202,17 @@ export default async function AccountOrdersPage({
                       Envío
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {order.shippingType === "HOME" && "Envío a domicilio"}
-                      {order.shippingType === "STORE" && "Retirar en tienda"}
-                      {order.shippingType === "PICKUP" && "Punto de recogida"}
+                      {SHIPPING_METHOD_LABELS[
+                        (order.shippingType || "HOME").toLowerCase()
+                      ] || order.shippingType}
+
                       <br />
-                      {order.postalCode}, {order.city}
+                      {(order.postalCode || order.city) && (
+                        <>
+                          <br />
+                          {order.postalCode}, {order.city}
+                        </>
+                      )}
                     </p>
                   </div>
                 </div>

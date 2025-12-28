@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
-import { addressSchema } from "@/lib/account/schema";
+import { addressFormSchema } from "@/lib/account/schema";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
@@ -11,48 +11,61 @@ export async function upsertAddressAction(data: any) {
   const session = await auth();
   if (!session?.user?.id) return { error: "No autorizado" };
 
-  const parsed = addressSchema.safeParse(data);
+  const parsed = addressFormSchema.safeParse(data);
   if (!parsed.success) {
     return { error: "Datos inválidos. Revisa el formulario." };
   }
 
   const { id, ...fields } = parsed.data;
+  let resultAddress;
+
+  const dataToSave = {
+    ...fields,
+    details: fields.details ?? "",
+    country: fields.country ?? "España",
+    userId: session.user.id,
+  };
 
   try {
     await prisma.$transaction(async (tx) => {
-      // 1. Si esta dirección se marca como Default, desmarcamos las otras del usuario
       if (fields.isDefault) {
         await tx.userAddress.updateMany({
-          where: { userId: session.user.id },
+          where: {
+            userId: session.user.id,
+            id: { not: id },
+          },
           data: { isDefault: false },
         });
       }
 
       // 2. Crear o Actualizar
       if (id) {
-        await tx.userAddress.update({
+        resultAddress = await tx.userAddress.update({
           where: { id, userId: session.user.id },
-          data: fields,
+          data: {
+            ...dataToSave,
+            isDefault: fields.isDefault ?? false,
+          },
         });
       } else {
-        // Crear
         const count = await tx.userAddress.count({
           where: { userId: session.user.id },
         });
         const isFirst = count === 0;
 
-        await tx.userAddress.create({
+        resultAddress = await tx.userAddress.create({
           data: {
-            ...fields,
-            isDefault: isFirst || fields.isDefault,
-            userId: session.user.id,
+            ...dataToSave,
+            isDefault: isFirst || (fields.isDefault ?? false),
           },
         });
       }
     });
 
     revalidatePath("/account/addresses");
-    return { success: true };
+    revalidatePath("/checkout");
+
+    return { success: true, address: resultAddress };
   } catch (error) {
     console.error(error);
     return { error: "Error al guardar la dirección." };

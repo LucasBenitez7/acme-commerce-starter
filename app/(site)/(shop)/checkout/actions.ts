@@ -8,26 +8,17 @@ import { prisma } from "@/lib/db";
 
 export type CheckoutActionState = {
   error?: string;
+  success?: boolean;
+  orderId?: string;
 };
 
 export async function createOrderAction(
   prevState: CheckoutActionState,
   formData: FormData,
 ): Promise<CheckoutActionState> {
-  // 1. Identificar Usuario (si existe)
   const session = await auth();
-  let userId: string | null = null;
 
-  if (session?.user?.id) {
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-    });
-    if (user) userId = user.id;
-  }
-
-  // 2. Procesar Datos del Formulario
   const rawData: Record<string, any> = {};
-
   formData.forEach((value, key) => {
     if (key === "cartItems") {
       try {
@@ -40,19 +31,15 @@ export async function createOrderAction(
     }
   });
 
-  // 3. Validar con Zod
   const validation = checkoutSchema.safeParse(rawData);
 
   if (!validation.success) {
-    console.error("Error validación checkout:", validation.error);
     return {
-      error: "Datos incorrectos: " + validation.error.issues[0].message,
+      error: validation.error.issues[0].message,
     };
   }
 
   const data = validation.data;
-
-  // 4. Procesar Pedido (Transacción Atómica)
   let orderId: string | undefined;
 
   try {
@@ -60,7 +47,7 @@ export async function createOrderAction(
       let itemsTotalMinor = 0;
       const dbOrderItems = [];
 
-      // A) Iterar items para validar Stock y Precio
+      // A) Procesar Items (VALIDACIÓN DE STOCK ATÓMICA)
       for (const itemRequest of data.cartItems) {
         const product = await tx.product.findUnique({
           where: { id: itemRequest.productId },
@@ -68,27 +55,28 @@ export async function createOrderAction(
         });
 
         if (!product)
-          throw new Error(
-            `Producto ${itemRequest.productId} no encontrado o descatalogado.`,
-          );
+          throw new Error(`Producto ${itemRequest.productId} no disponible.`);
 
         const variant = product.variants.find(
           (v) => v.id === itemRequest.variantId,
         );
+        if (!variant) throw new Error(`Variante no encontrada.`);
 
-        if (!variant)
-          throw new Error(`Variante no disponible para ${product.name}.`);
+        const updateResult = await tx.productVariant.updateMany({
+          where: {
+            id: variant.id,
+            stock: { gte: itemRequest.quantity },
+          },
+          data: {
+            stock: { decrement: itemRequest.quantity },
+          },
+        });
 
-        if (variant.stock < itemRequest.quantity) {
+        if (updateResult.count === 0) {
           throw new Error(
-            `Stock insuficiente para ${product.name} (${variant.size}). Quedan ${variant.stock}.`,
+            `Stock insuficiente para ${product.name} (${variant.size}).`,
           );
         }
-
-        await tx.productVariant.update({
-          where: { id: variant.id },
-          data: { stock: { decrement: itemRequest.quantity } },
-        });
 
         const unitPrice = variant.priceCents ?? product.priceCents;
         const subtotal = unitPrice * itemRequest.quantity;
@@ -106,25 +94,19 @@ export async function createOrderAction(
         });
       }
 
-      // B) Calcular Totales Finales
-      const shippingCostMinor = 0;
-      const taxMinor = Math.round(itemsTotalMinor * 0.21);
-      const totalMinor = itemsTotalMinor + shippingCostMinor;
-
-      // C) Crear la Orden en DB
+      // B) Crear Orden
       const order = await tx.order.create({
         data: {
-          userId,
+          userId: session?.user?.id,
           email: data.email,
           currency: "EUR",
           status: "PAID",
 
           itemsTotalMinor,
-          shippingCostMinor,
-          taxMinor,
-          totalMinor,
+          shippingCostMinor: 0,
+          taxMinor: Math.round(itemsTotalMinor * 0.21),
+          totalMinor: itemsTotalMinor,
 
-          // Dirección
           firstName: data.firstName,
           lastName: data.lastName,
           phone: data.phone,
@@ -134,6 +116,7 @@ export async function createOrderAction(
           city: data.city,
           province: data.province,
           country: data.country,
+
           shippingType:
             data.shippingType === "store"
               ? "STORE"
@@ -141,19 +124,16 @@ export async function createOrderAction(
                 ? "PICKUP"
                 : "HOME",
 
+          storeLocationId: data.storeLocationId,
+          pickupLocationId: data.pickupLocationId,
           paymentMethod: data.paymentMethod,
 
-          // Relación con Items
-          items: {
-            create: dbOrderItems,
-          },
-
-          // Historial inicial
+          items: { create: dbOrderItems },
           history: {
             create: {
               status: "PAID",
               actor: "system",
-              reason: "Pedido creado vía web",
+              reason: "Pedido web (Simulación)",
             },
           },
         },
@@ -162,14 +142,13 @@ export async function createOrderAction(
       orderId = order.id;
     });
   } catch (error: any) {
-    console.error("Checkout Transaction Error:", error);
+    console.error("Checkout Error:", error);
     return { error: error.message || "Error al procesar el pedido." };
   }
 
-  // 5. Redirección Exitosa
   if (orderId) {
-    redirect(`/checkout/success?orderId=${orderId}`);
+    return { success: true, orderId };
   }
 
-  return { error: "Error desconocido." };
+  return { error: "Error desconocido al crear la orden." };
 }

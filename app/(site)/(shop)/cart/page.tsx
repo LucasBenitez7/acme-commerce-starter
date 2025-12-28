@@ -62,7 +62,7 @@ export default function CartPage() {
   if (!cartStore) return null;
 
   return (
-    <main className="pb-10 w-full max-w-[1440px] mx-auto px-4 min-h-[60vh]">
+    <main className="pb-10 w-full max-w-7xl mx-auto px-4 min-h-[60vh]">
       <h1 className="text-2xl font-semibold my-5">
         Cesta
         {totalQty > 0 && (
@@ -91,7 +91,7 @@ export default function CartPage() {
               </div>
             )}
 
-            <div className="rounded-xs border bg-white p-4 space-y-6 overflow-hidden">
+            <div className="rounded-xs border bg-white p-4 space-y-4 overflow-hidden">
               <CartUndoNotification className="mb-6" />
               {items.map((item) => {
                 const isMaxed = item.quantity >= item.maxStock;
@@ -142,11 +142,12 @@ export default function CartPage() {
                           <p className="text-xs font-medium">
                             {item.size} / {item.color}
                           </p>
-                          {item.quantity > 1 && (
-                            <p className="text-xs text-muted-foreground">
-                              {formatCurrency(item.price, DEFAULT_CURRENCY)}
-                            </p>
-                          )}
+                          <p className="font-medium text-xs tabular-nums">
+                            {formatCurrency(
+                              item.price * item.quantity,
+                              DEFAULT_CURRENCY,
+                            )}
+                          </p>
                         </div>
                       </div>
 
@@ -184,13 +185,6 @@ export default function CartPage() {
                               +
                             </button>
                           </div>
-
-                          <p className="font-medium text-sm tabular-nums">
-                            {formatCurrency(
-                              item.price * item.quantity,
-                              DEFAULT_CURRENCY,
-                            )}
-                          </p>
                         </div>
 
                         <RemoveButton
@@ -214,14 +208,14 @@ export default function CartPage() {
                 Resumen
               </h2>
 
-              <div className="flex items-center justify-between text-sm font-medium text-muted-foreground">
+              <div className="flex items-center justify-between text-xs font-medium mb-2">
                 <span>Subtotal</span>
                 <span>{formatCurrency(totalPrice, DEFAULT_CURRENCY)}</span>
               </div>
 
-              <div className="flex items-center justify-between text-sm font-medium text-muted-foreground">
+              <div className="flex items-center justify-between text-xs font-medium mb-4">
                 <span>Envio</span>
-                <span>Gratis</span>
+                <span className="text-green-600">Gratis</span>
               </div>
 
               <div className="flex items-center justify-between text-base font-medium mt-4">
@@ -234,7 +228,7 @@ export default function CartPage() {
                   type="button"
                   size="icon"
                   aria-label="Tramitar pedido"
-                  className="w-full bg-green-600 hover:bg-green-700 h-11 text-base font-semibold"
+                  className="w-full bg-green-600 hover:bg-green-700 h-11 text-base font-medium"
                   disabled={loading || !!stockError}
                   onClick={handleCheckout}
                 >

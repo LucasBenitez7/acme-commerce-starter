@@ -19,7 +19,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { addressSchema, type AddressFormValues } from "@/lib/account/schema";
+import {
+  addressFormSchema,
+  type AddressFormValues,
+} from "@/lib/account/schema";
 
 import { upsertAddressAction } from "@/app/(site)/(account)/account/addresses/actions";
 
@@ -40,10 +43,9 @@ export function AddressFormDialog({ address, trigger }: Props) {
     reset,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(addressSchema),
+    resolver: zodResolver(addressFormSchema),
     defaultValues: {
       id: address?.id,
-      name: address?.name ?? "",
       firstName: address?.firstName ?? "",
       lastName: address?.lastName ?? "",
       phone: address?.phone ?? "",
@@ -52,7 +54,7 @@ export function AddressFormDialog({ address, trigger }: Props) {
       postalCode: address?.postalCode ?? "",
       city: address?.city ?? "",
       province: address?.province ?? "",
-      country: address?.country ?? "ES",
+      country: address?.country ?? "España",
       isDefault: address?.isDefault ?? false,
     },
   });

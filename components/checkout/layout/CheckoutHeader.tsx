@@ -2,39 +2,72 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+// import { FaChevronLeft } from "react-icons/fa6";
 
-import { LeaveCheckoutDialog } from "@/components/checkout/core/LeaveCheckoutDialog";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export function CheckoutHeader() {
   const router = useRouter();
   const [openDialog, setOpenDialog] = useState(false);
 
+  const handleGoHome = () => {
+    router.push("/");
+    setOpenDialog(false);
+  };
+
   return (
     <>
-      <header className="sticky top-0 z-[100] flex h-[var(--header-h)] w-full items-center border-b bg-background">
-        <div className="mx-auto flex h-[var(--header-h)] w-max items-center px-4 sm:px-6">
+      <header className="sticky top-0 z-[40] flex h-[var(--header-h)] w-full items-center border-b bg-background">
+        <div className="mx-auto flex h-full w-full items-center border justify-center px-4 sm:px-6">
           <button
             type="button"
-            className="flex justify-self-center px-2 text-3xl font-semibold focus:outline-none hover:cursor-pointer"
+            className="flex items-center gap-2 text-xl font-bold hover:cursor-pointer"
             onClick={() => setOpenDialog(true)}
           >
-            Logo lsb
+            <span className="text-black">LSB</span>
           </button>
         </div>
       </header>
 
-      <LeaveCheckoutDialog
-        open={openDialog}
-        onClose={() => setOpenDialog(false)}
-        onConfirm={() => {
-          setOpenDialog(false);
-          router.push("/");
-        }}
-        title="¿Salir al inicio?"
-        description="Si vas al inicio, saldrás del proceso de compra. Podrás volver desde tu cesta más adelante."
-        confirmLabel="Ir al inicio"
-        cancelLabel="Continuar con la compra"
-      />
+      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold">
+              ¿Quieres cancelar el proceso?
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground pt-2 text-sm leading-relaxed">
+              Estás a punto de salir del proceso de compra
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="flex flex-col-reverse gap-4 pt-2 justify-between">
+            {/* Opción 1: Quedarse (Principal) */}
+            <Button
+              variant="outline"
+              onClick={() => setOpenDialog(false)}
+              className="font-semibold w-full sm:w-auto px-4 py-3 lg:flex-1"
+            >
+              Seguir comprando
+            </Button>
+
+            <Button
+              variant="default"
+              onClick={handleGoHome}
+              className="font-semibold w-full sm:w-auto px-4 py-3 lg:flex-1"
+            >
+              Volver al inicio
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

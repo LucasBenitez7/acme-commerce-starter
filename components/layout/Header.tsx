@@ -8,7 +8,7 @@ import { CgClose } from "react-icons/cg";
 import { FaSignOutAlt } from "react-icons/fa";
 import { FaRegUser, FaHeart, FaBoxOpen, FaUser } from "react-icons/fa6";
 import { IoSearch } from "react-icons/io5";
-import { RiMenu2Line, RiCloseLargeLine } from "react-icons/ri";
+import { RiMenu2Line } from "react-icons/ri";
 
 import { CartButtonWithSheet } from "@/components/cart/CartButtonWithSheet";
 import {

@@ -104,7 +104,7 @@ export function CartButtonWithSheet() {
           <div className="relative flex items-center px-1 py-[6px]">
             <HiOutlineShoppingBag strokeWidth={2} className="size-[24px]" />
             {totalQty > 0 && (
-              <span className="absolute bottom-[11px] h-[4px] w-6 bg-transparent inline-flex items-center justify-center text-[10px] font-extrabold text-primary">
+              <span className="absolute bottom-[12px] h-[4px] w-6 bg-transparent inline-flex items-center justify-center text-[10px] font-extrabold text-primary">
                 {badgeText}
               </span>
             )}
@@ -120,7 +120,8 @@ export function CartButtonWithSheet() {
         {/* HEADER */}
         <SheetHeader className="shrink-0 border-b pl-4 pr-6 h-[var(--header-h)] flex flex-row justify-between items-center space-y-0">
           <SheetTitle className="text-xl font-medium">
-            Cesta <span className="text-base">({totalQty})</span>
+            Cesta{" "}
+            {totalQty > 0 && <span className="text-lg">({totalQty})</span>}
           </SheetTitle>
           <SheetClose asChild>
             <button
@@ -190,17 +191,14 @@ export function CartButtonWithSheet() {
                           <p className="text-xs font-medium">
                             {item.size} / {item.color}
                           </p>
-                          <p className="text-xs text-muted-foreground">
-                            {formatCurrency(item.price, DEFAULT_CURRENCY)}
-                          </p>
                         </div>
 
-                        <RemoveButton
-                          className="text-muted-foreground hover:text-red-600 size-3.5 mt-[2px]"
-                          onRemove={() => {
-                            removeItem(item.variantId);
-                          }}
-                        />
+                        <p className="font-medium text-xs tabular-nums">
+                          {formatCurrency(
+                            item.price * item.quantity,
+                            DEFAULT_CURRENCY,
+                          )}
+                        </p>
                       </div>
 
                       {/* CONTROLES CANTIDAD */}
@@ -230,12 +228,13 @@ export function CartButtonWithSheet() {
                             +
                           </button>
                         </div>
-                        <p className="font-medium text-sm tabular-nums">
-                          {formatCurrency(
-                            item.price * item.quantity,
-                            DEFAULT_CURRENCY,
-                          )}
-                        </p>
+
+                        <RemoveButton
+                          className="text-muted-foreground hover:text-red-600 size-3.5 mb-[2px]"
+                          onRemove={() => {
+                            removeItem(item.variantId);
+                          }}
+                        />
                       </div>
                     </div>
                   </li>
@@ -249,19 +248,19 @@ export function CartButtonWithSheet() {
         {items.length > 0 && (
           <div className="shrink-0 border-t p-4 bg-background">
             {stockError && (
-              <div className="mb-3 rounded-md bg-red-50 p-3 text-xs font-medium text-red-600 border border-red-200">
+              <div className="mb-3 rounded-xs bg-red-50 p-3 text-xs font-medium text-red-600 border border-red-200">
                 {stockError}
               </div>
             )}
 
-            <div className="flex items-center justify-between text-sm font-medium mb-2 text-muted-foreground">
+            <div className="flex items-center justify-between text-xs font-medium mb-2">
               <span>Subtotal</span>
               <span>{formatCurrency(totalPrice, DEFAULT_CURRENCY)}</span>
             </div>
 
-            <div className="flex items-center justify-between text-sm font-medium mb-4 text-muted-foreground">
+            <div className="flex items-center justify-between text-xs font-medium mb-4">
               <span>Envio</span>
-              <span>Gratis</span>
+              <span className="text-green-600">Gratis</span>
             </div>
 
             <div className="flex items-center justify-between text-base font-medium mb-4">
@@ -286,7 +285,7 @@ export function CartButtonWithSheet() {
                 type="button"
                 size="icon"
                 aria-label="Tramitar pedido"
-                className="flex-1 bg-green-600 hover:bg-green-700 h-11 font-semibold"
+                className="flex-1 bg-green-600 hover:bg-green-700 h-11 font-medium"
                 disabled={!!stockError || loading}
                 onClick={handleCheckout}
               >

@@ -92,7 +92,7 @@ export function AddressCard({ address }: { address: UserAddress }) {
             address={addressForForm}
             trigger={
               <Button variant="outline" size="sm" className="h-8">
-                <FaPencil className="mr-2 h-3 w-3" /> Editar
+                Editar
               </Button>
             }
           />
@@ -105,7 +105,7 @@ export function AddressCard({ address }: { address: UserAddress }) {
                 size="sm"
                 className="h-8 text-red-600 hover:text-red-700 hover:bg-red-50"
               >
-                <FaTrash className="h-3 w-3" />
+                Borrar dirección
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
