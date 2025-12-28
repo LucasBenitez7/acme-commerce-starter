@@ -5,7 +5,6 @@ export { FavoriteButton } from "./FavoriteButton";
 export { Input } from "./input";
 export { Label } from "./label";
 export { PasswordInput } from "./PasswordInput";
-export { PendingLink } from "./PendingLink";
 export { RadioGroup, RadioGroupItem } from "./radio-group";
 export { RemoveButton } from "./RemoveButton";
 export { Separator } from "./separator";
