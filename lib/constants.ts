@@ -1,3 +1,5 @@
+import { FaHouse, FaStore, FaTruck } from "react-icons/fa6";
+
 // Tallas estandarizadas
 export const CLOTHING_SIZES = [
   "XXXS",
@@ -78,3 +80,36 @@ export const INITIAL_CATEGORIES = [
   { slug: "ropa-interior", name: "Ropa interior" },
   { slug: "zapatillas", name: "Zapatillas" },
 ] as const;
+
+export const SHIPPING_METHODS = [
+  {
+    id: "home",
+    label: "A Domicilio",
+    icon: FaHouse,
+    price: 0,
+  },
+  {
+    id: "store",
+    label: "Recogida en Tienda",
+    icon: FaStore,
+    price: 0,
+  },
+  {
+    id: "pickup",
+    label: "Punto de Entrega",
+    icon: FaTruck,
+    price: 0,
+  },
+] as const;
+
+export const SHIPPING_METHOD_LABELS: Record<string, string> = {
+  home: "Envío a domicilio",
+  store: "Recogida en tienda",
+  pickup: "Punto de recogida",
+};
+
+export const SHIPPING_TYPE_MAP = {
+  home: "HOME",
+  store: "STORE",
+  pickup: "PICKUP",
+} as const;

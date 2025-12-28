@@ -36,7 +36,7 @@ const shippingSchema = z.discriminatedUnion("shippingType", [
     postalCode: z.string().regex(postalCodeEsRegex, "CP inválido"),
     city: z.string().min(2, "Ciudad requerida"),
     province: z.string().min(2, "Provincia requerida"),
-    country: z.string().default("ES"),
+    country: z.string().default("España"),
 
     storeLocationId: z.string().optional().nullable(),
     pickupLocationId: z.string().optional().nullable(),

@@ -1,18 +1,36 @@
 import { z } from "zod";
 
-export const addressSchema = z.object({
-  id: z.string().optional(),
-  name: z.string().optional().or(z.literal("")),
-  firstName: z.string().min(2, "Mínimo 2 letras"),
-  lastName: z.string().min(2, "Mínimo 2 letras"),
-  phone: z.string().min(6, "Teléfono inválido"),
-  street: z.string().min(5, "Dirección muy corta"),
-  details: z.string().optional().or(z.literal("")),
-  postalCode: z.string().min(3, "Requerido"),
-  city: z.string().min(2, "Requerido"),
-  province: z.string().min(2, "Requerido"),
-  country: z.string().default("ES"),
-  isDefault: z.boolean().default(false),
+export const phoneRegex = /^[0-9+\s]+$/;
+export const postalCodeRegex = /^\d{5}$/;
+
+// 1. Schema BASE
+export const baseAddressSchema = z.object({
+  firstName: z.string().trim().min(2, "Mínimo 2 letras"),
+  lastName: z.string().trim().min(2, "Mínimo 2 letras"),
+  phone: z
+    .string()
+    .trim()
+    .min(6, "Teléfono inválido")
+    .regex(phoneRegex, "Solo números y +"),
+
+  street: z.string().trim().min(5, "Dirección muy corta"),
+
+  details: z.string().trim().optional(),
+
+  postalCode: z
+    .string()
+    .trim()
+    .regex(postalCodeRegex, "CP inválido (5 dígitos)"),
+  city: z.string().trim().min(2, "Requerido"),
+  province: z.string().trim().min(2, "Requerido"),
+
+  country: z.string().trim().optional(),
 });
 
-export type AddressFormValues = z.infer<typeof addressSchema>;
+export const addressFormSchema = baseAddressSchema.extend({
+  id: z.string().optional(),
+  isDefault: z.boolean().optional(),
+});
+
+export type BaseAddressValues = z.infer<typeof baseAddressSchema>;
+export type AddressFormValues = z.infer<typeof addressFormSchema>;

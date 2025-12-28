@@ -2,6 +2,7 @@ import "server-only";
 
 import { OrderStatus, ShippingType } from "@prisma/client";
 
+import { SHIPPING_TYPE_MAP } from "@/lib/constants";
 import { prisma } from "@/lib/db";
 
 import type { CreateOrderInput } from "./schema";
@@ -53,7 +54,10 @@ export async function createOrder(input: CreateOrderInput) {
     }
 
     // --- 2. Mapear Dirección y Tipo de Envío ---
-    let dbShippingType: ShippingType = ShippingType.HOME;
+    const dbShippingType =
+      SHIPPING_TYPE_MAP[shippingType as keyof typeof SHIPPING_TYPE_MAP] ||
+      ShippingType.HOME;
+
     let street: string | null = null;
     let addressExtra: string | null = null;
     let postalCode: string | null = null;
@@ -63,17 +67,14 @@ export async function createOrder(input: CreateOrderInput) {
     let pickupLocationId: string | null = null;
 
     if (shippingType === "home") {
-      dbShippingType = ShippingType.HOME;
       street = input.street;
       addressExtra = input.addressExtra ?? null;
       postalCode = input.postalCode;
       city = input.city;
       province = input.province;
     } else if (shippingType === "store") {
-      dbShippingType = ShippingType.STORE;
       storeLocationId = input.storeLocationId ?? null;
     } else if (shippingType === "pickup") {
-      dbShippingType = ShippingType.PICKUP;
       pickupLocationId = input.pickupLocationId ?? null;
     }
 
@@ -100,7 +101,7 @@ export async function createOrder(input: CreateOrderInput) {
         postalCode,
         city,
         province,
-        country: "ES",
+        country: "España",
         storeLocationId,
         pickupLocationId,
 

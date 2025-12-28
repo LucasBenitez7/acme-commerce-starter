@@ -1,36 +1,42 @@
 import { z } from "zod";
 
-import { addressSchema } from "@/lib/account/schema";
+import { baseAddressSchema } from "@/lib/account/schema";
+import { SHIPPING_METHODS } from "@/lib/constants";
 
-export const cartItemSchema = z.object({
-  productId: z.string().min(1),
-  variantId: z.string().optional(),
-  quantity: z.number().int().positive(),
-});
+const shippingIds = SHIPPING_METHODS.map((m) => m.id) as [string, ...string[]];
 
-export const checkoutSchema = z.object({
-  // ... (otros campos) ...
-  email: z.string().email("Email inválido"),
+export const checkoutSchema = baseAddressSchema
+  .extend({
+    email: z.string().trim().email("Email inválido"),
 
-  // Extendemos addressSchema
-  firstName: addressSchema.shape.firstName,
-  lastName: addressSchema.shape.lastName,
-  phone: addressSchema.shape.phone,
-  street: addressSchema.shape.street,
-  details: addressSchema.shape.details,
-  city: addressSchema.shape.city,
-  province: addressSchema.shape.province,
-  postalCode: addressSchema.shape.postalCode,
-  country: addressSchema.shape.country,
+    shippingType: z.enum(shippingIds),
+    paymentMethod: z.enum(["card", "transfer"]),
 
-  // Shipping
-  shippingType: z.enum(["home", "store", "pickup"]).default("home"),
-  storeLocationId: z.string().optional().nullable(),
-  pickupLocationId: z.string().optional().nullable(),
-  pickupSearch: z.string().optional().nullable(),
+    storeLocationId: z.string().trim().nullable().optional(),
+    pickupLocationId: z.string().trim().nullable().optional(),
+    pickupSearch: z.string().trim().nullable().optional(),
 
-  paymentMethod: z.enum(["card", "transfer"]).default("card"),
-  cartItems: z.array(cartItemSchema).min(1, "El carrito está vacío"),
-});
+    cartItems: z.array(z.any()),
+  })
+  .superRefine((data, ctx) => {
+    if (data.shippingType === "home") {
+    }
+
+    if (data.shippingType === "store" && !data.storeLocationId) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Elige una tienda",
+        path: ["storeLocationId"],
+      });
+    }
+
+    if (data.shippingType === "pickup" && !data.pickupLocationId) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Elige un punto",
+        path: ["pickupLocationId"],
+      });
+    }
+  });
 
 export type CheckoutFormValues = z.infer<typeof checkoutSchema>;

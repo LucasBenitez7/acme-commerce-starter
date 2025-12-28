@@ -223,7 +223,7 @@ model UserAddress {
   city       String
   province   String
   postalCode String
-  country    String  @default("ES")
+  country    String  @default("España")
 
   isDefault Boolean @default(false)
 
