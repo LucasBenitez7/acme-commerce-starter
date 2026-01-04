@@ -6,10 +6,10 @@ import { Gallery, ProductActions } from "@/components/catalog/product-detail";
 
 import { formatCurrency } from "@/lib/currency";
 
-import type { ProductDetail } from "@/lib/products/types";
+import type { PublicProductDetail } from "@/lib/products/types";
 
 type Props = {
-  product: ProductDetail;
+  product: PublicProductDetail;
   initialImage: string;
   initialColor: string | null;
 };
@@ -37,7 +37,7 @@ export function ProductClient({ product, initialImage, initialColor }: Props) {
   const isOutOfStock = product.variants.every((v) => v.stock === 0);
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_450px] xl:grid-cols-[1fr_500px] lg:gap-16 items-start">
+    <div className="grid gap-8 lg:grid-cols-[1fr_450px] xl:grid-cols-[1fr_500px] items-start">
       {/* COLUMNA IZQUIERDA: GALERÍA */}
       <div className="w-full min-w-0  lg:sticky lg:top-20 h-fit">
         <Gallery

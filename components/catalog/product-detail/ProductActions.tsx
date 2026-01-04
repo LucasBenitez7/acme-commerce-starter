@@ -6,11 +6,11 @@ import { cn } from "@/lib/utils";
 
 import { useProductActions } from "@/hooks/products/use-product-actions";
 
-import type { ProductDetail } from "@/lib/products/types";
+import type { PublicProductDetail } from "@/lib/products/types";
 
 export type Props = {
   product: Pick<
-    ProductDetail,
+    PublicProductDetail,
     "id" | "slug" | "name" | "priceCents" | "variants" | "isArchived"
   >;
   imageUrl?: string;

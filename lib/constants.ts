@@ -50,8 +50,20 @@ export const PRODUCT_COLORS = [
 // Helper para obtener el Hex dado un nombre (usado en ProductCard)
 export const COLOR_MAP: Record<string, string> = PRODUCT_COLORS.reduce(
   (acc, color) => ({ ...acc, [color.name]: color.hex }),
-  { Default: "#e5e5e5" }, // Fallback
+  { Default: "#e5e5e5" },
 );
+
+export const PRODUCT_SORT_OPTIONS = [
+  { label: "Más recientes", value: "date_desc" },
+  { label: "Más antiguos", value: "date_asc" },
+  { label: "Precio: Bajo a Alto", value: "price_asc" },
+  { label: "Precio: Alto a Bajo", value: "price_desc" },
+  { label: "Nombre: A-Z", value: "name_asc" },
+  { label: "Nombre: Z-A", value: "name_desc" },
+  { label: "Stock: Bajo", value: "stock_asc" },
+  { label: "Stock: Alto", value: "stock_desc" },
+] as const;
+export type ProductSortOption = (typeof PRODUCT_SORT_OPTIONS)[number]["value"];
 
 export const RETURN_REASONS = [
   "No me queda bien la talla",

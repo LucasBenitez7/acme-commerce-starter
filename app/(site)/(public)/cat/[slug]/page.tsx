@@ -8,7 +8,7 @@ import {
 
 import { getCategoryBySlug } from "@/lib/categories/queries";
 import { PER_PAGE, parsePage } from "@/lib/pagination";
-import { fetchProductsPage } from "@/lib/products/queries";
+import { getPublicProducts } from "@/lib/products/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -25,10 +25,10 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const cat = await getCategoryBySlug(slug);
   if (!cat) notFound();
 
-  const { rows, total } = await fetchProductsPage({
+  const { rows, total } = await getPublicProducts({
     page,
-    perPage: PER_PAGE,
-    where: { categoryId: cat.id },
+    limit: PER_PAGE,
+    categorySlug: slug,
   });
 
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));

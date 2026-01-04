@@ -1,15 +1,14 @@
 import { ProductGrid, SectionHeader } from "@/components/catalog";
 
 import { PER_PAGE } from "@/lib/pagination";
-import { fetchProductsPage } from "@/lib/products/queries";
+import { getPublicProducts } from "@/lib/products/queries";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const { rows } = await fetchProductsPage({
+  const { rows } = await getPublicProducts({
     page: 1,
-    perPage: PER_PAGE,
-    where: {},
+    limit: PER_PAGE,
   });
 
   return (

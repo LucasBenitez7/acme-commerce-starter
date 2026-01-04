@@ -25,7 +25,7 @@ import { useCartStore } from "@/store/cart";
 
 import { SiteSidebar } from "./SiteSidebar";
 
-import type { CategoryLink } from "@/lib/categories/queries";
+import type { CategoryLink } from "@/lib/categories/types";
 
 const SHEET_ID = "site-sidebar";
 
@@ -99,12 +99,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
         <div className="flex justify-self-start items-center h-full content-center">
           <Sheet open={open} onOpenChange={setOpen} modal={false}>
             <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative"
-                aria-label="Menu"
-              >
+              <Button variant="ghost" className="relative" aria-label="Menu">
                 {/* Aquí puse tu código de los iconos animados del paso anterior */}
                 <RiMenu2Line
                   className={`size-6 transition-all duration-300 ease-in-out ${

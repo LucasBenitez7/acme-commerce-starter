@@ -1,12 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useFormContext } from "react-hook-form";
 import { ImSpinner8 } from "react-icons/im";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Image } from "@/components/ui/image";
 
 import { formatCurrency, DEFAULT_CURRENCY } from "@/lib/currency";
 

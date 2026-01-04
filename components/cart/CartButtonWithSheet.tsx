@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { CgClose } from "react-icons/cg";
 import { HiOutlineShoppingBag } from "react-icons/hi2";
@@ -8,6 +7,7 @@ import { ImSpinner8 } from "react-icons/im";
 
 import { CartUndoNotification } from "@/components/cart/CartUndoNotification";
 import { Button, RemoveButton } from "@/components/ui";
+import { Image } from "@/components/ui/image";
 import {
   Sheet,
   SheetClose,

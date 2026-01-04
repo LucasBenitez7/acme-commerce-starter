@@ -5,23 +5,22 @@ import {
 } from "@/components/catalog";
 
 import { PER_PAGE, parsePage } from "@/lib/pagination";
-import { fetchProductsPage } from "@/lib/products/queries";
+import { getPublicProducts } from "@/lib/products/queries";
 
 export const dynamic = "force-dynamic";
 
-type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+type Props = {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
 
-export default async function CatalogoPage({
-  searchParams,
-}: {
-  searchParams: SearchParams;
-}) {
+export default async function CategoryPage({ params, searchParams }: Props) {
   const sp = await searchParams;
   const page = Math.max(1, parsePage(sp.page, 1));
 
-  const { rows, total } = await fetchProductsPage({
+  const { rows, total } = await getPublicProducts({
     page,
-    perPage: PER_PAGE,
+    limit: PER_PAGE,
   });
 
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
