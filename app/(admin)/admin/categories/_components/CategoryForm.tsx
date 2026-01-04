@@ -12,6 +12,8 @@ import {
   type CategoryFormState,
 } from "../actions";
 
+import { CategorySortPreview } from "./CategorySortPreview";
+
 type Props = {
   category?: {
     id: string;
@@ -19,6 +21,8 @@ type Props = {
     slug: string;
     sort: number;
   };
+  // NUEVA PROP: Recibimos la lista de referencia
+  existingCategories?: { id: string; name: string; sort: number }[];
 };
 
 const INITIAL_STATE: CategoryFormState = {
@@ -26,7 +30,7 @@ const INITIAL_STATE: CategoryFormState = {
   errors: {},
 };
 
-export function CategoryForm({ category }: Props) {
+export function CategoryForm({ category, existingCategories = [] }: Props) {
   const isEditing = !!category;
 
   const action = isEditing
@@ -39,82 +43,75 @@ export function CategoryForm({ category }: Props) {
   >(action, INITIAL_STATE);
 
   useEffect(() => {
-    if (state.message) {
-      toast.error(state.message);
+    if (state.message) toast.error(state.message);
+    if (state.errors && Object.keys(state.errors).length > 0) {
+      toast.error("Revisa los campos marcados.");
     }
   }, [state]);
 
   return (
-    <form action={formAction} className="space-y-6">
-      <div className="grid gap-4 bg-white p-6 rounded-lg border shadow-sm">
-        {/* NOMBRE */}
-        <div className="space-y-2">
-          <Label htmlFor="name">Nombre</Label>
-          <Input
-            id="name"
-            name="name"
-            defaultValue={category?.name}
-            placeholder="Ej: Zapatillas"
-            autoFocus={!isEditing}
-          />
-          {state.errors?.name && (
-            <p className="text-red-500 text-xs">{state.errors.name[0]}</p>
-          )}
-        </div>
-
-        {/* SLUG (Opcional visualmente, pero bueno para SEO) */}
-        <div className="space-y-2">
-          <Label htmlFor="slug">Slug (URL)</Label>
-          <Input
-            id="slug"
-            name="slug"
-            defaultValue={category?.slug}
-            placeholder="ej: zapatillas-deportivas"
-            className="font-mono text-sm"
-          />
-          <p className="text-[10px] text-muted-foreground">
-            Déjalo vacío para generarlo automáticamente desde el nombre.
-          </p>
-          {state.errors?.slug && (
-            <p className="text-red-500 text-xs">{state.errors.slug[0]}</p>
-          )}
-        </div>
-
-        {/* ORDEN */}
-        <div className="space-y-2">
-          <Label htmlFor="sort">Orden de prioridad</Label>
-          <Input
-            id="sort"
-            name="sort"
-            type="number"
-            defaultValue={category?.sort ?? 0}
-            className="max-w-[120px]"
-          />
-          <p className="text-[10px] text-muted-foreground">
-            Número menor aparece primero en el menú (0, 1, 2...).
-          </p>
-          {state.errors?.sort && (
-            <p className="text-red-500 text-xs">{state.errors.sort[0]}</p>
-          )}
-        </div>
+    <div className="grid gap-8 lg:grid-cols-[300px_1fr] items-start">
+      {/* COLUMNA IZQUIERDA */}
+      <div className="lg:block">
+        <CategorySortPreview
+          existingCategories={existingCategories}
+          currentId={category?.id}
+        />
       </div>
 
-      <div className="flex items-center justify-end gap-3">
-        <Button variant="outline" asChild>
-          <Link href="/admin/categories">Cancelar</Link>
-        </Button>
-        <Button
-          type="submit"
-          disabled={isPending}
-          className="bg-black text-white"
-        >
-          {isPending
-            ? "Guardando..."
-            : isEditing
-              ? "Guardar Cambios"
-              : "Crear Categoría"}
-        </Button>
-      </div>
-    </form>
+      {/* COLUMNA DERECHA*/}
+      <form action={formAction} className="space-y-6">
+        <div className="grid gap-6 bg-background px-4 py-6 rounded-xs border shadow-sm">
+          <div className="space-y-2">
+            <Label htmlFor="name">Nombre</Label>
+            <Input
+              id="name"
+              name="name"
+              defaultValue={category?.name}
+              placeholder="Ej: Zapatillas"
+              autoFocus={!isEditing}
+              aria-invalid={!!state.errors?.name}
+              className={state.errors?.name ? "border-red-500" : ""}
+            />
+            {state.errors?.name && (
+              <p className="text-red-500 text-xs">{state.errors.name[0]}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="sort">Prioridad (Orden)</Label>
+            <Input
+              id="sort"
+              name="sort"
+              type="number"
+              defaultValue={category?.sort ?? 0}
+              className="max-w-[120px]"
+            />
+            <p className="text-xs text-muted-foreground">
+              Menor número = Más arriba en el menú.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end gap-3">
+          <Button
+            variant="outline"
+            asChild
+            type="button"
+            className="p-3 flex-1 lg:flex-0"
+          >
+            <Link href="/admin/categories">Cancelar</Link>
+          </Button>
+          <Button
+            type="submit"
+            variant={"default"}
+            disabled={isPending}
+            className="p-3 flex-1 lg:flex-0"
+          >
+            {isPending ? "Guardando..." : isEditing ? "Guardar" : "Crear"}
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 }

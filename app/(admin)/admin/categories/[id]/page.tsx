@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
-import { FaLayerGroup } from "react-icons/fa6";
 
-import { prisma } from "@/lib/db";
+import {
+  getCategoryForEdit,
+  getCategoryOrderList,
+} from "@/lib/categories/queries";
 
 import { CategoryForm } from "../_components/CategoryForm";
 import { DeleteCategoryButton } from "../_components/DeleteCategoryButton";
@@ -13,14 +15,10 @@ interface Props {
 export default async function EditCategoryPage({ params }: Props) {
   const { id } = await params;
 
-  const category = await prisma.category.findUnique({
-    where: { id },
-    include: {
-      _count: {
-        select: { products: true },
-      },
-    },
-  });
+  const [category, orderList] = await Promise.all([
+    getCategoryForEdit(id),
+    getCategoryOrderList(),
+  ]);
 
   if (!category) {
     notFound();
@@ -29,23 +27,18 @@ export default async function EditCategoryPage({ params }: Props) {
   const hasProducts = category._count.products > 0;
 
   return (
-    <div className="max-w-xl mx-auto space-y-8">
-      {/* HEADER SIMPLE */}
-      <div className="flex items-start justify-between border-b pb-6">
+    <div className="max-w-4xl mx-auto space-y-6 py-2">
+      <div className="flex items-start justify-between border-b pb-4">
         <div className="space-y-1">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <FaLayerGroup />
-            <span>Editar Categoría</span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">{category.name}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {category.name}
+          </h1>
         </div>
 
-        {/* Pasamos el botón que me mostraste antes */}
         <DeleteCategoryButton id={category.id} hasProducts={hasProducts} />
       </div>
 
-      {/* FORMULARIO */}
-      <CategoryForm category={category} />
+      <CategoryForm category={category} existingCategories={orderList} />
     </div>
   );
 }

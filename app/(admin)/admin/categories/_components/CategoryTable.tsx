@@ -1,25 +1,25 @@
 import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
-type CategoryWithCount = {
-  id: string;
-  name: string;
-  slug: string;
-  sort: number;
-  createdAt: Date;
-  _count: { products: number };
-};
+import type { AdminCategoryItem } from "@/lib/categories/types";
 
 export function CategoryTable({
   categories,
 }: {
-  categories: CategoryWithCount[];
+  categories: AdminCategoryItem[];
 }) {
   if (categories.length === 0) {
     return (
-      <div className="text-center py-12 text-neutral-500">
-        <p className="font-medium">No se encontraron categorías.</p>
+      <div className="flex flex-col items-center justify-center py-16 text-neutral-500 bg-white border border-dashed rounded-lg">
+        <p className="font-medium">No hay categorías que mostrar.</p>
         <p className="text-xs mt-1">
           Intenta cambiar los filtros o crear una nueva.
         </p>
@@ -28,60 +28,61 @@ export function CategoryTable({
   }
 
   return (
-    <div className="relative w-full overflow-auto">
-      <table className="w-full text-sm text-left">
-        <thead className="text-xs uppercase bg-neutral-50 border-b text-neutral-500">
-          <tr>
-            <th className="px-6 py-3 w-20 text-center">Orden</th>
-            <th className="px-6 py-3">Nombre / Slug</th>
-            <th className="px-6 py-3 hidden sm:table-cell">Creado</th>
-            <th className="px-6 py-3 text-center">Productos</th>
-            <th className="px-6 py-3 text-right">Acciones</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-neutral-100">
+    <div className="overflow-hidden">
+      <Table>
+        <TableHeader className="bg-neutral-50">
+          <TableRow>
+            <TableHead className="w-[80px] text-center">Orden</TableHead>
+            <TableHead>Nombre</TableHead>
+            <TableHead className="hidden sm:table-cell">Creado</TableHead>
+            <TableHead className="text-center">Productos</TableHead>
+            <TableHead className="text-right pr-4">Acciones</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {categories.map((cat) => (
-            <tr
-              key={cat.id}
-              className="group hover:bg-neutral-50/50 transition-colors"
-            >
-              <td className="px-6 py-3 text-center font-mono text-xs text-neutral-400">
+            <TableRow key={cat.id} className="hover:bg-neutral-50">
+              {/* 1. ORDEN */}
+              <TableCell className="text-center font-mono text-xs text-neutral-400">
                 {cat.sort}
-              </td>
-              <td className="px-6 py-3">
-                <div className="font-medium text-neutral-900">{cat.name}</div>
-                <div className="text-xs text-neutral-400 font-mono">
-                  /{cat.slug}
+              </TableCell>
+
+              <TableCell>
+                <div className="flex flex-col">
+                  <span className="font-medium text-neutral-900">
+                    {cat.name}
+                  </span>
                 </div>
-              </td>
-              <td className="px-6 py-3 text-xs text-neutral-500 hidden sm:table-cell">
+              </TableCell>
+
+              {/* 3. FECHA */}
+              <TableCell className="hidden sm:table-cell text-xs">
                 {new Date(cat.createdAt).toLocaleDateString()}
-              </td>
-              <td className="px-6 py-3 text-center">
+              </TableCell>
+
+              {/* 4. PRODUCTOS (Badge) */}
+              <TableCell className="text-center">
                 <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                  className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${
                     cat._count.products > 0
-                      ? "bg-blue-50 text-blue-700 border-blue-100"
-                      : "bg-neutral-100 text-neutral-500 border-neutral-200"
+                      ? "bg-green-50 text-green-700 border-green-100"
+                      : "bg-red-50 text-red-500 border-red-200"
                   }`}
                 >
                   {cat._count.products}
                 </span>
-              </td>
-              <td className="px-6 py-3 text-right">
-                <Button
-                  asChild
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 px-2 lg:px-3"
-                >
+              </TableCell>
+
+              {/* 5. ACCIONES */}
+              <TableCell className="text-right pr-3">
+                <button className="fx-underline-anim mx-3 font-medium">
                   <Link href={`/admin/categories/${cat.id}`}>Editar</Link>
-                </Button>
-              </td>
-            </tr>
+                </button>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

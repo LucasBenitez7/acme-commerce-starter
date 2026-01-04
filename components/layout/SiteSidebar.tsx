@@ -4,7 +4,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 
-import type { CategoryLink } from "@/lib/categories/queries";
+import type { CategoryLink } from "@/lib/categories/types";
 
 export function SiteSidebar({ categories }: { categories: CategoryLink[] }) {
   const pathname = usePathname();

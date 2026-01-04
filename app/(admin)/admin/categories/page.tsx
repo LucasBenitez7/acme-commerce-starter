@@ -1,12 +1,10 @@
-import { type Prisma } from "@prisma/client";
 import Link from "next/link";
 import { FaPlus } from "react-icons/fa6";
 
 import { PaginationNav } from "@/components/catalog/PaginationNav";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { prisma } from "@/lib/db";
+import { getAdminCategories } from "@/lib/categories/queries";
 
 import { CategoryListToolbar } from "./_components/CategoryListToolbar";
 import { CategoryTable } from "./_components/CategoryTable";
@@ -15,7 +13,7 @@ export const dynamic = "force-dynamic";
 
 interface Props {
   searchParams: Promise<{
-    filter?: string;
+    filter?: "all" | "with_products" | "empty";
     sortBy?: string;
     sortOrder?: "asc" | "desc";
     q?: string;
@@ -24,70 +22,34 @@ interface Props {
 }
 
 export default async function AdminCategoriesPage({ searchParams }: Props) {
-  const {
-    filter = "all",
-    sortBy = "sort",
-    sortOrder = "asc",
-    q,
+  const sp = await searchParams;
+  const page = Number(sp.page) || 1;
+
+  // LLAMADA LIMPIA A LA QUERY
+  const { categories, totalCount, totalPages } = await getAdminCategories({
     page,
-  } = await searchParams;
-
-  const currentPage = Number(page) || 1;
-  const itemsPerPage = 20;
-  const skip = (currentPage - 1) * itemsPerPage;
-
-  const where: Prisma.CategoryWhereInput = {};
-
-  if (q) {
-    where.name = { contains: q, mode: "insensitive" };
-  }
-
-  if (filter === "with_products") {
-    where.products = { some: {} };
-  } else if (filter === "empty") {
-    where.products = { none: {} };
-  }
-
-  let orderBy: Prisma.CategoryOrderByWithRelationInput = {};
-  if (sortBy === "products") {
-    orderBy = { products: { _count: sortOrder } };
-  } else {
-    orderBy = { [sortBy]: sortOrder };
-  }
-
-  const [categories, totalCount] = await Promise.all([
-    prisma.category.findMany({
-      where,
-      orderBy,
-      include: {
-        _count: { select: { products: true } },
-      },
-      take: itemsPerPage,
-      skip: skip,
-    }),
-    prisma.category.count({ where }),
-  ]);
-
-  const totalPages = Math.ceil(totalCount / itemsPerPage);
+    query: sp.q,
+    filter: sp.filter,
+    sortBy: sp.sortBy,
+    sortOrder: sp.sortOrder,
+  });
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold tracking-tight">Categorías</h1>
-        <Button asChild>
-          <Link href="/admin/categories/new">
-            <FaPlus className="mr-2 h-4 w-4" /> Añadir Categoría
-          </Link>
-        </Button>
+        <Link
+          href="/admin/categories/new "
+          className="flex items-center font-medium gap-2 bg-foreground text-background py-2 px-3 rounded-xs text-sm"
+        >
+          <FaPlus className="h-4 w-4" /> Añadir Categoría
+        </Link>
       </div>
 
       <Card>
-        <CardHeader className="px-6 py-4 border-b bg-neutral-50/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <CardTitle className="text-base font-semibold">
-            Listado{" "}
-            <span className="text-neutral-400 font-normal ml-1">
-              ({categories.length})
-            </span>
+        <CardHeader className="p-4 border-b flex justify-between gap-4">
+          <CardTitle className="text-lg font-semibold">
+            Listado <span className="text-base">({totalCount})</span>
           </CardTitle>
 
           <div className="w-full md:w-auto">
@@ -97,9 +59,11 @@ export default async function AdminCategoriesPage({ searchParams }: Props) {
         <CardContent className="p-0">
           <CategoryTable categories={categories} />
 
-          <div className="py-4 border-t flex justify-end px-4">
-            <PaginationNav totalPages={totalPages} page={currentPage} />
-          </div>
+          {totalPages > 1 && (
+            <div className="py-4 flex justify-end px-4 border-t">
+              <PaginationNav totalPages={totalPages} page={page} />
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
