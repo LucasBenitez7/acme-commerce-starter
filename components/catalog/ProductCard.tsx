@@ -1,18 +1,18 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 
 import { FavoriteButton } from "@/components/ui";
+import { Image } from "@/components/ui/image";
 
 import { formatCurrency, DEFAULT_CURRENCY } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 
 import { useProductCard } from "@/hooks/products/use-product-card";
 
-import type { ProductListItem } from "@/lib/products/types";
+import type { PublicProductListItem } from "@/lib/products/types";
 
-export function ProductCard({ item }: { item: ProductListItem }) {
+export function ProductCard({ item }: { item: PublicProductListItem }) {
   const {
     imageContainerRef,
     showSizes,

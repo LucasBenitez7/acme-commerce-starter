@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import { CldUploadWidget } from "next-cloudinary";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { FaTrash, FaImage, FaCloudArrowUp } from "react-icons/fa6";
 
 import { Button } from "@/components/ui/button";
+import { Image } from "@/components/ui/image";
 import {
   Select,
   SelectContent,
