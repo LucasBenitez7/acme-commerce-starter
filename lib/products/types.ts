@@ -6,21 +6,12 @@ import type {
   Category as DbCategory,
 } from "@prisma/client";
 
-// Tipos para Admin products
-export type AdminProductItem = Product & {
-  category: DbCategory;
-  images: DbImage[];
-  variants: DbVariant[];
-  _totalStock: number; // Campo calculado
-};
+// --- TIPOS BASE ---
+export type ProductImage = Pick<
+  DbImage,
+  "id" | "url" | "alt" | "sort" | "color"
+>;
 
-// Tipos para imágenes con soporte de color
-export type ProductImage = Pick<DbImage, "url" | "alt"> & {
-  sort?: number;
-  color?: string | null;
-};
-
-// Tipos para variantes con precio específico
 export type ProductVariant = Pick<
   DbVariant,
   "id" | "size" | "color" | "colorHex" | "stock" | "isActive"
@@ -28,29 +19,39 @@ export type ProductVariant = Pick<
   priceCents?: number | null;
 };
 
-// --- DTO para Listas (Grid) ---
-export type ProductListItem = Pick<
-  Product,
-  "id" | "slug" | "name" | "priceCents" | "isArchived"
-> & {
-  totalStock: number;
-  currency: SupportedCurrency;
-  thumbnail: string | null;
-  images: { url: string; color: string | null }[];
-  variants: ProductVariant[];
-  category: Pick<DbCategory, "slug" | "name">;
-};
-
-// --- DTO para Detalle (Ficha) ---
-export type ProductDetail = Pick<
-  Product,
-  "id" | "slug" | "name" | "description" | "priceCents" | "isArchived"
-> & {
-  currency: SupportedCurrency;
+// --- DTO: ADMIN (Lo que usa tu Dashboard) ---
+export type AdminProductItem = Product & {
+  category: DbCategory;
   images: ProductImage[];
   variants: ProductVariant[];
-  category: Pick<DbCategory, "slug" | "name" | "id">;
+  _totalStock: number;
 };
 
-export type ParamsSlug = Promise<{ slug: string }>;
-export type SP = Promise<Record<string, string | string[] | undefined>>;
+// --- DTO: PUBLIC LIST (Lo que usa tu Catálogo / Grid) ---
+export type PublicProductListItem = {
+  id: string;
+  slug: string;
+  name: string;
+  priceCents: number;
+  currency: SupportedCurrency;
+  isArchived: boolean;
+  category: { name: string; slug: string };
+  thumbnail: string | null;
+  images: { url: string; color: string | null }[];
+  totalStock: number;
+  variants: ProductVariant[];
+};
+
+// --- DTO: PUBLIC DETAIL (Lo que usa la Ficha de Producto) ---
+export type PublicProductDetail = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  priceCents: number;
+  currency: SupportedCurrency;
+  isArchived: boolean;
+  category: { id: string; slug: string; name: string };
+  images: ProductImage[];
+  variants: ProductVariant[];
+};

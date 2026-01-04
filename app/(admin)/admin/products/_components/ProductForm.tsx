@@ -2,16 +2,14 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
 import { useForm, FormProvider, type DefaultValues } from "react-hook-form";
 import { FaBoxArchive } from "react-icons/fa6";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 
 import { productSchema, type ProductFormValues } from "@/lib/products/schema";
 
-import { upsertProductAction } from "../actions";
+import { useProductSubmit } from "@/hooks/products/use-product-submit";
 
 import { DangerZone } from "./form/DangerZone";
 import { GeneralSection } from "./form/GeneralSection";
@@ -27,14 +25,9 @@ type Props = {
   product?: Partial<ProductWithId> & { id?: string };
 };
 
-export function ProductForm({
-  categories,
-  existingSizes,
-  existingColors,
-  product,
-}: Props) {
+export function ProductForm({ categories, product }: Props) {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const { isPending, onSubmit } = useProductSubmit(product?.id);
 
   const defaultValues: DefaultValues<ProductFormValues> = {
     name: product?.name || "",
@@ -57,37 +50,6 @@ export function ProductForm({
     handleSubmit,
     formState: { errors },
   } = methods;
-
-  const onSubmit = (data: ProductFormValues) => {
-    startTransition(async () => {
-      const formData = new FormData();
-
-      if (product?.id) formData.append("id", product.id);
-
-      // Mapeo simple de campos
-      formData.append("name", data.name);
-      formData.append("description", data.description || "");
-      formData.append("priceCents", String(data.priceCents));
-      formData.append("categoryId", data.categoryId);
-      formData.append("isArchived", String(data.isArchived));
-      if (data.slug) formData.append("slug", data.slug);
-
-      // SERIALIZACIÓN JSON
-      formData.append("imagesJson", JSON.stringify(data.images));
-      formData.append("variantsJson", JSON.stringify(data.variants));
-
-      const result = await upsertProductAction({}, formData);
-
-      if (result?.errors) {
-        toast.error("Error en el formulario. Revisa los campos.");
-      } else if (result?.message) {
-        toast.error(result.message);
-      } else {
-        toast.success("Producto guardado correctamente");
-        router.refresh();
-      }
-    });
-  };
 
   return (
     <FormProvider {...methods}>
@@ -121,9 +83,7 @@ export function ProductForm({
         {/* SECCIONES DEL FORMULARIO */}
         <GeneralSection categories={categories} />
 
-        <VariantsSection
-          suggestions={{ sizes: existingSizes, colors: existingColors }}
-        />
+        <VariantsSection />
 
         <ImagesSection />
 

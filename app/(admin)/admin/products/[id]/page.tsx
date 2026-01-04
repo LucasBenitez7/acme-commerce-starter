@@ -9,7 +9,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 
-import { prisma } from "@/lib/db";
+import { getProductForEdit } from "@/lib/products/queries";
 import { getProductFormDependencies } from "@/lib/products/service";
 
 import { StatCard } from "@/app/(admin)/_components/StatCard";
@@ -25,18 +25,9 @@ export default async function EditProductPage({
   const { id } = await params;
 
   const [product, formDeps] = await Promise.all([
-    prisma.product.findUnique({
-      where: { id },
-      include: {
-        category: true,
-        images: { orderBy: { sort: "asc" } },
-        variants: { orderBy: { size: "asc" } },
-        _count: { select: { orderItems: true } },
-      },
-    }),
+    getProductForEdit(id),
     getProductFormDependencies(),
   ]);
-
   if (!product) notFound();
 
   const totalStock = product.variants.reduce((acc, v) => acc + v.stock, 0);

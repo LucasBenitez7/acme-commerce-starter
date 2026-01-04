@@ -1,6 +1,7 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef } from "react";
 import { toast } from "sonner";
 
+import { type PublicProductListItem } from "@/lib/products/types";
 import {
   getUniqueColors,
   getUniqueSizes,
@@ -12,9 +13,7 @@ import { useCartStore } from "@/store/cart";
 import { useProductPreferences } from "@/store/ui";
 import { useStore } from "@/store/use-store";
 
-import type { ProductListItem } from "@/lib/products/types";
-
-export function useProductCard(item: ProductListItem) {
+export function useProductCard(item: PublicProductListItem) {
   const imageContainerRef = useRef<HTMLDivElement>(null);
   const [showSizes, setShowSizes] = useState(false);
 

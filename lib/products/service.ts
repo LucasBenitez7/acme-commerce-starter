@@ -2,13 +2,15 @@ import { prisma } from "@/lib/db";
 
 import { type ProductFormValues } from "./schema";
 
+// Generador de slug simple y seguro
 function generateSlug(name: string, explicitSlug?: string) {
   const base = (explicitSlug || name)
     .toLowerCase()
     .trim()
     .replace(/\s+/g, "-")
     .replace(/[^\w\-]+/g, "");
-  return `${base}_${Math.floor(Math.random() * 1000)}`;
+
+  return `${base}-${Math.floor(Math.random() * 10000)}`;
 }
 
 export async function createProductInDb(data: ProductFormValues) {
@@ -48,12 +50,12 @@ export async function updateProductInDb(id: string, data: ProductFormValues) {
   const slug = data.slug ? generateSlug(data.name, data.slug) : undefined;
 
   return prisma.$transaction(async (tx) => {
-    // 1. Actualizar Datos Básicos
+    // 1. Update Básico
     await tx.product.update({
       where: { id },
       data: {
         name: data.name,
-        slug,
+        ...(slug && { slug }),
         description: data.description || "",
         priceCents: data.priceCents,
         categoryId: data.categoryId,
@@ -61,7 +63,7 @@ export async function updateProductInDb(id: string, data: ProductFormValues) {
       },
     });
 
-    // 2. Reemplazar Imágenes (Estrategia simple: borrar y crear)
+    // 2. Imágenes (Borrar y Recrear es lo más seguro para el orden)
     await tx.productImage.deleteMany({ where: { productId: id } });
     if (data.images.length > 0) {
       await tx.productImage.createMany({
@@ -75,20 +77,20 @@ export async function updateProductInDb(id: string, data: ProductFormValues) {
       });
     }
 
-    // 3. Gestionar Variantes (Smart Update)
+    // 3. Variantes (Smart Sync)
     const incomingIds = data.variants
       .map((v) => v.id)
       .filter(Boolean) as string[];
 
-    // A. Desactivar variantes no enviadas (Soft Delete)
+    // A. Soft Delete de las que ya no vienen
     await tx.productVariant.updateMany({
       where: { productId: id, id: { notIn: incomingIds } },
       data: { isActive: false, stock: 0 },
     });
 
-    // B. Actualizar o Crear variantes
+    // B. Upsert (Actualizar o Crear)
     for (const v of data.variants) {
-      const variantData = {
+      const variantPayload = {
         size: v.size,
         color: v.color,
         colorHex: v.colorHex,
@@ -100,18 +102,18 @@ export async function updateProductInDb(id: string, data: ProductFormValues) {
       if (v.id) {
         await tx.productVariant.update({
           where: { id: v.id },
-          data: variantData,
+          data: variantPayload,
         });
       } else {
         await tx.productVariant.create({
-          data: { ...variantData, productId: id },
+          data: { ...variantPayload, productId: id },
         });
       }
     }
   });
 }
 
-// Helper para obtener los datos que necesita el formulario (Categorías + Sugerencias)
+// Helper para el formulario
 export async function getProductFormDependencies() {
   const [categories, variantsData] = await Promise.all([
     prisma.category.findMany({

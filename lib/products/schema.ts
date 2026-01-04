@@ -45,7 +45,7 @@ export const productSchema = z
     variantColors.forEach((color) => {
       if (color && !imageColors.has(color)) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           message: `El color "${color}" tiene variantes pero no tiene ninguna imagen asignada.`,
           path: ["images"],
         });
@@ -57,7 +57,7 @@ export const productSchema = z
     const uniqueUrls = new Set(urls);
     if (urls.length !== uniqueUrls.size) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message:
           "Hay imágenes duplicadas. No puedes usar la misma foto dos veces.",
         path: ["images"],

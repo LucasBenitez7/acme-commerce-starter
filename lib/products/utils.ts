@@ -1,6 +1,10 @@
 import { CLOTHING_SIZES } from "@/lib/constants";
 
-import type { ProductImage, ProductVariant, ProductDetail } from "./types";
+import type {
+  ProductImage,
+  ProductVariant,
+  PublicProductDetail,
+} from "./types";
 
 export function findVariant(
   variants: ProductVariant[],
@@ -13,21 +17,31 @@ export function findVariant(
 
 export function normalizeImages(
   productName: string,
-  images: Array<{
+  images: {
     url: string;
     alt: string | null;
-    sort: number | null;
-    color: string | null;
-  }>,
+    sort: number;
+    color?: string | null;
+  }[],
 ): ProductImage[] {
   if (!images || images.length === 0) {
-    return [{ url: "/og/default-products.jpg", alt: productName, sort: 0 }];
+    return [
+      {
+        id: "default-img",
+        url: "/og/default-products.jpg",
+        alt: productName,
+        sort: 0,
+        color: null,
+      },
+    ];
   }
+
   return images.map((img, idx) => ({
+    id: `img-${idx}`,
     url: img.url,
     alt: img.alt || productName,
-    sort: img.sort ?? idx,
-    color: img.color,
+    sort: img.sort,
+    color: img.color || null,
   }));
 }
 
@@ -82,7 +96,7 @@ export function capitalize(s: string): string {
 
 // Calcula el estado visual inicial (Color e Imagen) basado en la URL y el stock
 export function getInitialProductState(
-  product: ProductDetail,
+  product: PublicProductDetail,
   colorParam?: string,
 ) {
   let initialColor: string | null = null;
