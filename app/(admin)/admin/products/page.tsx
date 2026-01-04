@@ -1,21 +1,14 @@
 import Link from "next/link";
+import { FaPlus } from "react-icons/fa6";
 
 import { PaginationNav } from "@/components/catalog/PaginationNav";
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 
-import { prisma } from "@/lib/db";
+import { getAdminProducts, getMaxPrice } from "@/lib/products/queries";
 import { cn } from "@/lib/utils";
 
 import { ProductListToolbar } from "./_components/ProductListToolbar";
 import { ProductTable } from "./_components/ProductTable";
-
-import type { Prisma } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -33,16 +26,12 @@ type Props = {
 
 export default async function AdminProductsPage({ searchParams }: Props) {
   const sp = await searchParams;
+
+  const page = Number(sp.page) || 1;
   const query = sp.q?.trim();
+  const categories = sp.categories?.split(",").filter(Boolean);
+  const status = sp.status;
 
-  const currentPage = Number(sp.page) || 1;
-  const itemsPerPage = 15;
-  const skip = (currentPage - 1) * itemsPerPage;
-
-  const isArchivedView = sp.status === "archived";
-  const categoryIds = sp.categories?.split(",").filter(Boolean) || [];
-
-  // Parseo seguro de precios
   const minCents =
     sp.min && !isNaN(parseFloat(sp.min))
       ? Math.round(parseFloat(sp.min) * 100)
@@ -52,96 +41,43 @@ export default async function AdminProductsPage({ searchParams }: Props) {
       ? Math.round(parseFloat(sp.max) * 100)
       : undefined;
 
-  const where: Prisma.ProductWhereInput = {
-    isArchived: isArchivedView,
-    ...(categoryIds.length > 0 && {
-      categoryId: { in: categoryIds },
+  const [productsData, globalMaxPrice] = await Promise.all([
+    getAdminProducts({
+      page,
+      query,
+      sort: sp.sort,
+      categories,
+      status,
+      minPrice: minCents,
+      maxPrice: maxCents,
     }),
-    priceCents: {
-      gte: minCents,
-      lte: maxCents,
-    },
-    ...(query && {
-      OR: [
-        { name: { contains: query, mode: "insensitive" } },
-        { description: { contains: query, mode: "insensitive" } },
-      ],
-    }),
-  };
-
-  let orderBy: Prisma.ProductOrderByWithRelationInput = { createdAt: "desc" };
-  const isStockSort = sp.sort === "stock_asc" || sp.sort === "stock_desc";
-
-  // Lógica de ordenamiento DB
-  if (!isStockSort) {
-    switch (sp.sort) {
-      case "date_asc":
-        orderBy = { createdAt: "asc" };
-        break;
-      case "price_asc":
-        orderBy = { priceCents: "asc" };
-        break;
-      case "price_desc":
-        orderBy = { priceCents: "desc" };
-        break;
-      case "name_asc":
-        orderBy = { name: "asc" };
-        break;
-      case "name_desc":
-        orderBy = { name: "desc" };
-        break;
-      default:
-        orderBy = { createdAt: "desc" };
-    }
-  }
-
-  const [productsRaw, totalCount, categories] = await Promise.all([
-    prisma.product.findMany({
-      where,
-      orderBy,
-      include: {
-        category: true,
-        variants: true,
-        images: { orderBy: { sort: "asc" }, take: 1 },
-      },
-      take: itemsPerPage,
-      skip: skip,
-    }),
-    prisma.product.count({ where }),
-    prisma.category.findMany({ orderBy: { name: "asc" } }),
+    getMaxPrice(),
   ]);
 
-  const products = productsRaw.map((p) => ({
-    ...p,
-    _totalStock: p.variants.reduce((acc, v) => acc + v.stock, 0),
-  }));
+  const { products, totalCount, totalPages, allCategories, grandTotalStock } =
+    productsData;
 
-  if (sp.sort === "stock_asc") {
-    products.sort((a, b) => a._totalStock - b._totalStock);
-  } else if (sp.sort === "stock_desc") {
-    products.sort((a, b) => b._totalStock - a._totalStock);
-  }
-
-  const grandTotalStock = products.reduce((acc, p) => acc + p._totalStock, 0);
-
+  const isArchivedView = status === "archived";
   const tabs = [
     { label: "Activos", value: undefined },
     { label: "Archivados / Papelera", value: "archived" },
   ];
 
-  const totalPages = Math.ceil(totalCount / itemsPerPage);
-
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold tracking-tight">Productos</h1>
-        <Button asChild>
-          <Link href="/admin/products/new">Añadir nuevo producto</Link>
-        </Button>
+
+        <Link
+          href="/admin/products/new"
+          className="flex items-center font-medium gap-2 bg-foreground text-background py-2 px-3 rounded-xs text-sm"
+        >
+          <FaPlus className="h-4 w-4" /> Añadir producto
+        </Link>
       </div>
 
       {/* TABS DE FILTRO RÁPIDO */}
-      <div className="flex gap-6 border-b text-sm">
+      <div className="flex gap-6 text-sm">
         {tabs.map((tab) => {
           const isActive = sp.status === tab.value;
           return (
@@ -153,10 +89,10 @@ export default async function AdminProductsPage({ searchParams }: Props) {
                   : "/admin/products"
               }
               className={cn(
-                "pb-3 border-b-2 font-medium transition-colors",
+                "pb-0.5 border-b-2 font-semibold transition-colors",
                 isActive
-                  ? "border-black text-black"
-                  : "border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300",
+                  ? "border-foreground"
+                  : "border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300 actve:text-neutral-700 actve:border-neutral-300",
               )}
             >
               {tab.label}
@@ -166,24 +102,27 @@ export default async function AdminProductsPage({ searchParams }: Props) {
       </div>
 
       <Card>
-        <CardHeader className="px-6 py-4 border-b bg-neutral-50/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <CardTitle className="text-base font-semibold">
+        <CardHeader className="p-4 border-b flex flex-col md:flex-row md:items-center justify-between gap-0 sm:gap-4">
+          <CardTitle className="text-lg text-left font-semibold">
             {isArchivedView ? "Papelera" : "Catálogo"}{" "}
-            <span className="text-neutral-400 font-normal ml-1">
-              ({products.length})
-            </span>
+            <span className="text-base">({totalCount})</span>
           </CardTitle>
 
           <div className="w-full md:w-auto">
-            <ProductListToolbar categories={categories} />
+            <ProductListToolbar
+              categories={allCategories}
+              globalMaxPrice={globalMaxPrice}
+            />
           </div>
         </CardHeader>
         <CardContent className="p-0">
           <ProductTable products={products} grandTotalStock={grandTotalStock} />
 
-          <div className="py-4 border-t flex justify-end px-4">
-            <PaginationNav totalPages={totalPages} page={currentPage} />
-          </div>
+          {totalPages > 1 && (
+            <div className="py-4 flex justify-end px-4 border-t">
+              <PaginationNav totalPages={totalPages} page={page} />
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

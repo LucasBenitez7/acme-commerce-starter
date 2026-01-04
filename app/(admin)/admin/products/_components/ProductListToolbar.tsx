@@ -1,14 +1,13 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import {
   FaFilter,
   FaSort,
   FaXmark,
-  FaEuroSign,
   FaMagnifyingGlass,
   FaCheck,
+  FaChevronRight,
 } from "react-icons/fa6";
 
 import { Button, Input, Label } from "@/components/ui";
@@ -24,137 +23,285 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 
+import { PRODUCT_SORT_OPTIONS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
-import { useDebounce } from "@/hooks/common/use-debounce";
+import { useProductFilters } from "@/hooks/products/use-product-filters";
 
 type Category = { id: string; name: string };
 
 type Props = {
   categories: Category[];
+  globalMaxPrice: number;
 };
 
-export function ProductListToolbar({ categories }: Props) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+export function ProductListToolbar({ categories, globalMaxPrice }: Props) {
+  const {
+    query,
+    setQuery,
+    minPrice,
+    setMinPrice,
+    maxPrice,
+    setMaxPrice,
+    activeSort,
+    activeCats,
+    hasActiveFilters,
+    hasPriceFilter,
+    handleSortChange,
+    handleCategoryToggle,
+    applyPriceFilter,
+    clearPriceFilter,
+  } = useProductFilters({ globalMaxPrice });
 
-  // --- LÓGICA DE URL ---
-  const updateParams = useCallback(
-    (updates: Record<string, string | null>) => {
-      const params = new URLSearchParams(searchParams.toString());
+  // Estados VISUALES
+  const [isPriceOpen, setIsPriceOpen] = useState(false);
+  const [isCatsOpen, setIsCatsOpen] = useState(false);
 
-      Object.entries(updates).forEach(([key, value]) => {
-        if (value) params.set(key, value);
-        else params.delete(key);
-      });
-
-      // Si cambiamos filtros (no página), reseteamos a página 1
-      if (updates.page === undefined) params.set("page", "1");
-
-      router.push(`/admin/products?${params.toString()}`);
-    },
-    [searchParams, router],
-  );
-
-  // --- ESTADOS LOCALES ---
-  // 1. Buscador
-  const [query, setQuery] = useState(searchParams.get("q") || "");
-  const debouncedQuery = useDebounce(query, 500); // Hook propio
-
-  // 2. Filtros
-  const activeSort = searchParams.get("sort") || "date_desc";
-  const activeCats =
-    searchParams.get("categories")?.split(",").filter(Boolean) || [];
-
-  const [minPrice, setMinPrice] = useState(searchParams.get("min") || "");
-  const [maxPrice, setMaxPrice] = useState(searchParams.get("max") || "");
-  const [priceOpen, setPriceOpen] = useState(false);
-
-  // --- EFECTOS ---
-
-  // A. Sincronizar Input -> URL (con Debounce)
-  useEffect(() => {
-    if (debouncedQuery !== (searchParams.get("q") || "")) {
-      updateParams({ q: debouncedQuery || null });
-    }
-  }, [debouncedQuery, updateParams, searchParams]);
-
-  // B. Sincronizar URL -> Input (por si navegamos atrás/adelante)
-  useEffect(() => {
-    if (searchParams.get("q") !== query) {
-      setQuery(searchParams.get("q") || "");
-    }
-    if (searchParams.get("min") !== minPrice)
-      setMinPrice(searchParams.get("min") || "");
-    if (searchParams.get("max") !== maxPrice)
-      setMaxPrice(searchParams.get("max") || "");
-  }, [searchParams]);
-
-  // --- HANDLERS ---
-  const handleSortChange = (val: string) => updateParams({ sort: val });
-
-  const handleCategoryToggle = (catId: string) => {
-    const newCats = activeCats.includes(catId)
-      ? activeCats.filter((id) => id !== catId)
-      : [...activeCats, catId];
-    updateParams({ categories: newCats.length > 0 ? newCats.join(",") : null });
-  };
-
-  const applyPriceFilter = () => {
-    updateParams({ min: minPrice || null, max: maxPrice || null });
-    setPriceOpen(false);
-  };
-
-  const clearAll = () => {
-    setQuery("");
-    setMinPrice("");
-    setMaxPrice("");
-    router.push("/admin/products");
-  };
-
-  const hasPriceFilter = !!searchParams.get("min") || !!searchParams.get("max");
-  const hasActiveFilters = activeCats.length > 0 || hasPriceFilter || !!query;
-
-  const PRODUCT_SORT_OPTIONS = [
-    { label: "Más recientes", value: "date_desc" },
-    { label: "Más antiguos", value: "date_asc" },
-    { label: "Precio: Bajo a Alto", value: "price_asc" },
-    { label: "Precio: Alto a Bajo", value: "price_desc" },
-    { label: "Nombre: A-Z", value: "name_asc" },
-    { label: "Nombre: Z-A", value: "name_desc" },
-    { label: "Stock: Bajo", value: "stock_asc" },
-    { label: "Stock: Alto", value: "stock_desc" },
-  ] as const;
+  const isPopoverFilterActive = activeCats.length > 0 || hasPriceFilter;
 
   return (
-    <div className="space-y-4 w-full bg-white p-4 rounded-lg border shadow-sm">
-      <div className="flex flex-col lg:flex-row gap-4 justify-between w-full items-start lg:items-center">
+    <div className="space-y-4 w-full rounded-xs">
+      <div className="flex flex-col lg:flex-row gap-3 justify-between w-full items-start lg:items-center">
         {/* 1. BUSCADOR */}
-        <div className="relative w-full lg:max-w-md">
+        <div className="relative lg:w-[300px] w-full">
           <FaMagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
             placeholder="Buscar por nombre, descripción..."
-            className="pl-9 bg-neutral-50 border-neutral-200 focus:bg-white transition-colors"
+            className="pl-9 h-9 bg-background"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
+
+          {query && (
+            <button
+              onClick={() => setQuery("")}
+              className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 hover:cursor-pointer"
+            >
+              <FaXmark className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
 
-        {/* 2. BARRA DE HERRAMIENTAS */}
-        <div className="flex flex-wrap gap-2 w-full lg:w-auto items-center">
-          {/* SORT (Usando Constantes) */}
+        {/* FILTROS PRINCIPALES */}
+        <div className="flex flex-wrap gap-3 justify-between w-full lg:w-auto items-center">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "px-3 relative border border-border h-9",
+                  isPopoverFilterActive && "border-foreground",
+                )}
+              >
+                <FaFilter className="size-3.5 text-foreground" size={20} />
+                Filtrar
+              </Button>
+            </PopoverTrigger>
+
+            <PopoverContent
+              className="w-[280px] p-2 translate-x-4 lg:translate-x-0"
+              align="end"
+            >
+              <div className="space-y-1">
+                <div
+                  className={cn(
+                    "rounded-xs",
+                    isPriceOpen && "bg-neutral-50 pb-3",
+                  )}
+                >
+                  <Button
+                    variant="ghost"
+                    onClick={() => setIsPriceOpen(!isPriceOpen)}
+                    className={cn(
+                      "w-full justify-between px-3 hover:bg-neutral-100",
+                      hasPriceFilter &&
+                        !isPriceOpen &&
+                        "bg-neutral-50 font-medium",
+                    )}
+                  >
+                    <span className="flex items-center gap-2 font-medium">
+                      Precio
+                    </span>
+                    <FaChevronRight
+                      className={cn(
+                        "size-3.5 transition-transform duration-200",
+                        isPriceOpen && "rotate-90",
+                      )}
+                    />
+                  </Button>
+
+                  {/* CONTENIDO EXPANDIBLE DEL PRECIO */}
+                  {isPriceOpen && (
+                    <div className="px-3 pt-2 space-y-3 animate-in slide-in-from-top-2 fade-in duration-200">
+                      <div className="flex items-end gap-2">
+                        <div className="grid gap-1.5 flex-1">
+                          <Label
+                            htmlFor="min"
+                            className="text-xs text-muted-foreground font-medium"
+                          >
+                            Mínimo
+                          </Label>
+                          <div className="relative">
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-neutral-400 text-xs">
+                              €
+                            </span>
+                            <Input
+                              id="min"
+                              type="number"
+                              min={0} // Ayuda visual navegador
+                              placeholder="0"
+                              className="h-8 text-sm bg-white pl-5"
+                              value={minPrice}
+                              onChange={(e) => setMinPrice(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "-" || e.key === "e")
+                                  e.preventDefault();
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        <span className="mb-2 text-neutral-400 text-sm font-medium">
+                          —
+                        </span>
+
+                        <div className="grid gap-1.5 flex-1">
+                          <Label
+                            htmlFor="max"
+                            className="text-xs text-muted-foreground font-medium"
+                          >
+                            Máximo
+                          </Label>
+                          <div className="relative">
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-neutral-400 text-xs">
+                              €
+                            </span>
+                            <Input
+                              id="max"
+                              type="number"
+                              min={0}
+                              placeholder={globalMaxPrice.toString()}
+                              className="h-8 text-sm bg-white pl-5"
+                              value={maxPrice}
+                              onChange={(e) => setMaxPrice(e.target.value)}
+                              // BLOQUEA EL SIGNO MENOS AL ESCRIBIR
+                              onKeyDown={(e) => {
+                                if (e.key === "-" || e.key === "e")
+                                  e.preventDefault();
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          variant="default"
+                          className="w-full h-8 text-xs font-medium"
+                          onClick={applyPriceFilter}
+                        >
+                          Aplicar
+                        </Button>
+
+                        <Button
+                          variant="outline"
+                          className="w-full h-8 text-xs font-medium"
+                          onClick={clearPriceFilter}
+                        >
+                          Borrar
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* --- SECCIÓN CATEGORÍAS (COLLAPSIBLE) --- */}
+                <div
+                  className={cn(
+                    "rounded-xs transition-all",
+                    isCatsOpen && "bg-neutral-50",
+                  )}
+                >
+                  <Button
+                    variant="ghost"
+                    onClick={() => setIsCatsOpen(!isCatsOpen)}
+                    className={cn(
+                      "w-full justify-between px-3 hover:bg-neutral-100",
+                      activeCats.length > 0 &&
+                        !isCatsOpen &&
+                        "bg-neutral-50 font-medium",
+                    )}
+                  >
+                    Categorías
+                    <FaChevronRight
+                      className={cn(
+                        "size-3.5 transition-transform duration-200",
+                        isCatsOpen && "rotate-90",
+                      )}
+                    />
+                  </Button>
+
+                  {/* CONTENIDO EXPANDIBLE */}
+                  {isCatsOpen && (
+                    <div
+                      className={cn(
+                        "overflow-y-auto animate-in fade-in duration-200 scrollbar-thin scrollbar-thumb-neutral-200",
+                        "max-h-[250px]",
+                      )}
+                    >
+                      {categories.map((cat) => {
+                        const isActive = activeCats.includes(cat.id);
+                        return (
+                          <div
+                            key={cat.id}
+                            className={cn(
+                              "flex items-center gap-2 py-1.5 rounded-xs cursor-pointer px-2 hover:bg-neutral-200/50 text-sm select-none transition-colors",
+                            )}
+                            onClick={() => handleCategoryToggle(cat.id)}
+                          >
+                            <div
+                              className={cn(
+                                "w-4 h-4 border rounded-xs flex items-center justify-center transition-colors bg-white",
+                                isActive
+                                  ? "bg-foreground border-foreground text-white"
+                                  : "border-neutral-300",
+                              )}
+                            >
+                              {isActive && <FaCheck className="w-2.5 h-2.5" />}
+                            </div>
+                            <span className="truncate">{cat.name}</span>
+                          </div>
+                        );
+                      })}
+                      {categories.length === 0 && (
+                        <div className="p-2 text-xs text-muted-foreground text-center">
+                          Sin categorías
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* SORT */}
           <Select value={activeSort} onValueChange={handleSortChange}>
-            <SelectTrigger className="w-[180px] h-10 bg-white">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <FaSort />{" "}
+            <SelectTrigger
+              className={cn(
+                "h-9 w-[180px] font-medium hover:cursor-pointer focus-none ",
+                activeSort !== "date_desc" && "border-foreground",
+              )}
+            >
+              <div className="flex items-center gap-2">
+                <FaSort className="text-foreground" />
                 <span className="text-foreground">
                   <SelectValue />
                 </span>
               </div>
             </SelectTrigger>
-            <SelectContent align="end">
+            <SelectContent align="end" className="py-1">
               {PRODUCT_SORT_OPTIONS.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
@@ -162,161 +309,8 @@ export function ProductListToolbar({ categories }: Props) {
               ))}
             </SelectContent>
           </Select>
-
-          {/* PRECIO (Popover) */}
-          <Popover open={priceOpen} onOpenChange={setPriceOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "h-10 border-dashed",
-                  hasPriceFilter && "border-solid border-black bg-neutral-50",
-                )}
-              >
-                <FaEuroSign className="mr-2 h-3.5 w-3.5" />
-                Precio
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80 p-4" align="end">
-              <div className="space-y-4">
-                <h4 className="font-medium leading-none">Rango de Precio</h4>
-                <div className="flex items-center gap-2">
-                  <div className="grid gap-1.5 flex-1">
-                    <Label htmlFor="min">Mín (€)</Label>
-                    <Input
-                      id="min"
-                      type="number"
-                      placeholder="0"
-                      value={minPrice}
-                      onChange={(e) => setMinPrice(e.target.value)}
-                    />
-                  </div>
-                  <span className="mt-6 text-muted-foreground">-</span>
-                  <div className="grid gap-1.5 flex-1">
-                    <Label htmlFor="max">Máx (€)</Label>
-                    <Input
-                      id="max"
-                      type="number"
-                      placeholder="∞"
-                      value={maxPrice}
-                      onChange={(e) => setMaxPrice(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <Button className="w-full" size="sm" onClick={applyPriceFilter}>
-                  Aplicar Filtro
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
-
-          {/* CATEGORÍAS (Popover Multi-select) */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "h-10 border-dashed",
-                  activeCats.length > 0 &&
-                    "border-solid border-black bg-neutral-50",
-                )}
-              >
-                <FaFilter className="mr-2 h-3.5 w-3.5" />
-                Categorías
-                {activeCats.length > 0 && (
-                  <span className="ml-1 rounded-full bg-black text-white w-5 h-5 text-[10px] flex items-center justify-center">
-                    {activeCats.length}
-                  </span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[220px] p-0" align="end">
-              <div className="p-2 max-h-[300px] overflow-y-auto">
-                {categories.map((cat) => {
-                  const isActive = activeCats.includes(cat.id);
-                  return (
-                    <div
-                      key={cat.id}
-                      className={cn(
-                        "flex items-center gap-2 px-2 py-1.5 rounded-sm cursor-pointer hover:bg-neutral-100 text-sm select-none",
-                        isActive && "bg-neutral-50 font-medium",
-                      )}
-                      onClick={() => handleCategoryToggle(cat.id)}
-                    >
-                      <div
-                        className={cn(
-                          "w-4 h-4 border rounded-sm flex items-center justify-center transition-colors",
-                          isActive
-                            ? "bg-black border-black text-white"
-                            : "border-neutral-300",
-                        )}
-                      >
-                        {isActive && <FaCheck className="w-2.5 h-2.5" />}
-                      </div>
-                      {cat.name}
-                    </div>
-                  );
-                })}
-                {categories.length === 0 && (
-                  <div className="p-2 text-xs text-muted-foreground text-center">
-                    No hay categorías creadas
-                  </div>
-                )}
-              </div>
-            </PopoverContent>
-          </Popover>
-
-          {/* LIMPIAR */}
-          {hasActiveFilters && (
-            <Button
-              variant="ghost"
-              onClick={clearAll}
-              className="h-10 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-            >
-              <FaXmark className="mr-2" />
-              Limpiar
-            </Button>
-          )}
         </div>
       </div>
-
-      {/* 3. TAGS VISUALES (UX: Feedback de filtros activos) */}
-      {hasActiveFilters && (
-        <div className="flex flex-wrap gap-2 pt-2 border-t mt-2 animate-in fade-in slide-in-from-top-1">
-          {activeCats.map((catId) => {
-            const catName = categories.find((c) => c.id === catId)?.name;
-            return (
-              <span
-                key={catId}
-                className="text-xs bg-neutral-100 text-neutral-800 px-2 py-1 rounded-md flex items-center gap-1 border border-neutral-200"
-              >
-                {catName}
-                <button
-                  onClick={() => handleCategoryToggle(catId)}
-                  className="hover:text-red-500 ml-1"
-                >
-                  <FaXmark />
-                </button>
-              </span>
-            );
-          })}
-          {(minPrice || maxPrice) && (
-            <span className="text-xs bg-neutral-100 text-neutral-800 px-2 py-1 rounded-md flex items-center gap-1 border border-neutral-200">
-              {minPrice || "0"}€ - {maxPrice || "∞"}€
-              <button
-                onClick={() => {
-                  setMinPrice("");
-                  setMaxPrice("");
-                  updateParams({ min: null, max: null });
-                }}
-                className="hover:text-red-500 ml-1"
-              >
-                <FaXmark />
-              </button>
-            </span>
-          )}
-        </div>
-      )}
     </div>
   );
 }
