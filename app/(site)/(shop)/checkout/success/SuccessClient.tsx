@@ -35,7 +35,7 @@ export function SuccessClient({ order }: { order: DisplayOrder }) {
         </p>
       </div>
 
-      <div className="w-full space-y-6">
+      <div className="w-full space-y-4">
         <Card>
           <CardHeader className="py-3 pb-1 px-4 border-b">
             <CardTitle className="text-lg font-semibold flex items-center">

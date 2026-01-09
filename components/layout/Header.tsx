@@ -99,8 +99,11 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
         <div className="flex justify-self-start items-center h-full content-center">
           <Sheet open={open} onOpenChange={setOpen} modal={false}>
             <SheetTrigger asChild>
-              <Button variant="ghost" className="relative" aria-label="Menu">
-                {/* Aquí puse tu código de los iconos animados del paso anterior */}
+              <Button
+                variant="ghost"
+                className="relative px-2"
+                aria-label="Menu"
+              >
                 <RiMenu2Line
                   className={`size-6 transition-all duration-300 ease-in-out ${
                     open ? "scale-0 opacity-0" : "scale-100 opacity-100"

@@ -159,7 +159,6 @@ export function ProductCard({ item }: { item: PublicProductListItem }) {
             )}
           </div>
 
-          {/* COLORES (RESTAURADO CON COLOR_MAP) */}
           <div className="flex items-center justify-between">
             <div className="flex flex-wrap gap-2">
               {colors.map((color) => {

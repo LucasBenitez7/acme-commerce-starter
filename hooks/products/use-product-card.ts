@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { toast } from "sonner";
 
 import { type PublicProductListItem } from "@/lib/products/types";
@@ -7,6 +7,7 @@ import {
   getUniqueSizes,
   getImageForColor,
   findVariant,
+  compareSizes,
 } from "@/lib/products/utils";
 
 import { useCartStore } from "@/store/cart";
@@ -16,27 +17,48 @@ import { useStore } from "@/store/use-store";
 export function useProductCard(item: PublicProductListItem) {
   const imageContainerRef = useRef<HTMLDivElement>(null);
   const [showSizes, setShowSizes] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
-  // --- STORE GLOBAL ---
-  const { selectedColors, setProductColor } = useProductPreferences();
-  const savedColor = selectedColors[item.slug];
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
-  const addItem = useCartStore((state) => state.addItem);
-  const cartItems = useStore(useCartStore, (state) => state.items) ?? [];
-
-  // --- LÓGICA DE DATOS ---
-  const sizes = useMemo(() => getUniqueSizes(item.variants), [item.variants]);
-
-  const colors = useMemo(() => {
-    const stockVariants = item.variants.filter((v) => v.stock > 0);
-    return getUniqueColors(stockVariants);
+  const sortedVariants = useMemo(() => {
+    return [...item.variants].sort((a, b) => {
+      const colorDiff = a.color.localeCompare(b.color);
+      if (colorDiff !== 0) return colorDiff;
+      return compareSizes(a.size, b.size);
+    });
   }, [item.variants]);
 
+  // --- STORE ---
+  const { selectedColors, setProductColor } = useProductPreferences();
+  const savedColor = selectedColors[item.slug];
+  const addItem = useCartStore((state) => state.addItem);
+  const storeItems = useStore(useCartStore, (state) => state.items);
+  const cartItems = isMounted && storeItems ? storeItems : [];
+
+  // --- LÓGICA DE DATOS (Usando sortedVariants) ---
+  const sizes = useMemo(() => getUniqueSizes(sortedVariants), [sortedVariants]);
+
+  const colors = useMemo(() => {
+    const stockVariants = sortedVariants.filter((v) => v.stock > 0);
+    return getUniqueColors(stockVariants);
+  }, [sortedVariants]);
+
   // --- ESTADOS ---
-  const [selectedColor, setSelectedColor] = useState<string | null>(() => {
-    if (savedColor && colors.includes(savedColor)) return savedColor;
-    return colors.length > 0 ? colors[0] : null;
-  });
+  const defaultColor = colors.length > 0 ? colors[0] : null;
+
+  const [selectedColor, setSelectedColor] = useState<string | null>(
+    defaultColor,
+  );
+
+  useEffect(() => {
+    if (isMounted && savedColor && colors.includes(savedColor)) {
+      setSelectedColor(savedColor);
+    }
+  }, [isMounted, savedColor, colors]);
+
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
   // --- HANDLERS ---
@@ -52,8 +74,8 @@ export function useProductCard(item: PublicProductListItem) {
   }, [item, selectedColor]);
 
   const selectedVariant = useMemo(() => {
-    return findVariant(item.variants, selectedColor, selectedSize);
-  }, [item.variants, selectedColor, selectedSize]);
+    return findVariant(sortedVariants, selectedColor, selectedSize);
+  }, [sortedVariants, selectedColor, selectedSize]);
 
   const productUrl = `/product/${item.slug}${
     selectedColor ? `?color=${encodeURIComponent(selectedColor)}` : ""
@@ -69,17 +91,15 @@ export function useProductCard(item: PublicProductListItem) {
   const isCombinationValid = selectedVariant
     ? selectedVariant.stock > 0
     : false;
-
   const isMaxedOut =
     selectedVariant &&
     cartQty >= selectedVariant.stock &&
     selectedVariant.stock > 0;
-
   const isOutOfStock = item.totalStock === 0;
 
-  // --- ACCIONES (Quick Add) ---
+  // --- ACCIONES ---
   const handleQuickAdd = (size: string) => {
-    const variantToAdd = item.variants.find(
+    const variantToAdd = sortedVariants.find(
       (v) =>
         v.size === size &&
         (selectedColor ? v.color === selectedColor : true) &&
@@ -108,19 +128,15 @@ export function useProductCard(item: PublicProductListItem) {
   };
 
   return {
-    // Refs & State UI
     imageContainerRef,
     showSizes,
     setShowSizes,
-    // Data
     sizes,
     colors,
-    // Selections
     selectedColor,
     selectedSize,
     setSelectedSize,
     handleColorSelect,
-    // Computed
     displayImage,
     selectedVariant,
     productUrl,
@@ -128,7 +144,7 @@ export function useProductCard(item: PublicProductListItem) {
     isCombinationValid,
     isMaxedOut,
     cartItems,
-    // Actions
+    isMounted,
     handleQuickAdd,
   };
 }
