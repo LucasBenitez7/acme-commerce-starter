@@ -7,8 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import { getAdminProducts, getMaxPrice } from "@/lib/products/queries";
 import { cn } from "@/lib/utils";
 
-import { ProductListToolbar } from "./_components/ProductListToolbar";
-import { ProductTable } from "./_components/ProductTable";
+import { ProductListToolbar } from "./_components/list/ProductListToolbar";
+import { ProductTable } from "./_components/list/ProductTable";
 
 export const dynamic = "force-dynamic";
 
@@ -102,9 +102,9 @@ export default async function AdminProductsPage({ searchParams }: Props) {
       </div>
 
       <Card>
-        <CardHeader className="p-4 border-b flex flex-col md:flex-row md:items-center justify-between gap-0 sm:gap-4">
+        <CardHeader className="p-4 border-b flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
           <CardTitle className="text-lg text-left font-semibold">
-            {isArchivedView ? "Papelera" : "Catálogo"}{" "}
+            {isArchivedView ? "Papelera" : "Catálogo"}
             <span className="text-base">({totalCount})</span>
           </CardTitle>
 

@@ -64,7 +64,7 @@ export function ProductListToolbar({ categories, globalMaxPrice }: Props) {
     <div className="space-y-4 w-full rounded-xs">
       <div className="flex flex-col lg:flex-row gap-3 justify-between w-full items-start lg:items-center">
         {/* 1. BUSCADOR */}
-        <div className="relative lg:w-[300px] w-full">
+        <div className="relative min-w-[100px] lg:w-[300px] w-full">
           <FaMagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
             placeholder="Buscar por nombre, descripción..."
@@ -78,7 +78,7 @@ export function ProductListToolbar({ categories, globalMaxPrice }: Props) {
               onClick={() => setQuery("")}
               className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 hover:cursor-pointer"
             >
-              <FaXmark className="h-3.5 w-3.5" />
+              <FaXmark className="size-3.5" />
             </button>
           )}
         </div>
@@ -90,7 +90,7 @@ export function ProductListToolbar({ categories, globalMaxPrice }: Props) {
               <Button
                 variant="outline"
                 className={cn(
-                  "px-3 relative border border-border h-9",
+                  "relative border border-border h-9",
                   isPopoverFilterActive && "border-foreground",
                 )}
               >
@@ -100,7 +100,7 @@ export function ProductListToolbar({ categories, globalMaxPrice }: Props) {
             </PopoverTrigger>
 
             <PopoverContent
-              className="w-[280px] p-2 translate-x-4 lg:translate-x-0"
+              className="w-[280px] p-2 translate-x-8 lg:translate-x-0"
               align="end"
             >
               <div className="space-y-1">
@@ -114,7 +114,7 @@ export function ProductListToolbar({ categories, globalMaxPrice }: Props) {
                     variant="ghost"
                     onClick={() => setIsPriceOpen(!isPriceOpen)}
                     className={cn(
-                      "w-full justify-between px-3 hover:bg-neutral-100",
+                      "w-full justify-between hover:bg-neutral-100",
                       hasPriceFilter &&
                         !isPriceOpen &&
                         "bg-neutral-50 font-medium",
@@ -227,7 +227,7 @@ export function ProductListToolbar({ categories, globalMaxPrice }: Props) {
                     variant="ghost"
                     onClick={() => setIsCatsOpen(!isCatsOpen)}
                     className={cn(
-                      "w-full justify-between px-3 hover:bg-neutral-100",
+                      "w-full justify-between hover:bg-neutral-100",
                       activeCats.length > 0 &&
                         !isCatsOpen &&
                         "bg-neutral-50 font-medium",
@@ -289,6 +289,7 @@ export function ProductListToolbar({ categories, globalMaxPrice }: Props) {
           {/* SORT */}
           <Select value={activeSort} onValueChange={handleSortChange}>
             <SelectTrigger
+              showIcon={false}
               className={cn(
                 "h-9 w-[180px] font-medium hover:cursor-pointer focus-none ",
                 activeSort !== "date_desc" && "border-foreground",

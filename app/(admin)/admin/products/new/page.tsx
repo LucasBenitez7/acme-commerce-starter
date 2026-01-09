@@ -1,6 +1,6 @@
 import { getProductFormDependencies } from "@/lib/products/service";
 
-import { ProductForm } from "../_components/ProductForm";
+import { ProductForm } from "../_components/form/ProductForm";
 
 export default async function NewProductPage() {
   const props = await getProductFormDependencies();

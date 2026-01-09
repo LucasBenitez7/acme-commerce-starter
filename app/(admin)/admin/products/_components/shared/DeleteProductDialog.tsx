@@ -2,7 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { FaTrash, FaTriangleExclamation, FaSpinner } from "react-icons/fa6";
+import { FaTrash, FaTriangleExclamation } from "react-icons/fa6";
+import { ImSpinner8 } from "react-icons/im";
 import { toast } from "sonner";
 
 import {
@@ -18,7 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 
-import { deleteProductAction } from "../actions";
+import { deleteProductAction } from "../../_action/actions";
 
 interface Props {
   productId: string;
@@ -35,7 +36,10 @@ export function DeleteProductDialog({
   const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
 
-  const handleDelete = async () => {
+  const handleDelete = async (e: React.MouseEvent) => {
+    // 1. Evita cierre automático
+    e.preventDefault();
+
     setIsDeleting(true);
     const res = await deleteProductAction(productId);
 
@@ -44,7 +48,10 @@ export function DeleteProductDialog({
       setIsDeleting(false);
     } else {
       toast.success("Producto eliminado correctamente");
+
       setOpen(false);
+      setIsDeleting(false);
+
       if (!asIcon) {
         router.push("/admin/products");
       } else {
@@ -57,52 +64,53 @@ export function DeleteProductDialog({
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         {asIcon ? (
-          // Versión Icono (para tablas)
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-neutral-400 hover:text-red-600 hover:bg-red-50"
+            className="text-neutral-400 hover:text-red-600 hover:bg-red-50"
           >
-            <FaTrash className="h-4 w-4" />
+            <FaTrash className="size-4" />
           </Button>
         ) : (
-          // Versión Botón Completo (para DangerZone)
           <Button variant="destructive">
-            <FaTrash className="mr-2 h-4 w-4" /> Eliminar Producto
+            <FaTrash className="size-4" /> Eliminar
           </Button>
         )}
       </AlertDialogTrigger>
+
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2 text-red-600">
-            <FaTriangleExclamation /> ¿Estás absolutamente seguro?
+            <FaTriangleExclamation /> ¿Estás seguro?
           </AlertDialogTitle>
           <AlertDialogDescription>
-            Estás a punto de eliminar <strong>{productName}</strong>. Esta
-            acción es irreversible.
+            Estás a punto de eliminar permanentemente{" "}
+            <strong>{productName}</strong>. Esta acción{" "}
+            <strong>no se puede deshacer</strong>.
             <br />
             <br />
-            Si el producto ya tiene ventas, el sistema impedirá la eliminación
-            para proteger tus datos contables. En ese caso, archívalo.
+            Nota: Si el producto tiene ventas asociadas, no podrás eliminarlo
+            (para proteger la base de datos). En ese caso, te sugerimos{" "}
+            <strong>archivar</strong> el producto.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+
+        <AlertDialogFooter className="gap-3">
+          <AlertDialogCancel className="px-3" disabled={isDeleting}>
+            Cancelar
+          </AlertDialogCancel>
           <AlertDialogAction
-            onClick={(e) => {
-              e.preventDefault();
-              handleDelete();
-            }}
-            className="bg-red-600 hover:bg-red-700 text-white"
+            onClick={handleDelete}
+            className="bg-red-600 hover:bg-red-700 text-white px-3"
             disabled={isDeleting}
           >
             {isDeleting ? (
               <>
-                <FaSpinner className="mr-2 h-4 w-4 animate-spin" />{" "}
+                <ImSpinner8 className="size-4 animate-spin" />
                 Eliminando...
               </>
             ) : (
-              "Sí, eliminar permanentemente"
+              "Sí, eliminar producto"
             )}
           </AlertDialogAction>
         </AlertDialogFooter>

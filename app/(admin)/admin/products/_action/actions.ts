@@ -31,16 +31,13 @@ export type ProductFormState = {
   message?: string;
 };
 
-// --- ACTIONS ---
 export async function upsertProductAction(
   prevState: ProductFormState,
   formData: FormData,
 ): Promise<ProductFormState> {
   try {
-    // 1. Seguridad
     await assertAdmin();
 
-    // 2. Extracción y preparación de datos
     const rawData = {
       id: formData.get("id") as string | null,
       name: formData.get("name"),
@@ -53,7 +50,6 @@ export async function upsertProductAction(
       variants: safeJsonParse(String(formData.get("variantsJson")), []),
     };
 
-    // 3. Validación Zod
     const validated = productSchema.safeParse(rawData);
 
     if (!validated.success) {
@@ -63,7 +59,6 @@ export async function upsertProductAction(
       };
     }
 
-    // 4. Servicio
     if (rawData.id) {
       await updateProductInDb(rawData.id, validated.data);
     } else {
@@ -79,7 +74,6 @@ export async function upsertProductAction(
     };
   }
 
-  // 5. Revalidación
   revalidatePath("/admin/products");
   revalidatePath("/catalogo");
   redirect("/admin/products");
