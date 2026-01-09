@@ -111,7 +111,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
 
           {order.status === "RETURN_REQUESTED" && (
             <div className="flex gap-3">
-              <Button asChild variant="default" size="sm" className="px-2">
+              <Button asChild variant="default" size="sm">
                 <Link href={`/admin/orders/${order.id}/return`}>
                   Gestionar Devolución
                 </Link>

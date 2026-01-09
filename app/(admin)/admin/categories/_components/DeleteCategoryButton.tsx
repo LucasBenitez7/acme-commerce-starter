@@ -58,7 +58,6 @@ export function DeleteCategoryButton({ id, hasProducts }: Props) {
         variant="destructive"
         onClick={handleOpenCheck}
         disabled={loading}
-        className="px-3"
       >
         {loading ? "Borrando..." : "Eliminar"}
       </Button>
@@ -78,7 +77,7 @@ export function DeleteCategoryButton({ id, hasProducts }: Props) {
               variant="outline"
               onClick={() => setOpen(false)}
               disabled={loading}
-              className="p-3"
+              className="py-3"
             >
               Cancelar
             </Button>
@@ -86,7 +85,7 @@ export function DeleteCategoryButton({ id, hasProducts }: Props) {
               variant="destructive"
               onClick={handleDelete}
               disabled={loading}
-              className="p-3"
+              className="py-3"
             >
               {loading ? "Eliminando..." : "Sí, eliminar"}
             </Button>

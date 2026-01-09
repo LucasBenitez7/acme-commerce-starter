@@ -48,7 +48,7 @@ export function AdminCancelButton({ orderId }: { orderId: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="destructive" size="sm" className="px-2">
+        <Button variant="destructive" size="sm">
           Cancelar Pedido
         </Button>
       </DialogTrigger>
@@ -107,7 +107,7 @@ export function AdminPayButton({ orderId }: { orderId: string }) {
         {/* Quitamos el onClick={handlePay} de aquí para que solo abra el diálogo */}
         <Button
           size="sm"
-          className="bg-green-600 hover:bg-green-700 px-2 text-white"
+          className="bg-green-600 hover:bg-green-700 text-white"
         >
           Marcar Pagado
         </Button>
@@ -175,7 +175,7 @@ export function AdminRejectButton({ orderId }: { orderId: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="destructive" size="sm" className="px-2">
+        <Button variant="destructive" size="sm">
           Rechazar Devolución
         </Button>
       </DialogTrigger>

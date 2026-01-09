@@ -77,7 +77,7 @@ export function OrderListToolbar() {
       <Popover>
         <PopoverTrigger asChild>
           <Button variant="outline" size="sm" className="h-8 border-dashed">
-            <FaFilter className="mr-2 h-3.5 w-3.5" />
+            <FaFilter className="size-3.5" />
             Estados
             {activeStatuses.length > 0 && (
               <span className="ml-1.5 rounded-full bg-black px-1.5 py-0.5 text-[10px] font-semibold text-white">

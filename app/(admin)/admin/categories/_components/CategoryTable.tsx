@@ -43,25 +43,23 @@ export function CategoryTable({
           {categories.map((cat) => (
             <TableRow key={cat.id} className="hover:bg-neutral-50">
               {/* 1. ORDEN */}
-              <TableCell className="text-center font-mono text-xs text-neutral-400">
+              <TableCell className="text-center font-mono text-xs py-4">
                 {cat.sort}
               </TableCell>
 
-              <TableCell>
+              <TableCell className="py-3">
                 <div className="flex flex-col">
-                  <span className="font-medium text-neutral-900">
-                    {cat.name}
-                  </span>
+                  <span className="font-medium">{cat.name}</span>
                 </div>
               </TableCell>
 
               {/* 3. FECHA */}
-              <TableCell className="hidden sm:table-cell text-xs">
+              <TableCell className="hidden sm:table-cell text-xs py-3">
                 {new Date(cat.createdAt).toLocaleDateString()}
               </TableCell>
 
               {/* 4. PRODUCTOS (Badge) */}
-              <TableCell className="text-center">
+              <TableCell className="text-center py-3">
                 <span
                   className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${
                     cat._count.products > 0
@@ -74,7 +72,7 @@ export function CategoryTable({
               </TableCell>
 
               {/* 5. ACCIONES */}
-              <TableCell className="text-right pr-3">
+              <TableCell className="text-right pr-3 py-3">
                 <button className="fx-underline-anim mx-3 font-medium">
                   <Link href={`/admin/categories/${cat.id}`}>Editar</Link>
                 </button>

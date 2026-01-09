@@ -69,7 +69,7 @@ export function CategoryListToolbar() {
 
   return (
     <div className="flex flex-col sm:flex-row gap-3 w-full justify-between">
-      <div className="relative flex-1 max-w-sm">
+      <div className="relative flex-1 lg:w-[300px] w-full">
         <FaMagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
         <Input
           placeholder="Buscar categoría..."
@@ -82,18 +82,18 @@ export function CategoryListToolbar() {
             onClick={() => setQuery("")}
             className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 hover:cursor-pointer"
           >
-            <FaXmark className="h-3.5 w-3.5" />
+            <FaXmark className="size-3.5" />
           </button>
         )}
       </div>
 
-      <div className="flex items-center gap-2 overflow-x-auto">
+      <div className="flex items-center gap-2 overflow-x-auto justify-between">
         <Popover>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
               className={cn(
-                "px-3 relative border border-border h-9",
+                "relative border border-border h-9",
                 currentFilter !== "all" && "border-foreground",
               )}
             >
@@ -101,7 +101,10 @@ export function CategoryListToolbar() {
               Filtrar
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[200px] p-0" align="end">
+          <PopoverContent
+            className="w-[200px] p-0 lg:-translate-x-1/4"
+            align="start"
+          >
             <div className="py-2 px-1 space-y-1 font-medium">
               <div
                 onClick={() => updateParams({ filter: "all" })}
@@ -137,6 +140,7 @@ export function CategoryListToolbar() {
         {/* 3. ORDENAR */}
         <Select value={currentSortKey} onValueChange={handleSortChange}>
           <SelectTrigger
+            showIcon={false}
             className={cn(
               "h-9 w-[170px] text-xs font-medium bg-transparent border-border hover:cursor-pointer focus-none",
               currentSortKey !== "sort-asc" && "border-foreground",
