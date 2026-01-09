@@ -83,6 +83,23 @@ model ProductImage {
   @@index([productId, color])
 }
 
+// --- Atributos Dinámicos (NUEVO: Para el Generador) ---
+model PresetSize {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  type      String   @default("clothing")
+  createdAt DateTime @default(now())
+}
+
+model PresetColor {
+  id        String   @id @default(cuid())
+  name      String
+  hex       String
+  createdAt DateTime @default(now())
+
+  @@unique([name, hex])
+}
+
 // --- Orders ---
 enum OrderStatus {
   PENDING_PAYMENT
