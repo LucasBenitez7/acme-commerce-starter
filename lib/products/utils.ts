@@ -6,6 +6,43 @@ import type {
   PublicProductDetail,
 } from "./types";
 
+// --- HELPERS BÁSICOS ---
+export function capitalize(s: string): string {
+  if (!s) return "";
+  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+}
+
+export function compareSizes(a: string, b: string): number {
+  const idxA = CLOTHING_SIZES.indexOf(a);
+  const idxB = CLOTHING_SIZES.indexOf(b);
+
+  if (idxA !== -1 && idxB !== -1) {
+    return idxA - idxB;
+  }
+
+  const numA = parseFloat(a.replace(",", "."));
+  const numB = parseFloat(b.replace(",", "."));
+
+  if (!isNaN(numA) && !isNaN(numB)) {
+    return numA - numB;
+  }
+
+  return a.localeCompare(b);
+}
+
+export function sortSizes(sizes: string[]): string[] {
+  return [...sizes].sort(compareSizes);
+}
+
+export function sortVariantsHelper(variants: any[]) {
+  return [...variants].sort((a, b) => {
+    const colorCompare = a.color.localeCompare(b.color);
+    if (colorCompare !== 0) return colorCompare;
+    return compareSizes(a.size, b.size);
+  });
+}
+
+// --- HELPERS DE EXTRACCIÓN DE DATOS ---
 export function findVariant(
   variants: ProductVariant[],
   color: string | null,
@@ -15,6 +52,16 @@ export function findVariant(
   return variants.find((v) => v.color === color && v.size === size);
 }
 
+export function getUniqueColors(variants: ProductVariant[]): string[] {
+  return Array.from(new Set(variants.map((v) => v.color))).sort();
+}
+
+export function getUniqueSizes(variants: ProductVariant[]): string[] {
+  const sizes = Array.from(new Set(variants.map((v) => v.size)));
+  return sortSizes(sizes);
+}
+
+// --- HELPERS DE IMÁGENES ---
 export function normalizeImages(
   productName: string,
   images: {
@@ -45,38 +92,6 @@ export function normalizeImages(
   }));
 }
 
-export function sortSizes(sizes: string[]): string[] {
-  return [...sizes].sort((a, b) => {
-    const idxA = CLOTHING_SIZES.indexOf(a);
-    const idxB = CLOTHING_SIZES.indexOf(b);
-
-    if (idxA !== -1 && idxB !== -1) {
-      return idxA - idxB;
-    }
-
-    const numA = parseFloat(a);
-    const numB = parseFloat(b);
-
-    if (!isNaN(numA) && !isNaN(numB)) {
-      return numA - numB;
-    }
-
-    return a.localeCompare(b);
-  });
-}
-
-// Extrae los colores únicos de una lista de variantes.
-export function getUniqueColors(variants: ProductVariant[]): string[] {
-  return Array.from(new Set(variants.map((v) => v.color))).sort();
-}
-
-// Extrae las tallas únicas y las ordena correctamente.
-export function getUniqueSizes(variants: ProductVariant[]): string[] {
-  const sizes = Array.from(new Set(variants.map((v) => v.size)));
-  return sortSizes(sizes);
-}
-
-// Lógica centralizada para decidir qué imagen mostrar según el color.
 export function getImageForColor(
   images: { url: string; color?: string | null }[],
   selectedColor: string | null,
@@ -88,13 +103,7 @@ export function getImageForColor(
   return images[0]?.url ?? "/og/default-products.jpg";
 }
 
-// Capitaliza la primera letra de un string
-export function capitalize(s: string): string {
-  if (!s) return "";
-  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
-}
-
-// Calcula el estado visual inicial (Color e Imagen) basado en la URL y el stock
+// --- ESTADO INICIAL ---
 export function getInitialProductState(
   product: PublicProductDetail,
   colorParam?: string,

@@ -55,3 +55,16 @@ export type PublicProductDetail = {
   images: ProductImage[];
   variants: ProductVariant[];
 };
+
+// --- TIPOS PARA ATRIBUTOS GUARDADOS (Presets) ---
+export type PresetSize = {
+  id: string;
+  name: string;
+  type: string;
+};
+
+export type PresetColor = {
+  id: string;
+  name: string;
+  hex: string;
+};

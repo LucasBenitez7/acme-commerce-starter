@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
 
-import { upsertProductAction } from "@/app/(admin)/admin/products/actions";
+import { upsertProductAction } from "@/app/(admin)/admin/products/_action/actions";
 
 import type { ProductFormValues } from "@/lib/products/schema";
 
@@ -17,7 +17,6 @@ export function useProductSubmit(productId?: string) {
       const formData = new FormData();
       if (productId) formData.append("id", productId);
 
-      // Mapeo manual necesario para FormData
       formData.append("name", data.name);
       formData.append("description", data.description || "");
       formData.append("priceCents", String(data.priceCents));
@@ -34,7 +33,7 @@ export function useProductSubmit(productId?: string) {
       if (result?.errors) toast.error("Revisa los errores del formulario.");
       else if (result?.message) toast.error(result.message);
       else {
-        toast.success("Producto guardado.");
+        toast.success("Producto guardado correctamente.");
         router.refresh();
       }
     });

@@ -11,20 +11,17 @@ export function useVariantGenerator() {
       colors: { name: string; hex: string }[],
       stock: number,
     ): VariantItem[] => {
+      if (sizes.length === 0 || colors.length === 0) {
+        return [];
+      }
+
       const newVariants: VariantItem[] = [];
 
-      const sizeList = sizes.length > 0 ? sizes : ["UNICA"];
-      const colorList =
-        colors.length > 0 ? colors : [{ name: "UNICO", hex: "#000000" }];
-
-      sizeList.forEach((size) => {
-        colorList.forEach((color) => {
-          // Evitamos generar "UNICA / UNICO" si ambos están vacíos
-          if (size === "UNICA" && color.name === "UNICO") return;
-
+      sizes.forEach((size) => {
+        colors.forEach((color) => {
           newVariants.push({
-            size: size === "UNICA" ? "" : size,
-            color: color.name === "UNICO" ? "" : color.name,
+            size: size,
+            color: color.name,
             colorHex: color.hex,
             stock: stock,
           });

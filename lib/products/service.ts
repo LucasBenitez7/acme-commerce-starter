@@ -1,8 +1,7 @@
 import { prisma } from "@/lib/db";
+import { type ProductFormValues } from "@/lib/products/schema";
 
-import { type ProductFormValues } from "./schema";
-
-// Generador de slug simple y seguro
+// --- HELPERS ---
 function generateSlug(name: string, explicitSlug?: string) {
   const base = (explicitSlug || name)
     .toLowerCase()
@@ -13,6 +12,7 @@ function generateSlug(name: string, explicitSlug?: string) {
   return `${base}-${Math.floor(Math.random() * 10000)}`;
 }
 
+// --- CREAR PRODUCTO ---
 export async function createProductInDb(data: ProductFormValues) {
   const slug = generateSlug(data.name, data.slug);
 
@@ -46,11 +46,11 @@ export async function createProductInDb(data: ProductFormValues) {
   });
 }
 
+// --- ACTUALIZAR PRODUCTO (FIXED) ---
 export async function updateProductInDb(id: string, data: ProductFormValues) {
   const slug = data.slug ? generateSlug(data.name, data.slug) : undefined;
 
   return prisma.$transaction(async (tx) => {
-    // 1. Update Básico
     await tx.product.update({
       where: { id },
       data: {
@@ -63,37 +63,61 @@ export async function updateProductInDb(id: string, data: ProductFormValues) {
       },
     });
 
-    // 2. Imágenes (Borrar y Recrear es lo más seguro para el orden)
-    await tx.productImage.deleteMany({ where: { productId: id } });
-    if (data.images.length > 0) {
-      await tx.productImage.createMany({
-        data: data.images.map((img, idx) => ({
-          productId: id,
-          url: img.url,
-          alt: img.alt || data.name,
-          color: img.color || null,
-          sort: idx,
-        })),
-      });
-    }
+    // 2. GESTIÓN DE IMÁGENES (Lógica Inteligente)
+    const incomingImageIds = data.images
+      .map((img) => img.id)
+      .filter((id): id is string => !!id);
 
-    // 3. Variantes (Smart Sync)
-    const incomingIds = data.variants
-      .map((v) => v.id)
-      .filter(Boolean) as string[];
-
-    // A. Soft Delete de las que ya no vienen
-    await tx.productVariant.updateMany({
-      where: { productId: id, id: { notIn: incomingIds } },
-      data: { isActive: false, stock: 0 },
+    await tx.productImage.deleteMany({
+      where: {
+        productId: id,
+        id: { notIn: incomingImageIds },
+      },
     });
 
-    // B. Upsert (Actualizar o Crear)
+    // B. Crear o Actualizar las que quedan
+    for (const [idx, img] of data.images.entries()) {
+      if (img.id) {
+        await tx.productImage.update({
+          where: { id: img.id },
+          data: {
+            url: img.url,
+            alt: img.alt || data.name,
+            color: img.color || null,
+            sort: idx,
+          },
+        });
+      } else {
+        await tx.productImage.create({
+          data: {
+            productId: id,
+            url: img.url,
+            alt: img.alt || data.name,
+            color: img.color || null,
+            sort: idx,
+          },
+        });
+      }
+    }
+
+    // 3. GESTIÓN DE VARIANTES (FIX: Hard Delete)
+    const incomingVariantIds = data.variants
+      .map((v) => v.id)
+      .filter((id): id is string => !!id);
+
+    await tx.productVariant.deleteMany({
+      where: {
+        productId: id,
+        id: { notIn: incomingVariantIds },
+      },
+    });
+
+    // B. Upsert (Actualizar o Crear) el resto
     for (const v of data.variants) {
       const variantPayload = {
         size: v.size,
         color: v.color,
-        colorHex: v.colorHex,
+        colorHex: v.colorHex || null,
         priceCents: v.priceCents || null,
         stock: v.stock,
         isActive: true,
@@ -113,7 +137,7 @@ export async function updateProductInDb(id: string, data: ProductFormValues) {
   });
 }
 
-// Helper para el formulario
+// --- DEPENDENCIAS DEL FORMULARIO ---
 export async function getProductFormDependencies() {
   const [categories, variantsData] = await Promise.all([
     prisma.category.findMany({
