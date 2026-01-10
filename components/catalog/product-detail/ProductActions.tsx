@@ -147,7 +147,12 @@ export function ProductActions({
       </div>
 
       {/* BOTONES DE ACCIÓN */}
-      <div className="flex gap-4">
+      <div className="flex gap-2">
+        <FavoriteButton
+          isFavorite={false}
+          onToggle={() => {}}
+          className="h-12 w-12 border rounded-md shrink-0 hover:border-foreground transition-colors"
+        />
         <div className="flex-1">
           <AddToCartButton
             product={{
@@ -166,11 +171,6 @@ export function ProductActions({
             disabled={!selectedVariant || !canAdd}
           />
         </div>
-        <FavoriteButton
-          isFavorite={false}
-          onToggle={() => {}}
-          className="h-12 w-12 border rounded-md shrink-0 hover:border-foreground transition-colors"
-        />
       </div>
     </div>
   );

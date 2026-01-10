@@ -57,14 +57,14 @@ export function ProductTable({ products }: ProductTableProps) {
             return (
               <TableRow key={product.id} className="hover:bg-neutral-50">
                 {/* 1. IMAGEN */}
-                <TableCell className="py-3">
-                  <div className="relative h-10 w-10 rounded-xs bg-neutral-100 overflow-hidden">
+                <TableCell className="py-2">
+                  <div className="relative h-16 w-12 rounded-xs bg-neutral-100 overflow-hidden">
                     <Image
                       src={img}
                       alt={product.name}
                       fill
                       className="object-cover"
-                      sizes="40px"
+                      sizes="60px"
                     />
                   </div>
                 </TableCell>
