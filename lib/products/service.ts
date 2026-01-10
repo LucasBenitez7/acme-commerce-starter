@@ -2,19 +2,21 @@ import { prisma } from "@/lib/db";
 import { type ProductFormValues } from "@/lib/products/schema";
 
 // --- HELPERS ---
-function generateSlug(name: string, explicitSlug?: string) {
-  const base = (explicitSlug || name)
+function generateSlug(name: string) {
+  const base = name
     .toLowerCase()
     .trim()
-    .replace(/\s+/g, "-")
-    .replace(/[^\w\-]+/g, "");
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
-  return `${base}-${Math.floor(Math.random() * 10000)}`;
+  const randomId = Math.floor(100000000 + Math.random() * 900000000);
+
+  return `${base}_${randomId}`;
 }
 
 // --- CREAR PRODUCTO ---
 export async function createProductInDb(data: ProductFormValues) {
-  const slug = generateSlug(data.name, data.slug);
+  const slug = generateSlug(data.name);
 
   return prisma.product.create({
     data: {
@@ -46,16 +48,13 @@ export async function createProductInDb(data: ProductFormValues) {
   });
 }
 
-// --- ACTUALIZAR PRODUCTO (FIXED) ---
+// --- ACTUALIZAR PRODUCTO ---
 export async function updateProductInDb(id: string, data: ProductFormValues) {
-  const slug = data.slug ? generateSlug(data.name, data.slug) : undefined;
-
   return prisma.$transaction(async (tx) => {
     await tx.product.update({
       where: { id },
       data: {
         name: data.name,
-        ...(slug && { slug }),
         description: data.description || "",
         priceCents: data.priceCents,
         categoryId: data.categoryId,
@@ -63,7 +62,7 @@ export async function updateProductInDb(id: string, data: ProductFormValues) {
       },
     });
 
-    // 2. GESTIÓN DE IMÁGENES (Lógica Inteligente)
+    // 2. GESTIÓN DE IMÁGENES
     const incomingImageIds = data.images
       .map((img) => img.id)
       .filter((id): id is string => !!id);
@@ -75,7 +74,6 @@ export async function updateProductInDb(id: string, data: ProductFormValues) {
       },
     });
 
-    // B. Crear o Actualizar las que quedan
     for (const [idx, img] of data.images.entries()) {
       if (img.id) {
         await tx.productImage.update({
@@ -100,7 +98,7 @@ export async function updateProductInDb(id: string, data: ProductFormValues) {
       }
     }
 
-    // 3. GESTIÓN DE VARIANTES (FIX: Hard Delete)
+    // 3. GESTIÓN DE VARIANTES
     const incomingVariantIds = data.variants
       .map((v) => v.id)
       .filter((id): id is string => !!id);
@@ -112,7 +110,6 @@ export async function updateProductInDb(id: string, data: ProductFormValues) {
       },
     });
 
-    // B. Upsert (Actualizar o Crear) el resto
     for (const v of data.variants) {
       const variantPayload = {
         size: v.size,
