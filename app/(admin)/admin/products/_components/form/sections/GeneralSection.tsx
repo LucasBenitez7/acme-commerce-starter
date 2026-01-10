@@ -2,10 +2,15 @@
 
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { FaPlus, FaCheck, FaXmark } from "react-icons/fa6";
+import { FaPlus, FaCheck, FaXmark, FaChevronRight } from "react-icons/fa6";
 import { toast } from "sonner";
 
 import { Button, Input, Label } from "@/components/ui";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   Select,
   SelectContent,
@@ -14,6 +19,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+
+import { cn } from "@/lib/utils";
 
 import { quickCreateCategory } from "@/app/(admin)/admin/categories/actions";
 
@@ -34,6 +41,8 @@ export function GeneralSection({ categories: initialCats }: Props) {
   const [categories, setCategories] = useState(initialCats);
   const [isCreatingCat, setIsCreatingCat] = useState(false);
   const [newCatName, setNewCatName] = useState("");
+
+  const [isDescOpen, setIsDescOpen] = useState(false);
 
   const selectedCatId = watch("categoryId");
   const priceCentsValue = watch("priceCents");
@@ -65,7 +74,7 @@ export function GeneralSection({ categories: initialCats }: Props) {
 
   return (
     <div className="flex flex-col space-y-6 bg-white p-4 rounded-xs border shadow-sm ">
-      <h3 className="text-lg font-medium border-b pb-1">Información General</h3>
+      <h3 className="text-lg font-medium border-b pb-2">Información General</h3>
 
       <div className="lg:flex space-y-4 lg:space-y-0 w-full inline-block gap-3">
         <div className="space-y-2 flex-1">
@@ -169,14 +178,46 @@ export function GeneralSection({ categories: initialCats }: Props) {
       </div>
 
       {/* DESCRIPCIÓN */}
-      <div className="col-span-2 space-y-2">
-        <Label>Descripción</Label>
-        <Textarea
-          {...register("description")}
-          placeholder="Detalles del producto, materiales, cuidados..."
-          minRows={5}
-        />
-      </div>
+      <Collapsible
+        open={isDescOpen}
+        onOpenChange={setIsDescOpen}
+        className={cn(
+          "col-span-2 rounded-xs border border-transparent transition-all duration-200",
+        )}
+      >
+        <div className="flex items-center justify-between">
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              type="button"
+              className={cn(
+                "w-fit justify-between hover:bg-neutral-50 active:bg-neutral-50 font-medium px-0",
+              )}
+            >
+              <span className="text-sm font-medium text-foreground">
+                Descripción
+              </span>
+              <FaChevronRight
+                className={cn(
+                  "size-3.5 text-muted-foreground transition-transform duration-200",
+                  isDescOpen && "rotate-90",
+                )}
+              />
+            </Button>
+          </CollapsibleTrigger>
+        </div>
+
+        <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
+          <div className="pt-1">
+            <Textarea
+              {...register("description")}
+              placeholder="Detalles del producto, materiales, cuidados..."
+              minRows={5}
+              className="bg-white"
+            />
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 }
