@@ -3,12 +3,8 @@
 import { type ProductFormValues } from "@/lib/products/schema";
 
 import { ProductFormProvider } from "./ProductFormProvider";
-import {
-  DangerZone,
-  GeneralSection,
-  ImagesSection,
-  VariantsSection,
-} from "./sections";
+import { DangerZone, GeneralSection, VariantsSection } from "./sections";
+import { ImagesSection } from "./sections/ImagesSection";
 
 type ProductWithId = ProductFormValues & { id: string };
 
@@ -19,22 +15,22 @@ type Props = {
 
 export function ProductForm({ categories, product }: Props) {
   return (
-    <ProductFormProvider product={product}>
-      <GeneralSection categories={categories} />
+    <div>
+      <ProductFormProvider product={product}>
+        <GeneralSection categories={categories} />
 
-      <VariantsSection />
+        <VariantsSection />
 
-      <ImagesSection />
+        <ImagesSection />
+      </ProductFormProvider>
 
       {product?.id && product.name && (
-        <div className="pt-6">
-          <DangerZone
-            productId={product.id}
-            productName={product.name}
-            isArchived={!!product.isArchived}
-          />
-        </div>
+        <DangerZone
+          productId={product.id}
+          productName={product.name}
+          isArchived={!!product.isArchived}
+        />
       )}
-    </ProductFormProvider>
+    </div>
   );
 }

@@ -86,11 +86,11 @@ export function ProductFormProvider({ children, product }: Props) {
       <form
         onSubmit={handleSubmit(onSubmit)}
         onKeyDown={handleKeyDown}
-        className="max-w-5xl mx-auto space-y-6"
+        className="mx-auto space-y-4"
       >
         {children}
 
-        <div className="flex items-center lg:justify-end my-10 pb-4 border-b gap-3">
+        <div className="flex items-center lg:justify-end my-8 pb-4 border-b gap-3">
           <Button
             variant="outline"
             type="button"

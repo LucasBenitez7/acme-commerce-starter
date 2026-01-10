@@ -35,9 +35,9 @@ export default async function EditProductPage({
   const totalReturns = product._count.orderItems;
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-10">
+    <div className="space-y-4 max-w-5xl mx-auto pb-10">
       {/* --- HEADER --- */}
-      <h1 className="text-2xl font-bold border-b pb-1">
+      <h1 className="text-2xl font-bold border-b pb-1 mb-6">
         {product?.id ? "Editar Producto" : "Nuevo Producto"}
       </h1>
 
@@ -45,6 +45,7 @@ export default async function EditProductPage({
         <div>
           <h1 className="text-xl font-semibold flex items-center gap-2">
             {product.name}
+
             {product.isArchived && (
               <span className="bg-amber-100 px-2 py-0.5 rounded-md text-xs font-medium text-amber-700 border border-amber-200">
                 Archivado
@@ -63,7 +64,7 @@ export default async function EditProductPage({
           <Link
             href={`/product/${product.slug}`}
             target="_blank"
-            className="text-xs fx-underline-anim font-medium w-fit"
+            className="text-xs fx-underline-anim font-medium w-fit mt-2"
           >
             Ver en Tienda
             <span>
@@ -74,7 +75,7 @@ export default async function EditProductPage({
       </div>
 
       {/* --- STATS --- */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 ">
         <StatCard
           label="Stock Total"
           value={`${totalStock} u.`}
