@@ -27,17 +27,18 @@ export function useVariantDialog({ onGenerate }: UseVariantDialogProps) {
   const { generateVariants } = useVariantGenerator();
   const [open, setOpen] = useState(false);
 
-  // --- ESTADOS DE LA DB ---
+  // --- ESTADOS DE LA DB
   const [rawSizes, setRawSizes] = useState<PresetSize[]>([]);
   const [rawColors, setRawColors] = useState<PresetColor[]>([]);
   const [isLoadingAttributes, setIsLoadingAttributes] = useState(false);
 
-  // --- ESTADOS DE UI (Movidos aquí para limpiar el TSX) ---
+  // --- ESTADOS DE UI
   const [isColorEditMode, setIsColorEditMode] = useState(false);
   const [isSizeEditMode, setIsSizeEditMode] = useState(false);
   const [isCustomizingColor, setIsCustomizingColor] = useState(false);
+  const [duplicateError, setDuplicateError] = useState<string | null>(null);
 
-  // --- ESTADOS DEL FORMULARIO ---
+  // --- ESTADOS DEL FORMULARIO
   const [selectedPresetColor, setSelectedPresetColor] = useState("custom");
   const [genSizes, setGenSizes] = useState<string[]>([]);
   const [genColorName, setGenColorName] = useState("");
@@ -73,6 +74,7 @@ export function useVariantDialog({ onGenerate }: UseVariantDialogProps) {
       setIsColorEditMode(false);
       setIsSizeEditMode(false);
       setIsCustomizingColor(false);
+      setDuplicateError(null);
       resetForm();
     }
   };
@@ -133,7 +135,6 @@ export function useVariantDialog({ onGenerate }: UseVariantDialogProps) {
     }
   };
 
-  // Wrappers para detectar escritura manual
   const handleUserHexChange = (val: string) => {
     setGenColorHex(val);
     setSelectedPresetColor("custom");
@@ -142,16 +143,17 @@ export function useVariantDialog({ onGenerate }: UseVariantDialogProps) {
 
   const handleUserNameChange = (val: string) => {
     setGenColorName(val);
+    if (duplicateError) setDuplicateError(null);
     if (selectedPresetColor !== "custom") setSelectedPresetColor("custom");
     setIsCustomizingColor(true);
   };
 
-  // Añadir color manualmente a la DB
+  // Añadir color
   const addCustomColor = async (name: string, hex: string) => {
     const cleanName = name.trim();
     if (!cleanName) return;
 
-    // 1. VALIDACIÓN DE SEGURIDAD
+    // 1. VALIDACIÓN HEX
     if (!HEX_REGEX.test(hex)) {
       toast.error("Código de color inválido");
       return;
@@ -160,22 +162,15 @@ export function useVariantDialog({ onGenerate }: UseVariantDialogProps) {
     const finalName = capitalize(name.trim());
     if (!finalName) return;
 
-    // Evitar duplicados visuales
-    const exists = rawColors.some(
-      (c) =>
-        c.name.toLowerCase() === cleanName.toLowerCase() &&
-        c.hex.toLowerCase() === hex.toLowerCase(),
+    // 2. BUSCAR DUPLICADO POR NOMBRE (Estricto)
+    const existingColor = rawColors.find(
+      (c) => c.name.toLowerCase() === cleanName.toLowerCase(),
     );
 
-    if (exists) {
-      toast.info("Ese color ya existe en la lista");
-      const existingColor = rawColors.find(
-        (c) => c.name.toLowerCase() === cleanName.toLowerCase(),
-      );
-      if (existingColor) {
-        setSelectedPresetColor(existingColor.name);
-      }
-      setIsCustomizingColor(false);
+    if (existingColor) {
+      toast.error(`El color "${existingColor.name}" ya existe.`);
+      setDuplicateError(existingColor.name);
+
       return;
     }
 
@@ -183,10 +178,9 @@ export function useVariantDialog({ onGenerate }: UseVariantDialogProps) {
     if (res.success && res.color) {
       setRawColors((prev) => [...prev, res.color as PresetColor]);
       toast.success(`Color ${finalName} guardado.`);
-
-      // Auto-seleccionar el nuevo color
       setSelectedPresetColor(finalName);
       setIsCustomizingColor(false);
+      setDuplicateError(null);
     } else {
       toast.error("Error al guardar color");
     }
@@ -293,6 +287,9 @@ export function useVariantDialog({ onGenerate }: UseVariantDialogProps) {
     genColorHex,
     genStock,
     customSizeInput,
+
+    // Errors
+    duplicateError,
 
     // Actions & Setters
     handleOpenChange,

@@ -10,6 +10,7 @@ import type { PresetColor, PresetSize } from "@/lib/products/types";
 interface ColorChipProps extends PresetColor {
   isSelected: boolean;
   isEditMode: boolean;
+  hasError?: boolean;
   onToggle: (name: string) => void;
   onDelete: (id: string, name: string) => void;
 }
@@ -20,6 +21,7 @@ export const ColorChip = ({
   hex,
   isSelected,
   isEditMode,
+  hasError,
   onToggle,
   onDelete,
 }: ColorChipProps) => {
@@ -29,16 +31,23 @@ export const ColorChip = ({
     <div
       onClick={() => !isEditMode && onToggle(name)}
       className={cn(
-        "group relative flex items-center gap-2 px-3 py-1.5 text-sm border rounded-xs transition-all select-none",
+        "group relative flex items-center gap-2 px-3 py-1.5 text-sm border rounded-xs transition-all select-none bg-background",
         !isEditMode && "cursor-pointer hover:border-foreground",
         !isEditMode && isSelected
           ? "bg-foreground text-background border-foreground"
           : "text-slate-700",
         isEditMode && "cursor-default",
+
+        hasError && "border-red-500 text-red-700 bg-background",
       )}
     >
-      <div className={cn("w-3 h-3 rounded-full")} style={{ background: hex }} />
+      <div
+        className={cn("w-3 h-3 rounded-full border border-neutral-200")}
+        style={{ background: hex }}
+      />
+
       {name}
+
       {canDelete && (
         <div
           role="button"
@@ -80,10 +89,10 @@ export const SizeChip = ({
     <div
       onClick={() => !isEditMode && onToggle(name)}
       className={cn(
-        "group relative flex items-center justify-center px-3 py-1.5 text-sm border rounded-xs transition-all select-none",
+        "group relative flex items-center justify-center px-3 py-1.5 text-sm border rounded-xs transition-all select-none bg-background",
         !isEditMode && "cursor-pointer hover:border-foreground",
         !isEditMode && isSelected
-          ? "bg-foreground text-background border-foreground shadow-sm"
+          ? "bg-foreground text-background border-foreground"
           : "text-slate-700",
         isEditMode && "cursor-default",
       )}

@@ -75,6 +75,7 @@ export function VariantGeneratorDialog({ onGenerate }: Props) {
     genColorHex,
     genStock,
     customSizeInput,
+    duplicateError,
 
     // Acciones
     setGenStock,
@@ -164,6 +165,7 @@ export function VariantGeneratorDialog({ onGenerate }: Props) {
                           hex={c.hex}
                           isSelected={selectedPresetColor === c.name}
                           isEditMode={isColorEditMode}
+                          hasError={duplicateError === c.name}
                           onToggle={handlePresetChange}
                           onDelete={(id, name) =>
                             setItemToDelete({ type: "color", id, name })
@@ -192,7 +194,7 @@ export function VariantGeneratorDialog({ onGenerate }: Props) {
                       </span>
                       <div className="flex gap-2 items-center">
                         <div
-                          className="relative w-10 h-9 overflow-hidden rounded-xs border shadow-sm shrink-0 cursor-pointer hover:border-neutral-400 transition-colors"
+                          className="relative w-10 h-9 overflow-hidden rounded-xs border shadow-sm shrink-0 cursor-pointer hover:border-neutral-300 transition-colors"
                           style={{ background: genColorHex }}
                           title="Click para cambiar hex"
                         >
@@ -225,9 +227,9 @@ export function VariantGeneratorDialog({ onGenerate }: Props) {
                           onClick={() =>
                             addCustomColor(genColorName, genColorHex)
                           }
-                          title="Guardar como nuevo color"
+                          title="Guardar nuevo color"
                         >
-                          <FaPlus className="size-4 text-slate-500" />
+                          <FaPlus className="size-4 text-slate-600" />
                         </Button>
                       </div>
                     </div>
@@ -260,7 +262,7 @@ export function VariantGeneratorDialog({ onGenerate }: Props) {
                   </div>
                 </div>
 
-                <div className="border p-4 rounded-xs space-y-4">
+                <div className="border p-4 rounded-xs space-y-4 bg-neutral-50">
                   {/* Ropa */}
                   <div>
                     <span className="text-xs font-medium text-slate-700 uppercase mb-2 block">
@@ -358,8 +360,9 @@ export function VariantGeneratorDialog({ onGenerate }: Props) {
                         type="button"
                         variant="outline"
                         onClick={addCustomSize}
+                        title="Guardar nueva talla"
                       >
-                        <FaPlus className="size-4 text-slate-500" />
+                        <FaPlus className="size-4 text-slate-600" />
                       </Button>
                     </div>
                   </div>
