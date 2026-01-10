@@ -45,7 +45,7 @@ export function Gallery({
 
   return (
     <>
-      {/* --- GRID EN LA PÁGINA (SIN CAMBIOS) --- */}
+      {/* --- GRID EN LA PÁGINA --- */}
       <div className="flex flex-col-reverse lg:flex-row gap-3 w-full">
         {images.length > 1 && (
           <div className="flex gap-3 overflow-x-auto lg:flex-col lg:w-20 lg:h-[85vh] lg:max-h-[600px] lg:overflow-y-auto scrollbar-hide shrink-0 pb-2 lg:pb-0">
@@ -64,8 +64,9 @@ export function Gallery({
                   src={img.url}
                   alt={`Minuatura ${idx + 1}`}
                   fill
+                  unoptimized={true}
                   className="object-cover"
-                  sizes="100px"
+                  sizes="150px"
                 />
               </button>
             ))}
