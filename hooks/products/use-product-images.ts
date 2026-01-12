@@ -37,7 +37,6 @@ export function useProductImages() {
     const groups: Record<string, { field: any; index: number }[]> = {};
     const unassigned: { field: any; index: number }[] = [];
 
-    // Inicializamos en el orden correcto
     activeColors.forEach((c) => {
       groups[c] = [];
     });
@@ -54,7 +53,6 @@ export function useProductImages() {
   }, [fields, activeColors, images]);
 
   // --- ACCIONES ---
-
   const handleUpdateImage = (index: number, result: any) => {
     if (result?.info?.secure_url) {
       const oldImage = images[index];

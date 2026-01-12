@@ -14,18 +14,13 @@ export function useVariantsTable() {
     keyName: "keyId",
   });
 
-  // Observamos los campos para poder agruparlos en tiempo real
-  // 'fields' de useFieldArray a veces no tiene los valores actualizados de los inputs
   const variants = watch("variants");
 
-  // AGRUPACIÓN: Creamos una estructura { "Rojo": [indices...], "Azul": [indices...] }
-  // Usamos useMemo para que no recalcule en cada render si no cambian las variantes
   const groupedVariants = useMemo(() => {
     const groups: Record<string, number[]> = {};
-    const colorOrder: string[] = []; // Para mantener el orden de creación de los grupos
+    const colorOrder: string[] = [];
 
     fields.forEach((field, index) => {
-      // Usamos el valor real del form (variants[index]) o el del field si es inicial
       const colorName = variants?.[index]?.color || "Sin Color";
 
       if (!groups[colorName]) {
@@ -38,13 +33,11 @@ export function useVariantsTable() {
     return { groups, colorOrder };
   }, [fields, variants]);
 
-  // AÑADIR (Sin ordenar, solo append al final)
   const addVariants = (newItems: ProductFormValues["variants"]) => {
     const currentVariants = getValues("variants") || [];
     const variantsToAdd: typeof newItems = [];
 
     newItems.forEach((newItem) => {
-      // Chequeo simple de duplicados
       const exists = currentVariants.some(
         (cv) => cv.size === newItem.size && cv.color === newItem.color,
       );
@@ -56,7 +49,6 @@ export function useVariantsTable() {
       return;
     }
 
-    // AÑADIMOS AL FINAL (Orden de creación)
     append(variantsToAdd);
 
     setTimeout(() => trigger("variants"), 100);
@@ -70,8 +62,8 @@ export function useVariantsTable() {
 
   return {
     fields,
-    groupedVariants, // Exportamos los grupos
+    groupedVariants,
     remove: removeVariant,
-    addVariants, // Renombrado de addAndSort a addVariants
+    addVariants,
   };
 }

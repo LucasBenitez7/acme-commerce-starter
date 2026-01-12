@@ -162,7 +162,7 @@ export function useVariantDialog({ onGenerate }: UseVariantDialogProps) {
     const finalName = capitalize(name.trim());
     if (!finalName) return;
 
-    // 2. BUSCAR DUPLICADO POR NOMBRE (Estricto)
+    // 2. BUSCAR DUPLICADO POR NOMBRE
     const existingColor = rawColors.find(
       (c) => c.name.toLowerCase() === cleanName.toLowerCase(),
     );
@@ -187,7 +187,6 @@ export function useVariantDialog({ onGenerate }: UseVariantDialogProps) {
   };
 
   // --- LÓGICA DE TALLAS ---
-
   const addCustomSize = async () => {
     const val = customSizeInput.trim().toUpperCase();
     if (!val) return;

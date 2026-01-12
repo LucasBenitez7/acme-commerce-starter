@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
-import { RETURN_REASONS } from "@/lib/constants";
+import { RETURN_REASONS } from "@/lib/orders/constants";
 
 import {
   cancelOrderUserAction,
@@ -40,7 +40,7 @@ type OrderItem = {
   colorSnapshot: string | null;
   quantity: number;
   quantityReturned: number;
-  quantityReturnRequested?: number; // Asegúrate de que Prisma traiga esto si existe
+  quantityReturnRequested?: number;
 };
 
 type Props = {
