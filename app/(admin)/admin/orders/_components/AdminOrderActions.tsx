@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { REJECTION_REASONS } from "@/lib/constants";
+import { REJECTION_REASONS } from "@/lib/orders/constants";
 
 import { updateOrderStatusAction, rejectReturnAction } from "../actions";
 

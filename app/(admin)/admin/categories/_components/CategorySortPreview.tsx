@@ -38,24 +38,20 @@ export function CategorySortPreview({ existingCategories, currentId }: Props) {
               className={cn(
                 "flex items-center gap-3 p-2 rounded-xs text-sm border transition-colors",
                 isCurrent
-                  ? "bg-background border-foreground"
-                  : "bg-background border hover:border-neutral-200 text-neutral-500",
+                  ? "bg-foreground text-background"
+                  : "bg-background border hover:border-neutral-200",
               )}
             >
               <Badge
                 variant={isCurrent ? "default" : "secondary"}
-                className="w-8 justify-center font-medium text-xs"
+                className={cn(
+                  "w-6 h-6 flex items-center font-semibold justify-center text-xs border border-neutral-300",
+                  isCurrent && "text-background",
+                )}
               >
                 {cat.sort}
               </Badge>
-              <span
-                className={cn(
-                  "truncate font-medium",
-                  isCurrent && "text-foreground",
-                )}
-              >
-                {cat.name}
-              </span>
+              <span className={cn("truncate font-medium")}>{cat.name}</span>
             </div>
           );
         })}

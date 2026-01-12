@@ -10,54 +10,13 @@ import {
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 
+import { getDashboardStats } from "@/lib/admin/queries";
 import { formatCurrency, DEFAULT_CURRENCY } from "@/lib/currency";
-import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  // 1. Consultas Generales
-  const [totalOrders, totalProducts, totalUsers, pendingOrders] =
-    await Promise.all([
-      prisma.order.count(),
-      prisma.product.count(),
-      prisma.user.count(),
-      prisma.order.count({ where: { status: "PENDING_PAYMENT" } }),
-    ]);
-
-  // 2. Consulta Financiera Compleja
-  const financialOrders = await prisma.order.findMany({
-    where: {
-      status: { in: ["PAID", "RETURN_REQUESTED", "RETURNED"] },
-    },
-    select: {
-      totalMinor: true,
-      items: {
-        select: {
-          priceMinorSnapshot: true,
-          quantityReturned: true,
-        },
-      },
-    },
-  });
-
-  // 3. Cálculos en Memoria
-  let grossRevenue = 0;
-  let totalRefunds = 0;
-  let returnedItemsCount = 0;
-
-  for (const order of financialOrders) {
-    grossRevenue += order.totalMinor;
-
-    const orderRefundValue = order.items.reduce((acc, item) => {
-      returnedItemsCount += item.quantityReturned;
-      return acc + item.priceMinorSnapshot * item.quantityReturned;
-    }, 0);
-
-    totalRefunds += orderRefundValue;
-  }
-
-  const netRevenue = grossRevenue - totalRefunds;
+  const stats = await getDashboardStats();
 
   return (
     <div className="space-y-8">
@@ -82,7 +41,7 @@ export default async function AdminPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {formatCurrency(grossRevenue, DEFAULT_CURRENCY)}
+                {formatCurrency(stats.grossRevenue, DEFAULT_CURRENCY)}
               </div>
               <p className="text-xs text-muted-foreground">
                 Volumen total transaccionado
@@ -100,7 +59,7 @@ export default async function AdminPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-red-600">
-                - {formatCurrency(totalRefunds, DEFAULT_CURRENCY)}
+                - {formatCurrency(stats.totalRefunds, DEFAULT_CURRENCY)}
               </div>
               <p className="text-xs text-muted-foreground">
                 Dinero devuelto a clientes
@@ -108,7 +67,7 @@ export default async function AdminPage() {
             </CardContent>
           </Card>
 
-          {/* 3. Ingresos Netos (El dato más importante) */}
+          {/* 3. Ingresos Netos */}
           <Card className="border-l-4 border-l-green-500 shadow-md bg-green-50/30">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-bold text-green-800">
@@ -118,7 +77,7 @@ export default async function AdminPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-700">
-                {formatCurrency(netRevenue, DEFAULT_CURRENCY)}
+                {formatCurrency(stats.netRevenue, DEFAULT_CURRENCY)}
               </div>
               <p className="text-xs text-green-600 font-medium">
                 Beneficio real en caja
@@ -126,7 +85,7 @@ export default async function AdminPage() {
             </CardContent>
           </Card>
 
-          {/* 4. Productos Devueltos (Inventario) */}
+          {/* 4. Items Devueltos */}
           <Card className="border-l-4 border-l-orange-400 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -136,7 +95,7 @@ export default async function AdminPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-orange-600">
-                {returnedItemsCount}{" "}
+                {stats.returnedItemsCount}{" "}
                 <span className="text-sm font-normal text-muted-foreground">
                   u.
                 </span>
@@ -161,9 +120,9 @@ export default async function AdminPage() {
               <FaClipboardList className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalOrders}</div>
+              <div className="text-2xl font-bold">{stats.totalOrders}</div>
               <p className="text-xs text-muted-foreground">
-                {pendingOrders} pendientes de pago
+                {stats.pendingOrders} pendientes de pago
               </p>
             </CardContent>
           </Card>
@@ -174,7 +133,7 @@ export default async function AdminPage() {
               <FaBox className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalProducts}</div>
+              <div className="text-2xl font-bold">{stats.totalProducts}</div>
               <p className="text-xs text-muted-foreground">Productos activos</p>
             </CardContent>
           </Card>
@@ -185,14 +144,13 @@ export default async function AdminPage() {
               <FaUsers className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalUsers}</div>
+              <div className="text-2xl font-bold">{stats.totalUsers}</div>
               <p className="text-xs text-muted-foreground">
                 Usuarios registrados
               </p>
             </CardContent>
           </Card>
 
-          {/* Card de Crecimiento (Placeholder visual) */}
           <Card className="bg-neutral-900 text-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-neutral-300">

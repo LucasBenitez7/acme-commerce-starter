@@ -10,8 +10,10 @@ import {
 
 import { Card, CardContent } from "@/components/ui/card";
 
-import { prisma } from "@/lib/db";
+import { getAdminOrderById } from "@/lib/orders/queries";
 import { cn } from "@/lib/utils";
+
+import type { HistoryDetailsJson } from "@/lib/orders/types";
 
 export const dynamic = "force-dynamic";
 
@@ -19,22 +21,9 @@ type Props = {
   params: Promise<{ id: string }>;
 };
 
-type HistoryDetailItem = {
-  name: string;
-  quantity: number;
-  variant?: string | null;
-};
-
 export default async function OrderHistoryPage({ params }: Props) {
   const { id } = await params;
-
-  const order = await prisma.order.findUnique({
-    where: { id },
-    include: {
-      history: { orderBy: { createdAt: "desc" } },
-      user: true,
-    },
-  });
+  const order = await getAdminOrderById(id);
 
   if (!order) notFound();
 
@@ -60,12 +49,13 @@ export default async function OrderHistoryPage({ params }: Props) {
         )}
 
         {order.history.map((event) => {
-          const isAdmin = event.actor === "admin";
-          const details = event.details
-            ? (event.details as unknown as HistoryDetailItem[])
-            : [];
+          const isAdmin = event.actor === "Admin" || event.actor === "admin";
+          const details =
+            (event.details as unknown as HistoryDetailsJson) || {};
+          const itemsList = details.items || [];
+          const note = details.note;
 
-          let iconColor = isAdmin
+          const iconColor = isAdmin
             ? "bg-orange-200 text-orange-600"
             : "bg-blue-100 text-blue-600";
 
@@ -114,31 +104,23 @@ export default async function OrderHistoryPage({ params }: Props) {
                   )}
                 >
                   <CardContent className="p-4 space-y-3">
-                    {/* Mensaje Principal */}
                     <div className="flex flex-col">
-                      {isAdmin && event.reason && (
-                        <h3 className="text-sm font-medium">{event.reason}</h3>
-                      )}
-
-                      {!isAdmin && event.reason && (
-                        <h3 className="text-sm font-medium">
-                          Motivo: "{event.reason}"
-                        </h3>
+                      <h3 className="text-sm font-medium">{event.reason}</h3>
+                      {note && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Note: {note}
+                        </p>
                       )}
                     </div>
 
-                    {/* LISTA DE PRODUCTOS AFECTADOS */}
-                    {details.length > 0 && (
+                    {/* Renderizado de items afectados */}
+                    {itemsList.length > 0 && (
                       <div className="mt-3 bg-white rounded-xs border border-neutral-200 p-3">
                         <p className="text-xs font-semibold text-neutral-500 uppercase mb-2 flex items-center gap-2">
-                          <FaClipboardCheck /> Productos{" "}
-                          {event.status === "RETURN_REQUESTED"
-                            ? "Solicitados"
-                            : "Procesados"}
-                          :
+                          <FaClipboardCheck /> Productos Afectados:
                         </p>
                         <ul className="space-y-1.5">
-                          {details.map((item, idx) => (
+                          {itemsList.map((item, idx) => (
                             <li
                               key={idx}
                               className="text-sm flex justify-between items-center border-b border-neutral-100 last:border-0 pb-1 last:pb-0"

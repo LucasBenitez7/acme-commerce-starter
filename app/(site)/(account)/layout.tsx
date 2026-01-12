@@ -39,7 +39,7 @@ export default async function AccountLayout({
   const session = await auth();
   const user = session?.user;
 
-  if (!user) return null; // El middleware ya protege, pero por seguridad
+  if (!user) return null;
 
   const displayName = user.firstName
     ? `${user.firstName} ${user.lastName || ""}`

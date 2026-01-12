@@ -1,3 +1,4 @@
+import { type OrderStatus } from "@prisma/client";
 import Link from "next/link";
 import { FaCalendar, FaMapMarkerAlt } from "react-icons/fa";
 
@@ -6,53 +7,29 @@ import { PaginationNav } from "@/components/catalog/PaginationNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
+import { getUserOrders } from "@/lib/account/queries";
 import { auth } from "@/lib/auth";
-import { SHIPPING_METHOD_LABELS } from "@/lib/constants";
 import { parseCurrency, formatCurrency } from "@/lib/currency";
-import { prisma } from "@/lib/db";
+import { getShippingLabel } from "@/lib/locations";
+import { ORDER_STATUS_CONFIG } from "@/lib/orders/constants";
+import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-function getStatusBadge(status: string) {
-  switch (status) {
-    case "PAID":
-      return (
-        <span className="inline-flex items-center rounded-xs bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-          Pagado
-        </span>
-      );
-    case "PENDING_PAYMENT":
-      return (
-        <span className="inline-flex items-center rounded-xs bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
-          Pendiente
-        </span>
-      );
-    case "CANCELLED":
-      return (
-        <span className="inline-flex items-center rounded-xs bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
-          Cancelado
-        </span>
-      );
-    case "RETURN_REQUESTED":
-      return (
-        <span className="inline-flex items-center rounded-xs bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-800 border border-orange-200 animate-pulse">
-          Devolución Solicitada
-        </span>
-      );
-    case "RETURNED":
-      return (
-        <span className="inline-flex items-center rounded-xs bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 border border-blue-200">
-          Devuelto
-        </span>
-      );
-    default:
-      return (
-        <span className="inline-flex items-center rounded-xs bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
-          {status}
-        </span>
-      );
-  }
+function StatusBadge({ status }: { status: string }) {
+  const config = ORDER_STATUS_CONFIG[status as OrderStatus];
+
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border",
+        config?.badge || "bg-gray-100 text-gray-800",
+      )}
+    >
+      {config?.label || status}
+    </span>
+  );
 }
 
 export default async function AccountOrdersPage({
@@ -62,47 +39,23 @@ export default async function AccountOrdersPage({
 }) {
   const sp = await searchParams;
   const page = Number(sp.page) || 1;
-  const take = 5;
-  const skip = (page - 1) * take;
-
   const session = await auth();
+
   if (!session?.user?.id) return null;
 
-  const [orders, total] = await prisma.$transaction([
-    prisma.order.findMany({
-      where: { userId: session.user.id },
-      orderBy: { createdAt: "desc" },
-      include: {
-        items: {
-          include: {
-            product: {
-              select: { slug: true },
-            },
-          },
-        },
-      },
-      take,
-      skip,
-    }),
-    prisma.order.count({ where: { userId: session.user.id } }),
-  ]);
-
-  const totalPages = Math.ceil(total / take);
+  // Lógica extraída
+  const { orders, totalPages } = await getUserOrders(session.user.id, page);
 
   if (orders.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-xs border border-dashed p-8 text-center animate-in fade-in-50">
+      <div className="flex flex-col items-center justify-center rounded-xs border border-dashed p-8 text-center">
         <h3 className="mt-4 text-lg font-semibold">No tienes pedidos</h3>
-        <p className="mb-4 mt-2 text-sm text-muted-foreground">
-          Parece que aún no has comprado nada. ¡Echa un vistazo al catálogo!
-        </p>
-        <Button asChild>
+        <Button asChild className="mt-4">
           <Link href="/catalogo">Ir a la tienda</Link>
         </Button>
       </div>
     );
   }
-
   return (
     <div className="space-y-6">
       <div>
@@ -142,7 +95,9 @@ export default async function AccountOrdersPage({
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <FaCalendar className="h-3 w-3" /> {createdDate}
                     </div>
-                    <span>{getStatusBadge(order.status)}</span>
+                    <span>
+                      <StatusBadge status={order.status} />
+                    </span>
                   </div>
 
                   <div className="grid gap-3 h-max">
@@ -202,9 +157,9 @@ export default async function AccountOrdersPage({
                       Envío
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {SHIPPING_METHOD_LABELS[
-                        (order.shippingType || "HOME").toLowerCase()
-                      ] || order.shippingType}
+                      {getShippingLabel(
+                        order.shippingType?.toLowerCase() || "home",
+                      )}
 
                       <br />
                       {(order.postalCode || order.city) && (

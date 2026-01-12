@@ -24,6 +24,11 @@ type Props = {
   }>;
 };
 
+const tabs = [
+  { label: "Activos", value: undefined },
+  { label: "Archivados / Papelera", value: "archived" },
+];
+
 export default async function AdminProductsPage({ searchParams }: Props) {
   const sp = await searchParams;
 
@@ -32,15 +37,16 @@ export default async function AdminProductsPage({ searchParams }: Props) {
   const categories = sp.categories?.split(",").filter(Boolean);
   const status = sp.status;
 
-  const minCents =
-    sp.min && !isNaN(parseFloat(sp.min))
-      ? Math.round(parseFloat(sp.min) * 100)
-      : undefined;
-  const maxCents =
-    sp.max && !isNaN(parseFloat(sp.max))
-      ? Math.round(parseFloat(sp.max) * 100)
+  // Helpers de precio
+  const parseCents = (val?: string) =>
+    val && !isNaN(parseFloat(val))
+      ? Math.round(parseFloat(val) * 100)
       : undefined;
 
+  const minCents = parseCents(sp.min);
+  const maxCents = parseCents(sp.max);
+
+  // Queries
   const [productsData, globalMaxPrice] = await Promise.all([
     getAdminProducts({
       page,
@@ -58,10 +64,6 @@ export default async function AdminProductsPage({ searchParams }: Props) {
     productsData;
 
   const isArchivedView = status === "archived";
-  const tabs = [
-    { label: "Activos", value: undefined },
-    { label: "Archivados / Papelera", value: "archived" },
-  ];
 
   return (
     <div className="space-y-6">
@@ -104,7 +106,7 @@ export default async function AdminProductsPage({ searchParams }: Props) {
       <Card>
         <CardHeader className="p-4 border-b flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
           <CardTitle className="text-lg text-left font-semibold">
-            {isArchivedView ? "Papelera" : "Catálogo"}
+            {isArchivedView ? "Papelera" : "Catálogo"}{" "}
             <span className="text-base">({totalCount})</span>
           </CardTitle>
 

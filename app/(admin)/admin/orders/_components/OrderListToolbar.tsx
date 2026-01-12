@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
 import { FaFilter, FaSort, FaXmark } from "react-icons/fa6";
 
 import { Button } from "@/components/ui/button";
@@ -17,59 +16,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import {
+  FILTER_STATUS_OPTIONS,
+  ORDER_SORT_OPTIONS,
+} from "@/lib/orders/constants";
 import { cn } from "@/lib/utils";
 
+import { useOrderFilters } from "@/hooks/order/use-order-filters";
+
 export function OrderListToolbar() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  // --- LÓGICA DE URL ---
-  const updateParams = (updates: Record<string, string | null>) => {
-    const params = new URLSearchParams(searchParams.toString());
-
-    Object.entries(updates).forEach(([key, value]) => {
-      if (value) {
-        params.set(key, value);
-      } else {
-        params.delete(key);
-      }
-    });
-
-    router.push(`/admin/orders?${params.toString()}`);
-  };
-
-  // --- ESTADOS ---
-  const activeSort = searchParams.get("sort") || "date_desc";
-  const activeStatuses =
-    searchParams.get("status_filter")?.split(",").filter(Boolean) || [];
-
-  const handleStatusToggle = (status: string) => {
-    const newStatuses = activeStatuses.includes(status)
-      ? activeStatuses.filter((s) => s !== status)
-      : [...activeStatuses, status];
-
-    updateParams({
-      status_filter: newStatuses.length > 0 ? newStatuses.join(",") : null,
-    });
-  };
-
-  // Opciones de Estado para el filtro
-  const STATUS_OPTIONS = [
-    { label: "Pagado", value: "PAID", color: "bg-green-500" },
-    { label: "Pendiente", value: "PENDING_PAYMENT", color: "bg-yellow-500" },
-    { label: "Solicitado", value: "RETURN_REQUESTED", color: "bg-orange-500" },
-    { label: "Devuelto", value: "RETURNED", color: "bg-blue-500" },
-    { label: "Cancelado", value: "CANCELLED", color: "bg-neutral-500" },
-    { label: "Expirado", value: "EXPIRED", color: "bg-neutral-400" },
-  ];
-
-  // Opciones de Ordenación
-  const SORT_OPTIONS = [
-    { label: "Fecha: Reciente", value: "date_desc" },
-    { label: "Fecha: Antigua", value: "date_asc" },
-    { label: "Total: Alto a Bajo", value: "total_desc" },
-    { label: "Total: Bajo a Alto", value: "total_asc" },
-  ];
+  const { activeSort, activeStatuses, updateParams, toggleStatus } =
+    useOrderFilters();
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -101,12 +58,12 @@ export function OrderListToolbar() {
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-              {STATUS_OPTIONS.map((status) => {
+              {FILTER_STATUS_OPTIONS.map((status) => {
                 const isSelected = activeStatuses.includes(status.value);
                 return (
                   <div
                     key={status.value}
-                    onClick={() => handleStatusToggle(status.value)}
+                    onClick={() => toggleStatus(status.value)}
                     className={cn(
                       "cursor-pointer flex items-center gap-2 p-2 rounded border text-xs transition-all select-none group",
                       isSelected
@@ -118,7 +75,7 @@ export function OrderListToolbar() {
                     <div
                       className={cn(
                         "h-3 w-3 rounded-full flex items-center justify-center shrink-0",
-                        status.color, // Color del punto según el estado
+                        status.color,
                         isSelected ? "ring-2 ring-offset-1 ring-black" : "",
                       )}
                     />
@@ -149,7 +106,7 @@ export function OrderListToolbar() {
           </div>
         </SelectTrigger>
         <SelectContent align="end">
-          {SORT_OPTIONS.map((option) => (
+          {ORDER_SORT_OPTIONS.map((option) => (
             <SelectItem
               key={option.value}
               value={option.value}

@@ -6,24 +6,32 @@ import { addressFormSchema } from "@/lib/account/schema";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
-// --- CREAR / EDITAR ---
+// --- CREAR / EDITAR / UPSERT ---
 export async function upsertAddressAction(data: any) {
   const session = await auth();
   if (!session?.user?.id) return { error: "No autorizado" };
 
   const parsed = addressFormSchema.safeParse(data);
+
   if (!parsed.success) {
-    return { error: "Datos inválidos. Revisa el formulario." };
+    const errorMsg = parsed.error.issues[0]?.message || "Datos inválidos.";
+    return { error: errorMsg };
   }
 
   const { id, ...fields } = parsed.data;
   let resultAddress;
 
   const dataToSave = {
-    ...fields,
-    details: fields.details ?? "",
-    country: fields.country ?? "España",
     userId: session.user.id,
+    firstName: fields.firstName,
+    lastName: fields.lastName,
+    phone: fields.phone,
+    street: fields.street,
+    details: fields.details || null,
+    postalCode: fields.postalCode,
+    city: fields.city,
+    province: fields.province,
+    country: fields.country || "España",
   };
 
   try {
@@ -40,6 +48,7 @@ export async function upsertAddressAction(data: any) {
 
       // 2. Crear o Actualizar
       if (id) {
+        // ACTUALIZAR
         resultAddress = await tx.userAddress.update({
           where: { id, userId: session.user.id },
           data: {
@@ -48,6 +57,7 @@ export async function upsertAddressAction(data: any) {
           },
         });
       } else {
+        // CREAR
         const count = await tx.userAddress.count({
           where: { userId: session.user.id },
         });
@@ -67,7 +77,7 @@ export async function upsertAddressAction(data: any) {
 
     return { success: true, address: resultAddress };
   } catch (error) {
-    console.error(error);
+    console.error("Address Upsert Error:", error);
     return { error: "Error al guardar la dirección." };
   }
 }
@@ -83,6 +93,7 @@ export async function deleteAddressAction(addressId: string) {
     });
 
     revalidatePath("/account/addresses");
+    revalidatePath("/checkout");
     return { success: true };
   } catch (error) {
     return { error: "Error al eliminar la dirección." };
@@ -107,6 +118,7 @@ export async function setDefaultAddressAction(addressId: string) {
     ]);
 
     revalidatePath("/account/addresses");
+    revalidatePath("/checkout");
     return { success: true };
   } catch (error) {
     return { error: "Error al cambiar la dirección principal." };

@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -8,6 +9,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
+import { cn } from "@/lib/utils";
 
 import type { AdminCategoryItem } from "@/lib/categories/types";
 
@@ -60,15 +63,17 @@ export function CategoryTable({
 
               {/* 4. PRODUCTOS (Badge) */}
               <TableCell className="text-center py-3">
-                <span
-                  className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                <Badge
+                  variant={"outline"}
+                  className={cn(
+                    "w-7 h-6 flex items-center mx-auto font-semibold justify-center text-xs border",
                     cat._count.products > 0
-                      ? "bg-green-50 text-green-700 border-green-100"
-                      : "bg-red-50 text-red-500 border-red-200"
-                  }`}
+                      ? "bg-green-50 text-green-700 border-green-200"
+                      : "bg-red-50 text-red-500 border-red-200",
+                  )}
                 >
                   {cat._count.products}
-                </span>
+                </Badge>
               </TableCell>
 
               {/* 5. ACCIONES */}

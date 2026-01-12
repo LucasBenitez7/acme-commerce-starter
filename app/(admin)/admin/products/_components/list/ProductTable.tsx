@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { Badge } from "@/components/ui/badge";
 import { Image } from "@/components/ui/image";
 import {
   Table,
@@ -42,8 +43,8 @@ export function ProductTable({ products }: ProductTableProps) {
             <TableHead>Nombre</TableHead>
             <TableHead>Categoría</TableHead>
             <TableHead>Precio</TableHead>
-            <TableHead className="text-right">Stock</TableHead>
-            <TableHead className="text-right pr-4">Acciones</TableHead>
+            <TableHead className="text-center">Stock</TableHead>
+            <TableHead className="text-center">Acciones</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -97,23 +98,24 @@ export function ProductTable({ products }: ProductTableProps) {
                   {formatCurrency(product.priceCents, currency)}
                 </TableCell>
 
-                <TableCell className="text-right">
-                  <span
+                <TableCell className="text-center">
+                  <Badge
+                    variant={"outline"}
                     className={cn(
-                      "inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border",
+                      "w-7 h-6 flex items-center mx-auto font-semibold justify-center text-xs border",
                       isOutOfStock
                         ? "bg-red-50 text-red-500 border-red-200"
-                        : "bg-green-50 text-green-700 border-green-100",
+                        : "bg-green-50 text-green-700 border-green-200",
                     )}
                   >
                     {totalStock}
-                  </span>
+                  </Badge>
                 </TableCell>
 
-                <TableCell className="text-right pr-3">
+                <TableCell className="text-center">
                   <Link
                     href={`/admin/products/${product.id}`}
-                    className="fx-underline-anim mx-3 font-medium text-sm"
+                    className="fx-underline-anim font-medium text-sm"
                   >
                     Editar
                   </Link>

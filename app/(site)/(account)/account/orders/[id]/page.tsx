@@ -14,9 +14,9 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
+import { getUserOrderById } from "@/lib/account/queries";
 import { auth } from "@/lib/auth";
 import { formatCurrency, parseCurrency } from "@/lib/currency";
-import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -30,10 +30,7 @@ export default async function UserOrderDetailPage({ params }: Props) {
 
   const { id } = await params;
 
-  const order = await prisma.order.findUnique({
-    where: { id, userId: session.user.id },
-    include: { items: true },
-  });
+  const order = await getUserOrderById(session.user.id, id);
 
   if (!order) notFound();
 

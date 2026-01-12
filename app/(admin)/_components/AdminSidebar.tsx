@@ -59,7 +59,7 @@ export function AdminSidebar() {
         </Link>
       </div>
 
-      <nav className="flex flex-col gap-2 p-4">
+      <nav className="flex flex-col gap-2 py-4 px-3">
         {NAV_ITEMS.map((item) => {
           const isActive =
             item.href === "/admin"
@@ -73,10 +73,10 @@ export function AdminSidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-2 py-2 text-sm font-medium border border-transparent rounded-xs transition-colors",
+                "flex items-center gap-3 px-2 py-2 text-sm font-medium rounded-xs transition-colors",
                 isActive
-                  ? "bg-neutral-100 border-border text-foreground"
-                  : "text-foreground hover:bg-neutral-100 hover:border-border",
+                  ? "bg-foreground text-background"
+                  : "text-foreground hover:bg-neutral-100 active:bg-neutral-100",
                 item.variant === "ghost" && "mt-4 border border-dashed",
               )}
             >

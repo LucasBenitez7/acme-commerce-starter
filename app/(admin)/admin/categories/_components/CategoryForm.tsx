@@ -21,7 +21,6 @@ type Props = {
     slug: string;
     sort: number;
   };
-  // NUEVA PROP: Recibimos la lista de referencia
   existingCategories?: { id: string; name: string; sort: number }[];
 };
 

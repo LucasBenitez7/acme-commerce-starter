@@ -1,19 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  FaCheck,
-  FaUser,
-  FaArrowLeft,
-  FaClipboardList,
-  FaRotateLeft,
-  FaBan,
-} from "react-icons/fa6";
+import { FaCheck, FaUser, FaArrowLeft, FaClipboardList } from "react-icons/fa6";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { formatCurrency, parseCurrency } from "@/lib/currency";
-import { prisma } from "@/lib/db";
+import { getAdminOrderById } from "@/lib/orders/queries";
 import { cn } from "@/lib/utils";
 
 import {
@@ -31,69 +24,36 @@ type Props = {
 export default async function AdminOrderDetailPage({ params }: Props) {
   const { id } = await params;
 
-  const order = await prisma.order.findUnique({
-    where: { id },
-    include: {
-      items: true,
-      user: true,
-    },
-  });
+  // 1. Usamos la Query Refactorizada
+  const order = await getAdminOrderById(id);
 
   if (!order) notFound();
 
   const currency = parseCurrency(order.currency);
-  const originalQuantity = order.items.reduce(
-    (acc, item) => acc + item.quantity,
-    0,
-  );
-  const returnedQuantity = order.items.reduce(
-    (acc, item) => acc + item.quantityReturned,
-    0,
-  );
-  const netQuantity = originalQuantity - returnedQuantity;
-  const returnedAmountMinor = order.items.reduce((acc, item) => {
-    return acc + item.priceMinorSnapshot * item.quantityReturned;
-  }, 0);
-  const netTotalMinor = order.totalMinor - returnedAmountMinor;
+
+  // 2. Usamos los datos pre-calculados del DTO
+  // Ya no hacemos .reduce() aquí, viene del servicio
+  const { originalQty, netTotalMinor, refundedAmountMinor, returnedQty } =
+    order.summary;
 
   const requestedItems = order.items.filter(
     (i) => i.quantityReturnRequested > 0,
   );
 
-  // --- CONFIGURACIÓN DE ESTADOS ---
+  // --- CONFIGURACIÓN DE ESTADOS (Igual que antes) ---
   const statusConfig: Record<string, { label: string; color: string }> = {
-    PAID: {
-      label: "Pagado",
-      color: "text-green-700",
-    },
-    PENDING_PAYMENT: {
-      label: "Pendiente de Pago",
-      color: "text-yellow-600",
-    },
-    RETURN_REQUESTED: {
-      label: "Devolución Solicitada",
-      color: "text-red-600",
-    },
-    RETURNED: {
-      label: "Devuelto",
-      color: "text-blue-700",
-    },
-    CANCELLED: {
-      label: "Cancelado",
-      color: "text-neutral-600",
-    },
-    EXPIRED: {
-      label: "Expirado",
-      color: "text-neutral-500",
-    },
+    PAID: { label: "Pagado", color: "text-green-700" },
+    PENDING_PAYMENT: { label: "Pendiente de Pago", color: "text-yellow-600" },
+    RETURN_REQUESTED: { label: "Devolución Solicitada", color: "text-red-600" },
+    RETURNED: { label: "Devuelto", color: "text-blue-700" },
+    CANCELLED: { label: "Cancelado", color: "text-neutral-600" },
+    EXPIRED: { label: "Expirado", color: "text-neutral-500" },
   };
 
   const currentStatus = statusConfig[order.status] || {
     label: order.status,
     color: "text-gray-700",
-    icon: null,
   };
-
   return (
     <div className="space-y-4 max-w-5xl mx-auto">
       {/* Header de Navegación */}
@@ -218,15 +178,15 @@ export default async function AdminOrderDetailPage({ params }: Props) {
               {/* --- TOTALES Y RESUMEN --- */}
               <div className=" pt-4 pb-1 space-y-1 border-t">
                 <div className="flex justify-between text-sm text-muted-foreground">
-                  <span>Subtotal ({originalQuantity})</span>
+                  <span>Subtotal ({originalQty})</span>
                   <span>{formatCurrency(order.totalMinor, currency)}</span>
                 </div>
 
-                {returnedAmountMinor > 0 && (
+                {refundedAmountMinor > 0 && (
                   <div className="flex justify-between text-sm text-red-600 font-medium">
-                    <span>Devueltos ({returnedQuantity})</span>
+                    <span>Devueltos ({returnedQty})</span>
                     <span>
-                      - {formatCurrency(returnedAmountMinor, currency)}
+                      - {formatCurrency(refundedAmountMinor, currency)}
                     </span>
                   </div>
                 )}
@@ -234,7 +194,9 @@ export default async function AdminOrderDetailPage({ params }: Props) {
                 <div className="flex justify-between pt-2 items-center font-semibold text-lg">
                   <span>
                     Total Neto{" "}
-                    <span className="text-base">({netQuantity})</span>
+                    <span className="text-base">
+                      ({originalQty - returnedQty})
+                    </span>
                   </span>
                   <span className="flex text-base gap-2">
                     {formatCurrency(netTotalMinor, currency)}

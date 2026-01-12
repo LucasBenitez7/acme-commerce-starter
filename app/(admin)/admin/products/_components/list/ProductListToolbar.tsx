@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { PRODUCT_SORT_OPTIONS } from "@/lib/constants";
+import { PRODUCT_SORT_OPTIONS } from "@/lib/products/constants";
 import { cn } from "@/lib/utils";
 
 import { useProductFilters } from "@/hooks/products/use-product-filters";
