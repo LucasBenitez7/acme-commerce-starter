@@ -1,4 +1,8 @@
-import { SHIPPING_METHOD_LABELS } from "@/lib/constants";
+import {
+  getShippingLabel,
+  findStoreLocation,
+  findPickupLocation,
+} from "@/lib/locations";
 
 import type { Order, OrderItem } from "@prisma/client";
 
@@ -12,12 +16,10 @@ type OrderWithDetails = Order & {
 };
 
 export function getOrderShippingDetails(order: Order) {
-  let label = "Envío";
+  const label = getShippingLabel(order.shippingType?.toLowerCase());
   let lines: string[] = [];
 
   if (order.shippingType === "HOME") {
-    label = SHIPPING_METHOD_LABELS.home || "A Domicilio";
-
     const line1 = [order.street, order.addressExtra, order.postalCode]
       .filter(Boolean)
       .join(", ");
@@ -26,23 +28,27 @@ export function getOrderShippingDetails(order: Order) {
       .filter(Boolean)
       .join(", ");
 
-    // 3. Guardamos solo las líneas que tengan contenido
-    lines = [line1, line2].filter(Boolean);
+    lines = [line1, line2];
   } else if (order.shippingType === "STORE") {
-    label = SHIPPING_METHOD_LABELS.store || "Recogida en Tienda";
+    const store = findStoreLocation(order.storeLocationId);
+
     lines = [
       "Tienda seleccionada:",
-      order.storeLocationId || "Ubicación no disponible",
+      store ? store.name : order.storeLocationId || "Ubicación desconocida",
+      store ? store.addressLine1 : "",
     ];
   } else if (order.shippingType === "PICKUP") {
-    label = SHIPPING_METHOD_LABELS.pickup || "Punto de Entrega";
+    const pickup = findPickupLocation(order.pickupLocationId);
+
     lines = [
       "Punto de entrega:",
-      order.pickupSearch || order.pickupLocationId || "Sin información",
+      pickup
+        ? pickup.name
+        : order.pickupSearch || order.pickupLocationId || "Sin información",
     ];
   }
 
-  return { label, addressLines: lines };
+  return { label, addressLines: lines.filter(Boolean) };
 }
 
 export function formatOrderForDisplay(order: OrderWithDetails) {
@@ -68,7 +74,6 @@ export function formatOrderForDisplay(order: OrderWithDetails) {
 
     items: order.items.map((item) => {
       const purchasedColor = item.colorSnapshot;
-
       const allImages = item.product.images;
 
       const matchingImage = allImages.find(

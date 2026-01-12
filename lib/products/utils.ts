@@ -1,4 +1,4 @@
-import { CLOTHING_SIZES } from "@/lib/constants";
+import { CLOTHING_SIZES } from "@/lib/products/constants";
 
 import type {
   ProductImage,
