@@ -5,7 +5,7 @@ import {
   CLOTHING_SIZES,
   SHOE_SIZES,
   PRODUCT_COLORS,
-} from "@/lib/constants";
+} from "@/lib/products/constants";
 
 const prisma = new PrismaClient();
 

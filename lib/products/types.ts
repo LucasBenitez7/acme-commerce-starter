@@ -19,7 +19,7 @@ export type ProductVariant = Pick<
   priceCents?: number | null;
 };
 
-// --- DTO: ADMIN (Lo que usa tu Dashboard) ---
+// --- DTO: ADMIN ---
 export type AdminProductItem = Product & {
   category: DbCategory;
   images: ProductImage[];
@@ -27,7 +27,7 @@ export type AdminProductItem = Product & {
   _totalStock: number;
 };
 
-// --- DTO: PUBLIC LIST (Lo que usa tu Catálogo / Grid) ---
+// --- DTO: PUBLIC LIST ---
 export type PublicProductListItem = {
   id: string;
   slug: string;
@@ -42,7 +42,7 @@ export type PublicProductListItem = {
   variants: ProductVariant[];
 };
 
-// --- DTO: PUBLIC DETAIL (Lo que usa la Ficha de Producto) ---
+// --- DTO: PUBLIC DETAIL ---
 export type PublicProductDetail = {
   id: string;
   slug: string;
@@ -56,7 +56,7 @@ export type PublicProductDetail = {
   variants: ProductVariant[];
 };
 
-// --- TIPOS PARA ATRIBUTOS GUARDADOS (Presets) ---
+// --- TIPOS PARA ATRIBUTOS GUARDADOS  ---
 export type PresetSize = {
   id: string;
   name: string;

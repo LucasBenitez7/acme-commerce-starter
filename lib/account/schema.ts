@@ -11,7 +11,7 @@ export const baseAddressSchema = z.object({
     .string()
     .trim()
     .min(6, "Teléfono inválido")
-    .regex(phoneRegex, "Solo números y +"),
+    .regex(phoneRegex, "Solo números"),
 
   street: z.string().trim().min(5, "Dirección muy corta"),
 

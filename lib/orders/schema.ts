@@ -1,84 +1,86 @@
 import { z } from "zod";
 
-// --- 1. Validaciones Básicas (Regex) ---
+import { baseAddressSchema } from "@/lib/account/schema";
+
 const phoneRegex = /^[0-9+\s()-]{6,20}$/;
-const postalCodeEsRegex = /^(?:0[1-9]|[1-4]\d|5[0-2])\d{3}$/;
+const requiredString = z.string().trim().min(1, "Campo requerido");
 
-// --- 2. Validación de Items del Carrito ---
+// --- Items ---
 export const orderItemSchema = z.object({
-  productId: z.string().min(1, "Product ID is required"),
-  variantId: z.string().min(1, "Variant ID is required"),
-  quantity: z
-    .number()
-    .int()
-    .positive("La cantidad debe ser al menos 1")
-    .max(100, "No puedes pedir más de 100 unidades del mismo artículo"),
+  productId: z.string().min(1),
+  variantId: z.string().min(1),
+  quantity: z.number().int().positive().max(100),
+  priceCents: z.number().optional(),
 });
 
-// --- 3. Datos del Usuario ---
-const userDetailsSchema = z.object({
-  firstName: z.string().min(2, "Mínimo 2 caracteres"),
-  lastName: z.string().min(2, "Mínimo 2 caracteres"),
-  email: z.string().email("Email inválido"),
+// --- Base ---
+const baseOrderSchema = z.object({
+  firstName: requiredString.min(2, "Mínimo 2 letras"),
+  lastName: requiredString.min(2, "Mínimo 2 letras"),
+  email: z.string().trim().email("Email inválido"),
   phone: z.string().regex(phoneRegex, "Teléfono inválido"),
+
   paymentMethod: z.enum(["card", "bizum", "transfer", "cash"], {
-    message: "Selecciona un método de pago válido",
+    message: "Selecciona un método de pago",
   }),
+
+  cartItems: z.array(orderItemSchema).min(1, "El carrito está vacío"),
 });
 
-// --- 4. Lógica de Envío (Unión Discriminada) ---
+// --- Opciones de Envío ---
 const shippingSchema = z.discriminatedUnion("shippingType", [
+  // A. DOMICILIO
   z.object({
     shippingType: z.literal("home"),
 
-    street: z.string().min(5, "Dirección muy corta"),
-    addressExtra: z.string().optional(),
-    postalCode: z.string().regex(postalCodeEsRegex, "CP inválido"),
-    city: z.string().min(2, "Ciudad requerida"),
-    province: z.string().min(2, "Provincia requerida"),
-    country: z.string().default("España"),
-
-    storeLocationId: z.string().optional().nullable(),
-    pickupLocationId: z.string().optional().nullable(),
+    firstName: baseAddressSchema.shape.firstName,
+    lastName: baseAddressSchema.shape.lastName,
+    phone: baseAddressSchema.shape.phone,
+    street: baseAddressSchema.shape.street,
+    postalCode: baseAddressSchema.shape.postalCode,
+    city: baseAddressSchema.shape.city,
+    province: baseAddressSchema.shape.province,
+    country: baseAddressSchema.shape.country,
+    addressExtra: baseAddressSchema.shape.details,
+    isDefault: z.boolean().optional(),
+    storeLocationId: z.null().optional(),
+    pickupLocationId: z.null().optional(),
+    pickupSearch: z.null().optional(),
   }),
 
+  // B. TIENDA
   z.object({
     shippingType: z.literal("store"),
-    storeLocationId: z.string().min(1, "Selecciona una tienda"),
-
+    storeLocationId: requiredString,
     street: z.string().optional().nullable(),
     addressExtra: z.string().optional().nullable(),
     postalCode: z.string().optional().nullable(),
     city: z.string().optional().nullable(),
     province: z.string().optional().nullable(),
     country: z.string().optional().nullable(),
-    pickupLocationId: z.string().optional().nullable(),
+    isDefault: z.boolean().optional(),
+    pickupLocationId: z.null().optional(),
+    pickupSearch: z.null().optional(),
   }),
 
+  // C. PICKUP
   z.object({
     shippingType: z.literal("pickup"),
-    pickupLocationId: z.string().min(1, "Selecciona un punto"),
-
-    storeLocationId: z.string().optional().nullable(),
+    pickupLocationId: requiredString,
+    pickupSearch: z.string().optional(),
+    storeLocationId: z.null().optional(),
     street: z.string().optional().nullable(),
     addressExtra: z.string().optional().nullable(),
     postalCode: z.string().optional().nullable(),
     city: z.string().optional().nullable(),
     province: z.string().optional().nullable(),
     country: z.string().optional().nullable(),
+    isDefault: z.boolean().optional(),
   }),
 ]);
 
-// --- 5. ESQUEMA MAESTRO ---
-export const createOrderSchema = z
-  .intersection(userDetailsSchema, shippingSchema)
-  .and(
-    z.object({
-      items: z.array(orderItemSchema).min(1, "Tu carrito está vacío"),
-    }),
-  );
-
-// --- 6. Tipos Inferidos ---
+export const createOrderSchema = z.intersection(
+  baseOrderSchema,
+  shippingSchema,
+);
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
-export type OrderItemInput = z.infer<typeof orderItemSchema>;
-export type ShippingTypeInput = CreateOrderInput["shippingType"];

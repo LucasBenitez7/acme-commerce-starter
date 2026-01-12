@@ -16,7 +16,8 @@ export const LOCALE_BY_CURRENCY: Record<SupportedCurrency, string> = {
 export const DEFAULT_CURRENCY: SupportedCurrency = "EUR";
 
 export function parseCurrency(input?: string | null): SupportedCurrency {
-  const code = input?.toUpperCase();
+  if (!input) return DEFAULT_CURRENCY;
+  const code = input.toUpperCase();
   if (code === "USD" || code === "GBP" || code === "EUR") {
     return code as SupportedCurrency;
   }

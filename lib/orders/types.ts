@@ -1,35 +1,75 @@
-export type OrderItemDisplay = {
+// lib/orders/types.ts
+import type {
+  Order,
+  OrderItem,
+  OrderHistory,
+  User,
+  OrderStatus,
+} from "@prisma/client";
+
+// --- DTO: Elemento de la lista (Tabla Admin) ---
+export type AdminOrderListItem = {
   id: string;
-  name: string;
-  slug: string;
-  subtitle: string;
-  quantity: number;
-  price: number;
-  image: string | null;
-};
-
-export type OrderDisplayData = {
-  id: string;
-  email: string;
-  date: Date;
-  status: string;
-
-  totals: {
-    subtotal: number;
-    shipping: number;
-    total: number;
-  };
-
-  shippingInfo: {
-    label: string;
-    addressLines: string[];
-  };
-
-  contact: {
-    name: string;
-    phone: string;
+  createdAt: Date;
+  status: OrderStatus;
+  totalMinor: number;
+  currency: string;
+  user: {
+    name: string | null;
+    email: string | null;
+    image?: string | null;
+  } | null;
+  guestInfo: {
+    firstName: string | null;
+    lastName: string | null;
     email: string;
   };
+  itemsCount: number;
+  refundedAmountMinor: number;
+  netTotalMinor: number;
+};
 
-  items: OrderItemDisplay[];
+export type AdminOrderDetail = Order & {
+  items: (OrderItem & {
+    currentStock?: number;
+  })[];
+  user: User | null;
+  history: OrderHistory[];
+  summary: {
+    originalQty: number;
+    returnedQty: number;
+    refundedAmountMinor: number;
+    netTotalMinor: number;
+  };
+};
+
+export type HistoryItemJson = {
+  name: string;
+  quantity: number;
+  variant?: string | null;
+};
+
+export type HistoryDetailsJson = {
+  items?: HistoryItemJson[];
+  note?: string;
+};
+
+export type GetOrdersParams = {
+  page?: number;
+  limit?: number;
+  statusTab?: string;
+  statusFilter?: OrderStatus[];
+  sort?: string;
+  query?: string;
+};
+
+// --- Tipo específico para la UI de devoluciones ---
+export type ReturnableItem = {
+  id: string;
+  nameSnapshot: string;
+  sizeSnapshot: string | null;
+  colorSnapshot: string | null;
+  quantity: number;
+  quantityReturned: number;
+  quantityReturnRequested: number;
 };

@@ -52,10 +52,7 @@ function toPublicListItem(row: any): PublicProductListItem {
   };
 }
 
-/* =========================================
-   1. QUERIES PARA EL ADMIN (Dashboard)
-   ========================================= */
-
+// 1. QUERIES PARA EL ADMIN (Dashboard)
 type GetAdminProductsParams = {
   page?: number;
   limit?: number;
@@ -80,7 +77,6 @@ export async function getAdminProducts({
   const skip = (page - 1) * limit;
   const isArchived = status === "archived";
 
-  // Filtros dinámicos
   const where: Prisma.ProductWhereInput = {
     isArchived,
     ...(categories.length > 0 && { categoryId: { in: categories } }),
@@ -93,7 +89,6 @@ export async function getAdminProducts({
     }),
   };
 
-  // Ordenamiento
   let orderBy: Prisma.ProductOrderByWithRelationInput = { createdAt: "desc" };
   const isStockSort = sort === "stock_asc" || sort === "stock_desc";
 
@@ -133,7 +128,6 @@ export async function getAdminProducts({
     prisma.category.findMany({ orderBy: { name: "asc" } }),
   ]);
 
-  // Cálculo de stock para el admin
   const products = productsRaw.map((p) => ({
     ...p,
     _totalStock: p.variants.reduce((acc, v) => acc + v.stock, 0),
@@ -166,11 +160,7 @@ export async function getProductForEdit(id: string) {
   });
 }
 
-/* =========================================
-   2. QUERIES PÚBLICAS (Tienda)
-   ========================================= */
-
-// Catálogo / Grid
+// 2. QUERIES PÚBLICAS (Tienda)
 export async function getPublicProducts({
   page = 1,
   limit = 12,
