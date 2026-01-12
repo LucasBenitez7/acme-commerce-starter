@@ -19,7 +19,6 @@ export async function validateStockAction(items: CartValidationItem[]) {
     for (const item of items) {
       const variant = variants.find((v) => v.id === item.variantId);
 
-      // CASO 1: Ya no existe o inactivo
       if (!variant || !variant.isActive) {
         return {
           success: false,
@@ -28,7 +27,6 @@ export async function validateStockAction(items: CartValidationItem[]) {
         };
       }
 
-      // CASO 2: Stock 0 (Agotado)
       if (variant.stock === 0) {
         return {
           success: false,
@@ -37,7 +35,6 @@ export async function validateStockAction(items: CartValidationItem[]) {
         };
       }
 
-      // CASO 3: Stock insuficiente (Pides 7, hay 1)
       if (variant.stock < item.qty) {
         const msg =
           variant.stock === 1

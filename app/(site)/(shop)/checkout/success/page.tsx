@@ -7,6 +7,8 @@ import { formatOrderForDisplay } from "@/lib/orders/utils";
 
 import { SuccessClient } from "./SuccessClient";
 
+export const dynamic = "force-dynamic";
+
 type Props = {
   searchParams: Promise<{ orderId?: string }>;
 };

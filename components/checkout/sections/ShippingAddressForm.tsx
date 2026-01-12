@@ -1,19 +1,13 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
 import { type UserAddress } from "@prisma/client";
-import { useTransition } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
+import { useFormContext } from "react-hook-form";
 
 import { Button, Input, Label, Checkbox } from "@/components/ui";
 
-import {
-  addressFormSchema,
-  type AddressFormValues,
-} from "@/lib/account/schema";
+import { type CreateOrderInput } from "@/lib/orders/schema";
 
-import { upsertAddressAction } from "@/app/(site)/(account)/account/addresses/actions";
+import { useShippingAddressForm } from "@/hooks/checkout/use-address-form";
 
 type Props = {
   initialData?: Partial<UserAddress> | null;
@@ -21,63 +15,38 @@ type Props = {
   onSuccess: (address: UserAddress) => void;
 };
 
-export function ShippingAddressForm({
-  initialData,
-  onCancel,
-  onSuccess,
-}: Props) {
-  const [isPending, startTransition] = useTransition();
+export function ShippingAddressForm(props: Props) {
+  const { isPending, handleSaveAndUse } = useShippingAddressForm(props);
 
   const {
     register,
-    handleSubmit,
     setValue,
+    watch,
     formState: { errors },
-  } = useForm<AddressFormValues>({
-    resolver: zodResolver(addressFormSchema),
-    defaultValues: {
-      firstName: initialData?.firstName || "",
-      lastName: initialData?.lastName || "",
-      phone: initialData?.phone || "",
-      street: initialData?.street || "",
-      details: initialData?.details || "",
-      postalCode: initialData?.postalCode || "",
-      city: initialData?.city || "",
-      province: initialData?.province || "",
-      country: initialData?.country || "España",
-      isDefault: initialData?.isDefault || false,
-    },
-  });
+  } = useFormContext<CreateOrderInput>();
 
-  const onSave = (data: AddressFormValues) => {
-    startTransition(async () => {
-      const res = await upsertAddressAction({ ...data, id: initialData?.id });
-
-      if (res.error) {
-        toast.error(res.error);
-      } else if (res.address) {
-        onSuccess(res.address as UserAddress);
-      }
-    });
-  };
+  const isDefault = watch("isDefault");
 
   return (
-    <div className="border rounded-xs p-4 bg-neutral-50/50">
+    <div className="border rounded-xs p-4 bg-neutral-50/50 animate-in fade-in slide-in-from-top-2">
       <h4 className="font-semibold text-base mb-4 border-b pb-2">
-        {initialData?.id ? "Editar Dirección" : "Nueva Dirección de Envío"}
+        {props.initialData?.id
+          ? "Editar Dirección"
+          : "Nueva Dirección de Envío"}
       </h4>
 
       <div className="space-y-4">
+        {/* --- GRID NOMBRES --- */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
-            <Label className="font-medium text-sm">Nombre</Label>
+            <Label>Nombre</Label>
             <Input {...register("firstName")} placeholder="Ej: Juan" />
             {errors.firstName && (
               <p className="text-red-500 text-xs">{errors.firstName.message}</p>
             )}
           </div>
           <div className="space-y-1">
-            <Label className="font-medium text-sm">Apellidos</Label>
+            <Label>Apellidos</Label>
             <Input {...register("lastName")} placeholder="Ej: Pérez" />
             {errors.lastName && (
               <p className="text-red-500 text-xs">{errors.lastName.message}</p>
@@ -85,26 +54,27 @@ export function ShippingAddressForm({
           </div>
         </div>
 
+        {/* --- TELÉFONO --- */}
         <div className="space-y-1">
-          <Label className="font-medium text-sm">Teléfono</Label>
+          <Label>Teléfono</Label>
           <Input
             {...register("phone")}
+            placeholder="+34 600..."
             onInput={(e) =>
               (e.currentTarget.value = e.currentTarget.value.replace(
                 /[^0-9+\s]/g,
                 "",
               ))
             }
-            placeholder="+34 600..."
           />
           {errors.phone && (
             <p className="text-red-500 text-xs">{errors.phone.message}</p>
           )}
         </div>
 
-        {/* DIRECCIÓN */}
+        {/* --- DIRECCIÓN FÍSICA --- */}
         <div className="space-y-1">
-          <Label className="font-medium text-sm">Dirección</Label>
+          <Label>Dirección</Label>
           <Input {...register("street")} placeholder="Calle, número..." />
           {errors.street && (
             <p className="text-red-500 text-xs">{errors.street.message}</p>
@@ -112,23 +82,24 @@ export function ShippingAddressForm({
         </div>
 
         <div className="space-y-1">
-          <Label className="font-medium text-sm">Detalles (Opcional)</Label>
-          <Input {...register("details")} placeholder="Piso, puerta..." />
+          <Label>Detalles (Piso, puerta...)</Label>
+          <Input {...register("addressExtra")} placeholder="Opcional" />
         </div>
 
+        {/* --- CP / CIUDAD / PROVINCIA --- */}
         <div className="grid grid-cols-3 gap-4">
           <div className="space-y-1">
-            <Label className="font-medium text-sm">CP</Label>
+            <Label>CP</Label>
             <Input
               {...register("postalCode")}
               maxLength={5}
               inputMode="numeric"
-              onInput={(e) => {
-                e.currentTarget.value = e.currentTarget.value.replace(
+              onInput={(e) =>
+                (e.currentTarget.value = e.currentTarget.value.replace(
                   /[^0-9]/g,
                   "",
-                );
-              }}
+                ))
+              }
             />
             {errors.postalCode && (
               <p className="text-red-500 text-xs">
@@ -137,14 +108,14 @@ export function ShippingAddressForm({
             )}
           </div>
           <div className="space-y-1">
-            <Label className="font-medium text-sm">Ciudad</Label>
+            <Label>Ciudad</Label>
             <Input {...register("city")} />
             {errors.city && (
               <p className="text-red-500 text-xs">{errors.city.message}</p>
             )}
           </div>
           <div className="space-y-1">
-            <Label className="font-medium text-sm">Provincia</Label>
+            <Label>Provincia</Label>
             <Input {...register("province")} />
             {errors.province && (
               <p className="text-red-500 text-xs">{errors.province.message}</p>
@@ -152,34 +123,37 @@ export function ShippingAddressForm({
           </div>
         </div>
 
-        <div className="flex items-center space-x-2 pt-2">
+        {/* --- CHECKBOX: GUARDAR COMO PREDETERMINADA --- */}
+        <div className="flex items-center space-x-2 pt-2 border-t mt-2">
           <Checkbox
             id="def"
+            // Conectamos manualmente el checkbox al register del padre
+            checked={isDefault}
             onCheckedChange={(c) => setValue("isDefault", c === true)}
-            {...register("isDefault")}
           />
           <Label htmlFor="def" className="font-medium cursor-pointer text-sm">
             Guardar como predeterminada
           </Label>
         </div>
 
+        {/* --- BOTONES --- */}
         <div className="flex gap-4 pt-2">
           <Button
             type="button"
             variant="outline"
-            onClick={onCancel}
+            onClick={props.onCancel}
             className="px-4"
+            disabled={isPending}
           >
             Cancelar
           </Button>
-
           <Button
             type="button"
-            onClick={handleSubmit(onSave)}
+            onClick={handleSaveAndUse}
             disabled={isPending}
-            className="px-4"
+            className="px-4 bg-blue-600 hover:bg-blue-700 text-white"
           >
-            {isPending ? "Guardando..." : "Guardar dirección"}
+            {isPending ? "Guardando..." : "Guardar y Usar"}
           </Button>
         </div>
       </div>

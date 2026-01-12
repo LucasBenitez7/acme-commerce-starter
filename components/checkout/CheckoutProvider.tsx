@@ -4,44 +4,77 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { type ReactNode, useMemo } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 
-import { checkoutSchema, type CheckoutFormValues } from "@/lib/checkout/schema";
+import { createOrderSchema, type CreateOrderInput } from "@/lib/orders/schema";
 
 type Props = {
   children: ReactNode;
-  defaultValues?: Partial<CheckoutFormValues>;
+  defaultValues?: Partial<CreateOrderInput>;
 };
 
 export function CheckoutProvider({ children, defaultValues }: Props) {
-  const initialValues: CheckoutFormValues = useMemo(() => {
-    return {
+  const initialValues: CreateOrderInput = useMemo(() => {
+    const baseValues = {
       email: defaultValues?.email ?? "",
       firstName: defaultValues?.firstName ?? "",
       lastName: defaultValues?.lastName ?? "",
       phone: defaultValues?.phone ?? "",
+      paymentMethod: defaultValues?.paymentMethod ?? "card",
+      cartItems: defaultValues?.cartItems ?? [],
+    };
 
+    const shippingType = defaultValues?.shippingType ?? "home";
+
+    if (shippingType === "store") {
+      return {
+        ...baseValues,
+        shippingType: "store",
+        storeLocationId: defaultValues?.storeLocationId ?? "",
+        street: null,
+        city: null,
+        province: null,
+        postalCode: null,
+        addressExtra: null,
+        country: null,
+        pickupLocationId: null,
+        pickupSearch: null,
+      };
+    }
+
+    if (shippingType === "pickup") {
+      return {
+        ...baseValues,
+        shippingType: "pickup",
+        pickupLocationId: defaultValues?.pickupLocationId ?? "",
+        pickupSearch: defaultValues?.pickupSearch ?? "",
+        street: null,
+        city: null,
+        province: null,
+        postalCode: null,
+        addressExtra: null,
+        country: null,
+        storeLocationId: null,
+      };
+    }
+
+    return {
+      ...baseValues,
+      shippingType: "home",
       street: defaultValues?.street ?? "",
       city: defaultValues?.city ?? "",
       province: defaultValues?.province ?? "",
       postalCode: defaultValues?.postalCode ?? "",
-
-      details: defaultValues?.details ?? "",
+      addressExtra: defaultValues?.addressExtra ?? "",
       country: defaultValues?.country ?? "España",
-
-      shippingType: defaultValues?.shippingType ?? "home",
-      paymentMethod: defaultValues?.paymentMethod ?? "card",
-
-      storeLocationId: defaultValues?.storeLocationId ?? null,
-      pickupLocationId: defaultValues?.pickupLocationId ?? null,
-      pickupSearch: defaultValues?.pickupSearch ?? null,
-
-      cartItems: defaultValues?.cartItems ?? [],
+      storeLocationId: null,
+      pickupLocationId: null,
+      pickupSearch: null,
     };
   }, [defaultValues]);
 
-  const methods = useForm<CheckoutFormValues>({
-    resolver: zodResolver(checkoutSchema),
+  const methods = useForm<CreateOrderInput>({
+    resolver: zodResolver(createOrderSchema) as any,
     defaultValues: initialValues,
-    mode: "onChange",
+    mode: "onBlur",
   });
 
   return <FormProvider {...methods}>{children}</FormProvider>;

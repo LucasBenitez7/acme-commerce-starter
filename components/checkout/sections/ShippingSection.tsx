@@ -1,8 +1,6 @@
 "use client";
 
 import { type UserAddress } from "@prisma/client";
-import { useState } from "react";
-import { useFormContext } from "react-hook-form";
 import {
   FaTruck,
   FaPlus,
@@ -10,14 +8,14 @@ import {
   FaCircleCheck,
   FaMapLocationDot,
 } from "react-icons/fa6";
-import { toast } from "sonner";
 
 import { Button, Label } from "@/components/ui";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup } from "@/components/ui/radio-group";
 
-import { type CheckoutFormValues } from "@/lib/checkout/schema";
-import { SHIPPING_METHODS } from "@/lib/constants";
+import { SHIPPING_METHODS } from "@/lib/locations";
+
+import { useShippingSection } from "@/hooks/checkout/use-shipping-section";
 
 import { ShippingAddressForm } from "./ShippingAddressForm";
 
@@ -30,50 +28,29 @@ type Props = {
   onChangeAddress: () => void;
 };
 
-export function ShippingSection({
-  savedAddresses,
-  selectedAddressId,
-  setSelectedAddressId,
-  isAddressConfirmed,
-  onConfirmAddress,
-  onChangeAddress,
-}: Props) {
-  const { setValue, watch } = useFormContext<CheckoutFormValues>();
-  const shippingType = watch("shippingType");
-
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [addressToEdit, setAddressToEdit] = useState<UserAddress | null>(null);
-  const [isSelectingMethod, setIsSelectingMethod] = useState(!shippingType);
+export function ShippingSection(props: Props) {
+  const {
+    shippingType,
+    isFormOpen,
+    addressToEdit,
+    isSelectingMethod,
+    handleSelectMethod,
+    handleChangeMethod,
+    handleSelectAddress,
+    handleEditClick,
+    handleAddNewClick,
+    handleFormSuccess,
+    handleCancelForm,
+  } = useShippingSection(
+    props.savedAddresses,
+    props.selectedAddressId,
+    props.setSelectedAddressId,
+    props.isAddressConfirmed,
+    props.onConfirmAddress,
+    props.onChangeAddress,
+  );
 
   const activeMethod = SHIPPING_METHODS.find((m) => m.id === shippingType);
-
-  const handleChangeMethod = () => {
-    setIsSelectingMethod(true);
-    setValue("shippingType", null as any);
-    onChangeAddress();
-  };
-  const handleSelectMethod = (type: "home" | "store" | "pickup") => {
-    setValue("shippingType", type);
-    setIsSelectingMethod(false);
-    onChangeAddress();
-  };
-  const handleSelectAddress = (id: string) => {
-    if (!isAddressConfirmed) setSelectedAddressId(id);
-  };
-  const handleEditClick = (e: React.MouseEvent, addr: UserAddress) => {
-    e.stopPropagation();
-    setAddressToEdit(addr);
-    setIsFormOpen(true);
-  };
-  const handleAddNewClick = () => {
-    setAddressToEdit(null);
-    setIsFormOpen(true);
-  };
-  const handleFormSuccess = (updatedAddress: UserAddress) => {
-    setIsFormOpen(false);
-    toast.success("Dirección guardada");
-    setSelectedAddressId(updatedAddress.id);
-  };
 
   return (
     <Card className="p-4">
@@ -81,9 +58,7 @@ export function ShippingSection({
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
             <FaTruck className="text-muted-foreground" />
-            {!isSelectingMethod
-              ? "Método de entrega"
-              : "Seleccione un método de entrega"}
+            {!isSelectingMethod ? "Método de entrega" : "Seleccione método"}
           </CardTitle>
           {!isSelectingMethod && (
             <Button
@@ -91,110 +66,107 @@ export function ShippingSection({
               variant="ghost"
               size="sm"
               onClick={handleChangeMethod}
-              className="h-auto p-1 px-2 text-xs font-medium rounded-full  hover:bg-neutral-100 active:bg-neutral-200 transition-all duration-200 ease-in-out"
+              className="h-auto p-1 px-2 text-xs font-medium rounded-full hover:bg-neutral-100"
             >
-              Cambiar método
+              Cambiar
             </Button>
           )}
         </div>
       </CardHeader>
 
       <CardContent className="space-y-6 px-0">
-        {/* 1. GRID SELECCIÓN */}
+        {/* 1. SELECCIÓN DE MÉTODO (Grid) */}
         {isSelectingMethod && (
-          <div>
-            <RadioGroup
-              value={shippingType}
-              onValueChange={(val) => handleSelectMethod(val as any)}
-              className="grid grid-cols-1 sm:grid-cols-3 gap-4"
-            >
-              {SHIPPING_METHODS.map((method) => {
-                const isSelected = shippingType === method.id;
-                const Icon = method.icon;
-
-                return (
-                  <div
-                    key={method.id}
-                    onClick={() => handleSelectMethod(method.id as any)}
-                    className="border rounded-xs p-4 py-6 cursor-pointer text-center transition-all hover:border-foreground "
-                  >
-                    <div className="flex items-center justify-center gap-2 mb-1 font-medium text-sm">
-                      <Icon /> {method.label}
-                    </div>
+          <RadioGroup
+            value={shippingType}
+            onValueChange={(val) => handleSelectMethod(val as any)}
+            className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+          >
+            {SHIPPING_METHODS.map((method) => {
+              const Icon = method.icon;
+              return (
+                <div
+                  key={method.id}
+                  onClick={() => handleSelectMethod(method.id as any)}
+                  className={`border rounded-xs p-4 py-6 cursor-pointer text-center transition-all hover:border-foreground ${
+                    shippingType === method.id
+                      ? "border-foreground bg-neutral-50"
+                      : ""
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2 mb-1 font-medium text-sm">
+                    <Icon /> {method.label}
                   </div>
-                );
-              })}
-            </RadioGroup>
-          </div>
+                </div>
+              );
+            })}
+          </RadioGroup>
         )}
 
-        {/* 2. CONTENIDO CONFIRMADO/SELECCIONADO */}
+        {/* 2. CONTENIDO DEL MÉTODO SELECCIONADO */}
         {!isSelectingMethod && activeMethod && (
           <div>
-            <div className="mb-5">
-              <div className="border rounded-xs p-4 py-3 flex items-center justify-start font-medium text-sm gap-5">
-                <FaCircleCheck className="text-foreground size-5" />
-                <div className="flex items-center gap-2 h-12">
-                  <activeMethod.icon />
-                  <span className="mt-[1px]">{activeMethod.label}</span>
-                </div>
+            <div className="mb-5 border rounded-xs p-4 py-3 flex items-center justify-start font-medium text-sm gap-5">
+              <FaCircleCheck className="text-foreground size-5" />
+              <div className="flex items-center gap-2">
+                <activeMethod.icon />
+                <span>{activeMethod.label}</span>
               </div>
             </div>
 
-            {/* LÓGICA DE DIRECCIONES */}
+            {/* LÓGICA DE DIRECCIONES (SOLO SI ES HOME) */}
             {shippingType === "home" && (
               <div className="space-y-4">
                 {!isFormOpen ? (
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <FaMapLocationDot className="text-muted-foreground" />
-                      <div className="flex items-center justify-between flex-1">
-                        <Label className="text-base font-semibold">
-                          {isAddressConfirmed
-                            ? "Dirección confirmada"
-                            : "Selecciona una dirección"}
-                        </Label>
-                        {isAddressConfirmed && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={onChangeAddress}
-                            className="h-auto p-1 px-2 text-xs font-medium rounded-full  hover:bg-neutral-100 active:bg-neutral-200 transition-all duration-200 ease-in-out"
-                          >
-                            Cambiar dirección
-                          </Button>
-                        )}
-                      </div>
+                    <div className="flex items-center justify-between">
+                      <Label className="text-base font-semibold flex items-center gap-2">
+                        <FaMapLocationDot className="text-muted-foreground" />
+                        {props.isAddressConfirmed
+                          ? "Dirección confirmada"
+                          : "Selecciona una dirección"}
+                      </Label>
+                      {props.isAddressConfirmed && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={props.onChangeAddress}
+                          className="h-auto p-1 px-2 text-xs"
+                        >
+                          Cambiar
+                        </Button>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-1 gap-3">
-                      {(isAddressConfirmed
-                        ? savedAddresses.filter(
-                            (a) => a.id === selectedAddressId,
+                      {(props.isAddressConfirmed
+                        ? props.savedAddresses.filter(
+                            (a) => a.id === props.selectedAddressId,
                           )
-                        : savedAddresses
+                        : props.savedAddresses
                       ).map((addr) => {
-                        const isSelected = selectedAddressId === addr.id;
-
-                        const cardClasses = isAddressConfirmed
-                          ? "cursor-default"
-                          : isSelected
-                            ? "border-foreground cursor-pointer"
-                            : "border-border hover:border-foreground bg-neutral-50 cursor-pointer";
-
+                        const isSelected = props.selectedAddressId === addr.id;
                         return (
                           <div
                             key={addr.id}
                             onClick={() => handleSelectAddress(addr.id)}
-                            className={`relative flex items-center gap-5 border rounded-xs px-4 py-3 transition-all duration-200 ${cardClasses}`}
+                            className={`relative flex items-center gap-5 border rounded-xs px-4 py-3 transition-all duration-200 ${
+                              props.isAddressConfirmed
+                                ? "cursor-default"
+                                : isSelected
+                                  ? "border-foreground cursor-pointer"
+                                  : "border-border hover:border-foreground bg-neutral-50 cursor-pointer"
+                            }`}
                           >
                             <div className="shrink-0">
-                              {isAddressConfirmed ? (
+                              {props.isAddressConfirmed ? (
                                 <FaCircleCheck className="text-foreground size-5" />
                               ) : (
                                 <div
-                                  className={`flex h-4 w-4 items-center justify-center rounded-full border border-primary text-primary ${isSelected ? "" : "opacity-50"}`}
+                                  className={`flex h-4 w-4 items-center justify-center rounded-full border border-primary text-primary ${
+                                    isSelected ? "" : "opacity-50"
+                                  }`}
                                 >
                                   {isSelected && (
                                     <div className="h-2.5 w-2.5 rounded-full bg-current" />
@@ -205,52 +177,47 @@ export function ShippingSection({
 
                             <div className="flex-1 font-normal text-sm">
                               <div className="flex items-center justify-between">
-                                <span className="text-sm font-semibold">
+                                <span className="font-semibold">
                                   {addr.firstName} {addr.lastName}
                                 </span>
-                                {!isAddressConfirmed && (
+                                {!props.isAddressConfirmed && (
                                   <button
                                     type="button"
-                                    className="text-xs font-medium fx-underline-anim"
+                                    className="text-xs font-medium hover:underline"
                                     onClick={(e) => handleEditClick(e, addr)}
                                   >
                                     Editar
                                   </button>
                                 )}
                               </div>
-                              <span className="flex mt-0.5">{addr.phone}</span>
+                              <span className="block mt-0.5">{addr.phone}</span>
                               <p>
-                                {addr.street}, {addr.details}, {addr.postalCode}
+                                {addr.street}, {addr.details || ""},{" "}
+                                {addr.postalCode}
                               </p>
                               <p>
                                 {addr.city}, {addr.province}, {addr.country}
                               </p>
-
-                              {!isAddressConfirmed && addr.isDefault && (
-                                <p className="p-1 text-xs flex w-fit mt-2 -ml-1 font-medium rounded-full bg-neutral-100">
-                                  Dirección predeterminada
-                                </p>
-                              )}
                             </div>
                           </div>
                         );
                       })}
 
-                      {!isAddressConfirmed && (
+                      {!props.isAddressConfirmed && (
                         <div className="flex gap-4 pt-2">
                           <Button
                             type="button"
                             onClick={handleAddNewClick}
-                            variant={"outline"}
+                            variant="outline"
                             className="flex-1 py-3"
                           >
-                            <FaPlus className="size-3" /> Nueva dirección
+                            <FaPlus className="mr-2 size-3" /> Nueva dirección
                           </Button>
-                          {selectedAddressId && (
+                          {props.selectedAddressId && (
                             <Button
                               type="button"
-                              onClick={onConfirmAddress}
-                              variant={"default"}
+                              onClick={props.onConfirmAddress}
+                              variant="default"
                               className="flex-1 py-3"
                             >
                               <FaCheck className="mr-2 size-3" /> Usar esta
@@ -264,7 +231,7 @@ export function ShippingSection({
                 ) : (
                   <ShippingAddressForm
                     initialData={addressToEdit}
-                    onCancel={() => setIsFormOpen(false)}
+                    onCancel={handleCancelForm}
                     onSuccess={handleFormSuccess}
                   />
                 )}

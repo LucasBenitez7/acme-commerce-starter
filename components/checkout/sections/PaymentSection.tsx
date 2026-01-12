@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
-import { type CheckoutFormValues } from "@/lib/checkout/schema";
+import { type CreateOrderInput } from "@/lib/orders/schema";
 
 type Props = {
   isOpen: boolean;
@@ -19,7 +19,7 @@ export function PaymentSection({ isOpen = false }: Props) {
     setValue,
     watch,
     formState: { errors },
-  } = useFormContext<CheckoutFormValues>();
+  } = useFormContext<CreateOrderInput>();
   const paymentMethod = watch("paymentMethod");
 
   return (
