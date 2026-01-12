@@ -1,3 +1,46 @@
+import { FaHouse, FaStore, FaTruck } from "react-icons/fa6";
+
+// --- MAPEOS ---
+export const SHIPPING_TYPE_MAP = {
+  home: "HOME",
+  store: "STORE",
+  pickup: "PICKUP",
+} as const;
+
+// Tipos derivados para seguridad
+export type ShippingTypeId = keyof typeof SHIPPING_TYPE_MAP;
+
+// 2. UI / VISUAL (La fuente de verdad para etiquetas e iconos)
+export const SHIPPING_METHODS = [
+  {
+    id: "home",
+    label: "Envío a domicilio",
+    icon: FaHouse,
+  },
+  {
+    id: "store",
+    label: "Recogida en tienda",
+    icon: FaStore,
+  },
+  {
+    id: "pickup",
+    label: "Punto de recogida",
+    icon: FaTruck,
+  },
+] as const;
+
+// 3. HELPERS
+export function getShippingLabel(id?: string | null) {
+  if (!id) return "Método desconocido";
+  const method = SHIPPING_METHODS.find((m) => m.id === id);
+  return method ? method.label : id;
+}
+
+export function getShippingIcon(id?: string | null) {
+  const method = SHIPPING_METHODS.find((m) => m.id === id);
+  return method ? method.icon : FaTruck;
+}
+
 export type LocationBase = {
   id: string;
   name: string;
