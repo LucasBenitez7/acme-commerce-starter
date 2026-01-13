@@ -28,7 +28,7 @@ export const ORDER_STATUS_CONFIG: Record<
   RETURN_REQUESTED: {
     label: "Devolución Solicitada",
     color: "bg-orange-500",
-    badge: "bg-orange-100 text-orange-800 border-orange-200 animate-pulse",
+    badge: "bg-orange-500 text-background border-orange-200",
   },
   RETURNED: {
     label: "Devuelto",
@@ -60,10 +60,12 @@ export const FILTER_STATUS_OPTIONS = Object.entries(ORDER_STATUS_CONFIG).map(
 
 // --- SORTING ---
 export const ORDER_SORT_OPTIONS = [
-  { label: "Fecha: Reciente", value: "date_desc" },
-  { label: "Fecha: Antigua", value: "date_asc" },
-  { label: "Total: Alto a Bajo", value: "total_desc" },
-  { label: "Total: Bajo a Alto", value: "total_asc" },
+  { label: "Más recientes", value: "date_desc" },
+  { label: "Más antiguos", value: "date_asc" },
+  { label: "Total mayor a menor", value: "total_desc" },
+  { label: "Total menor a mayor", value: "total_asc" },
+  { label: "Cliente (A-Z)", value: "customer_asc" },
+  { label: "Cliente (Z-A)", value: "customer_desc" },
 ];
 
 // --- REASONS ---

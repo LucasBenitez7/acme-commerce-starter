@@ -15,6 +15,18 @@ export type ReturnRequestItem = {
   qty: number;
 };
 
+function getHistoryItem(dbItem: any, qty: number) {
+  const variantLabel = [dbItem.sizeSnapshot, dbItem.colorSnapshot]
+    .filter(Boolean)
+    .join(" / ");
+
+  return {
+    name: dbItem.nameSnapshot,
+    quantity: qty,
+    variant: variantLabel || null,
+  };
+}
+
 // --- ADMIN: Procesar Devolución (Aprobar y devolver stock) ---
 export async function processOrderReturn(
   orderId: string,
@@ -23,18 +35,19 @@ export async function processOrderReturn(
   actorName: string = "Admin",
 ) {
   return prisma.$transaction(async (tx) => {
-    const order = await tx.order.findUnique({
-      where: { id: orderId },
-      include: { items: true },
+    const orderItems = await tx.orderItem.findMany({
+      where: { orderId },
     });
 
-    if (!order) throw new Error("Pedido no encontrado");
+    if (orderItems.length === 0) throw new Error("Pedido sin items");
 
     let totalOriginalQty = 0;
     let totalReturnedSoFar = 0;
-    const historyItems: HistoryDetailsJson["items"] = [];
 
-    for (const item of order.items) {
+    const acceptedHistoryItems: HistoryDetailsJson["items"] = [];
+    const rejectedHistoryItems: HistoryDetailsJson["items"] = [];
+
+    for (const item of orderItems) {
       totalOriginalQty += item.quantity;
       totalReturnedSoFar += item.quantityReturned;
     }
@@ -42,7 +55,7 @@ export async function processOrderReturn(
     for (const input of itemsToReturn) {
       if (input.qtyToReturn <= 0) continue;
 
-      const dbItem = order.items.find((i) => i.id === input.itemId);
+      const dbItem = orderItems.find((i) => i.id === input.itemId);
       if (!dbItem) continue;
 
       const maxReturnable =
@@ -71,24 +84,33 @@ export async function processOrderReturn(
         });
       }
 
-      const variantLabel = [dbItem.sizeSnapshot, dbItem.colorSnapshot]
-        .filter(Boolean)
-        .join(" / ");
-
-      historyItems.push({
-        name: dbItem.nameSnapshot,
-        quantity: input.qtyToReturn,
-        variant: variantLabel || null,
-      });
+      acceptedHistoryItems.push(getHistoryItem(dbItem, input.qtyToReturn));
     }
 
-    await tx.orderItem.updateMany({
-      where: { orderId, quantityReturnRequested: { gt: 0 } },
-      data: { quantityReturnRequested: 0 },
-    });
+    for (const dbItem of orderItems) {
+      if (dbItem.quantityReturnRequested > 0) {
+        const processed = itemsToReturn.find((i) => i.itemId === dbItem.id);
+
+        const acceptedQty = processed ? processed.qtyToReturn : 0;
+        const rejectedQty = dbItem.quantityReturnRequested - acceptedQty;
+
+        if (rejectedQty > 0) {
+          rejectedHistoryItems.push(getHistoryItem(dbItem, rejectedQty));
+
+          if (!processed) {
+            await tx.orderItem.update({
+              where: { id: dbItem.id },
+              data: { quantityReturnRequested: 0 },
+            });
+          }
+        }
+      }
+    }
 
     let finalStatus: OrderStatus = "PAID";
     if (totalReturnedSoFar >= totalOriginalQty) {
+      finalStatus = "RETURNED";
+    } else if (totalReturnedSoFar > 0) {
       finalStatus = "RETURNED";
     }
 
@@ -100,25 +122,29 @@ export async function processOrderReturn(
       },
     });
 
-    const historyPayload: HistoryDetailsJson = { items: historyItems };
-    await tx.orderHistory.create({
-      data: {
-        orderId,
-        status: finalStatus,
-        actor: actorName,
-        reason: "Devolución procesada y stock restaurado",
-        details: historyPayload as any,
-      },
-    });
+    if (acceptedHistoryItems.length > 0) {
+      await tx.orderHistory.create({
+        data: {
+          orderId,
+          status: finalStatus,
+          actor: actorName,
+          reason: "Devolución procesada y stock restaurado",
+          details: { items: acceptedHistoryItems } as any,
+        },
+      });
+    }
 
-    if (rejectionNote) {
+    if (rejectedHistoryItems.length > 0) {
       await tx.orderHistory.create({
         data: {
           orderId,
           status: finalStatus,
           actor: actorName,
           reason: "Nota de rechazo parcial",
-          details: { note: rejectionNote },
+          details: {
+            note: rejectionNote || "Cantidad no aceptada",
+            items: rejectedHistoryItems,
+          } as any,
         },
       });
     }
@@ -132,6 +158,16 @@ export async function rejectOrderReturnRequest(
   actorName: string = "Admin",
 ) {
   return prisma.$transaction(async (tx) => {
+    // 1. Obtener items solicitados ANTES de limpiar
+    const requestedItems = await tx.orderItem.findMany({
+      where: { orderId, quantityReturnRequested: { gt: 0 } },
+    });
+
+    const historyItems = requestedItems.map((item) =>
+      getHistoryItem(item, item.quantityReturnRequested),
+    );
+
+    // 2. Limpiar solicitud
     await tx.orderItem.updateMany({
       where: { orderId, quantityReturnRequested: { gt: 0 } },
       data: { quantityReturnRequested: 0 },
@@ -145,13 +181,17 @@ export async function rejectOrderReturnRequest(
       },
     });
 
+    // 3. Crear Historial con items rechazados
     await tx.orderHistory.create({
       data: {
         orderId,
         status: "PAID",
         actor: actorName,
         reason: "Solicitud de devolución rechazada",
-        details: { note: reason },
+        details: {
+          note: reason,
+          items: historyItems,
+        } as any,
       },
     });
   });
@@ -178,6 +218,8 @@ export async function requestOrderReturn(
       throw new Error("El estado del pedido no permite devoluciones.");
     }
 
+    const historyItems: HistoryDetailsJson["items"] = [];
+
     for (const req of items) {
       const item = order.items.find((i) => i.id === req.itemId);
       if (!item) continue;
@@ -195,6 +237,8 @@ export async function requestOrderReturn(
         where: { id: item.id },
         data: { quantityReturnRequested: { increment: req.qty } },
       });
+
+      historyItems.push(getHistoryItem(item, req.qty));
     }
 
     await tx.order.update({
@@ -209,9 +253,9 @@ export async function requestOrderReturn(
       data: {
         orderId,
         status: "RETURN_REQUESTED",
-        actor: "user",
+        actor: "User",
         reason: reason,
-        details: items,
+        details: { items: historyItems } as any,
       },
     });
   });

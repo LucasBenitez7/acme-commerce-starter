@@ -15,6 +15,19 @@ type OrderWithDetails = Order & {
   })[];
 };
 
+export function formatHistoryReason(reason: string | null | undefined) {
+  if (!reason) return "Evento registrado";
+
+  if (reason.includes("actualizado a PAID")) return "Pago confirmado";
+  if (reason.includes("actualizado a CANCELLED")) return "Pedido cancelado";
+  if (reason.includes("actualizado a SENT"))
+    return "Pedido marcado como enviado";
+  if (reason.includes("Devolución procesada"))
+    return "Devolución aceptada y stock restaurado";
+
+  return reason;
+}
+
 export function getOrderShippingDetails(order: Order) {
   const label = getShippingLabel(order.shippingType?.toLowerCase());
   let lines: string[] = [];

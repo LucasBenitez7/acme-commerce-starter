@@ -20,7 +20,6 @@ export async function getAdminOrders({
 }: GetOrdersParams) {
   const skip = (page - 1) * limit;
 
-  // 1. Construcción del WHERE
   const where: Prisma.OrderWhereInput = {};
 
   // A. Búsqueda por texto (ID, Email, Nombre)
@@ -54,7 +53,10 @@ export async function getAdminOrders({
   }
 
   // 2. Ordenamiento
-  let orderBy: Prisma.OrderOrderByWithRelationInput = { createdAt: "desc" };
+  let orderBy:
+    | Prisma.OrderOrderByWithRelationInput
+    | Prisma.OrderOrderByWithRelationInput[] = { createdAt: "desc" };
+
   switch (sort) {
     case "date_asc":
       orderBy = { createdAt: "asc" };
@@ -64,6 +66,13 @@ export async function getAdminOrders({
       break;
     case "total_asc":
       orderBy = { totalMinor: "asc" };
+      break;
+
+    case "customer_asc":
+      orderBy = [{ firstName: "asc" }, { lastName: "asc" }];
+      break;
+    case "customer_desc":
+      orderBy = [{ firstName: "desc" }, { lastName: "desc" }];
       break;
   }
 
@@ -124,7 +133,18 @@ export async function getAdminOrderById(
   const order = await prisma.order.findUnique({
     where: { id },
     include: {
-      items: true,
+      items: {
+        include: {
+          product: {
+            select: {
+              images: {
+                select: { url: true, color: true },
+                orderBy: { sort: "asc" },
+              },
+            },
+          },
+        },
+      },
       user: true,
       history: { orderBy: { createdAt: "desc" } },
     },
@@ -182,7 +202,18 @@ export async function getOrderForReturn(orderId: string) {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     include: {
-      items: true,
+      items: {
+        include: {
+          product: {
+            select: {
+              images: {
+                select: { url: true, color: true },
+                orderBy: { sort: "asc" },
+              },
+            },
+          },
+        },
+      },
     },
   });
 

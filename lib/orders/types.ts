@@ -32,6 +32,12 @@ export type AdminOrderListItem = {
 export type AdminOrderDetail = Order & {
   items: (OrderItem & {
     currentStock?: number;
+    product: {
+      images: {
+        url: string;
+        color: string | null;
+      }[];
+    } | null;
   })[];
   user: User | null;
   history: OrderHistory[];
@@ -72,4 +78,5 @@ export type ReturnableItem = {
   quantity: number;
   quantityReturned: number;
   quantityReturnRequested: number;
+  image?: string;
 };

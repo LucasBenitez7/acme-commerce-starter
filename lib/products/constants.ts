@@ -65,10 +65,10 @@ export const INITIAL_CATEGORIES = [
 export const PRODUCT_SORT_OPTIONS = [
   { label: "Más recientes", value: "date_desc" },
   { label: "Más antiguos", value: "date_asc" },
-  { label: "Precio: Bajo a Alto", value: "price_asc" },
-  { label: "Precio: Alto a Bajo", value: "price_desc" },
-  { label: "Nombre: A-Z", value: "name_asc" },
-  { label: "Nombre: Z-A", value: "name_desc" },
-  { label: "Stock: Bajo", value: "stock_asc" },
-  { label: "Stock: Alto", value: "stock_desc" },
+  { label: "Nombre ascendente", value: "name_asc" },
+  { label: "Nombre descendente", value: "name_desc" },
+  { label: "Precio (menor a mayor)", value: "price_asc" },
+  { label: "Precio (mayor a menor)", value: "price_desc" },
+  { label: "Stock (mayor a menor)", value: "stock_desc" },
+  { label: "Stock (menor a mayor)", value: "stock_asc" },
 ] as const;

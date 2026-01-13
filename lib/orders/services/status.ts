@@ -3,6 +3,15 @@ import { type OrderStatus } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
 
+const STATUS_READABLE: Record<string, string> = {
+  PAID: "Pago confirmado",
+  PENDING_PAYMENT: "Marcado como pendiente",
+  CANCELLED: "Pedido cancelado",
+  SENT: "Pedido enviado",
+  DELIVERED: "Pedido entregado",
+  RETURNED: "Devolución completada",
+};
+
 // --- ADMIN: Actualizar Estado (Genérico) ---
 export async function updateOrderStatus(
   orderId: string,
@@ -42,7 +51,9 @@ export async function updateOrderStatus(
         orderId,
         status: newStatus,
         actor: actorName,
-        reason: `Estado actualizado manualmente a ${newStatus}`,
+        reason: STATUS_READABLE[newStatus]
+          ? `Estado actualizado: ${STATUS_READABLE[newStatus]}`
+          : `Estado actualizado a ${newStatus}`,
       },
     });
   });
