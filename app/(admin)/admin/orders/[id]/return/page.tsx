@@ -8,6 +8,8 @@ import { getOrderForReturn } from "@/lib/orders/queries";
 
 import { ReturnForm } from "../../_components/ReturnForm";
 
+import type { ReturnableItem } from "@/lib/orders/types";
+
 type Props = {
   params: Promise<{ id: string }>;
 };
@@ -48,19 +50,41 @@ export default async function AdminOrderReturnPage({ params }: Props) {
     );
   }
 
+  const returnableItems: ReturnableItem[] = order.items.map((item) => {
+    const productImages = item.product?.images || [];
+    const matchingImg =
+      productImages.find((img: any) => img.color === item.colorSnapshot) ||
+      productImages[0];
+
+    return {
+      id: item.id,
+      nameSnapshot: item.nameSnapshot,
+      sizeSnapshot: item.sizeSnapshot,
+      colorSnapshot: item.colorSnapshot,
+      quantity: item.quantity,
+      quantityReturned: item.quantityReturned,
+      quantityReturnRequested: item.quantityReturnRequested,
+      image: matchingImg?.url,
+    };
+  });
+
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <div className="flex items-center gap-4 border-b pb-4">
         <Link
           href={`/admin/orders/${id}`}
-          className="text-muted-foreground hover:text-foreground transition-colors"
+          className="hover:text-slate-700 transition-colors"
         >
-          <FaArrowLeft className="h-4 w-4" />
+          <FaArrowLeft className="size-4" />
         </Link>
         <h1 className="text-lg font-semibold">Procesar Devolución</h1>
       </div>
 
-      <ReturnForm orderId={order.id} items={order.items} />
+      <ReturnForm
+        orderId={order.id}
+        items={returnableItems}
+        returnReason={order.returnReason}
+      />
     </div>
   );
 }

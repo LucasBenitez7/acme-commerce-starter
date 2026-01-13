@@ -1,11 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { FaTriangleExclamation } from "react-icons/fa6";
+import { FaBoxOpen, FaTriangleExclamation } from "react-icons/fa6";
 
-import { Button, Input } from "@/components/ui";
+import { Button, Input, Textarea } from "@/components/ui";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Image } from "@/components/ui/image";
 import {
   Select,
   SelectContent,
@@ -23,9 +24,10 @@ import type { ReturnableItem } from "@/lib/orders/types";
 type Props = {
   orderId: string;
   items: ReturnableItem[];
+  returnReason?: string | null;
 };
 
-export function ReturnForm({ orderId, items }: Props) {
+export function ReturnForm({ orderId, items, returnReason }: Props) {
   const router = useRouter();
 
   const {
@@ -51,20 +53,28 @@ export function ReturnForm({ orderId, items }: Props) {
         </p>
       </div>
 
-      {/* Resumen Superior */}
       {totalRequestedQty > 0 && (
-        <Card className="bg-background p-4 text-sm flex flex-col items-start gap-2 shadow-none border-dashed">
+        <Card className="bg-background p-4 text-sm flex flex-col items-start gap-2 shadow-none border">
           <div className="flex items-center justify-between w-full gap-2">
-            <span>
-              <span className="font-semibold">Solicitado: </span>
-              {totalRequestedQty}{" "}
-              {totalRequestedQty > 1 ? "artículos" : "artículo"}
+            <span className="font-semibold text-base">
+              <span>Solicitado: </span>({totalRequestedQty}{" "}
+              {totalRequestedQty > 1 ? "productos" : "producto"})
             </span>
-            <span className="px-2 py-1 rounded border text-xs font-semibold bg-white">
+
+            <span className="px-2 py-1 rounded border border-foreground text-xs font-semibold bg-white">
               Aceptando: {totalAcceptedQty}
             </span>
           </div>
         </Card>
+      )}
+
+      {returnReason && (
+        <div className="w-full border bg-background p-4">
+          <span className="font-semibold text-sm uppercase">
+            Motivo de devolución:
+          </span>
+          <p className="text-sm font-medium">"{returnReason}"</p>
+        </div>
       )}
 
       {/* Lista de Productos */}
@@ -88,10 +98,8 @@ export function ReturnForm({ orderId, items }: Props) {
               return (
                 <div
                   key={item.id}
-                  className={`flex items-center gap-4 p-4 transition-colors border border-border rounded-sm ${
-                    isSelected
-                      ? "bg-neutral-50/50 border-foreground"
-                      : "hover:bg-neutral-50"
+                  className={`flex items-center gap-4 p-4 transition-colors border border-border rounded-xs bg-background ${
+                    isSelected ? "border-foreground" : "hover:bg-neutral-50"
                   }`}
                 >
                   <Checkbox
@@ -101,40 +109,57 @@ export function ReturnForm({ orderId, items }: Props) {
                     }
                   />
 
-                  <div className="flex-1 text-sm">
-                    <p className="font-medium text-base">{item.nameSnapshot}</p>
-                    <p className="text-muted-foreground text-xs">
-                      {[item.sizeSnapshot, item.colorSnapshot]
-                        .filter(Boolean)
-                        .join(" / ")}
-                    </p>
-                    {requested > 0 && (
-                      <p className="text-xs text-orange-600 font-medium mt-1">
-                        Solicitado: {requested}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    {isSelected ? (
-                      <>
-                        <span className="text-sm font-medium">Aceptar:</span>
-                        <Input
-                          type="number"
-                          min={1}
-                          max={maxLimit}
-                          className="w-20 text-center bg-white h-9"
-                          value={returnMap[item.id] || ""}
-                          onChange={(e) =>
-                            changeQty(item.id, e.target.value, maxLimit)
-                          }
+                  <div className="h-full flex w-full gap-3">
+                    <div className="relative h-24 w-16 shrink-0 overflow-hidden rounded-xs bg-neutral-100 border">
+                      {item.image ? (
+                        <Image
+                          src={item.image}
+                          alt={item.nameSnapshot}
+                          fill
+                          className="object-cover"
+                          sizes="200px"
                         />
-                      </>
-                    ) : (
-                      <span className="text-sm font-medium text-muted-foreground">
-                        Máx: {maxLimit}
-                      </span>
-                    )}
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-neutral-300">
+                          <FaBoxOpen />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 text-sm py-1">
+                      <p className="font-medium text-base pb-1">
+                        {item.nameSnapshot}
+                      </p>
+                      <p className="text-xs font-medium ">
+                        {[item.sizeSnapshot, item.colorSnapshot]
+                          .filter(Boolean)
+                          .join(" / ")}
+                      </p>
+                      {requested > 0 && (
+                        <p className="text-xs text-orange-600 font-medium mt-1">
+                          Solicitado: {requested}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      {isSelected ? (
+                        <>
+                          <span className="text-sm font-medium">Aceptar:</span>
+                          <Input
+                            type="number"
+                            min={1}
+                            max={maxLimit}
+                            className="w-20 text-center bg-white h-9"
+                            value={returnMap[item.id] || ""}
+                            onChange={(e) =>
+                              changeQty(item.id, e.target.value, maxLimit)
+                            }
+                          />
+                        </>
+                      ) : (
+                        ""
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -145,12 +170,12 @@ export function ReturnForm({ orderId, items }: Props) {
 
       {/* Sección de Rechazo Parcial */}
       {isPartialRejection && totalAcceptedQty > 0 && (
-        <div className="bg-orange-50 border border-orange-200 rounded-md p-6 animate-in slide-in-from-bottom-2">
+        <div className="bg-orange-50 border border-orange-200 rounded-xs p-6 animate-in slide-in-from-bottom-2">
           <div className="flex items-center gap-2 mb-4 text-orange-800">
             <FaTriangleExclamation />
             <h3 className="font-semibold">Rechazo Parcial Detectado</h3>
           </div>
-          <p className="text-sm text-orange-900 mb-4">
+          <p className="text-sm text-orange-800 mb-4">
             Indica el motivo por el cual rechazas el resto de artículos
             solicitados.
           </p>
@@ -171,8 +196,7 @@ export function ReturnForm({ orderId, items }: Props) {
             </Select>
 
             {rejectionReason === "Otro motivo" && (
-              <textarea
-                className="w-full border rounded-md p-2 text-sm bg-background min-h-[100px] resize-none focus:outline-none focus:ring-1 focus:ring-foreground"
+              <Textarea
                 placeholder="Explica detalladamente..."
                 value={customRejection}
                 onChange={(e) => setCustomRejection(e.target.value)}
