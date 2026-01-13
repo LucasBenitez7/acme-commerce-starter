@@ -183,7 +183,7 @@ export function ShippingSection(props: Props) {
                                 {!props.isAddressConfirmed && (
                                   <button
                                     type="button"
-                                    className="text-xs font-medium hover:underline"
+                                    className="text-xs font-medium fx-underline-anim"
                                     onClick={(e) => handleEditClick(e, addr)}
                                   >
                                     Editar
@@ -198,34 +198,41 @@ export function ShippingSection(props: Props) {
                               <p>
                                 {addr.city}, {addr.province}, {addr.country}
                               </p>
+
+                              {addr.isDefault && (
+                                <span className="mt-2 flex w-fit py-0.5 px-2 text-xs bg-neutral-200 rounded-full font-medium border border-foreground">
+                                  Predeterminada
+                                </span>
+                              )}
+
+                              {!props.isAddressConfirmed && isSelected && (
+                                <div className="flex gap-4 pt-4">
+                                  <Button
+                                    type="button"
+                                    onClick={handleAddNewClick}
+                                    variant="outline"
+                                    className="flex-1"
+                                  >
+                                    <FaPlus className="size-3" /> Nueva
+                                    dirección
+                                  </Button>
+                                  {props.selectedAddressId && (
+                                    <Button
+                                      type="button"
+                                      onClick={props.onConfirmAddress}
+                                      variant="default"
+                                      className="flex-1"
+                                    >
+                                      <FaCheck className="size-3" /> Usar esta
+                                      dirección
+                                    </Button>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </div>
                         );
                       })}
-
-                      {!props.isAddressConfirmed && (
-                        <div className="flex gap-4 pt-2">
-                          <Button
-                            type="button"
-                            onClick={handleAddNewClick}
-                            variant="outline"
-                            className="flex-1 py-3"
-                          >
-                            <FaPlus className="mr-2 size-3" /> Nueva dirección
-                          </Button>
-                          {props.selectedAddressId && (
-                            <Button
-                              type="button"
-                              onClick={props.onConfirmAddress}
-                              variant="default"
-                              className="flex-1 py-3"
-                            >
-                              <FaCheck className="mr-2 size-3" /> Usar esta
-                              dirección
-                            </Button>
-                          )}
-                        </div>
-                      )}
                     </div>
                   </div>
                 ) : (

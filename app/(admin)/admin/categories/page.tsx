@@ -49,7 +49,7 @@ export default async function AdminCategoriesPage({ searchParams }: Props) {
       <Card>
         <CardHeader className="p-4 border-b flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
           <CardTitle className="text-lg font-semibold">
-            Listado <span className="text-base">({totalCount})</span>
+            Total <span className="text-base">({totalCount})</span>
           </CardTitle>
 
           <div className="w-full md:w-auto">

@@ -142,7 +142,7 @@ export function CategoryListToolbar() {
           <SelectTrigger
             showIcon={false}
             className={cn(
-              "h-9 w-[170px] text-xs font-medium bg-transparent border-border hover:cursor-pointer focus-none",
+              "h-9 w-[190px] text-xs font-medium bg-transparent border-border hover:cursor-pointer focus-none",
               currentSortKey !== "sort-asc" && "border-foreground",
             )}
           >
@@ -154,12 +154,13 @@ export function CategoryListToolbar() {
             </div>
           </SelectTrigger>
           <SelectContent align="end">
-            <SelectItem value="sort-asc">Orden Manual</SelectItem>
-            <SelectItem value="name-asc">Nombre (A-Z)</SelectItem>
-            <SelectItem value="name-desc">Nombre (Z-A)</SelectItem>
+            <SelectItem value="sort-asc">Orden númerico</SelectItem>
+            <SelectItem value="name-asc">Nombre ascendente</SelectItem>
+            <SelectItem value="name-desc">Nombre descendente</SelectItem>
+            <SelectItem value="createdAt-desc">Más recientes</SelectItem>
+            <SelectItem value="createdAt-asc">Más antiguos</SelectItem>
             <SelectItem value="products-desc">Más productos</SelectItem>
             <SelectItem value="products-asc">Menos productos</SelectItem>
-            <SelectItem value="createdAt-desc">Más recientes</SelectItem>
           </SelectContent>
         </Select>
       </div>

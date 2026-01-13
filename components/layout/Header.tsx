@@ -136,7 +136,13 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
 
         {/*------------- NAV ------------- */}
         <nav className="justify-self-end h-full flex items-center gap-3 text-sm">
-          <div className="hidden sm:flex items-center gap-1 border-b border-neutral-500">
+          <div
+            className={
+              isCartPage
+                ? "hidden"
+                : "hidden sm:flex items-center gap-1 border-b border-neutral-500"
+            }
+          >
             <IoSearch className="size-[20px]" />
             <input
               type="search"
@@ -148,7 +154,9 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
           <div className="flex gap-1 relative items-center h-full">
             {/* WRAPPER para Hover en Desktop */}
             <div
-              className="relative flex items-center h-full"
+              className={
+                isCartPage ? "hidden" : "relative flex items-center h-full"
+              }
               onMouseEnter={() => {
                 if (user) setAccountMenuOpen(true);
               }}
@@ -238,6 +246,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
               style={isCartPage ? { pointerEvents: "none" } : undefined}
               aria-disabled={isCartPage}
               aria-hidden={isCartPage}
+              className={isCartPage ? "hidden" : ""}
             >
               <CartButtonWithSheet />
             </div>

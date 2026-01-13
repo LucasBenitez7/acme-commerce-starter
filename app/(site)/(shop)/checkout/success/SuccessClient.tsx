@@ -21,6 +21,11 @@ export function SuccessClient({ order }: { order: DisplayOrder }) {
     clearCart();
   }, [clearCart]);
 
+  const totalItemsQty = order.items.reduce(
+    (acc, item) => acc + item.quantity,
+    0,
+  );
+
   return (
     <div className="space-y-4 flex flex-col items-center max-w-2xl mx-auto w-full">
       <div className="space-y-3 w-full font-medium text-sm">
@@ -64,15 +69,15 @@ export function SuccessClient({ order }: { order: DisplayOrder }) {
         <Card className="overflow-hidden">
           <CardHeader className="py-4 pb-2 px-4 border-b">
             <CardTitle className="text-lg font-semibold flex items-center gap-1">
-              Resumen de la compra
-              <span className="text-base">({order.items.length})</span>
+              Resumen de la compra{" "}
+              <span className="text-base">({totalItemsQty})</span>
             </CardTitle>
           </CardHeader>
 
-          <CardContent className="p-0">
-            <ul className="divide-y">
+          <CardContent className="px-0">
+            <ul className="py-2">
               {order.items.map((item) => (
-                <li key={item.id} className="flex gap-3 p-4">
+                <li key={item.id} className="flex gap-3 px-3 py-2">
                   <div className="relative aspect-[3/4] h-28 w-20 shrink-0 overflow-hidden rounded-xs bg-neutral-100">
                     {item.image ? (
                       <Image

@@ -291,7 +291,7 @@ export function ProductListToolbar({ categories, globalMaxPrice }: Props) {
             <SelectTrigger
               showIcon={false}
               className={cn(
-                "h-9 w-[180px] font-medium hover:cursor-pointer focus-none ",
+                "h-9 w-[200px] font-medium hover:cursor-pointer focus-none",
                 activeSort !== "date_desc" && "border-foreground",
               )}
             >

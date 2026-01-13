@@ -37,7 +37,7 @@ export function CategoryTable({
           <TableRow>
             <TableHead className="w-[80px] text-center">Orden</TableHead>
             <TableHead>Nombre</TableHead>
-            <TableHead className="hidden sm:table-cell">Creado</TableHead>
+            <TableHead>Creado</TableHead>
             <TableHead className="text-center">Productos</TableHead>
             <TableHead className="text-right pr-4">Acciones</TableHead>
           </TableRow>
@@ -57,7 +57,7 @@ export function CategoryTable({
               </TableCell>
 
               {/* 3. FECHA */}
-              <TableCell className="hidden sm:table-cell text-xs py-3">
+              <TableCell className="text-xs py-3 font-medium">
                 {new Date(cat.createdAt).toLocaleDateString()}
               </TableCell>
 
