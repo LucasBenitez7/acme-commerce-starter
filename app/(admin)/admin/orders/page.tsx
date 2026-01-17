@@ -3,47 +3,45 @@ import Link from "next/link";
 import { PaginationNav } from "@/components/catalog/PaginationNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+import { ORDER_TABS } from "@/lib/orders/constants";
 import { getAdminOrders } from "@/lib/orders/queries";
 import { cn } from "@/lib/utils";
 
 import { OrderListToolbar } from "./_components/OrderListToolbar";
 import { OrderTable } from "./_components/OrderTable";
 
-import type { OrderStatus } from "@prisma/client";
+import type { PaymentStatus, FulfillmentStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
 type Props = {
   searchParams: Promise<{
     status?: string;
-    status_filter?: string;
+    payment_filter?: string;
+    fulfillment_filter?: string;
     sort?: string;
     query?: string;
     page?: string;
   }>;
 };
 
-// Tabs superiores (Estilo filtro rápido)
-const TABS = [
-  { label: "Todos", value: undefined },
-  { label: "Pagados", value: "PAID" },
-  { label: "Pendientes", value: "PENDING_PAYMENT" },
-  { label: "Devoluciones", value: "RETURNS" },
-  { label: "Cancelados", value: "CANCELLED" },
-];
-
 export default async function AdminOrdersPage({ searchParams }: Props) {
   const sp = await searchParams;
   const page = Number(sp.page) || 1;
-  const statusFilter = sp.status_filter
-    ?.split(",")
-    .filter(Boolean) as OrderStatus[];
 
-  // QUERY
+  const paymentFilter = sp.payment_filter
+    ?.split(",")
+    .filter(Boolean) as PaymentStatus[];
+
+  const fulfillmentFilter = sp.fulfillment_filter
+    ?.split(",")
+    .filter(Boolean) as FulfillmentStatus[];
+
   const { orders, total, totalPages } = await getAdminOrders({
     page,
     statusTab: sp.status,
-    statusFilter,
+    paymentFilter,
+    fulfillmentFilter,
     sort: sp.sort,
     query: sp.query,
   });
@@ -56,10 +54,11 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
         <h1 className="text-2xl font-bold tracking-tight">Pedidos</h1>
       </div>
 
-      {/* TABS DE FILTRO RÁPIDO (Igual que en Productos) */}
-      <div className="flex gap-6 text-sm overflow-x-auto pb-1">
-        {TABS.map((tab) => {
-          const isActive = sp.status === tab.value;
+      {/* TABS DE NAVEGACIÓN RÁPIDA */}
+      <div className="flex gap-6 text-sm overflow-x-auto pb-1 scrollbar-hide">
+        {ORDER_TABS.map((tab) => {
+          const isActive =
+            sp.status === tab.value || (!sp.status && !tab.value);
           return (
             <Link
               key={tab.label}
@@ -71,7 +70,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
               className={cn(
                 "pb-0.5 border-b-2 font-semibold transition-colors whitespace-nowrap",
                 isActive
-                  ? "border-foreground"
+                  ? "border-foreground text-foreground"
                   : "border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300",
               )}
             >
@@ -84,7 +83,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
       <Card>
         <CardHeader className="p-4 border-b flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
           <CardTitle className="text-lg text-left font-semibold">
-            Total <span className="text-base">({total})</span>
+            Total <span className="text-base text-foreground">({total})</span>
           </CardTitle>
 
           <div className="w-full md:w-auto">

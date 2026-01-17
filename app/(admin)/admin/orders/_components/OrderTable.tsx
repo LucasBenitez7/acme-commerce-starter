@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { OrderStatusBadge } from "@/components/order/OrderStatusBadge";
 import {
   Table,
   TableBody,
@@ -12,8 +13,6 @@ import {
 } from "@/components/ui/table";
 
 import { formatCurrency } from "@/lib/currency";
-import { ORDER_STATUS_CONFIG } from "@/lib/orders/constants";
-import { cn } from "@/lib/utils";
 
 import type { AdminOrderListItem } from "@/lib/orders/types";
 
@@ -25,8 +24,8 @@ interface OrderTableProps {
 export function OrderTable({ orders, showRefunds }: OrderTableProps) {
   if (orders.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-neutral-500 bg-white-dashed rounded-xs">
-        <p className="font-medium">No se encontraron pedidos</p>
+      <div className="flex flex-col items-center justify-center py-16 text-neutral-500 rounded-xs">
+        <p className="font-medium">No se encontraron pedidos con este filtro</p>
       </div>
     );
   }
@@ -48,7 +47,6 @@ export function OrderTable({ orders, showRefunds }: OrderTableProps) {
         </TableHeader>
         <TableBody>
           {orders.map((order) => {
-            const config = ORDER_STATUS_CONFIG[order.status];
             const amountToShow = showRefunds
               ? order.refundedAmountMinor
               : order.netTotalMinor;
@@ -82,14 +80,12 @@ export function OrderTable({ orders, showRefunds }: OrderTableProps) {
 
                 {/* 4. ESTADO */}
                 <TableCell className="text-center">
-                  <span
-                    className={cn(
-                      "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowra",
-                      config?.badge || "bg-gray-100 text-gray-800-gray-200",
-                    )}
-                  >
-                    {config?.label || order.status}
-                  </span>
+                  <OrderStatusBadge
+                    paymentStatus={order.paymentStatus}
+                    fulfillmentStatus={order.fulfillmentStatus}
+                    isCancelled={order.isCancelled}
+                    className="text-xs uppercase px-2 py-0.5"
+                  />
                 </TableCell>
 
                 {/* 5. TOTAL */}

@@ -14,7 +14,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
-import { updateOrderStatusAction } from "@/app/(admin)/admin/orders/actions";
+import { updatePaymentStatusAction } from "@/app/(admin)/admin/orders/actions";
 
 export function MarkPaidButton({ orderId }: { orderId: string }) {
   const [open, setOpen] = useState(false);
@@ -22,10 +22,12 @@ export function MarkPaidButton({ orderId }: { orderId: string }) {
 
   const handlePay = async () => {
     setLoading(true);
-    const res = await updateOrderStatusAction(orderId, "PAID");
-    if (res?.error) toast.error(res.error);
-    else {
-      toast.success("Pedido marcado como PAGADO.");
+    const res = await updatePaymentStatusAction(orderId, "PAID");
+
+    if (res?.error) {
+      toast.error(res.error);
+    } else {
+      toast.success("Pago confirmado correctamente");
       setOpen(false);
     }
     setLoading(false);
@@ -34,7 +36,7 @@ export function MarkPaidButton({ orderId }: { orderId: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-green-600 hover:bg-green-700 text-white px-3">
+        <Button className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-fit">
           Marcar Pagado
         </Button>
       </DialogTrigger>
@@ -42,11 +44,16 @@ export function MarkPaidButton({ orderId }: { orderId: string }) {
         <DialogHeader>
           <DialogTitle>¿Confirmar Pago?</DialogTitle>
           <DialogDescription className="text-foreground py-2">
-            El pedido pasará a estado PAGADO.
+            El pedido se marcará como <strong>PAGADO</strong>. Asegúrate de
+            haber recibido el dinero.
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
+        <DialogFooter className="gap-2 sm:justify-end">
+          <Button
+            variant="outline"
+            onClick={() => setOpen(false)}
+            className="w-full sm:w-fit"
+          >
             Cancelar
           </Button>
           <Button
@@ -54,7 +61,7 @@ export function MarkPaidButton({ orderId }: { orderId: string }) {
             disabled={loading}
             className="bg-green-600 hover:bg-green-700 text-white"
           >
-            {loading ? "Procesando..." : "Confirmar"}
+            {loading ? "Procesando..." : "Confirmar Pago"}
           </Button>
         </DialogFooter>
       </DialogContent>

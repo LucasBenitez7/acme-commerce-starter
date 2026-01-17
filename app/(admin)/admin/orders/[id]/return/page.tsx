@@ -14,8 +14,6 @@ type Props = {
   params: Promise<{ id: string }>;
 };
 
-const VALID_RETURN_STATUSES = ["PAID", "RETURN_REQUESTED", "RETURNED"];
-
 export default async function AdminOrderReturnPage({ params }: Props) {
   const { id } = await params;
 
@@ -23,8 +21,12 @@ export default async function AdminOrderReturnPage({ params }: Props) {
 
   if (!order) notFound();
 
-  // 3. Validación de Estado
-  if (!VALID_RETURN_STATUSES.includes(order.status)) {
+  const canProcessReturn =
+    !order.isCancelled &&
+    (order.paymentStatus === "PAID" ||
+      order.paymentStatus === "PARTIALLY_REFUNDED");
+
+  if (!canProcessReturn) {
     return (
       <div className="p-12 flex flex-col items-center justify-center text-center space-y-4">
         <div className="bg-red-50 text-red-600 p-4 rounded-full">
@@ -35,12 +37,23 @@ export default async function AdminOrderReturnPage({ params }: Props) {
             Acción no disponible
           </h1>
           <p className="text-muted-foreground mt-2 max-w-md">
-            El pedido <strong>#{order.id.slice(-8).toUpperCase()}</strong> está
-            en estado{" "}
-            <span className="font-mono bg-neutral-100 px-1 rounded">
-              {order.status}
-            </span>
-            , el cual no permite gestionar devoluciones.
+            El pedido <strong>#{order.id.slice(-6).toUpperCase()}</strong> no
+            permite devoluciones en este momento.
+            <br />
+            {order.isCancelled && (
+              <span className="text-red-600 font-medium">
+                El pedido está cancelado.
+              </span>
+            )}
+            {!order.isCancelled && order.paymentStatus !== "PAID" && (
+              <span>
+                El estado de pago es{" "}
+                <span className="bg-neutral-100 px-1 rounded">
+                  {order.paymentStatus}
+                </span>
+                .
+              </span>
+            )}
           </p>
         </div>
         <Button asChild variant="outline" className="mt-4">
@@ -70,14 +83,17 @@ export default async function AdminOrderReturnPage({ params }: Props) {
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
-      <div className="flex items-center gap-4 border-b pb-4">
+      <div className="relative flex items-center justify-center border-b pb-4">
         <Link
           href={`/admin/orders/${id}`}
-          className="hover:text-slate-700 transition-colors"
+          className="absolute left-0 hover:bg-neutral-100 p-2 rounded-xs transition-colors"
         >
-          <FaArrowLeft className="size-4" />
+          <FaArrowLeft className="h-4 w-4" />
         </Link>
-        <h1 className="text-lg font-semibold">Procesar Devolución</h1>
+
+        <h1 className="text-xl font-semibold tracking-tight">
+          Gestionar devolución
+        </h1>
       </div>
 
       <ReturnForm

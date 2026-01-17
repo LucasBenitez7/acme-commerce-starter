@@ -25,32 +25,39 @@ import {
 } from "@/components/ui/select";
 
 import {
-  FILTER_STATUS_OPTIONS,
+  ADMIN_FILTER_PAYMENT,
+  ADMIN_FILTER_FULFILLMENT,
   ORDER_SORT_OPTIONS,
 } from "@/lib/orders/constants";
 import { cn } from "@/lib/utils";
 
 import { useOrderFilters } from "@/hooks/order/use-order-filters";
 
-import type { OrderStatus } from "@prisma/client";
+import type { PaymentStatus, FulfillmentStatus } from "@prisma/client";
 
 export function OrderListToolbar() {
   const {
     activeSort,
-    activeStatuses,
+    activePaymentStatuses,
+    activeFulfillmentStatuses,
     searchQuery,
     setSearchQuery,
     updateParams,
-    toggleStatus,
+    togglePaymentStatus,
+    toggleFulfillmentStatus,
   } = useOrderFilters();
 
-  const [isStatusOpen, setIsStatusOpen] = useState(true);
+  // Control de colapso de secciones en el filtro
+  const [isPaymentOpen, setIsPaymentOpen] = useState(true);
+  const [isFulfillmentOpen, setIsFulfillmentOpen] = useState(false);
 
-  const hasActiveFilters = activeStatuses.length > 0;
+  const hasActiveFilters =
+    activePaymentStatuses.length > 0 || activeFulfillmentStatuses.length > 0;
 
   return (
     <div className="space-y-4 w-full rounded-xs">
       <div className="flex flex-col lg:flex-row gap-3 justify-between w-full items-start lg:items-center">
+        {/* BUSCADOR */}
         <div className="relative min-w-[100px] lg:w-[300px] w-full">
           <FaMagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
@@ -71,72 +78,74 @@ export function OrderListToolbar() {
           )}
         </div>
 
+        {/* HERRAMIENTAS (FILTROS Y SORT) */}
         <div className="flex flex-wrap gap-3 justify-between w-full lg:w-auto items-center">
+          {/* POPOVER DE FILTROS AVANZADOS */}
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
                   "relative border border-border h-9",
-                  hasActiveFilters && "border-foreground",
+                  hasActiveFilters && "border-foreground bg-accent/50",
                 )}
               >
                 <FaFilter className="size-3.5 text-foreground mr-2" />
                 Filtrar
+                {hasActiveFilters && (
+                  <span className="ml-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-foreground text-[10px] text-background font-bold">
+                    {activePaymentStatuses.length +
+                      activeFulfillmentStatuses.length}
+                  </span>
+                )}
               </Button>
             </PopoverTrigger>
 
             <PopoverContent
-              className="w-[260px] p-2 translate-x-8 lg:translate-x-0"
+              className="w-[280px] p-2 translate-x-8 lg:translate-x-0"
               align="end"
             >
-              <div className="space-y-1">
+              <div className="space-y-1 max-h-[400px] overflow-y-auto pr-1">
+                {/* SECCIÓN 1: ESTADO DE PAGO */}
                 <div
                   className={cn(
-                    "rounded-xs transition-all",
-                    isStatusOpen && "bg-neutral-50 pb-2",
+                    "rounded-sm transition-all",
+                    isPaymentOpen && "bg-neutral-50 pb-2",
                   )}
                 >
                   <Button
                     variant="ghost"
-                    onClick={() => setIsStatusOpen(!isStatusOpen)}
-                    className={cn(
-                      "w-full justify-between hover:bg-neutral-100",
-                      hasActiveFilters &&
-                        !isStatusOpen &&
-                        "bg-neutral-50 font-medium",
-                    )}
+                    onClick={() => setIsPaymentOpen(!isPaymentOpen)}
+                    className="w-full justify-between h-8 hover:bg-neutral-100 px-2"
                   >
-                    <span className="flex items-center gap-2 font-medium">
-                      Estados
+                    <span className="text-xs font-bold uppercase text-neutral-500">
+                      Pago
                     </span>
                     <FaChevronRight
                       className={cn(
-                        "size-3.5 transition-transform duration-200",
-                        isStatusOpen && "rotate-90",
+                        "size-3 transition-transform duration-200 text-neutral-400",
+                        isPaymentOpen && "rotate-90",
                       )}
                     />
                   </Button>
 
-                  {isStatusOpen && (
-                    <div className="px-2 pt-1 space-y-1 animate-in slide-in-from-top-2 fade-in duration-200">
-                      {FILTER_STATUS_OPTIONS.map((status) => {
-                        const isSelected = activeStatuses.includes(
-                          status.value as OrderStatus,
+                  {isPaymentOpen && (
+                    <div className="px-1 pt-1 space-y-0.5 animate-in slide-in-from-top-1 fade-in duration-200">
+                      {ADMIN_FILTER_PAYMENT.map((status) => {
+                        const isSelected = activePaymentStatuses.includes(
+                          status.value as PaymentStatus,
                         );
                         return (
                           <div
                             key={status.value}
-                            onClick={() => toggleStatus(status.value)}
-                            className={cn(
-                              "flex items-center gap-2 py-1.5 rounded-xs cursor-pointer px-2 hover:bg-neutral-200/50 text-sm select-none transition-colors",
-                            )}
+                            onClick={() => togglePaymentStatus(status.value)}
+                            className="flex items-center gap-2 py-1.5 rounded-sm cursor-pointer px-2 hover:bg-neutral-200/50 text-sm select-none transition-colors"
                           >
                             <div
                               className={cn(
-                                "w-4 h-4 border rounded-xs flex items-center justify-center transition-colors bg-white",
+                                "w-4 h-4 border rounded-sm flex items-center justify-center transition-colors bg-white",
                                 isSelected
-                                  ? "bg-foreground border-foreground text-white"
+                                  ? "bg-black border-black text-white"
                                   : "border-neutral-300",
                               )}
                             >
@@ -150,7 +159,9 @@ export function OrderListToolbar() {
                                 status.color,
                               )}
                             />
-                            <span className="truncate">{status.label}</span>
+                            <span className="truncate text-sm">
+                              {status.label}
+                            </span>
                           </div>
                         );
                       })}
@@ -158,19 +169,94 @@ export function OrderListToolbar() {
                   )}
                 </div>
 
-                <div className="pt-2 border-t mt-2">
+                {/* SECCIÓN 2: ESTADO DE ENVÍO */}
+                <div
+                  className={cn(
+                    "rounded-sm transition-all mt-1",
+                    isFulfillmentOpen && "bg-neutral-50 pb-2",
+                  )}
+                >
                   <Button
-                    variant="default"
-                    className="w-full"
-                    onClick={() => updateParams({ status_filter: null })}
+                    variant="ghost"
+                    onClick={() => setIsFulfillmentOpen(!isFulfillmentOpen)}
+                    className="w-full justify-between h-8 hover:bg-neutral-100 px-2"
                   >
-                    Limpiar filtros
+                    <span className="text-xs font-bold uppercase text-neutral-500">
+                      Logística
+                    </span>
+                    <FaChevronRight
+                      className={cn(
+                        "size-3 transition-transform duration-200 text-neutral-400",
+                        isFulfillmentOpen && "rotate-90",
+                      )}
+                    />
                   </Button>
+
+                  {isFulfillmentOpen && (
+                    <div className="px-1 pt-1 space-y-0.5 animate-in slide-in-from-top-1 fade-in duration-200">
+                      {ADMIN_FILTER_FULFILLMENT.map((status) => {
+                        const isSelected = activeFulfillmentStatuses.includes(
+                          status.value as FulfillmentStatus,
+                        );
+                        return (
+                          <div
+                            key={status.value}
+                            onClick={() =>
+                              toggleFulfillmentStatus(status.value)
+                            }
+                            className="flex items-center gap-2 py-1.5 rounded-sm cursor-pointer px-2 hover:bg-neutral-200/50 text-sm select-none transition-colors"
+                          >
+                            <div
+                              className={cn(
+                                "w-4 h-4 border rounded-sm flex items-center justify-center transition-colors bg-white",
+                                isSelected
+                                  ? "bg-black border-black text-white"
+                                  : "border-neutral-300",
+                              )}
+                            >
+                              {isSelected && (
+                                <FaCheck className="w-2.5 h-2.5" />
+                              )}
+                            </div>
+                            <div
+                              className={cn(
+                                "w-2 h-2 rounded-full ml-1",
+                                status.color,
+                              )}
+                            />
+                            <span className="truncate text-sm">
+                              {status.label}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
+
+                {/* BOTÓN LIMPIAR */}
+                {hasActiveFilters && (
+                  <div className="pt-2 border-t mt-2">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="w-full h-8"
+                      onClick={() =>
+                        updateParams({
+                          payment_filter: null,
+                          fulfillment_filter: null,
+                        })
+                      }
+                    >
+                      Limpiar filtros
+                    </Button>
+                  </div>
+                )}
               </div>
             </PopoverContent>
           </Popover>
 
+          {/* ORDENAR POR */}
           <Select
             value={activeSort}
             onValueChange={(val) => updateParams({ sort: val })}

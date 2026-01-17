@@ -51,7 +51,7 @@ export function RejectReturnButton({ orderId }: { orderId: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="destructive" className="px-3">
+        <Button variant="destructive" className="w-full sm:w-fit">
           Rechazar Devolución
         </Button>
       </DialogTrigger>

@@ -47,12 +47,6 @@ export function ReturnForm({ orderId, items, returnReason }: Props) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-foreground font-semibold text-xl">
-          Gestionar Devolución
-        </p>
-      </div>
-
       {totalRequestedQty > 0 && (
         <Card className="bg-background p-4 text-sm flex flex-col items-start gap-2 shadow-none border">
           <div className="flex items-center justify-between w-full gap-2">
@@ -61,7 +55,7 @@ export function ReturnForm({ orderId, items, returnReason }: Props) {
               {totalRequestedQty > 1 ? "productos" : "producto"})
             </span>
 
-            <span className="px-2 py-1 rounded border border-foreground text-xs font-semibold bg-white">
+            <span className="px-2 py-1 rounded text-xs text-background font-semibold bg-foreground">
               Aceptando: {totalAcceptedQty}
             </span>
           </div>

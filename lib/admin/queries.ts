@@ -8,13 +8,19 @@ export async function getDashboardStats() {
       prisma.order.count(),
       prisma.product.count(),
       prisma.user.count(),
-      prisma.order.count({ where: { status: "PENDING_PAYMENT" } }),
+      prisma.order.count({
+        where: {
+          paymentStatus: "PENDING",
+          isCancelled: false,
+        },
+      }),
     ]);
 
-  // 2. Consulta Financiera
+  // 2. Consulta Financiera (Ingresos Brutos)
   const financialOrders = await prisma.order.findMany({
     where: {
-      status: { in: ["PAID", "RETURN_REQUESTED", "RETURNED"] },
+      paymentStatus: { in: ["PAID", "PARTIALLY_REFUNDED", "REFUNDED"] },
+      isCancelled: false,
     },
     select: {
       totalMinor: true,

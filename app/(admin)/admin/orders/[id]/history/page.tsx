@@ -1,19 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  FaArrowLeft,
-  FaUser,
-  FaUserShield,
-  FaCalendar,
-  FaClipboardCheck,
-  FaBoxOpen,
-} from "react-icons/fa6";
+import { FaArrowLeft, FaCalendar, FaBoxOpen } from "react-icons/fa6";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Image } from "@/components/ui/image";
 
+import { SYSTEM_MSGS } from "@/lib/orders/constants";
 import { getAdminOrderById } from "@/lib/orders/queries";
-import { formatHistoryReason } from "@/lib/orders/utils";
+import { formatHistoryReason, getEventVisuals } from "@/lib/orders/utils";
 import { cn } from "@/lib/utils";
 
 import type { HistoryDetailsJson } from "@/lib/orders/types";
@@ -26,36 +20,24 @@ type Props = {
 
 export default async function OrderHistoryPage({ params }: Props) {
   const { id } = await params;
-
   const order = await getAdminOrderById(id);
 
   if (!order) notFound();
 
-  const { originalQty, returnedQty } = order.summary;
-
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-10">
-      <div className="flex items-center gap-3 border-b pb-4">
+    <div className="space-y-6 max-w-5xl mx-auto">
+      {/* HEADER */}
+      <div className="relative flex items-center justify-center border-b pb-4">
         <Link
-          href={`/admin/orders/${id}`}
-          className="hover:bg-neutral-100 p-2 rounded-full transition-colors"
+          href={`/admin/orders/${order.id}`}
+          className="absolute left-0 hover:bg-neutral-100 p-2 rounded-xs transition-colors"
         >
-          <FaArrowLeft className="h-4 w-4" />
+          <FaArrowLeft className="size-4" />
         </Link>
-        <h1 className="text-xl font-semibold tracking-tight">
-          Historial de Cambios
-        </h1>
+        <h1 className="text-xl font-semibold">Historial del Pedido</h1>
       </div>
 
-      <div className="max-w-3xl mx-auto space-y-6">
-        {/* Cabecera ID */}
-        <div className="flex flex-col border-b pb-3">
-          <span className="text-xs font-semibold text-muted-foreground uppercase">
-            ID Pedido
-          </span>
-          <span className="text-lg font-mono">{order.id.toUpperCase()}</span>
-        </div>
-
+      <div className="max-w-5xl mx-auto space-y-6">
         {order.history.length === 0 && (
           <div className="text-center py-10 text-muted-foreground bg-neutral-50 rounded border border-dashed">
             No hay eventos registrados.
@@ -63,51 +45,55 @@ export default async function OrderHistoryPage({ params }: Props) {
         )}
 
         {order.history.map((event) => {
-          const isAdmin = event.actor.toLowerCase().includes("admin");
           const details =
             (event.details as unknown as HistoryDetailsJson) || {};
           const itemsList = details.items || [];
           const note = details.note;
-
           const totalAffectedQty = itemsList.reduce(
-            (acc, item) => acc + item.quantity,
+            (acc, i) => acc + i.quantity,
             0,
           );
 
-          const iconColor = isAdmin
-            ? "bg-orange-100 text-orange-700 border-orange-200"
-            : "bg-blue-100 text-blue-700 border-blue-200";
+          const visual = getEventVisuals(
+            event.actor,
+            event.type,
+            event.snapshotStatus,
+          );
+          const { actorConfig, isAdmin, statusColor } = visual;
+          const StatusIcon = visual.statusIcon;
+
+          const isCreation = event.reason === SYSTEM_MSGS.ORDER_CREATED;
+
+          const showCleanText = isAdmin || isCreation;
+
+          const isCancelled = event.reason === SYSTEM_MSGS.CANCELLED_BY_USER;
 
           return (
             <div
               key={event.id}
               className="flex items-start group relative pl-4 md:pl-0"
             >
-              <div className="absolute left-[-25px] top-4 bottom-[-20px] w-px bg-neutral-200 md:hidden"></div>
-
+              {/* COLUMNA IZQUIERDA (Icono Actor) */}
               <div className="w-full">
-                {/* Header del Evento */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <div
                       className={cn(
                         "flex items-center justify-center h-10 w-10 rounded-full border-2 shadow-sm z-10",
-                        iconColor,
+                        actorConfig.bg,
+                        actorConfig.text,
+                        actorConfig.border,
                       )}
                     >
-                      {isAdmin ? (
-                        <FaUserShield className="h-5 w-5" />
-                      ) : (
-                        <FaUser className="h-5 w-5" />
-                      )}
+                      <actorConfig.icon className="size-4" />
                     </div>
 
                     <div className="flex flex-col space-y-1">
                       <span className="text-sm font-bold text-foreground">
-                        {isAdmin ? "Administrador" : "Cliente"}
+                        {actorConfig.label}
                       </span>
-                      <div className="flex items-center gap-1 text-xs">
-                        <FaCalendar className="h-3 w-3" />
+                      <div className="flex items-center gap-1 text-xs text-foreground">
+                        <FaCalendar className="size-3" />
                         {new Date(event.createdAt).toLocaleString("es-ES", {
                           day: "2-digit",
                           month: "short",
@@ -119,35 +105,55 @@ export default async function OrderHistoryPage({ params }: Props) {
                   </div>
                 </div>
 
+                {/* TARJETA DE CONTENIDO */}
                 <Card
                   className={cn(
                     "shadow-sm overflow-hidden transition-all",
-                    isAdmin
-                      ? "border-orange-200/60 bg-orange-50"
-                      : "border-blue-200/60 bg-blue-50",
+                    actorConfig.cardBorder,
                   )}
                 >
-                  <CardContent className="p-5 space-y-4">
+                  <CardContent className="p-5 space-y-2">
                     <div className="flex flex-col gap-1">
-                      <h3 className="text-base font-medium text-foreground">
-                        {isAdmin && (
-                          <span>{formatHistoryReason(event.reason)}</span>
+                      <div className="flex items-center gap-2 mb-1">
+                        {StatusIcon && (
+                          <StatusIcon className={cn("size-4", statusColor)} />
                         )}
+                        <h3 className="font-semibold text-base">
+                          {event.snapshotStatus}
+                        </h3>
+                      </div>
 
-                        {!isAdmin && (
+                      <div className="text-base font-medium text-foreground ">
+                        {showCleanText ? (
+                          <span className="text-sm font-semibold">
+                            {formatHistoryReason(event.reason)}
+                          </span>
+                        ) : (
                           <div className="flex flex-col">
-                            Motivo de devolución:{" "}
-                            <span className="text-sm p-3 px-2 rounded-xs border ">
-                              "{formatHistoryReason(event.reason)}"
-                            </span>
+                            {!isCancelled && (
+                              <div>
+                                <span className="text-xs font-semibold uppercase text-foreground mb-1">
+                                  Motivo de solicitud:
+                                </span>
+                                <div className="text-sm p-3 px-3 rounded-xs border bg-background">
+                                  "{formatHistoryReason(event.reason)}"
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
-                      </h3>
-                      {note && (
-                        <div className="text-sm p-3 px-2 rounded-xs border ">
-                          "{note}"
-                        </div>
-                      )}
+
+                        {note && (
+                          <div className="mt-3">
+                            <div className="text-sm p-3 rounded-xs border bg-background">
+                              <span className="font-bold text-xs block mb-1 uppercase">
+                                Nota / Observación:
+                              </span>
+                              "{note}"
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {itemsList.length > 0 && (
@@ -164,11 +170,14 @@ export default async function OrderHistoryPage({ params }: Props) {
 
                             const productImages =
                               matchedLiveItem?.product?.images || [];
+
                             const variantString = historyItem.variant || "";
+
                             const matchingImg =
                               productImages.find((img) =>
                                 variantString.includes(img.color || "###"),
                               ) || productImages[0];
+
                             const imgUrl = matchingImg?.url;
 
                             return (
@@ -204,7 +213,7 @@ export default async function OrderHistoryPage({ params }: Props) {
                                     </span>
                                   )}
                                   <span className="text-xs font-medium">
-                                    Cant: {historyItem.quantity}
+                                    X{historyItem.quantity}
                                   </span>
                                 </div>
                               </div>
