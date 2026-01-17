@@ -20,7 +20,7 @@ export function PaginationNav({ totalPages, page, base }: Props) {
 
   const basePath = base ?? pathname;
 
-  // if (totalPages <= 1) return null;
+  if (totalPages <= 1) return null;
 
   const createPageUrl = (pageNumber: number) => {
     const params = new URLSearchParams(searchParams.toString());

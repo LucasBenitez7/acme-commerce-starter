@@ -75,22 +75,27 @@ export function ProductFormProvider({ children, product }: Props) {
       }
     }
   };
+
+  const onInvalid = (errors: any) => {
+    console.log("El formulario no es válido:", errors);
+  };
+
   return (
     <FormProvider {...methods}>
       {errors.images?.message && (
-        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xs mb-4 animate-in fade-in">
+        <div className="bg-red-50 border border-red-200 text-red-700 p-4 op rounded-xs mb-4 animate-in fade-in">
           <p className="text-sm">{errors.images.message}</p>
         </div>
       )}
 
       <form
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={handleSubmit(onSubmit, onInvalid)}
         onKeyDown={handleKeyDown}
         className="mx-auto space-y-4"
       >
         {children}
 
-        <div className="flex items-center lg:justify-end my-8 pb-4 border-b gap-3">
+        <div className="flex items-center lg:justify-end my-6 pb-6 border-b gap-3">
           <Button
             variant="outline"
             type="button"

@@ -25,7 +25,7 @@ interface ProductTableProps {
 export function ProductTable({ products }: ProductTableProps) {
   if (products.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-neutral-500 bg-white border border-dashed rounded-lg">
+      <div className="flex flex-col items-center justify-center py-16 text-neutral-500">
         <p className="font-medium">No se encontraron productos.</p>
         <p className="text-xs mt-1">
           Intenta cambiar los filtros o crear uno nuevo.

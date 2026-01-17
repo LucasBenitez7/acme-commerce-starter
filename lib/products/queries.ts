@@ -147,7 +147,7 @@ export async function getAdminProducts({
   };
 }
 
-// Query para EDITAR un producto en el Admin (necesita todos los datos)
+// Query para EDITAR un producto
 export async function getProductForEdit(id: string) {
   return await prisma.product.findUnique({
     where: { id },

@@ -13,7 +13,7 @@ export default function Error({
   }, [error]);
 
   return (
-    <section className="mx-auto max-w-3xl px-6 py-16 text-center">
+    <section className="mx-auto max-w-5xl px-6 py-16 text-center">
       <h1 className="text-2xl font-semibold">Algo salió mal</h1>
       <p className="mt-4 text-neutral-600">Intenta nuevamente</p>
       <p className="text-neutral-600">

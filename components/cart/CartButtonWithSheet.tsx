@@ -149,7 +149,7 @@ export function CartButtonWithSheet() {
                           <Link
                             href={`/product/${item.slug}`}
                             onClick={() => closeCart()}
-                            className="font-medium text-sm line-clamp-1 hover:underline underline-offset-4"
+                            className="font-medium text-sm line-clamp-1 hover:underline underline-offset-3"
                           >
                             {item.name}
                           </Link>
@@ -158,7 +158,7 @@ export function CartButtonWithSheet() {
                           </p>
                         </div>
 
-                        <p className="font-medium text-xs tabular-nums">
+                        <p className="font-medium text-sm tabular-nums">
                           {formatCurrency(
                             item.price * item.quantity,
                             DEFAULT_CURRENCY,

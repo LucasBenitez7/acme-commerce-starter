@@ -81,9 +81,6 @@ export function useVariantDialog({ onGenerate }: UseVariantDialogProps) {
 
   useEffect(() => {
     if (isColorEditMode) {
-      setSelectedPresetColor("custom");
-      setGenColorName("");
-      setGenColorHex("#000000");
       setIsCustomizingColor(false);
     }
   }, [isColorEditMode]);

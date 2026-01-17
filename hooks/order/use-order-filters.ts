@@ -5,24 +5,34 @@ import { useCallback, useEffect, useState } from "react";
 
 import { useDebounce } from "@/hooks/common/use-debounce";
 
-import type { OrderStatus } from "@prisma/client";
+import type { PaymentStatus, FulfillmentStatus } from "@prisma/client";
 
 export function useOrderFilters() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const activeStatusParam = searchParams.get("status_filter");
+  // --- LECTURA DE URL ---
   const activeSort = searchParams.get("sort") || "date_desc";
   const initialQuery = searchParams.get("query")?.toString() || "";
 
-  const activeStatuses = activeStatusParam
-    ? (activeStatusParam.split(",") as OrderStatus[])
+  // Filtros separados por comas en la URL
+  const paymentParam = searchParams.get("payment_filter");
+  const fulfillmentParam = searchParams.get("fulfillment_filter");
+
+  // Arrays tipados
+  const activePaymentStatuses = paymentParam
+    ? (paymentParam.split(",") as PaymentStatus[])
+    : [];
+
+  const activeFulfillmentStatuses = fulfillmentParam
+    ? (fulfillmentParam.split(",") as FulfillmentStatus[])
     : [];
 
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const debouncedQuery = useDebounce(searchQuery, 500);
 
+  // --- ACTUALIZADOR DE URL (Genérico) ---
   const updateParams = useCallback(
     (newParams: Record<string, string | null | undefined>) => {
       const params = new URLSearchParams(searchParams.toString());
@@ -51,28 +61,42 @@ export function useOrderFilters() {
     }
   }, [debouncedQuery, updateParams, initialQuery]);
 
-  // --- HANDLERS ---
-  const toggleStatus = (status: string) => {
-    const current = new Set(activeStatuses);
-    if (current.has(status as OrderStatus)) {
-      current.delete(status as OrderStatus);
+  // --- HANDLERS ESPECÍFICOS ---
+  // Toggle para PAGOS (PaymentStatus)
+  const togglePaymentStatus = (status: string) => {
+    const current = new Set(activePaymentStatuses);
+    if (current.has(status as PaymentStatus)) {
+      current.delete(status as PaymentStatus);
     } else {
-      current.add(status as OrderStatus);
+      current.add(status as PaymentStatus);
     }
-
     const value = Array.from(current).join(",") || null;
-    updateParams({ status_filter: value });
+    updateParams({ payment_filter: value });
+  };
+
+  // Toggle para LOGÍSTICA (FulfillmentStatus)
+  const toggleFulfillmentStatus = (status: string) => {
+    const current = new Set(activeFulfillmentStatuses);
+    if (current.has(status as FulfillmentStatus)) {
+      current.delete(status as FulfillmentStatus);
+    } else {
+      current.add(status as FulfillmentStatus);
+    }
+    const value = Array.from(current).join(",") || null;
+    updateParams({ fulfillment_filter: value });
   };
 
   return {
-    // Estado
+    // Estado actual
     activeSort,
-    activeStatuses,
     searchQuery,
+    activePaymentStatuses,
+    activeFulfillmentStatuses,
 
     // Acciones
     setSearchQuery,
-    toggleStatus,
     updateParams,
+    togglePaymentStatus,
+    toggleFulfillmentStatus,
   };
 }

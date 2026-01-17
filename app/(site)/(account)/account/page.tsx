@@ -1,11 +1,6 @@
-import { Input, Label } from "@/components/ui";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { FaUser, FaEnvelope, FaPhone } from "react-icons/fa6";
+
+import { Card, CardContent } from "@/components/ui/card";
 
 import { auth } from "@/lib/auth";
 
@@ -15,62 +10,65 @@ export default async function AccountProfilePage() {
 
   if (!user) return null;
 
+  const isVerified = "verified";
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Perfil</h2>
-        <p className="text-muted-foreground">
-          Gestiona tu información personal.
-        </p>
+        <h2 className="text-2xl font-semibold pb-2 border-b border-neutral-300">
+          Mi Cuenta
+        </h2>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Datos Personales</CardTitle>
-          <CardDescription>Información básica de tu cuenta.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Nombre</Label>
-              <Input
-                defaultValue={user.firstName || ""}
-                readOnly
-                className="bg-muted/50"
-              />
+      <Card className="overflow-hidden pb-0">
+        <CardContent className="p-4">
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* GRUPO 1: INFORMACIÓN BÁSICA */}
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-sm font-semibold uppercase">
+                <FaUser className="size-3" /> Nombre
+              </div>
+              <p className="text-sm font-medium text-foreground pl-6">
+                {user.firstName || "No especificado"}
+              </p>
             </div>
-            <div className="space-y-2">
-              <Label>Apellidos</Label>
-              <Input
-                defaultValue={user.lastName || ""}
-                readOnly
-                className="bg-muted/50"
-              />
+
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-sm font-semibold uppercase">
+                <FaUser className="size-3" /> Apellidos
+              </div>
+              <p className="text-sm font-medium text-foreground pl-6">
+                {user.lastName || "No especificado"}
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-sm font-semibold uppercase">
+                <FaEnvelope className="size-3" /> Correo Electrónico
+                {isVerified === "verified" && (
+                  <div className="flex items-center py-0-5 px-2 rounded-full bg-blue-50 text-blue-600 text-xs font-medium lowercase">
+                    verificado
+                  </div>
+                )}
+              </div>
+              <p className="text-sm font-medium text-foreground pl-6">
+                {user.email}
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-sm font-semibold uppercase">
+                <FaPhone className="size-3" /> Teléfono
+              </div>
+              <p className="text-sm font-medium text-foreground pl-6">
+                {user.phone || (
+                  <span className="text-neutral-400 italic text-sm">
+                    No registrado
+                  </span>
+                )}
+              </p>
             </div>
           </div>
-
-          <div className="space-y-2">
-            <Label>Email</Label>
-            <Input
-              defaultValue={user.email || ""}
-              readOnly
-              className="bg-muted/50"
-            />
-            <p className="text-xs text-muted-foreground">
-              El email no se puede cambiar por seguridad.
-            </p>
-          </div>
-
-          {user.phone && (
-            <div className="space-y-2">
-              <Label>Teléfono</Label>
-              <Input
-                defaultValue={user.phone}
-                readOnly
-                className="bg-muted/50"
-              />
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>

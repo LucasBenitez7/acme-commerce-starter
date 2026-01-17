@@ -21,7 +21,7 @@ export default async function AdminPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
+        <h1 className="text-5xl font-semibold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">
           Resumen financiero y operativo de tu tienda.
         </p>

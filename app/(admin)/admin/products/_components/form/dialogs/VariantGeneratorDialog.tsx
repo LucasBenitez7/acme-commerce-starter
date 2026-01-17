@@ -218,10 +218,7 @@ export function VariantGeneratorDialog({ onGenerate }: Props) {
                         />
 
                         <Button
-                          className={cn(
-                            "",
-                            !genColorName && "pointer-events-none opacity-50",
-                          )}
+                          className={cn(!showAddColorBtn && "hidden")}
                           type="button"
                           variant="outline"
                           onClick={() =>
@@ -229,7 +226,7 @@ export function VariantGeneratorDialog({ onGenerate }: Props) {
                           }
                           title="Guardar nuevo color"
                         >
-                          <FaPlus className="size-4 text-slate-600" />
+                          <FaPlus className="size-4 text-slate-600" /> Añadir
                         </Button>
                       </div>
                     </div>
@@ -354,15 +351,13 @@ export function VariantGeneratorDialog({ onGenerate }: Props) {
                         }}
                       />
                       <Button
-                        className={cn(
-                          !customSizeInput && "pointer-events-none opacity-50",
-                        )}
+                        className={cn(!customSizeInput && "hidden")}
                         type="button"
                         variant="outline"
                         onClick={addCustomSize}
                         title="Guardar nueva talla"
                       >
-                        <FaPlus className="size-4 text-slate-600" />
+                        <FaPlus className="size-4 text-slate-600" /> Añadir
                       </Button>
                     </div>
                   </div>
@@ -410,7 +405,7 @@ export function VariantGeneratorDialog({ onGenerate }: Props) {
         open={!!itemToDelete}
         onOpenChange={(val) => !val && setItemToDelete(null)}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="w-[490px]">
           <AlertDialogHeader>
             <AlertDialogTitle>¿Estás completamente seguro?</AlertDialogTitle>
             <AlertDialogDescription>

@@ -122,8 +122,8 @@ export function ProductCard({ item }: { item: PublicProductListItem }) {
       <div className="flex flex-col gap-2 px-2 pt-3 pb-2 flex-1 space-y-2 bg-background z-10 relative">
         <div className="flex items-start justify-between gap-2">
           <div className="space-y-1 w-full">
-            <Link href={productUrl} className="block w-max">
-              <h3 className="text-sm w-max font-medium leading-tight text-foreground line-clamp-1 hover:underline active:underline underline-offset-4">
+            <Link href={productUrl} className="flex">
+              <h3 className="text-sm w-max font-medium leading-tight text-foreground line-clamp-1 hover:underline active:underline underline-offset-3">
                 {item.name}
               </h3>
             </Link>

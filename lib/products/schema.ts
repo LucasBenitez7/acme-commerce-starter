@@ -21,8 +21,8 @@ export const productImageSchema = z.object({
 export const productSchema = z
   .object({
     name: z.string().min(3, "Mínimo 3 caracteres"),
-    slug: z.string().optional(),
-    description: z.string().optional(),
+    slug: z.string().min(3, "Mínimo 3 caracteres"),
+    description: z.string().min(3, "La descripción es requerida"),
     priceCents: z.coerce.number().min(1, "El precio es requerido"),
     categoryId: z.string().min(1, "Selecciona una categoría"),
     isArchived: z.boolean().default(false),

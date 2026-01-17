@@ -178,46 +178,52 @@ export function GeneralSection({ categories: initialCats }: Props) {
       </div>
 
       {/* DESCRIPCIÓN */}
-      <Collapsible
-        open={isDescOpen}
-        onOpenChange={setIsDescOpen}
-        className={cn(
-          "col-span-2 rounded-xs border border-transparent transition-all duration-200",
-        )}
-      >
-        <div className="flex items-center justify-between">
-          <CollapsibleTrigger asChild>
-            <Button
-              variant="ghost"
-              type="button"
-              className={cn(
-                "w-fit justify-between hover:bg-neutral-50 active:bg-neutral-50 font-medium px-0",
-              )}
-            >
-              <span className="text-sm font-medium text-foreground">
-                Descripción
-              </span>
-              <FaChevronRight
+      <div>
+        <Collapsible
+          open={isDescOpen}
+          onOpenChange={setIsDescOpen}
+          className={cn(
+            "col-span-2 rounded-xs border border-transparent transition-all duration-200",
+          )}
+        >
+          <div className="flex items-center justify-between">
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                type="button"
                 className={cn(
-                  "size-3.5 text-muted-foreground transition-transform duration-200",
-                  isDescOpen && "rotate-90",
+                  "w-fit justify-between hover:bg-neutral-50 active:bg-neutral-50 font-medium px-0",
                 )}
-              />
-            </Button>
-          </CollapsibleTrigger>
-        </div>
-
-        <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
-          <div className="pt-1">
-            <Textarea
-              {...register("description")}
-              placeholder="Detalles del producto, materiales, cuidados..."
-              minRows={5}
-              className="bg-white"
-            />
+              >
+                <span className="text-sm font-medium text-foreground">
+                  Descripción
+                </span>
+                <FaChevronRight
+                  className={cn(
+                    "size-3.5 text-muted-foreground transition-transform duration-200",
+                    isDescOpen && "rotate-90",
+                  )}
+                />
+              </Button>
+            </CollapsibleTrigger>
           </div>
-        </CollapsibleContent>
-      </Collapsible>
+
+          <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
+            <div className="pt-1">
+              <Textarea
+                {...register("description")}
+                placeholder="Detalles del producto, materiales, cuidados..."
+                minRows={5}
+                className="bg-white mb-2"
+              />
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+
+        {errors.description && (
+          <p className="text-red-500 text-xs">{errors.description.message}</p>
+        )}
+      </div>
     </div>
   );
 }
