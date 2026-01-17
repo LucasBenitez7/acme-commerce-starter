@@ -10,7 +10,7 @@ export const SHIPPING_TYPE_MAP = {
 // Tipos derivados para seguridad
 export type ShippingTypeId = keyof typeof SHIPPING_TYPE_MAP;
 
-// 2. UI / VISUAL (La fuente de verdad para etiquetas e iconos)
+// UI / VISUAL
 export const SHIPPING_METHODS = [
   {
     id: "home",

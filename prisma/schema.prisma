@@ -7,223 +7,31 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// --- Catálogo ---
-model Category {
-  id   String @id @default(cuid())
-  slug String @unique
-  name String
-  sort Int    @default(0)
-
-  parentId String?
-  parent   Category?  @relation("SubCategories", fields: [parentId], references: [id])
-  children Category[] @relation("SubCategories")
-  products Product[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Product {
-  id          String @id @default(cuid())
-  slug        String @unique
-  name        String
-  description String
-
-  priceCents Int
-  currency   String @default("EUR")
-
-  categoryId String
-  category   Category @relation(fields: [categoryId], references: [id])
-
-  images     ProductImage[]
-  variants   ProductVariant[]
-  orderItems OrderItem[]
-
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  isArchived Boolean  @default(false)
-
-  @@index([categoryId])
-  @@index([isArchived])
-}
-
-model ProductVariant {
-  id        String  @id @default(cuid())
-  productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  size     String
-  color    String
-  colorHex String?
-
-  stock Int @default(0)
-
-  priceCents Int?
-
-  isActive Boolean @default(true)
-
-  orderItems OrderItem[]
-
-  @@unique([productId, size, color])
-  @@index([productId])
-}
-
-model ProductImage {
-  id        String  @id @default(cuid())
-  productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  url  String
-  alt  String
-  sort Int    @default(0)
-
-  color String?
-
-  @@unique([productId, sort])
-  @@index([productId, color])
-}
-
-// --- Atributos Dinámicos (NUEVO: Para el Generador) ---
-model PresetSize {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  type      String   @default("clothing")
-  createdAt DateTime @default(now())
-}
-
-model PresetColor {
-  id        String   @id @default(cuid())
-  name      String
-  hex       String
-  createdAt DateTime @default(now())
-
-  @@unique([name, hex])
-}
-
-// --- Orders ---
-enum OrderStatus {
-  PENDING_PAYMENT
-  PAID
-  EXPIRED
-  CANCELLED
-  RETURN_REQUESTED
-  RETURNED
-}
-
-enum ShippingType {
-  HOME
-  STORE
-  PICKUP
-}
-
-model Order {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  email    String
-  currency String
-
-  itemsTotalMinor   Int
-  shippingCostMinor Int @default(0)
-  taxMinor          Int @default(0)
-  totalMinor        Int
-
-  status OrderStatus @default(PENDING_PAYMENT)
-
-  returnTrackingId String?
-
-  userId String?
-  user   User?   @relation(fields: [userId], references: [id])
-
-  shippingType ShippingType? @default(HOME)
-  firstName    String?
-  lastName     String?
-  phone        String?
-  street       String?
-  addressExtra String?
-  postalCode   String?
-  province     String?
-  city         String?
-  country      String?
-
-  storeLocationId  String?
-  pickupLocationId String?
-  pickupSearch     String?
-  paymentMethod    String?
-
-  returnReason    String? @db.Text
-  rejectionReason String? @db.Text
-
-  history OrderHistory[]
-  items   OrderItem[]
-
-  @@index([createdAt])
-  @@index([status, createdAt])
-  @@index([userId, createdAt])
-}
-
-model OrderHistory {
-  id      String @id @default(cuid())
-  orderId String
-  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
-  status OrderStatus
-  reason String?     @db.Text
-  actor  String
-
-  details   Json?
-  createdAt DateTime @default(now())
-
-  @@index([orderId])
-}
-
-model OrderItem {
-  id String @id @default(cuid())
-
-  orderId String
-  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
-
-  variantId String?
-  variant   ProductVariant? @relation(fields: [variantId], references: [id])
-
-  nameSnapshot       String
-  priceMinorSnapshot Int
-  sizeSnapshot       String?
-  colorSnapshot      String?
-
-  quantity                Int
-  quantityReturned        Int @default(0)
-  quantityReturnRequested Int @default(0)
-  subtotalMinor           Int
-
-  @@index([orderId])
-  @@index([productId])
-  @@index([variantId])
-}
-
-// --- Usuarios & Auth ---
+// ==========================================
+// 1. USUARIOS Y AUTENTICACIÓN (NextAuth)
+// ==========================================
 model User {
-  id   String  @id @default(cuid())
-  name String?
-
-  firstName     String?
-  lastName      String?
-  phone         String?
+  id            String    @id @default(cuid())
+  name          String?
   email         String?   @unique
   emailVerified DateTime?
   image         String?
   passwordHash  String?
   role          String    @default("user")
 
-  accounts Account[]
-  sessions Session[]
-  orders   Order[]
+  // Perfil 
+  firstName String?
+  lastName  String?
+  phone     String?
 
+  // Relaciones
+  accounts  Account[]
+  sessions  Session[]
   addresses UserAddress[]
+  orders    Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model UserAddress {
@@ -231,6 +39,7 @@ model UserAddress {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  // Datos de envío
   name       String?
   firstName  String
   lastName   String
@@ -283,4 +92,236 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+// ==========================================
+// 2. CATÁLOGO DE PRODUCTOS
+// ==========================================
+model Category {
+  id   String @id @default(cuid())
+  slug String @unique
+  name String
+  sort Int    @default(0)
+
+  parentId String?
+  parent   Category?  @relation("SubCategories", fields: [parentId], references: [id])
+  children Category[] @relation("SubCategories")
+  products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String
+  description String
+  isArchived  Boolean @default(false)
+
+  // Precio Base
+  priceCents Int
+  currency   String @default("EUR")
+
+  // Relaciones
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  images     ProductImage[]
+  variants   ProductVariant[]
+  orderItems OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([isArchived])
+}
+
+model ProductVariant {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  size     String
+  color    String
+  colorHex String?
+
+  stock      Int     @default(0)
+  priceCents Int?
+  isActive   Boolean @default(true)
+
+  orderItems OrderItem[]
+
+  @@unique([productId, size, color])
+  @@index([productId])
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  url   String
+  alt   String
+  sort  Int     @default(0)
+  color String?
+
+  @@unique([productId, sort])
+  @@index([productId, color])
+}
+
+// --- Atributos Globales (Para Selectores) ---
+model PresetSize {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  type      String   @default("clothing")
+  createdAt DateTime @default(now())
+}
+
+model PresetColor {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  hex       String
+  createdAt DateTime @default(now())
+
+  @@unique([name, hex])
+}
+
+// ==========================================
+// 3. PEDIDOS (ORDERS)
+// ==========================================
+enum PaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+  PARTIALLY_REFUNDED
+  FAILED
+}
+
+enum FulfillmentStatus {
+  UNFULFILLED
+  PREPARING
+  READY_FOR_PICKUP
+  SHIPPED
+  DELIVERED
+  RETURNED
+}
+
+enum HistoryType {
+  STATUS_CHANGE
+  INCIDENT
+}
+
+enum ShippingType {
+  HOME
+  STORE
+  PICKUP
+}
+
+model Order {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  paymentStatus     PaymentStatus     @default(PENDING)
+  fulfillmentStatus FulfillmentStatus @default(UNFULFILLED)
+  isCancelled       Boolean           @default(false)
+
+  currency          String
+  itemsTotalMinor   Int
+  shippingCostMinor Int     @default(0)
+  taxMinor          Int     @default(0)
+  totalMinor        Int
+  paymentMethod     String?
+
+  // --- Logística de Envío ---
+  carrier        String?
+  trackingNumber String?
+  deliveredAt    DateTime?
+
+  // --- Logística de Devolución ---
+  returnTrackingId String?
+  returnReason     String? @db.Text
+  rejectionReason  String? @db.Text
+
+  // --- Relaciones ---
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+
+  items   OrderItem[]
+  history OrderHistory[]
+
+  // --- Datos de Envío / Entrega (Snapshots) ---
+  shippingType ShippingType? @default(HOME)
+
+  // Contacto
+  email     String
+  firstName String?
+  lastName  String?
+  phone     String?
+
+  // Dirección física 
+  street       String?
+  addressExtra String?
+  postalCode   String?
+  province     String?
+  city         String?
+  country      String?
+
+  // Puntos de recogida
+  storeLocationId  String?
+  pickupLocationId String?
+  pickupSearch     String?
+
+  @@index([createdAt])
+  @@index([paymentStatus])
+  @@index([fulfillmentStatus])
+  @@index([userId, createdAt])
+}
+
+model OrderItem {
+  id String @id @default(cuid())
+
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  // Producto Original (Referencia)
+  productId String
+  product   Product         @relation(fields: [productId], references: [id])
+  variantId String?
+  variant   ProductVariant? @relation(fields: [variantId], references: [id])
+
+  // Snapshot (Datos congelados al momento de compra)
+  nameSnapshot       String
+  priceMinorSnapshot Int
+  sizeSnapshot       String?
+  colorSnapshot      String?
+  subtotalMinor      Int
+
+  // Cantidades
+  quantity                Int
+  quantityReturned        Int @default(0)
+  quantityReturnRequested Int @default(0)
+
+  @@index([orderId])
+  @@index([productId])
+  @@index([variantId])
+}
+
+model OrderHistory {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  type HistoryType @default(STATUS_CHANGE)
+
+  snapshotStatus String
+
+  reason    String?  @db.Text
+  actor     String
+  details   Json?
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
 }
