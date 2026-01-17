@@ -48,6 +48,7 @@ export async function requestReturnUserAction(
     await requestOrderReturn(orderId, session.user.id, reason, items);
 
     revalidatePath(`/account/orders/${orderId}`);
+    revalidatePath("/account/orders");
     return { success: true };
   } catch (error: any) {
     console.error(error);
