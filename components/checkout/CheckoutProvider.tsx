@@ -13,6 +13,8 @@ type Props = {
 
 export function CheckoutProvider({ children, defaultValues }: Props) {
   const initialValues: CreateOrderInput = useMemo(() => {
+    const safeDefaults = defaultValues || {};
+
     const baseValues = {
       email: defaultValues?.email ?? "",
       firstName: defaultValues?.firstName ?? "",
@@ -50,7 +52,7 @@ export function CheckoutProvider({ children, defaultValues }: Props) {
         city: null,
         province: null,
         postalCode: null,
-        addressExtra: null,
+        details: null,
         country: null,
         storeLocationId: null,
       };
@@ -63,7 +65,7 @@ export function CheckoutProvider({ children, defaultValues }: Props) {
       city: defaultValues?.city ?? "",
       province: defaultValues?.province ?? "",
       postalCode: defaultValues?.postalCode ?? "",
-      addressExtra: defaultValues?.addressExtra ?? "",
+      details: defaultValues?.details ?? "",
       country: defaultValues?.country ?? "España",
       storeLocationId: null,
       pickupLocationId: null,

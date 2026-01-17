@@ -134,11 +134,14 @@ export function AddressFormDialog({ address, trigger }: Props) {
           </div>
 
           <div className="space-y-2">
-            <Label>Detalles adicionales (Opcional)</Label>
+            <Label>Piso, Puerta, Escalera...</Label>
             <Input
               {...register("details")}
               placeholder="Piso 4B, Bloque A..."
             />
+            {errors.details && (
+              <p className="text-xs text-red-500">{errors.details.message}</p>
+            )}
           </div>
 
           {/* Ciudad/Provincia/CP */}

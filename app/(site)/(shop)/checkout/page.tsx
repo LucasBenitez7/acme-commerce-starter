@@ -48,7 +48,10 @@ export default async function CheckoutPage() {
                   </h1>
                 </div>
 
-                <CheckoutForm savedAddresses={savedAddresses} />
+                <CheckoutForm
+                  savedAddresses={savedAddresses}
+                  userId={user?.id}
+                />
               </div>
             </div>
 

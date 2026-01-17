@@ -13,12 +13,14 @@ type Props = {
   initialData?: Partial<UserAddress> | null;
   onCancel: () => void;
   onSuccess: (address: UserAddress) => void;
+  isGuest: boolean;
 };
 
 export function useShippingAddressForm({
   initialData,
   onCancel,
   onSuccess,
+  isGuest,
 }: Props) {
   const { setValue, trigger, getValues } = useFormContext<CreateOrderInput>();
   const [isPending, startTransition] = useTransition();
@@ -34,7 +36,7 @@ export function useShippingAddressForm({
       setValue("city", initialData.city || "");
       setValue("province", initialData.province || "");
       setValue("country", initialData.country || "España");
-      setValue("addressExtra", initialData.details || "");
+      setValue("details", initialData.details || "");
       setValue("isDefault", initialData.isDefault || false);
     } else {
       setValue("isDefault", false);
@@ -61,6 +63,32 @@ export function useShippingAddressForm({
 
     const values = getValues();
 
+    if (isGuest) {
+      // --- CAMINO A: INVITADO ---
+      const guestAddress = {
+        id: "guest-temp-id",
+        userId: "guest",
+        firstName: values.firstName,
+        lastName: values.lastName,
+        phone: values.phone,
+        street: values.street!,
+        details: values.details,
+        postalCode: values.postalCode!,
+        city: values.city!,
+        province: values.province!,
+        country: values.country!,
+        isDefault: false,
+        name: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      toast.success("Dirección de entrega establecida");
+      onSuccess(guestAddress as UserAddress);
+      return;
+    }
+
+    // --- CAMINO B: USUARIO REGISTRADO ---
     startTransition(async () => {
       const res = await upsertAddressAction({
         id: initialData?.id,
@@ -72,7 +100,7 @@ export function useShippingAddressForm({
         city: values.city!,
         province: values.province!,
         country: values.country!,
-        details: values.addressExtra,
+        details: values.details,
         isDefault: !!values.isDefault,
       });
 

@@ -51,7 +51,7 @@ export function useCheckout(savedAddresses: UserAddress[]) {
         setValue("lastName", addr.lastName);
         setValue("phone", addr.phone || "");
         setValue("street", addr.street);
-        setValue("addressExtra", addr.details || "");
+        setValue("details", addr.details || "");
         setValue("postalCode", addr.postalCode);
         setValue("city", addr.city);
         setValue("province", addr.province);
@@ -91,7 +91,7 @@ export function useCheckout(savedAddresses: UserAddress[]) {
       if (res?.error) {
         toast.error(res.error);
       } else if (res?.success && res?.orderId) {
-        toast.success("¡Pedido creado!");
+        toast.success("Pedido realizado correctamente");
         router.push(`/checkout/success?orderId=${res.orderId}`);
       }
     } catch (err) {

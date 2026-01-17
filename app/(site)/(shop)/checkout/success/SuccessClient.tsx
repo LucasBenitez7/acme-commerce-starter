@@ -44,7 +44,7 @@ export function SuccessClient({ order }: { order: DisplayOrder }) {
         <Card>
           <CardHeader className="py-3 pb-1 px-4 border-b">
             <CardTitle className="text-lg font-semibold flex items-center">
-              Información de contacto
+              Detalles del pedido
             </CardTitle>
           </CardHeader>
           <CardContent className="grid md:grid-cols-2 gap-6 p-4 text-sm">
@@ -55,6 +55,9 @@ export function SuccessClient({ order }: { order: DisplayOrder }) {
                 </p>
                 <p>{order.contact.phone}</p>
 
+                <p className="text-foreground font-medium mt-2">
+                  {order.shippingInfo.label}
+                </p>
                 <div className="space-y-1">
                   {order.shippingInfo.addressLines.map((line, i) => (
                     <p key={i}>{line} </p>
@@ -69,7 +72,7 @@ export function SuccessClient({ order }: { order: DisplayOrder }) {
         <Card className="overflow-hidden">
           <CardHeader className="py-4 pb-2 px-4 border-b">
             <CardTitle className="text-lg font-semibold flex items-center gap-1">
-              Resumen de la compra{" "}
+              Productos
               <span className="text-base">({totalItemsQty})</span>
             </CardTitle>
           </CardHeader>
@@ -107,11 +110,9 @@ export function SuccessClient({ order }: { order: DisplayOrder }) {
                         <p className="text-xs font-medium mt-1">
                           {item.subtitle}
                         </p>
-                        <p className="text-xs  font-medium">
-                          Cant: {item.quantity}
-                        </p>
+                        <p className="text-xs  font-medium">X{item.quantity}</p>
                       </div>
-                      <p className="font-medium text-sm tabular-nums text-right">
+                      <p className="font-medium text-sm tabular-nums text-right mt-1">
                         {formatCurrency(
                           item.price * item.quantity,
                           DEFAULT_CURRENCY,

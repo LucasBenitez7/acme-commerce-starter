@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 
 import { Container } from "@/components/ui";
 
-import { getOrderFullDetails } from "@/lib/orders/queries";
+import { getOrderSuccessDetails } from "@/lib/account/queries";
 import { formatOrderForDisplay } from "@/lib/orders/utils";
 
 import { SuccessClient } from "./SuccessClient";
@@ -18,11 +18,11 @@ export default async function SuccessPage({ searchParams }: Props) {
 
   if (!orderId) redirect("/");
 
-  const rawOrder = await getOrderFullDetails(orderId);
+  const order = await getOrderSuccessDetails(orderId);
 
-  if (!rawOrder) redirect("/");
+  if (!order) redirect("/");
 
-  const clientOrder = formatOrderForDisplay(rawOrder);
+  const clientOrder = formatOrderForDisplay(order);
 
   return (
     <Container className="py-6 px-4 lg:py-10">

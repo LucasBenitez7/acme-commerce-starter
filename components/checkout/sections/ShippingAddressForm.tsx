@@ -13,6 +13,7 @@ type Props = {
   initialData?: Partial<UserAddress> | null;
   onCancel: () => void;
   onSuccess: (address: UserAddress) => void;
+  isGuest: boolean;
 };
 
 export function ShippingAddressForm(props: Props) {
@@ -82,8 +83,11 @@ export function ShippingAddressForm(props: Props) {
         </div>
 
         <div className="space-y-1">
-          <Label>Detalles (Piso, puerta...)</Label>
-          <Input {...register("addressExtra")} placeholder="Opcional" />
+          <Label>Piso, Puerta, Escalera...</Label>
+          <Input {...register("details")} />
+          {errors.details && (
+            <p className="text-red-500 text-xs">{errors.details.message}</p>
+          )}
         </div>
 
         {/* --- CP / CIUDAD / PROVINCIA --- */}
@@ -124,17 +128,19 @@ export function ShippingAddressForm(props: Props) {
         </div>
 
         {/* --- CHECKBOX: GUARDAR COMO PREDETERMINADA --- */}
-        <div className="flex items-center space-x-2 pt-2 border-t mt-2">
-          <Checkbox
-            id="def"
-            // Conectamos manualmente el checkbox al register del padre
-            checked={isDefault}
-            onCheckedChange={(c) => setValue("isDefault", c === true)}
-          />
-          <Label htmlFor="def" className="font-medium cursor-pointer text-sm">
-            Guardar como predeterminada
-          </Label>
-        </div>
+
+        {!props.isGuest && (
+          <div className="flex items-center space-x-2 pt-2 border-t mt-2">
+            <Checkbox
+              id="def"
+              checked={isDefault}
+              onCheckedChange={(c) => setValue("isDefault", c === true)}
+            />
+            <Label htmlFor="def" className="font-medium cursor-pointer text-sm">
+              Guardar como predeterminada
+            </Label>
+          </div>
+        )}
 
         {/* --- BOTONES --- */}
         <div className="flex gap-4 pt-2">
@@ -147,13 +153,12 @@ export function ShippingAddressForm(props: Props) {
           >
             Cancelar
           </Button>
-          <Button
-            type="button"
-            onClick={handleSaveAndUse}
-            disabled={isPending}
-            className="px-4 bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            {isPending ? "Guardando..." : "Guardar y Usar"}
+          <Button type="button" onClick={handleSaveAndUse} disabled={isPending}>
+            {isPending
+              ? "Procesando..."
+              : props.isGuest
+                ? "Usar esta dirección"
+                : "Guardar y Usar"}
           </Button>
         </div>
       </div>

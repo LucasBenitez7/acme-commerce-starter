@@ -15,7 +15,7 @@ export const baseAddressSchema = z.object({
 
   street: z.string().trim().min(5, "Dirección muy corta"),
 
-  details: z.string().trim().optional(),
+  details: z.string().trim().min(1, "Requerido"),
 
   postalCode: z
     .string()

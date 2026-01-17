@@ -9,7 +9,12 @@ import { prisma } from "@/lib/db";
 // --- CREAR / EDITAR / UPSERT ---
 export async function upsertAddressAction(data: any) {
   const session = await auth();
-  if (!session?.user?.id) return { error: "No autorizado" };
+  if (!session?.user?.id) {
+    return {
+      error: "Usuario no identificado",
+      address: { ...data, id: "guest-temp-id" },
+    };
+  }
 
   const parsed = addressFormSchema.safeParse(data);
 
@@ -57,16 +62,10 @@ export async function upsertAddressAction(data: any) {
           },
         });
       } else {
-        // CREAR
-        const count = await tx.userAddress.count({
-          where: { userId: session.user.id },
-        });
-        const isFirst = count === 0;
-
         resultAddress = await tx.userAddress.create({
           data: {
             ...dataToSave,
-            isDefault: isFirst || (fields.isDefault ?? false),
+            isDefault: fields.isDefault ?? false,
           },
         });
       }

@@ -9,9 +9,10 @@ import { ShippingSection } from "./sections/ShippingSection";
 
 type Props = {
   savedAddresses?: UserAddress[];
+  userId?: string;
 };
 
-export function CheckoutForm({ savedAddresses = [] }: Props) {
+export function CheckoutForm({ savedAddresses = [], userId }: Props) {
   const {
     selectedAddressId,
     setSelectedAddressId,
@@ -19,6 +20,8 @@ export function CheckoutForm({ savedAddresses = [] }: Props) {
     setIsAddressConfirmed,
     onCheckoutSubmit,
   } = useCheckout(savedAddresses);
+
+  const isGuestUser = !userId;
 
   return (
     <form
@@ -33,6 +36,7 @@ export function CheckoutForm({ savedAddresses = [] }: Props) {
         isAddressConfirmed={isAddressConfirmed}
         onConfirmAddress={() => setIsAddressConfirmed(true)}
         onChangeAddress={() => setIsAddressConfirmed(false)}
+        isGuest={isGuestUser}
       />
 
       <PaymentSection isOpen={isAddressConfirmed} />
