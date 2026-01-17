@@ -1,6 +1,6 @@
 import "server-only";
 
-import { type Prisma, type OrderStatus } from "@prisma/client";
+import { type Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
 
@@ -14,7 +14,8 @@ export async function getAdminOrders({
   page = 1,
   limit = 20,
   statusTab,
-  statusFilter,
+  paymentFilter,
+  fulfillmentFilter,
   sort,
   query,
 }: GetOrdersParams) {
@@ -22,7 +23,7 @@ export async function getAdminOrders({
 
   const where: Prisma.OrderWhereInput = {};
 
-  // A. Búsqueda por texto (ID, Email, Nombre)
+  // --- 1. BUSCADOR GLOBAL ---
   if (query) {
     where.OR = [
       { id: { contains: query, mode: "insensitive" } },
@@ -32,27 +33,71 @@ export async function getAdminOrders({
     ];
   }
 
-  // B. Filtros de Estado (Prioridad: Filtro explícito > Tabs)
-  if (statusFilter && statusFilter.length > 0) {
-    where.status = { in: statusFilter };
-  } else if (statusTab) {
-    if (statusTab === "PAID") {
-      where.status = { in: ["PAID", "RETURN_REQUESTED"] };
-    } else if (statusTab === "RETURNS") {
-      where.OR = [
-        { status: "RETURN_REQUESTED" },
-        { status: "RETURNED" },
-        {
-          status: "PAID",
-          items: { some: { quantityReturned: { gt: 0 } } },
-        },
-      ];
-    } else {
-      where.status = statusTab as OrderStatus;
+  // --- 2. FILTROS DEL TOOLBAR (Payment / Logistics) ---
+  // Solo aplicamos esto si NO estamos en un Tab especial que sobrescriba la lógica
+  if (paymentFilter && paymentFilter.length > 0) {
+    where.paymentStatus = { in: paymentFilter };
+  }
+  if (fulfillmentFilter && fulfillmentFilter.length > 0) {
+    where.fulfillmentStatus = { in: fulfillmentFilter };
+  }
+
+  // --- 3. LÓGICA DE TABS (Aquí estaba el fallo) ---
+  if (statusTab) {
+    switch (statusTab) {
+      // A. PENDIENTES DE PAGO
+      case "PENDING_PAYMENT":
+        where.paymentStatus = "PENDING";
+        where.isCancelled = false;
+        break;
+
+      // B. EN PROCESO (OJO: Aquí corregí "IN_PROGRESS" por "ACTIVE")
+      case "ACTIVE":
+        where.paymentStatus = "PAID";
+        where.isCancelled = false;
+        // Solo mostramos lo que NO ha sido entregado ni devuelto
+        where.fulfillmentStatus = {
+          in: ["UNFULFILLED", "PREPARING", "READY_FOR_PICKUP", "SHIPPED"],
+        };
+        break;
+
+      // C. ENTREGADOS
+      case "COMPLETED":
+        where.fulfillmentStatus = "DELIVERED";
+        where.isCancelled = false;
+        break;
+
+      // D. DEVOLUCIONES / REEMBOLSOS
+      // Solo mostramos pedidos que fueron PAGADOS y luego Reembolsados
+      case "RETURNS":
+        where.isCancelled = false; // Si está cancelado manual, va al otro tab
+        where.paymentStatus = { in: ["REFUNDED", "PARTIALLY_REFUNDED"] };
+        break;
+
+      // E. EXPIRADOS (Lógica del Cron)
+      // Cancelado + Fallido + Logística SIN TOCAR (Unfulfilled)
+      case "EXPIRED":
+        where.isCancelled = true;
+        where.paymentStatus = "FAILED";
+        where.fulfillmentStatus = "UNFULFILLED";
+        break;
+
+      // F. CANCELADOS (Manuales)
+      // Aquí entran los que tú cancelaste a mano siendo pendientes.
+      // (Si cancelas uno pagado, se convierte en REFUNDED y va al tab RETURNS)
+      case "CANCELLED":
+        where.isCancelled = true;
+        // Para diferenciarlo del expirado: El manual tiene "RETURNED" en logística
+        // o si permites cancelar sin reembolso (raro), lo cazamos aquí.
+        where.OR = [
+          { fulfillmentStatus: "RETURNED" },
+          { paymentStatus: { not: "FAILED" } }, // Por si acaso hay un cancelado raro
+        ];
+        break;
     }
   }
 
-  // 2. Ordenamiento
+  // 4. Ordenamiento
   let orderBy:
     | Prisma.OrderOrderByWithRelationInput
     | Prisma.OrderOrderByWithRelationInput[] = { createdAt: "desc" };
@@ -67,7 +112,6 @@ export async function getAdminOrders({
     case "total_asc":
       orderBy = { totalMinor: "asc" };
       break;
-
     case "customer_asc":
       orderBy = [{ firstName: "asc" }, { lastName: "asc" }];
       break;
@@ -76,7 +120,7 @@ export async function getAdminOrders({
       break;
   }
 
-  // 3. Consulta a DB
+  // 5. Ejecución
   const [ordersRaw, total] = await Promise.all([
     prisma.order.findMany({
       where,
@@ -93,6 +137,7 @@ export async function getAdminOrders({
     prisma.order.count({ where }),
   ]);
 
+  // 6. Mapeo a DTO (Igual que tenías)
   const orders: AdminOrderListItem[] = ordersRaw.map((o) => {
     const refundedAmount = o.items.reduce(
       (acc, item) => acc + item.priceMinorSnapshot * item.quantityReturned,
@@ -102,7 +147,9 @@ export async function getAdminOrders({
     return {
       id: o.id,
       createdAt: o.createdAt,
-      status: o.status,
+      paymentStatus: o.paymentStatus,
+      fulfillmentStatus: o.fulfillmentStatus,
+      isCancelled: o.isCancelled,
       totalMinor: o.totalMinor,
       currency: o.currency,
       itemsCount: o.items.length,
@@ -126,7 +173,6 @@ export async function getAdminOrders({
   return { orders, total, totalPages: Math.ceil(total / limit) };
 }
 
-// --- Detalle de Orden ---
 export async function getAdminOrderById(
   id: string,
 ): Promise<AdminOrderDetail | null> {
@@ -156,7 +202,6 @@ export async function getAdminOrderById(
     (acc, item) => acc + item.priceMinorSnapshot * item.quantityReturned,
     0,
   );
-
   const originalQty = order.items.reduce((acc, i) => acc + i.quantity, 0);
   const returnedQty = order.items.reduce(
     (acc, i) => acc + i.quantityReturned,
@@ -174,30 +219,7 @@ export async function getAdminOrderById(
   };
 }
 
-export async function getOrderFullDetails(orderId: string) {
-  return await prisma.order.findUnique({
-    where: { id: orderId },
-    include: {
-      items: {
-        include: {
-          product: {
-            select: {
-              slug: true,
-              images: {
-                orderBy: { sort: "asc" },
-                select: { url: true, color: true },
-              },
-            },
-          },
-        },
-      },
-
-      history: { orderBy: { createdAt: "desc" } },
-    },
-  });
-}
-
-// --- Query Ligera para Pantalla de Devolución ---
+// Helper ligero para devoluciones
 export async function getOrderForReturn(orderId: string) {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
@@ -216,8 +238,5 @@ export async function getOrderForReturn(orderId: string) {
       },
     },
   });
-
-  if (!order) return null;
-
   return order;
 }

@@ -1,69 +1,101 @@
 import "server-only";
-import { type OrderStatus } from "@prisma/client";
+import { type PaymentStatus, type FulfillmentStatus } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
+import {
+  PAYMENT_STATUS_CONFIG,
+  FULFILLMENT_STATUS_CONFIG,
+  SYSTEM_MSGS,
+} from "@/lib/orders/constants";
 
-const STATUS_READABLE: Record<string, string> = {
-  PAID: "Pago confirmado",
-  PENDING_PAYMENT: "Marcado como pendiente",
-  CANCELLED: "Pedido cancelado",
-  SENT: "Pedido enviado",
-  DELIVERED: "Pedido entregado",
-  RETURNED: "Devolución completada",
-};
+import type { OrderActionActor } from "@/lib/orders/types";
 
-// --- ADMIN: Actualizar Estado (Genérico) ---
-export async function updateOrderStatus(
+// 1. ADMIN: Actualizar Estado de PAGO (Dinero)
+export async function updatePaymentStatus(
   orderId: string,
-  newStatus: OrderStatus,
-  actorName: string = "Admin",
+  newStatus: PaymentStatus,
+  actorName: OrderActionActor = "admin",
 ) {
   return prisma.$transaction(async (tx) => {
     const order = await tx.order.findUnique({
       where: { id: orderId },
-      include: { items: true },
     });
 
     if (!order) throw new Error("Pedido no encontrado");
 
-    if (
-      newStatus === "CANCELLED" &&
-      !["CANCELLED", "RETURNED", "EXPIRED"].includes(order.status)
-    ) {
-      for (const item of order.items) {
-        const remainingQty = item.quantity - item.quantityReturned;
-        if (remainingQty > 0 && item.variantId) {
-          await tx.productVariant.update({
-            where: { id: item.variantId },
-            data: { stock: { increment: remainingQty } },
-          });
-        }
-      }
-    }
-
     await tx.order.update({
       where: { id: orderId },
-      data: { status: newStatus },
+      data: { paymentStatus: newStatus },
     });
+
+    const readableLabel = PAYMENT_STATUS_CONFIG[newStatus]?.label || newStatus;
 
     await tx.orderHistory.create({
       data: {
         orderId,
-        status: newStatus,
+        type: "STATUS_CHANGE",
+        snapshotStatus: readableLabel,
         actor: actorName,
-        reason: STATUS_READABLE[newStatus]
-          ? `Estado actualizado: ${STATUS_READABLE[newStatus]}`
-          : `Estado actualizado a ${newStatus}`,
+        reason: `Estado de pago actualizado a: ${readableLabel}`,
       },
     });
   });
 }
 
-// --- USER / ADMIN: Cancelación Específica ---
+// 2. ADMIN: Actualizar Estado de LOGÍSTICA (La Caja)
+export async function updateFulfillmentStatus(
+  orderId: string,
+  newStatus: FulfillmentStatus,
+  actorName: OrderActionActor = "admin",
+) {
+  return prisma.$transaction(async (tx) => {
+    const order = await tx.order.findUnique({
+      where: { id: orderId },
+    });
+
+    if (!order) throw new Error("Pedido no encontrado");
+
+    if (
+      newStatus === "PREPARING" ||
+      newStatus === "SHIPPED" ||
+      newStatus === "DELIVERED"
+    ) {
+      if (order.paymentStatus !== "PAID") {
+        throw new Error("NO SE PUEDE ENVIAR: El pedido aún no ha sido pagado.");
+      }
+    }
+
+    const dataToUpdate: any = { fulfillmentStatus: newStatus };
+
+    if (newStatus === "DELIVERED") {
+      dataToUpdate.deliveredAt = new Date();
+    }
+
+    await tx.order.update({
+      where: { id: orderId },
+      data: dataToUpdate,
+    });
+
+    const readableLabel =
+      FULFILLMENT_STATUS_CONFIG[newStatus]?.label || newStatus;
+
+    await tx.orderHistory.create({
+      data: {
+        orderId,
+        type: "STATUS_CHANGE",
+        snapshotStatus: readableLabel,
+        actor: actorName,
+        reason: `Estado: ${readableLabel}`,
+      },
+    });
+  });
+}
+
+// 3. USER / ADMIN: Cancelar Pedido
 export async function cancelOrder(
   orderId: string,
   userId?: string,
-  actor = "system",
+  actor: OrderActionActor = "system",
 ) {
   return prisma.$transaction(async (tx) => {
     const order = await tx.order.findUnique({
@@ -75,11 +107,34 @@ export async function cancelOrder(
 
     if (userId && order.userId !== userId) throw new Error("No autorizado");
 
-    if (order.status !== "PENDING_PAYMENT") {
-      if (actor === "user")
-        throw new Error("Solo puedes cancelar pedidos pendientes");
+    if (order.isCancelled) {
+      throw new Error("El pedido ya está cancelado.");
     }
 
+    if (
+      order.fulfillmentStatus === "SHIPPED" ||
+      order.fulfillmentStatus === "DELIVERED"
+    ) {
+      throw new Error(
+        "El pedido ya ha sido enviado/entregado. No se puede cancelar, debe procesarse como devolución.",
+      );
+    }
+
+    if (actor === "user") {
+      if (order.paymentStatus !== "PENDING") {
+        throw new Error(
+          "No puedes cancelar un pedido pagado. Contacta con soporte.",
+        );
+      }
+      if (order.fulfillmentStatus !== "UNFULFILLED") {
+        throw new Error(
+          "El pedido ya se está preparando. No se puede cancelar.",
+        );
+      }
+    }
+
+    // --- PROCESO DE CANCELACIÓN ---
+    // A. Devolución de Stock
     for (const item of order.items) {
       if (item.variantId) {
         await tx.productVariant.update({
@@ -89,18 +144,45 @@ export async function cancelOrder(
       }
     }
 
+    // B. Calcular nuevo estado de pago
+    let newPaymentStatus = order.paymentStatus;
+    if (
+      actor !== "user" &&
+      (order.paymentStatus === "PAID" ||
+        order.paymentStatus === "PARTIALLY_REFUNDED")
+    ) {
+      newPaymentStatus = "REFUNDED";
+    } else if (order.paymentStatus === "PENDING") {
+      newPaymentStatus = "FAILED";
+    }
+
+    // C. Actualizar Order
     await tx.order.update({
       where: { id: orderId },
-      data: { status: "CANCELLED" },
+      data: {
+        isCancelled: true,
+        paymentStatus: newPaymentStatus,
+        fulfillmentStatus: "RETURNED",
+      },
     });
+
+    let historyReason = "";
+
+    if (actor === "user") {
+      historyReason = SYSTEM_MSGS.CANCELLED_BY_USER;
+    } else if (newPaymentStatus === "REFUNDED") {
+      historyReason = SYSTEM_MSGS.CANCELLED_BY_ADMIN_REFUND;
+    } else {
+      historyReason = SYSTEM_MSGS.CANCELLED_BY_ADMIN;
+    }
 
     await tx.orderHistory.create({
       data: {
         orderId,
-        status: "CANCELLED",
+        type: "INCIDENT",
+        snapshotStatus: "Cancelado",
         actor,
-        reason:
-          actor === "user" ? "Cancelado por cliente" : "Cancelado por admin",
+        reason: historyReason,
       },
     });
   });

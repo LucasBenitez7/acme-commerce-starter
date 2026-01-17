@@ -1,5 +1,5 @@
 import "server-only";
-import { OrderStatus, ShippingType } from "@prisma/client";
+import { PaymentStatus, FulfillmentStatus, ShippingType } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
 import { SHIPPING_TYPE_MAP } from "@/lib/locations";
@@ -9,7 +9,6 @@ import type { CreateOrderInput } from "../schema";
 export async function createOrder(input: CreateOrderInput, userId?: string) {
   const { cartItems, email, firstName, lastName, phone, shippingType } = input;
 
-  // Iniciamos la transacción. Si algo falla, NADA se guarda.
   return await prisma.$transaction(async (tx) => {
     let calculatedTotal = 0;
     const orderItemsData = [];
@@ -66,7 +65,7 @@ export async function createOrder(input: CreateOrderInput, userId?: string) {
 
     if (input.shippingType === "home") {
       street = input.street;
-      addressExtra = input.addressExtra ?? null;
+      addressExtra = input.details ?? null;
       postalCode = input.postalCode;
       city = input.city;
       province = input.province;
@@ -82,7 +81,8 @@ export async function createOrder(input: CreateOrderInput, userId?: string) {
     const newOrder = await tx.order.create({
       data: {
         userId: userId,
-        status: OrderStatus.PENDING_PAYMENT,
+        paymentStatus: "PENDING",
+        fulfillmentStatus: "UNFULFILLED",
         email,
         currency: "EUR",
         itemsTotalMinor: calculatedTotal,
@@ -105,6 +105,16 @@ export async function createOrder(input: CreateOrderInput, userId?: string) {
         items: {
           create: orderItemsData,
         },
+      },
+    });
+
+    await tx.orderHistory.create({
+      data: {
+        orderId: newOrder.id,
+        type: "STATUS_CHANGE",
+        snapshotStatus: "Pedido Creado",
+        actor: userId ? "user" : "guest",
+        reason: "Creación del pedido",
       },
     });
 

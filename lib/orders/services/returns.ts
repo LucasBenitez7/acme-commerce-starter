@@ -1,9 +1,8 @@
 import "server-only";
-import { type OrderStatus } from "@prisma/client";
-
 import { prisma } from "@/lib/db";
+import { SYSTEM_MSGS } from "@/lib/orders/constants";
 
-import type { HistoryDetailsJson } from "../types";
+import type { HistoryDetailsJson, OrderActionActor } from "../types";
 
 export type ReturnItemInput = {
   itemId: string;
@@ -27,14 +26,15 @@ function getHistoryItem(dbItem: any, qty: number) {
   };
 }
 
-// --- ADMIN: Procesar Devolución (Aprobar y devolver stock) ---
+// 1. ADMIN: Procesar Devolución (Aprobar y devolver stock)
 export async function processOrderReturn(
   orderId: string,
   itemsToReturn: ReturnItemInput[],
   rejectionNote?: string,
-  actorName: string = "Admin",
+  actorName: OrderActionActor = "admin",
 ) {
   return prisma.$transaction(async (tx) => {
+    // A. Obtener items actuales
     const orderItems = await tx.orderItem.findMany({
       where: { orderId },
     });
@@ -43,15 +43,18 @@ export async function processOrderReturn(
 
     let totalOriginalQty = 0;
     let totalReturnedSoFar = 0;
+    let currentReturnQty = 0;
 
     const acceptedHistoryItems: HistoryDetailsJson["items"] = [];
     const rejectedHistoryItems: HistoryDetailsJson["items"] = [];
 
+    // Calcular totales previos
     for (const item of orderItems) {
       totalOriginalQty += item.quantity;
       totalReturnedSoFar += item.quantityReturned;
     }
 
+    // B. Procesar cada item devuelto
     for (const input of itemsToReturn) {
       if (input.qtyToReturn <= 0) continue;
 
@@ -67,6 +70,7 @@ export async function processOrderReturn(
         throw new Error(`Cantidad excesiva para ${dbItem.nameSnapshot}`);
       }
 
+      // Actualizar Item
       await tx.orderItem.update({
         where: { id: input.itemId },
         data: {
@@ -75,8 +79,9 @@ export async function processOrderReturn(
         },
       });
 
-      totalReturnedSoFar += input.qtyToReturn;
+      currentReturnQty += input.qtyToReturn;
 
+      // Devolver Stock
       if (dbItem.variantId) {
         await tx.productVariant.update({
           where: { id: dbItem.variantId },
@@ -87,10 +92,10 @@ export async function processOrderReturn(
       acceptedHistoryItems.push(getHistoryItem(dbItem, input.qtyToReturn));
     }
 
+    // C. Rechazar lo que sobró (si había solicitud y no se aceptó todo)
     for (const dbItem of orderItems) {
       if (dbItem.quantityReturnRequested > 0) {
         const processed = itemsToReturn.find((i) => i.itemId === dbItem.id);
-
         const acceptedQty = processed ? processed.qtyToReturn : 0;
         const rejectedQty = dbItem.quantityReturnRequested - acceptedQty;
 
@@ -107,28 +112,34 @@ export async function processOrderReturn(
       }
     }
 
-    let finalStatus: OrderStatus = "PAID";
-    if (totalReturnedSoFar >= totalOriginalQty) {
-      finalStatus = "RETURNED";
-    } else if (totalReturnedSoFar > 0) {
-      finalStatus = "RETURNED";
-    }
+    // --- D. CÁLCULO DE NUEVOS ESTADOS ---
+    const finalTotalReturned = totalReturnedSoFar + currentReturnQty;
+    const isTotalReturn = finalTotalReturned >= totalOriginalQty;
+
+    const newPaymentStatus = isTotalReturn ? "REFUNDED" : "PARTIALLY_REFUNDED";
+    const newFulfillmentStatus = isTotalReturn ? "RETURNED" : "DELIVERED";
 
     await tx.order.update({
       where: { id: orderId },
       data: {
-        status: finalStatus,
-        ...(rejectionNote && { rejectionReason: rejectionNote }),
+        fulfillmentStatus: newFulfillmentStatus,
+        paymentStatus: newPaymentStatus,
+        ...(rejectionNote ? { rejectionReason: rejectionNote } : {}),
+        returnReason: null,
       },
     });
 
+    // --- E. Historial ---
     if (acceptedHistoryItems.length > 0) {
       await tx.orderHistory.create({
         data: {
           orderId,
-          status: finalStatus,
+          type: "INCIDENT",
+          snapshotStatus: isTotalReturn
+            ? "Devolución Completada"
+            : "Devolución Aceptada",
           actor: actorName,
-          reason: "Devolución procesada y stock restaurado",
+          reason: SYSTEM_MSGS.RETURN_ACCEPTED,
           details: { items: acceptedHistoryItems } as any,
         },
       });
@@ -138,9 +149,10 @@ export async function processOrderReturn(
       await tx.orderHistory.create({
         data: {
           orderId,
-          status: finalStatus,
+          type: "INCIDENT",
+          snapshotStatus: "Solicitud Rechazada (Parcial)",
           actor: actorName,
-          reason: "Nota de rechazo parcial",
+          reason: SYSTEM_MSGS.RETURN_PARTIAL_REJECTED,
           details: {
             note: rejectionNote || "Cantidad no aceptada",
             items: rejectedHistoryItems,
@@ -151,23 +163,25 @@ export async function processOrderReturn(
   });
 }
 
-// --- ADMIN: Rechazar Devolución Totalmente ---
+// 2. ADMIN: Rechazar Devolución Totalmente
 export async function rejectOrderReturnRequest(
   orderId: string,
   reason: string,
-  actorName: string = "Admin",
+  actorName: OrderActionActor = "admin",
 ) {
   return prisma.$transaction(async (tx) => {
-    // 1. Obtener items solicitados ANTES de limpiar
     const requestedItems = await tx.orderItem.findMany({
       where: { orderId, quantityReturnRequested: { gt: 0 } },
     });
+
+    if (requestedItems.length === 0) {
+      throw new Error("No hay solicitud activa para rechazar");
+    }
 
     const historyItems = requestedItems.map((item) =>
       getHistoryItem(item, item.quantityReturnRequested),
     );
 
-    // 2. Limpiar solicitud
     await tx.orderItem.updateMany({
       where: { orderId, quantityReturnRequested: { gt: 0 } },
       data: { quantityReturnRequested: 0 },
@@ -176,18 +190,18 @@ export async function rejectOrderReturnRequest(
     await tx.order.update({
       where: { id: orderId },
       data: {
-        status: "PAID",
         rejectionReason: reason,
+        returnReason: null,
       },
     });
 
-    // 3. Crear Historial con items rechazados
     await tx.orderHistory.create({
       data: {
         orderId,
-        status: "PAID",
+        type: "INCIDENT",
+        snapshotStatus: "Solicitud Rechazada",
         actor: actorName,
-        reason: "Solicitud de devolución rechazada",
+        reason: SYSTEM_MSGS.RETURN_REJECTED,
         details: {
           note: reason,
           items: historyItems,
@@ -197,7 +211,7 @@ export async function rejectOrderReturnRequest(
   });
 }
 
-// --- USER: Solicitar Devolución ---
+// 3. USER: Solicitar Devolución
 export async function requestOrderReturn(
   orderId: string,
   userId: string,
@@ -214,8 +228,21 @@ export async function requestOrderReturn(
     if (order.userId !== userId)
       throw new Error("No tienes permiso para gestionar este pedido");
 
-    if (order.status !== "PAID" && order.status !== "RETURN_REQUESTED") {
-      throw new Error("El estado del pedido no permite devoluciones.");
+    if (order.isCancelled) {
+      throw new Error("No puedes devolver un pedido cancelado.");
+    }
+    if (
+      order.paymentStatus !== "PAID" &&
+      order.paymentStatus !== "PARTIALLY_REFUNDED"
+    ) {
+      throw new Error(
+        "El pedido no cumple condiciones de pago para devolución.",
+      );
+    }
+    if (order.fulfillmentStatus !== "DELIVERED") {
+      throw new Error(
+        "El pedido debe estar entregado para solicitar devolución.",
+      );
     }
 
     const historyItems: HistoryDetailsJson["items"] = [];
@@ -241,20 +268,25 @@ export async function requestOrderReturn(
       historyItems.push(getHistoryItem(item, req.qty));
     }
 
+    if (historyItems.length === 0) {
+      throw new Error("Debes seleccionar al menos un producto para devolver.");
+    }
+
     await tx.order.update({
       where: { id: orderId },
       data: {
-        status: "RETURN_REQUESTED",
         returnReason: reason,
+        rejectionReason: null,
       },
     });
 
     await tx.orderHistory.create({
       data: {
         orderId,
-        status: "RETURN_REQUESTED",
-        actor: "User",
-        reason: reason,
+        type: "INCIDENT",
+        snapshotStatus: "Solicitud de Devolución",
+        actor: "user",
+        reason: `${SYSTEM_MSGS.RETURN_REQUESTED}: ${reason}`,
         details: { items: historyItems } as any,
       },
     });

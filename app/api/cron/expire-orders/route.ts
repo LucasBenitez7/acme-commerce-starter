@@ -7,16 +7,20 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   try {
     const authHeader = request.headers.get("authorization");
+
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const timeLimit = new Date(Date.now() - 30 * 60 * 1000);
+    const TIMEOUT_MS = 60 * 60 * 1000;
 
-    // Buscamos órdenes pendientes viejas
+    const timeLimit = new Date(Date.now() - TIMEOUT_MS);
+
     const expiredOrders = await prisma.order.findMany({
       where: {
-        status: "PENDING_PAYMENT",
+        paymentStatus: "PENDING",
+        fulfillmentStatus: "UNFULFILLED",
+        isCancelled: false,
         createdAt: { lt: timeLimit },
       },
       include: { items: true },
@@ -39,10 +43,25 @@ export async function GET(request: Request) {
             }
           }
 
-          // 2. Marcar orden como expirada
+          // 2. Marcar orden como Expirada
           await tx.order.update({
             where: { id: order.id },
-            data: { status: "EXPIRED" },
+            data: {
+              isCancelled: true,
+              paymentStatus: "FAILED",
+            },
+          });
+
+          // 3. Historial
+          await tx.orderHistory.create({
+            data: {
+              orderId: order.id,
+              type: "INCIDENT",
+              snapshotStatus: "Expirado",
+              actor: "system",
+              reason:
+                "Tiempo de pago agotado (1h). Pedido expirado automáticamente.",
+            },
           });
 
           return order.id;
@@ -50,14 +69,9 @@ export async function GET(request: Request) {
       }),
     );
 
-    const successCount = results.filter((r) => r.status === "fulfilled").length;
-    const failCount = results.filter((r) => r.status === "rejected").length;
-
     return NextResponse.json({
-      message: "Process completed",
+      message: "Expired process completed",
       processed: expiredOrders.length,
-      succeeded: successCount,
-      failed: failCount,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
