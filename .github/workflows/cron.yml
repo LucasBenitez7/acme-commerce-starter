@@ -1,0 +1,15 @@
+name: Cron Job - Expire Orders
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+jobs:
+  trigger-cron:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Vercel Cron API
+        run: |
+          curl -X GET ${{ secrets.VERCEL_APP_URL }}/api/cron/expire-orders \
+          -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
