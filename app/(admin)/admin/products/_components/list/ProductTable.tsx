@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import { Image } from "@/components/ui/image";
@@ -23,12 +24,21 @@ interface ProductTableProps {
 }
 
 export function ProductTable({ products }: ProductTableProps) {
+  const searchParams = useSearchParams();
+  const query = searchParams.get("q");
+
   if (products.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-neutral-500">
-        <p className="font-medium">No se encontraron productos.</p>
-        <p className="text-xs mt-1">
-          Intenta cambiar los filtros o crear uno nuevo.
+      <div className="flex flex-col items-center justify-center py-16 text-foreground">
+        <p className="font-semibold text-lg">
+          {query
+            ? "No se encontraron resultados"
+            : "No hay productos disponibles"}
+        </p>
+        <p className="text-sm mt-1 mb-4 text-muted-foreground">
+          {query
+            ? `No hay coincidencias para "${query}"`
+            : "Comienza añadiendo productos a tu inventario."}
         </p>
       </div>
     );

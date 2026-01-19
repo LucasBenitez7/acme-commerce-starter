@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 import { OrderStatusBadge } from "@/components/order/OrderStatusBadge";
 import {
@@ -22,10 +23,22 @@ interface OrderTableProps {
 }
 
 export function OrderTable({ orders, showRefunds }: OrderTableProps) {
+  const searchParams = useSearchParams();
+  const query = searchParams.get("query");
+
   if (orders.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-neutral-500 rounded-xs">
-        <p className="font-medium">No se encontraron pedidos con este filtro</p>
+      <div className="flex flex-col items-center justify-center py-16 text-foreground rounded-xs">
+        <p className="font-semibold text-lg">
+          {query
+            ? "No se encontraron pedidos"
+            : "No hay pedidos con este filtro"}
+        </p>
+        {query && (
+          <p className="text-sm mt-1 mb-4 text-muted-foreground">
+            No hay coincidencias para "{query}"
+          </p>
+        )}
       </div>
     );
   }

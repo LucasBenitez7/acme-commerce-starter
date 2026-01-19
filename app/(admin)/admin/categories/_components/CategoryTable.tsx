@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -19,12 +22,19 @@ export function CategoryTable({
 }: {
   categories: AdminCategoryItem[];
 }) {
+  const searchParams = useSearchParams();
+  const query = searchParams.get("q");
+
   if (categories.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-neutral-500">
-        <p className="font-medium">No hay categorías que mostrar.</p>
-        <p className="text-xs mt-1">
-          Intenta cambiar los filtros o crear una nueva.
+      <div className="flex flex-col items-center justify-center py-16 text-foreground">
+        <p className="font-semibold text-lg">
+          {query ? "No se encontraron categorías" : "No hay categorías creadas"}
+        </p>
+        <p className="text-sm mt-1 mb-4 text-muted-foreground">
+          {query
+            ? `No hay coincidencias para "${query}"`
+            : "Crea categorías para organizar tus productos."}
         </p>
       </div>
     );
