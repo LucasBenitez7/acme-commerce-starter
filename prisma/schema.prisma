@@ -151,6 +151,8 @@ model ProductVariant {
   priceCents Int?
   isActive   Boolean @default(true)
 
+  colorOrder Int @default(0)
+
   orderItems OrderItem[]
 
   @@unique([productId, size, color])
