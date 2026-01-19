@@ -104,13 +104,13 @@ export default async function AdminProductsPage({ searchParams }: Props) {
       </div>
 
       <Card>
-        <CardHeader className="p-4 border-b flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
+        <CardHeader className="p-4 border-b flex flex-col sm:flex-row sm:items-center items-start justify-between gap-3 sm:gap-4">
           <CardTitle className="text-lg text-left font-semibold">
             {isArchivedView ? "Papelera" : "Total"}{" "}
             <span className="text-base">({totalCount})</span>
           </CardTitle>
 
-          <div className="w-full md:w-auto">
+          <div className="w-full sm:w-auto">
             <ProductListToolbar
               categories={allCategories}
               globalMaxPrice={globalMaxPrice}

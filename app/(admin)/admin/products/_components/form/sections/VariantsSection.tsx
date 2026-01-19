@@ -26,16 +26,25 @@ export function VariantsSection() {
     setValue,
     trigger,
     formState: { errors },
+    getValues,
   } = useFormContext<ProductFormValues>();
 
-  const { fields, groupedVariants, remove, addVariants } = useVariantsTable();
+  const { fields, groupedVariants, remove, addVariants, updateColorOrder } =
+    useVariantsTable();
 
   return (
     <div className="bg-background p-4 rounded-xs border shadow-sm space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-3">
-        <h3 className="text-lg font-medium flex items-center gap-2">
-          <FaLayerGroup className="size-4" /> Inventario y Variantes
-        </h3>
+        <div className="flex flex-col text-left">
+          <h3 className="text-lg font-medium flex items-center gap-2">
+            <FaLayerGroup className="size-4" /> Inventario y Variantes
+          </h3>
+
+          <p className="text-xs text-muted-foreground font-medium">
+            Crea los colores y tallas e inserta el orden de los colores para la
+            vista en tienda
+          </p>
+        </div>
 
         <VariantGeneratorDialog onGenerate={addVariants} />
       </div>
@@ -51,7 +60,7 @@ export function VariantsSection() {
         <Table>
           <TableHeader className="bg-neutral-50">
             <TableRow>
-              <TableHead className="w-[140px]">COLOR</TableHead>
+              <TableHead className="w-[180px]">ORDEN / COLOR</TableHead>
               <TableHead className="w-[140px] pl-3">TALLA</TableHead>
               <TableHead className="w-[120px] pl-3">STOCK</TableHead>
               <TableHead className="w-[80px] text-right">BORRAR</TableHead>
@@ -61,10 +70,19 @@ export function VariantsSection() {
             {groupedVariants.colorOrder.map((colorName) => {
               const groupIndices = groupedVariants.groups[colorName];
 
+              const firstVariantIndex = groupIndices[0];
+              const currentColorOrder =
+                getValues(`variants.${firstVariantIndex}.colorOrder`) || 0;
+
               return groupIndices.map((fieldIndex, i) => {
                 const isFirstInGroup = i === 0;
                 const field = fields[fieldIndex];
+
+                // Errores
                 const rowError = errors.variants?.[fieldIndex];
+                const groupError = errors.variants?.[firstVariantIndex];
+                const orderErrorMessage = (groupError as any)?.colorOrder
+                  ?.message;
 
                 return (
                   <TableRow
@@ -74,21 +92,61 @@ export function VariantsSection() {
                     {isFirstInGroup && (
                       <TableCell
                         rowSpan={groupIndices.length}
-                        className="align-center border-r p-2"
+                        className="align-center border-r p-3"
                       >
-                        <div className="flex gap-2 items-center sticky top-4">
-                          <div
-                            className={cn(
-                              "h-5 w-5 rounded-full border shrink-0",
-                              rowError?.color && "border-red-500",
-                            )}
-                            style={{
-                              backgroundColor: field.colorHex || "#ffffff",
-                            }}
-                          />
-                          <p className="font-medium text-sm text-foreground">
-                            {colorName}
-                          </p>
+                        <div className="flex items-center gap-3 sticky top-4">
+                          {/* INPUT DE ORDEN (Nuevo) */}
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={cn(
+                                "text-[10px] uppercase font-bold tracking-wide",
+                                orderErrorMessage
+                                  ? "text-red-600"
+                                  : "text-muted-foreground",
+                              )}
+                            >
+                              Orden:
+                            </span>
+                            <div className="relative">
+                              <Input
+                                type="number"
+                                className={cn(
+                                  "h-7 w-12 text-xs bg-white pr-1",
+                                  orderErrorMessage &&
+                                    "border-red-500 bg-red-50 text-red-700 focus-visible:ring-red-500 placeholder:text-red-300",
+                                )}
+                                defaultValue={currentColorOrder}
+                                min={0}
+                                onChange={(e) => {
+                                  const val = parseInt(e.target.value);
+                                  updateColorOrder(
+                                    colorName,
+                                    isNaN(val) ? 0 : val,
+                                  );
+                                }}
+                                title={
+                                  orderErrorMessage ||
+                                  "Prioridad de visualización (Menor sale primero)"
+                                }
+                              />
+                            </div>
+                          </div>
+
+                          {/* INFO DEL COLOR */}
+                          <div className="flex gap-2 items-center">
+                            <div
+                              className={cn(
+                                "h-5 w-5 rounded-full border shrink-0",
+                                rowError?.color && "border-red-500",
+                              )}
+                              style={{
+                                backgroundColor: field.colorHex || "#ffffff",
+                              }}
+                            />
+                            <p className="font-medium text-sm text-foreground break-words leading-tight">
+                              {colorName}
+                            </p>
+                          </div>
                         </div>
                       </TableCell>
                     )}

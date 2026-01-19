@@ -259,7 +259,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
           </div>
 
           {isAdmin && (
-            <Button asChild variant={"outline"} className="text-base">
+            <Button asChild variant={"default"} className="text-base">
               <Link href="/admin" className="px-4 text-base">
                 Admin
               </Link>

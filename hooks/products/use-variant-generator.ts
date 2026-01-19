@@ -24,6 +24,7 @@ export function useVariantGenerator() {
             color: color.name,
             colorHex: color.hex,
             stock: stock,
+            colorOrder: 0,
           });
         });
       });

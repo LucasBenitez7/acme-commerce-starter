@@ -17,67 +17,98 @@ export async function getUserOrders(
   page = 1,
   limit = 5,
   statusTab?: string,
+  query?: string,
 ) {
   const skip = (page - 1) * limit;
 
-  const where: Prisma.OrderWhereInput = { userId };
+  const baseWhere: Prisma.OrderWhereInput = {
+    userId,
+    ...(query && {
+      OR: [
+        { id: { contains: query, mode: "insensitive" } },
+        {
+          items: {
+            some: {
+              nameSnapshot: { contains: query, mode: "insensitive" },
+            },
+          },
+        },
+      ],
+    }),
+  };
+
+  const currentTabWhere: Prisma.OrderWhereInput = { ...baseWhere };
 
   if (statusTab) {
     switch (statusTab) {
-      // A. PENDIENTES DE PAGO
       case "PENDING_PAYMENT":
-        where.paymentStatus = "PENDING";
-        where.isCancelled = false;
+        currentTabWhere.paymentStatus = "PENDING";
+        currentTabWhere.isCancelled = false;
         break;
 
-      // B. EN PROCESO (Activos)
       case "ACTIVE":
-        where.paymentStatus = "PAID";
-        where.isCancelled = false;
-        where.fulfillmentStatus = {
+        currentTabWhere.paymentStatus = "PAID";
+        currentTabWhere.isCancelled = false;
+        currentTabWhere.fulfillmentStatus = {
           in: ["UNFULFILLED", "PREPARING", "READY_FOR_PICKUP", "SHIPPED"],
         };
         break;
 
-      // C. ENTREGADOS
       case "COMPLETED":
-        where.fulfillmentStatus = "DELIVERED";
-        where.isCancelled = false;
+        currentTabWhere.fulfillmentStatus = "DELIVERED";
+        currentTabWhere.isCancelled = false;
         break;
 
-      // D. DEVOLUCIONES
       case "RETURNS":
-        where.isCancelled = false;
-        where.OR = [
-          { paymentStatus: { in: ["REFUNDED", "PARTIALLY_REFUNDED"] } },
-          { fulfillmentStatus: "RETURNED" },
-          { returnReason: { not: null } },
-          { items: { some: { quantityReturnRequested: { gt: 0 } } } },
+        currentTabWhere.isCancelled = false;
+        currentTabWhere.OR = [
+          {
+            OR: [
+              { paymentStatus: { in: ["REFUNDED", "PARTIALLY_REFUNDED"] } },
+              { fulfillmentStatus: "RETURNED" },
+              { returnReason: { not: null } },
+              { items: { some: { quantityReturnRequested: { gt: 0 } } } },
+            ],
+          },
         ];
+        if (query) {
+          currentTabWhere.AND = [
+            { OR: baseWhere.OR },
+            { OR: currentTabWhere.OR },
+          ];
+          delete currentTabWhere.OR;
+        }
         break;
 
-      // E. EXPIRADOS (Por el Cron)
       case "EXPIRED":
-        where.isCancelled = true;
-        where.paymentStatus = "FAILED";
-        where.fulfillmentStatus = "UNFULFILLED";
+        currentTabWhere.isCancelled = true;
+        currentTabWhere.paymentStatus = "FAILED";
+        currentTabWhere.fulfillmentStatus = "UNFULFILLED";
         break;
 
-      // F. CANCELADOS (Manualmente)
       case "CANCELLED":
-        where.isCancelled = true;
-        where.OR = [
+        currentTabWhere.isCancelled = true;
+        const cancelledConditions = [
           { paymentStatus: { in: ["REFUNDED", "PARTIALLY_REFUNDED"] } },
           { fulfillmentStatus: "RETURNED" },
         ];
+
+        if (query) {
+          currentTabWhere.AND = [
+            { OR: baseWhere.OR },
+            { OR: cancelledConditions as any },
+          ];
+          delete currentTabWhere.OR;
+        } else {
+          currentTabWhere.OR = cancelledConditions as any;
+        }
         break;
     }
   }
 
-  // 3. Ejecución
-  const [orders, total] = await Promise.all([
+  const [orders, totalCount] = await Promise.all([
     prisma.order.findMany({
-      where,
+      where: currentTabWhere,
       orderBy: { createdAt: "desc" },
       take: limit,
       skip,
@@ -97,12 +128,14 @@ export async function getUserOrders(
         },
       },
     }),
-    prisma.order.count({ where }),
+
+    prisma.order.count({ where: currentTabWhere }),
   ]);
 
   return {
     orders,
-    totalPages: Math.ceil(total / limit),
+    totalPages: Math.ceil(totalCount / limit),
+    totalCount,
   };
 }
 

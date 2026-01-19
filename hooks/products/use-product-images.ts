@@ -10,14 +10,13 @@ export function useProductImages() {
     trigger,
     formState: { errors },
   } = useFormContext<ProductFormValues>();
-
-  const { fields, append, remove, update } = useFieldArray({
+  const { fields, append, remove, update, move } = useFieldArray({
     control,
     name: "images",
   });
 
-  // 1. Mapa de Colores
   const variants = watch("variants") || [];
+  const images = watch("images") || [];
 
   const colorMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -31,8 +30,6 @@ export function useProductImages() {
     return Array.from(colorMap.keys());
   }, [colorMap]);
 
-  // 2. Agrupación
-  const images = watch("images") || [];
   const groupedImages = useMemo(() => {
     const groups: Record<string, { field: any; index: number }[]> = {};
     const unassigned: { field: any; index: number }[] = [];
@@ -43,6 +40,7 @@ export function useProductImages() {
 
     fields.forEach((field, index) => {
       const currentColor = images?.[index]?.color;
+
       if (currentColor && groups[currentColor]) {
         groups[currentColor].push({ field, index });
       } else {
@@ -86,6 +84,17 @@ export function useProductImages() {
     await trigger("images");
   };
 
+  const handleSetMain = (currentIndex: number, colorName: string) => {
+    const firstIndexForColor = images.findIndex(
+      (img) => img.color === colorName,
+    );
+
+    if (firstIndexForColor === -1 || firstIndexForColor === currentIndex)
+      return;
+
+    move(currentIndex, firstIndexForColor);
+  };
+
   return {
     activeColors,
     colorMap,
@@ -94,5 +103,6 @@ export function useProductImages() {
     remove: handleRemove,
     handleUpdateImage,
     handleAddImages,
+    handleSetMain,
   };
 }

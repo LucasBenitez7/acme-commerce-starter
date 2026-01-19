@@ -8,7 +8,7 @@ export default function NotFound() {
       <div className="mt-6">
         <Link
           href="/"
-          className="py-2 px-4 font-medium rounded-xs border border-slate-300 bg-background hover:bg-neutral-100"
+          className="py-2 px-4 font-medium rounded-xs bg-foreground hover:bg-foreground/80 text-background"
         >
           Ir al inicio
         </Link>

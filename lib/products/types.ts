@@ -14,7 +14,7 @@ export type ProductImage = Pick<
 
 export type ProductVariant = Pick<
   DbVariant,
-  "id" | "size" | "color" | "colorHex" | "stock" | "isActive"
+  "id" | "size" | "color" | "colorHex" | "stock" | "isActive" | "colorOrder"
 > & {
   priceCents?: number | null;
 };

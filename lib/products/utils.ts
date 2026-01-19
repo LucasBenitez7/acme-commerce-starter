@@ -36,8 +36,12 @@ export function sortSizes(sizes: string[]): string[] {
 
 export function sortVariantsHelper(variants: any[]) {
   return [...variants].sort((a, b) => {
+    const orderDiff = (a.colorOrder ?? 0) - (b.colorOrder ?? 0);
+    if (orderDiff !== 0) return orderDiff;
+
     const colorCompare = a.color.localeCompare(b.color);
     if (colorCompare !== 0) return colorCompare;
+
     return compareSizes(a.size, b.size);
   });
 }
@@ -53,7 +57,7 @@ export function findVariant(
 }
 
 export function getUniqueColors(variants: ProductVariant[]): string[] {
-  return Array.from(new Set(variants.map((v) => v.color))).sort();
+  return Array.from(new Set(variants.map((v) => v.color)));
 }
 
 export function getUniqueSizes(variants: ProductVariant[]): string[] {
@@ -117,8 +121,10 @@ export function getInitialProductState(
   if (colorExists && colorParam) {
     initialColor = colorParam;
   } else {
-    const stockVariants = product.variants.filter((v) => v.stock > 0);
-    const availableColors = getUniqueColors(stockVariants);
+    const sortedStock = sortVariantsHelper(product.variants).filter(
+      (v) => v.stock > 0,
+    );
+    const availableColors = getUniqueColors(sortedStock);
 
     if (availableColors.length > 0) {
       initialColor = availableColors[0];

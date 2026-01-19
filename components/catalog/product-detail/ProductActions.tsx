@@ -1,7 +1,10 @@
 "use client";
+import { useMemo } from "react";
+
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { FavoriteButton } from "@/components/ui";
 
+import { sortVariantsHelper } from "@/lib/products/utils";
 import { cn } from "@/lib/utils";
 
 import { useProductActions } from "@/hooks/products/use-product-actions";
@@ -24,7 +27,19 @@ export function ProductActions({
   selectedColor,
   onColorChange,
 }: Props) {
-  const { id, slug, name, priceCents, variants, isArchived } = product;
+  const {
+    id,
+    slug,
+    name,
+    priceCents,
+    variants: rawVariants,
+    isArchived,
+  } = product;
+
+  const variants = useMemo(() => {
+    return sortVariantsHelper(rawVariants);
+  }, [rawVariants]);
+
   const {
     colors,
     allSizes,

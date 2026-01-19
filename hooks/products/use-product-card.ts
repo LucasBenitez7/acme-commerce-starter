@@ -7,7 +7,7 @@ import {
   getUniqueSizes,
   getImageForColor,
   findVariant,
-  compareSizes,
+  sortVariantsHelper,
 } from "@/lib/products/utils";
 
 import { useCartStore } from "@/store/cart";
@@ -24,11 +24,7 @@ export function useProductCard(item: PublicProductListItem) {
   }, []);
 
   const sortedVariants = useMemo(() => {
-    return [...item.variants].sort((a, b) => {
-      const colorDiff = a.color.localeCompare(b.color);
-      if (colorDiff !== 0) return colorDiff;
-      return compareSizes(a.size, b.size);
-    });
+    return sortVariantsHelper(item.variants);
   }, [item.variants]);
 
   // --- STORE ---
@@ -38,7 +34,7 @@ export function useProductCard(item: PublicProductListItem) {
   const storeItems = useStore(useCartStore, (state) => state.items);
   const cartItems = isMounted && storeItems ? storeItems : [];
 
-  // --- LÓGICA DE DATOS (Usando sortedVariants) ---
+  // --- LÓGICA DE DATOS ---
   const sizes = useMemo(() => getUniqueSizes(sortedVariants), [sortedVariants]);
 
   const colors = useMemo(() => {

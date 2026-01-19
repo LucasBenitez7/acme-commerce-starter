@@ -81,12 +81,12 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
       </div>
 
       <Card>
-        <CardHeader className="p-4 border-b flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
+        <CardHeader className="p-4 border-b flex flex-col sm:flex-row sm:items-center items-start justify-between gap-3 sm:gap-4">
           <CardTitle className="text-lg text-left font-semibold">
             Total <span className="text-base text-foreground">({total})</span>
           </CardTitle>
 
-          <div className="w-full md:w-auto">
+          <div className="w-full sm:w-auto">
             <OrderListToolbar />
           </div>
         </CardHeader>

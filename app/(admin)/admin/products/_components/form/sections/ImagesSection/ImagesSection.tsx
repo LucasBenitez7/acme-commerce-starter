@@ -18,6 +18,7 @@ export function ImagesSection() {
     remove,
     handleUpdateImage,
     handleAddImages,
+    handleSetMain,
   } = useProductImages();
 
   const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
@@ -38,6 +39,7 @@ export function ImagesSection() {
       </div>
 
       <div className="space-y-4">
+        {/* 1. IMÁGENES RESIDUALES (Sin Color) */}
         {groupedImages.unassigned.length > 0 && (
           <div className="border-2 border-dashed border-orange-200 bg-orange-50/30 rounded-xs p-4 transition-all">
             <h4 className="text-sm font-bold text-orange-800 flex items-center gap-2 mb-3">
@@ -46,6 +48,7 @@ export function ImagesSection() {
             <div className="grid grid-cols-1 gap-3">
               {groupedImages.unassigned.map((item) => {
                 const fieldError = errors.images?.[item.index];
+
                 return (
                   <ImageRow
                     key={item.field.id}
@@ -55,7 +58,7 @@ export function ImagesSection() {
                     onUpdate={handleUpdateImage}
                     uploadPreset={uploadPreset}
                     fieldError={fieldError}
-                    isFirstInGroup={false}
+                    isMain={false}
                   />
                 );
               })}
@@ -85,15 +88,11 @@ export function ImagesSection() {
                   />
                   <div>
                     <h4 className="font-semibold text-base text-foreground flex items-center gap-3">
-                      {colorName}
-                      <span className="text-xs font-normal text-foreground bg-white px-1.5 py-0.5 rounded-full border border-slate-400">
-                        {groupItems.length}
-                      </span>
+                      {colorName} ({groupItems.length})
                     </h4>
                   </div>
                 </div>
 
-                {/* BOTÓN EXTRAÍDO: Lógica limpia y spinner funcionando */}
                 <ColorUploadButton
                   uploadPreset={uploadPreset}
                   colorName={colorName}
@@ -107,6 +106,8 @@ export function ImagesSection() {
                   groupItems.map((item, groupIndex) => {
                     const fieldError = errors.images?.[item.index];
 
+                    const isMain = groupIndex === 0;
+
                     return (
                       <ImageRow
                         key={item.field.id}
@@ -116,7 +117,8 @@ export function ImagesSection() {
                         onUpdate={handleUpdateImage}
                         uploadPreset={uploadPreset}
                         fieldError={fieldError}
-                        isFirstInGroup={groupIndex === 0}
+                        isMain={isMain}
+                        onSetMain={() => handleSetMain(item.index, colorName)}
                       />
                     );
                   })

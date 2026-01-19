@@ -25,7 +25,6 @@ export default async function AdminCategoriesPage({ searchParams }: Props) {
   const sp = await searchParams;
   const page = Number(sp.page) || 1;
 
-  // LLAMADA LIMPIA A LA QUERY
   const { categories, totalCount, totalPages } = await getAdminCategories({
     page,
     query: sp.q,
@@ -39,20 +38,20 @@ export default async function AdminCategoriesPage({ searchParams }: Props) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold tracking-tight">Categorías</h1>
         <Link
-          href="/admin/categories/new "
-          className="flex items-center font-medium gap-2 bg-foreground text-background py-2 px-3 rounded-xs text-sm"
+          href="/admin/categories/new"
+          className="flex items-center font-medium gap-2 bg-foreground text-white hover:bg-foreground/80 transition-colors py-2 px-3 rounded-xs text-sm"
         >
-          <FaPlus className="h-4 w-4" /> Añadir Categoría
+          <FaPlus className="size-4" /> Añadir Categoría
         </Link>
       </div>
 
       <Card>
-        <CardHeader className="p-4 border-b flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
+        <CardHeader className="p-4 border-b flex flex-col sm:flex-row sm:items-center items-start justify-between gap-3 sm:gap-4">
           <CardTitle className="text-lg font-semibold">
             Total <span className="text-base">({totalCount})</span>
           </CardTitle>
 
-          <div className="w-full md:w-auto">
+          <div className="w-full sm:w-auto">
             <CategoryListToolbar />
           </div>
         </CardHeader>

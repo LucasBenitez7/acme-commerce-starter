@@ -1,11 +1,11 @@
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 
 import type { ProductFormValues } from "@/lib/products/schema";
 
 export function useVariantsTable() {
-  const { control, getValues, trigger, watch } =
+  const { control, getValues, trigger, watch, setValue } =
     useFormContext<ProductFormValues>();
 
   const { fields, append, remove } = useFieldArray({
@@ -60,10 +60,27 @@ export function useVariantsTable() {
     setTimeout(() => trigger("variants"), 50);
   };
 
+  const updateColorOrder = useCallback(
+    (colorName: string, newOrder: number) => {
+      fields.forEach((field, index) => {
+        const variant = getValues(`variants.${index}`);
+        if (variant.color === colorName) {
+          setValue(`variants.${index}.colorOrder`, newOrder, {
+            shouldDirty: true,
+            shouldTouch: true,
+            shouldValidate: false,
+          });
+        }
+      });
+    },
+    [fields, getValues, setValue],
+  );
+
   return {
     fields,
     groupedVariants,
     remove: removeVariant,
     addVariants,
+    updateColorOrder,
   };
 }

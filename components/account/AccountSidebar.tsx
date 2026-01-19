@@ -12,6 +12,8 @@ import {
   FaHeart,
 } from "react-icons/fa6";
 
+import { Button } from "@/components/ui/button";
+
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -27,11 +29,6 @@ const NAV_ITEMS = [
     icon: FaMapLocationDot,
   },
   {
-    label: "Seguridad",
-    href: "/account/security",
-    icon: FaShieldHalved,
-  },
-  {
     label: "Pedidos",
     href: "/account/orders",
     icon: FaBoxOpen,
@@ -40,6 +37,11 @@ const NAV_ITEMS = [
     label: "Favoritos",
     href: "/account/favorites",
     icon: FaHeart,
+  },
+  {
+    label: "Seguridad",
+    href: "/account/security",
+    icon: FaShieldHalved,
   },
 ];
 
@@ -56,47 +58,43 @@ export function AccountSidebar({ user }: Props) {
   const pathname = usePathname();
 
   return (
-    <aside className="w-full sm:w-64 flex sm:flex-col sm:sticky top-20 shrink-0 bg-background border rounded-xs overflow-hidden h-fit">
-      {/* NAVEGACIÓN */}
-      <nav className="flex flex-col gap-1 p-2 border w-full text-center">
-        {NAV_ITEMS.map((item) => {
-          const isActive = item.exact
-            ? pathname === item.href
-            : pathname.startsWith(item.href);
+    <nav className="flex flex-col mx-auto justify-between items-center w-full lg:max-w-5xl lg:flex-row bg-background rounded-xs border text-center">
+      {NAV_ITEMS.map((item) => {
+        const isActive = item.exact
+          ? pathname === item.href
+          : pathname.startsWith(item.href);
 
-          const Icon = item.icon;
+        const Icon = item.icon;
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={cn(
+              "flex w-full items-center gap-3 px-3 py-2.5 text-sm font-semibold text-center rounded-xs transition-colors justify-center",
+              isActive
+                ? "bg-foreground text-background shadow-sm"
+                : "hover:bg-neutral-100 active:bg-neutral-100",
+            )}
+          >
+            <Icon
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-center rounded-xs transition-colors justify-center sm:justify-start",
-                isActive
-                  ? "bg-foreground text-background shadow-sm"
-                  : "hover:bg-neutral-100 active:bg-neutral-100",
+                "size-4",
+                isActive ? "text-background" : "text-foreground",
               )}
-            >
-              <Icon
-                className={cn(
-                  "size-4",
-                  isActive ? "text-background" : "text-foreground",
-                )}
-              />
-              {item.label}
-            </Link>
-          );
-        })}
-
-        <div className="my-1 border-t border" />
-        <button
-          onClick={() => signOut({ callbackUrl: "/" })}
-          className="flex w-full items-center gap-3 px-3 py-2.5 text-sm font-semibold rounded-xs text-red-600 hover:bg-red-50 transition-colors hover:cursor-pointer  justify-center sm:justify-start"
-        >
-          <FaRightFromBracket className="size-4" />
-          Cerrar sesión
-        </button>
-      </nav>
-    </aside>
+            />
+            {item.label}
+          </Link>
+        );
+      })}
+      <Button
+        variant={"ghost"}
+        onClick={() => signOut({ callbackUrl: "/" })}
+        className="w-full lg:w-auto text-red-600 hover:bg-red-50 active:bg-red-100 hover:text-red-600 py-2.5"
+      >
+        <FaRightFromBracket className="size-4" />
+        Cerrar sesión
+      </Button>
+    </nav>
   );
 }

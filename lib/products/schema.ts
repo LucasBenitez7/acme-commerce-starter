@@ -5,6 +5,7 @@ export const productVariantSchema = z.object({
   size: z.string().min(1, "Falta Talla"),
   color: z.string().min(1, "Falta Color"),
   colorHex: z.string().optional().nullable(),
+  colorOrder: z.coerce.number().int().default(0),
   stock: z.coerce.number().int().min(0, "Mínimo 0"),
   priceCents: z.coerce.number().optional().nullable(),
 });
@@ -21,7 +22,7 @@ export const productImageSchema = z.object({
 export const productSchema = z
   .object({
     name: z.string().min(3, "Mínimo 3 caracteres"),
-    slug: z.string().min(3, "Mínimo 3 caracteres"),
+    slug: z.string().optional().or(z.literal("")),
     description: z.string().min(3, "La descripción es requerida"),
     priceCents: z.coerce.number().min(1, "El precio es requerido"),
     categoryId: z.string().min(1, "Selecciona una categoría"),
@@ -97,7 +98,26 @@ export const productSchema = z
       }
     });
 
-    // 4. VALIDACIÓN GLOBAL
+    const orderMap = new Map<number, string>();
+
+    data.variants.forEach((v, idx) => {
+      if (!v.color || v.colorOrder === undefined || v.colorOrder === 0) return;
+
+      if (orderMap.has(v.colorOrder)) {
+        const existingColor = orderMap.get(v.colorOrder);
+
+        if (existingColor !== v.color) {
+          ctx.addIssue({
+            code: "custom",
+            message: `El orden ${v.colorOrder} ya lo usa el color "${existingColor}".`,
+            path: ["variants", idx, "colorOrder"],
+          });
+        }
+      } else {
+        orderMap.set(v.colorOrder, v.color);
+      }
+    });
+
     activeVariantColors.forEach((color) => {
       if (!coveredColors.has(color)) {
         ctx.addIssue({

@@ -1,6 +1,6 @@
 "use client";
 
-import { FaTrash } from "react-icons/fa6";
+import { FaTrash, FaStar, FaRegStar } from "react-icons/fa6";
 
 import { Button } from "@/components/ui/button";
 import { Image } from "@/components/ui/image";
@@ -16,7 +16,8 @@ type ImageRowProps = {
   onUpdate: (index: number, result: any) => void;
   uploadPreset: string | undefined;
   fieldError?: any;
-  isFirstInGroup?: boolean;
+  isMain?: boolean;
+  onSetMain?: () => void;
 };
 
 export function ImageRow({
@@ -26,7 +27,8 @@ export function ImageRow({
   onUpdate,
   uploadPreset,
   fieldError,
-  isFirstInGroup,
+  isMain,
+  onSetMain,
 }: ImageRowProps) {
   const errObj = fieldError as any;
   const errorMessage =
@@ -37,25 +39,11 @@ export function ImageRow({
 
   const hasError = !!errorMessage;
 
-  let statusText = "";
-  let statusColor = "text-muted-foreground";
-
-  if (hasError) {
-    statusText = errorMessage || "Error en imagen";
-    statusColor = "text-red-600 font-bold";
-  } else if (index === 0) {
-    statusText = "PORTADA PRINCIPAL";
-    statusColor = "font-semibold";
-  } else if (isFirstInGroup) {
-    statusText = "Portada del color";
-    statusColor = "font-semibold";
-  }
-
   return (
     <div
       className={cn(
         "group flex gap-2 items-center p-2 border rounded-xs bg-background transition-all hover:shadow-sm",
-        hasError ? "border-red-500" : "border-neutral-200",
+        hasError && "border-red-500",
       )}
     >
       {/* 1. THUMBNAIL */}
@@ -69,8 +57,7 @@ export function ImageRow({
         />
       </div>
 
-      {/* 2. INFORMACIÓN */}
-      <div className="flex-1 h-full justify-between min-w-0 flex flex-col gap-1 pt-1">
+      <div className="flex-1 h-full justify-between min-w-0 flex flex-col gap-1 py-1">
         <p
           className="text-sm font-medium text-foreground truncate"
           title={field.alt}
@@ -78,23 +65,30 @@ export function ImageRow({
           {field.alt || "Sin nombre"}
         </p>
 
-        {statusText && (
-          <p
-            className={cn(
-              "text-[10px] bg-neutral-100 rounded w-fit p-1",
-              statusColor,
-            )}
-          >
-            {statusText}
+        {hasError && (
+          <p className="text-[10px] text-red-600 font-bold bg-red-50 rounded px-1 w-fit">
+            {errorMessage}
           </p>
+        )}
+
+        {onSetMain && !isMain && (
+          <button
+            type="button"
+            onClick={onSetMain}
+            className="text-xs text-neutral-500 hover:text-amber-600 font-medium flex items-center gap-1 w-fit transition-colors hover:cursor-pointer"
+          >
+            Selccionar como principal
+          </button>
+        )}
+
+        {isMain && (
+          <div className="text-xs text-amber-600 font-semibold">Principal</div>
         )}
       </div>
 
-      {/* 3. ACCIONES */}
       <div
         className={cn(
           "flex flex-col gap-1 border-l pl-1 self-stretch justify-evenly",
-          hasError ? "border-red-200" : "border-neutral-300",
         )}
       >
         <EditImageButton

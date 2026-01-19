@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, type ReactNode } from "react";
 import { FormProvider, useForm, type DefaultValues } from "react-hook-form";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 
@@ -78,6 +79,14 @@ export function ProductFormProvider({ children, product }: Props) {
 
   const onInvalid = (errors: any) => {
     console.log("El formulario no es válido:", errors);
+    const firstErrorKey = Object.keys(errors)[0];
+    const message =
+      errors[firstErrorKey]?.message || "Revisa los campos marcados en rojo.";
+
+    toast.error("No se ha podido guardar", {
+      description: message,
+      duration: 4000,
+    });
   };
 
   return (

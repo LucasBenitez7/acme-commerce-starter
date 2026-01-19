@@ -20,13 +20,11 @@ export default async function AccountLayout({
 
   return (
     <Container className="py-4 sm:py-6 px-4">
-      <div className="flex flex-col sm:flex-row gap-4 items-start">
+      <div className="flex flex-col gap-4">
         <AccountSidebar user={session.user} />
 
         {/* CONTENIDO PRINCIPAL */}
-        <main className="flex-1 min-w-0 w-full lg:max-w-5xl mx-auto shadow bg-background p-4 sm:p-0 sm:shadow-none sm:bg-transparent border sm:border-none">
-          {children}
-        </main>
+        <main className="w-full lg:max-w-5xl mx-auto">{children}</main>
       </div>
     </Container>
   );
