@@ -3,8 +3,6 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
 
-import { useDebounce } from "@/hooks/common/use-debounce";
-
 type UseProductFiltersOptions = {
   globalMaxPrice: number;
 };
@@ -15,19 +13,17 @@ export function useProductFilters({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // --- 1. ESTADOS LOCALES ---
-  const [query, setQuery] = useState(searchParams.get("q") || "");
   const [minPrice, setMinPrice] = useState(searchParams.get("min") || "");
   const [maxPrice, setMaxPrice] = useState(searchParams.get("max") || "");
-
-  const debouncedQuery = useDebounce(query, 500);
 
   const activeSort = searchParams.get("sort") || "date_desc";
   const activeCats =
     searchParams.get("categories")?.split(",").filter(Boolean) || [];
 
   const hasPriceFilter = !!searchParams.get("min") || !!searchParams.get("max");
-  const hasActiveFilters = activeCats.length > 0 || hasPriceFilter || !!query;
+
+  const hasQuery = !!searchParams.get("q");
+  const hasActiveFilters = activeCats.length > 0 || hasPriceFilter || hasQuery;
 
   // --- 2. LÓGICA URL ---
   const updateParams = useCallback(
@@ -38,20 +34,14 @@ export function useProductFilters({
         else params.delete(key);
       });
       if (updates.page === undefined) params.set("page", "1");
-      router.push(`/admin/products?${params.toString()}`);
+
+      router.push(`/admin/products?${params.toString()}`, { scroll: false });
     },
     [searchParams, router],
   );
 
   // --- 3. EFECTOS ---
   useEffect(() => {
-    if (debouncedQuery !== (searchParams.get("q") || "")) {
-      updateParams({ q: debouncedQuery || null });
-    }
-  }, [debouncedQuery, updateParams, searchParams]);
-
-  useEffect(() => {
-    if (searchParams.get("q") !== query) setQuery(searchParams.get("q") || "");
     if (searchParams.get("min") !== minPrice)
       setMinPrice(searchParams.get("min") || "");
     if (searchParams.get("max") !== maxPrice)
@@ -113,8 +103,6 @@ export function useProductFilters({
   };
 
   return {
-    query,
-    setQuery,
     minPrice,
     setMinPrice: (val: string) => setPriceSafe(val, "min"),
     maxPrice,

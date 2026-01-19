@@ -1,15 +1,16 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect, useCallback } from "react";
-import { FaFilter, FaMagnifyingGlass, FaSort, FaXmark } from "react-icons/fa6";
+import { useCallback } from "react";
+import { FaFilter, FaSort } from "react-icons/fa6";
 
-import { Button, Input } from "@/components/ui";
+import { Button } from "@/components/ui";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { SearchInput } from "@/components/ui/SearchInput";
 import {
   Select,
   SelectContent,
@@ -20,14 +21,9 @@ import {
 
 import { cn } from "@/lib/utils";
 
-import { useDebounce } from "@/hooks/common/use-debounce";
-
 export function CategoryListToolbar() {
   const router = useRouter();
   const searchParams = useSearchParams();
-
-  const [query, setQuery] = useState(searchParams.get("q") || "");
-  const debouncedQuery = useDebounce(query, 500);
 
   const currentFilter = searchParams.get("filter") || "all";
   const currentSortKey = `${searchParams.get("sortBy") || "sort"}-${searchParams.get("sortOrder") || "asc"}`;
@@ -50,44 +46,18 @@ export function CategoryListToolbar() {
     [searchParams, router],
   );
 
-  useEffect(() => {
-    if (searchParams.get("q") !== query) {
-      setQuery(searchParams.get("q") || "");
-    }
-  }, [searchParams]);
-
-  useEffect(() => {
-    if (debouncedQuery !== (searchParams.get("q") || "")) {
-      updateParams({ q: debouncedQuery || null });
-    }
-  }, [debouncedQuery, updateParams, searchParams]);
-
   const handleSortChange = (value: string) => {
     const [field, order] = value.split("-");
     updateParams({ sortBy: field, sortOrder: order });
   };
 
   return (
-    <div className="flex flex-col sm:flex-row gap-3 w-full justify-between">
-      <div className="relative flex-1 lg:w-[300px] w-full">
-        <FaMagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-        <Input
-          placeholder="Buscar categoría..."
-          className="pl-9 h-9 bg-white"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        {query && (
-          <button
-            onClick={() => setQuery("")}
-            className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 hover:cursor-pointer"
-          >
-            <FaXmark className="size-3.5" />
-          </button>
-        )}
+    <div className="flex flex-col lg:flex-row gap-3 w-full justify-between items-end lg:items-center">
+      <div className="flex-1 min-w-[200px] w-full sm:w-auto lg:w-[350px]">
+        <SearchInput placeholder="Buscar categorias" />
       </div>
 
-      <div className="flex items-center gap-2 overflow-x-auto justify-between">
+      <div className="flex flex-wrap gap-3 justify-between w-full sm:w-auto items-center">
         <Popover>
           <PopoverTrigger asChild>
             <Button

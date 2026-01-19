@@ -4,6 +4,7 @@ import { FaBoxOpen } from "react-icons/fa6";
 import { OrderHistoryCard } from "@/components/account/orders/OrderHistoryCard";
 import { PaginationNav } from "@/components/catalog/PaginationNav";
 import { Button } from "@/components/ui/button";
+import { SearchInput } from "@/components/ui/SearchInput";
 
 import { getUserOrders } from "@/lib/account/queries";
 import { auth } from "@/lib/auth";
@@ -17,6 +18,7 @@ type Props = {
   searchParams: Promise<{
     page?: string;
     status?: string;
+    q?: string;
   }>;
 };
 
@@ -24,23 +26,29 @@ export default async function AccountOrdersPage({ searchParams }: Props) {
   const sp = await searchParams;
   const page = Number(sp.page) || 1;
   const statusTab = sp.status;
+  const query = sp.q || "";
 
   const session = await auth();
 
   if (!session?.user?.id) return null;
 
-  const { orders, totalPages } = await getUserOrders(
+  const { orders, totalPages, totalCount } = await getUserOrders(
     session.user.id,
     page,
     5,
     statusTab,
+    query,
   );
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-6">
-        <div className="border-b border-neutral-300 pb-2">
-          <h2 className="text-2xl font-semibold">Mis Pedidos</h2>
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 border-b border-neutral-300 pb-3">
+          <h2 className="text-2xl font-semibold">Mis Pedidos ({totalCount})</h2>
+
+          <div className="flex min-w-[200px] w-full sm:w-[480px]">
+            <SearchInput placeholder="Buscar pedidos..." />
+          </div>
         </div>
 
         {/* --- PESTAÑAS DE NAVEGACIÓN --- */}
@@ -77,22 +85,30 @@ export default async function AccountOrdersPage({ searchParams }: Props) {
           <div className="p-4 bg-white rounded-full shadow-sm mb-4">
             <FaBoxOpen className="size-8 text-foreground" />
           </div>
-          <h3 className="text-lg font-semibold text-foreground">
-            No hay pedidos en esta sección
+          <h3 className="text-lg font-semibold text-foreground mb-1">
+            {query
+              ? "No se encontraron resultados"
+              : "No hay pedidos para mostrar"}
           </h3>
-          <p className="text-muted-foreground mt-0 mb-6 max-w-sm text-sm">
-            {statusTab ? "" : "Aún no has realizado ningún pedido."}
+          <p className="text-muted-foreground mb-4 text-sm max-w-sm mx-auto">
+            {query
+              ? `No hay coincidencias para "${query}"`
+              : statusTab
+                ? "No tienes pedidos en este estado."
+                : "Aún no has realizado ningún pedido."}
           </p>
 
-          {!statusTab && (
+          {!statusTab && !query && (
             <Button asChild>
               <Link href="/catalogo">Ir a la tienda</Link>
             </Button>
           )}
 
-          {statusTab && (
-            <Button variant="outline" asChild>
-              <Link href="/account/orders">Ver todos los pedidos</Link>
+          {(statusTab || query) && (
+            <Button variant="default" asChild>
+              <Link href="/account/orders">
+                {query ? "Limpiar búsqueda" : "Ver todos los pedidos"}
+              </Link>
             </Button>
           )}
         </div>

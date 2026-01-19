@@ -1,9 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
-
-import { useDebounce } from "@/hooks/common/use-debounce";
+import { useCallback } from "react";
 
 import type { PaymentStatus, FulfillmentStatus } from "@prisma/client";
 
@@ -14,7 +12,6 @@ export function useOrderFilters() {
 
   // --- LECTURA DE URL ---
   const activeSort = searchParams.get("sort") || "date_desc";
-  const initialQuery = searchParams.get("query")?.toString() || "";
 
   // Filtros separados por comas en la URL
   const paymentParam = searchParams.get("payment_filter");
@@ -28,9 +25,6 @@ export function useOrderFilters() {
   const activeFulfillmentStatuses = fulfillmentParam
     ? (fulfillmentParam.split(",") as FulfillmentStatus[])
     : [];
-
-  const [searchQuery, setSearchQuery] = useState(initialQuery);
-  const debouncedQuery = useDebounce(searchQuery, 500);
 
   // --- ACTUALIZADOR DE URL (Genérico) ---
   const updateParams = useCallback(
@@ -54,15 +48,9 @@ export function useOrderFilters() {
     [searchParams, pathname, router],
   );
 
-  // --- EFECTO DE BÚSQUEDA ---
-  useEffect(() => {
-    if (debouncedQuery !== initialQuery) {
-      updateParams({ query: debouncedQuery });
-    }
-  }, [debouncedQuery, updateParams, initialQuery]);
+  // BORRADO: useEffect de búsqueda
 
   // --- HANDLERS ESPECÍFICOS ---
-  // Toggle para PAGOS (PaymentStatus)
   const togglePaymentStatus = (status: string) => {
     const current = new Set(activePaymentStatuses);
     if (current.has(status as PaymentStatus)) {
@@ -89,12 +77,10 @@ export function useOrderFilters() {
   return {
     // Estado actual
     activeSort,
-    searchQuery,
     activePaymentStatuses,
     activeFulfillmentStatuses,
 
     // Acciones
-    setSearchQuery,
     updateParams,
     togglePaymentStatus,
     toggleFulfillmentStatus,
