@@ -45,14 +45,30 @@ export async function getPresetColors() {
 
 export async function createPresetColor(name: string, hex: string) {
   try {
-    const color = await prisma.presetColor.upsert({
-      where: { name_hex: { name, hex } },
-      update: {},
-      create: { name, hex },
+    const existing = await prisma.presetColor.findFirst({ where: { name } });
+
+    if (existing) {
+      return { success: true, color: existing };
+    }
+
+    const color = await prisma.presetColor.create({
+      data: { name, hex },
     });
     return { success: true, color };
   } catch (error) {
     return { error: "Error al guardar el color." };
+  }
+}
+
+export async function updatePresetColor(id: string, newHex: string) {
+  try {
+    const color = await prisma.presetColor.update({
+      where: { id },
+      data: { hex: newHex },
+    });
+    return { success: true, color };
+  } catch (error) {
+    return { error: "Error al actualizar el color." };
   }
 }
 

@@ -1,10 +1,13 @@
 "use client";
+
 import { useState } from "react";
 import {
   FaPalette,
   FaTags,
   FaWandMagicSparkles,
   FaPlus,
+  FaRotate,
+  FaCheck,
 } from "react-icons/fa6";
 import { ImSpinner8 } from "react-icons/im";
 
@@ -30,7 +33,6 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 
-import { capitalize } from "@/lib/products/utils";
 import { cn } from "@/lib/utils";
 
 import { useVariantDialog } from "@/hooks/products/use-variant-dialog";
@@ -56,10 +58,10 @@ export function VariantGeneratorDialog({ onGenerate }: Props) {
     isLoadingAttributes,
 
     // Modos
-    isColorEditMode,
-    setIsColorEditMode,
-    isSizeEditMode,
-    setIsSizeEditMode,
+    isColorDeleteMode,
+    setIsColorDeleteMode,
+    isSizeDeleteMode,
+    setIsSizeDeleteMode,
     isCustomizingColor,
 
     // Datos
@@ -76,6 +78,8 @@ export function VariantGeneratorDialog({ onGenerate }: Props) {
     genStock,
     customSizeInput,
     duplicateError,
+    existingColorMatch,
+    isColorUpdate,
 
     // Acciones
     setGenStock,
@@ -91,17 +95,18 @@ export function VariantGeneratorDialog({ onGenerate }: Props) {
     removeAttribute,
   } = useVariantDialog({ onGenerate });
 
+  // Lógica visual del botón de color
   const showAddColorBtn =
     isCustomizingColor || selectedPresetColor === "custom";
-  const colorSectionTitle = showAddColorBtn
-    ? "Añade un color nuevo"
-    : "Color Seleccionado";
+
+  // Título dinámico
+  let colorSectionTitle = "Color Seleccionado";
+  if (isColorUpdate) colorSectionTitle = "Actualizar Color Existente";
+  else if (showAddColorBtn) colorSectionTitle = "Añade un color nuevo";
 
   const confirmDelete = () => {
     if (!itemToDelete) return;
-
     removeAttribute(itemToDelete.type, itemToDelete.id, itemToDelete.name);
-
     setItemToDelete(null);
   };
 
@@ -140,15 +145,15 @@ export function VariantGeneratorDialog({ onGenerate }: Props) {
                       htmlFor="color-edit"
                       className={cn(
                         "text-xs font-medium transition-colors",
-                        isColorEditMode ? "text-red-600" : "text-foreground",
+                        isColorDeleteMode ? "text-red-600" : "text-foreground",
                       )}
                     >
-                      Editar (Borrar)
+                      Modo Borrar
                     </Label>
                     <Switch
                       id="color-edit"
-                      checked={isColorEditMode}
-                      onCheckedChange={setIsColorEditMode}
+                      checked={isColorDeleteMode}
+                      onCheckedChange={setIsColorDeleteMode}
                       className="data-[state=checked]:bg-red-500 cursor-pointer"
                     />
                   </div>
@@ -164,8 +169,12 @@ export function VariantGeneratorDialog({ onGenerate }: Props) {
                           name={c.name}
                           hex={c.hex}
                           isSelected={selectedPresetColor === c.name}
-                          isEditMode={isColorEditMode}
-                          hasError={duplicateError === c.name}
+                          isDeleteMode={isColorDeleteMode}
+                          hasError={
+                            duplicateError === c.name &&
+                            !isColorUpdate &&
+                            selectedPresetColor !== c.name
+                          }
                           onToggle={handlePresetChange}
                           onDelete={(id, name) =>
                             setItemToDelete({ type: "color", id, name })
@@ -182,16 +191,31 @@ export function VariantGeneratorDialog({ onGenerate }: Props) {
                   <div
                     className={cn(
                       "transition-all duration-200",
-                      isColorEditMode &&
+                      isColorDeleteMode &&
                         "opacity-50 pointer-events-none grayscale",
                     )}
                   >
                     <Separator className="bg-neutral-200/60 mb-4" />
 
                     <div>
-                      <span className="text-xs font-medium text-slate-700 uppercase mb-1 block transition-all">
-                        {colorSectionTitle}
-                      </span>
+                      <div className="flex justify-between items-baseline mb-2">
+                        <span
+                          className={cn(
+                            "text-xs font-semibold uppercase transition-colors text-slate-800",
+                          )}
+                        >
+                          {colorSectionTitle}
+                        </span>
+
+                        {/* Mensaje de aviso inteligente */}
+                        {existingColorMatch && isColorUpdate && (
+                          <span className="text-[10px] animate-in fade-in">
+                            Se actualizará el tono del{" "}
+                            <b>{existingColorMatch.name}</b>
+                          </span>
+                        )}
+                      </div>
+
                       <div className="flex gap-2 items-center">
                         <div
                           className="relative w-10 h-9 overflow-hidden rounded-xs border shadow-sm shrink-0 cursor-pointer hover:border-neutral-300 transition-colors"
@@ -212,21 +236,32 @@ export function VariantGeneratorDialog({ onGenerate }: Props) {
                           placeholder="Nombre (ej: Verde Menta)"
                           value={genColorName}
                           onChange={(e) => handleUserNameChange(e.target.value)}
-                          onBlur={() =>
-                            setGenColorName(capitalize(genColorName))
-                          }
                         />
 
+                        {/* BOTÓN INTELIGENTE */}
                         <Button
                           className={cn(!showAddColorBtn && "hidden")}
                           type="button"
-                          variant="outline"
+                          variant={"default"}
+                          disabled={!!existingColorMatch && !isColorUpdate}
                           onClick={() =>
                             addCustomColor(genColorName, genColorHex)
                           }
-                          title="Guardar nuevo color"
+                          title={
+                            isColorUpdate
+                              ? "Actualizar tono"
+                              : "Guardar nuevo color"
+                          }
                         >
-                          <FaPlus className="size-4 text-slate-600" /> Añadir
+                          {isColorUpdate ? (
+                            <>
+                              <FaRotate className="size-4" /> Actualizar
+                            </>
+                          ) : (
+                            <>
+                              <FaPlus className="size-4" /> Añadir
+                            </>
+                          )}
                         </Button>
                       </div>
                     </div>
@@ -245,15 +280,15 @@ export function VariantGeneratorDialog({ onGenerate }: Props) {
                       htmlFor="size-edit"
                       className={cn(
                         "text-xs font-medium transition-colors",
-                        isSizeEditMode ? "text-red-600" : "text-foreground",
+                        isSizeDeleteMode ? "text-red-600" : "text-foreground",
                       )}
                     >
-                      Editar (Borrar)
+                      Modo Borrar
                     </Label>
                     <Switch
                       id="size-edit"
-                      checked={isSizeEditMode}
-                      onCheckedChange={setIsSizeEditMode}
+                      checked={isSizeDeleteMode}
+                      onCheckedChange={setIsSizeDeleteMode}
                       className="data-[state=checked]:bg-red-500 cursor-pointer"
                     />
                   </div>
@@ -275,7 +310,7 @@ export function VariantGeneratorDialog({ onGenerate }: Props) {
                               name={s}
                               dbId={dbEntry?.id}
                               isSelected={genSizes.includes(s)}
-                              isEditMode={isSizeEditMode}
+                              isDeleteMode={isSizeDeleteMode}
                               onToggle={toggleSize}
                               onDelete={(id, name) =>
                                 setItemToDelete({ type: "size", id, name })
@@ -308,7 +343,7 @@ export function VariantGeneratorDialog({ onGenerate }: Props) {
                               name={s}
                               dbId={dbEntry?.id}
                               isSelected={genSizes.includes(s)}
-                              isEditMode={isSizeEditMode}
+                              isDeleteMode={isSizeDeleteMode}
                               onToggle={toggleSize}
                               onDelete={(id, name) =>
                                 setItemToDelete({ type: "size", id, name })
@@ -326,11 +361,11 @@ export function VariantGeneratorDialog({ onGenerate }: Props) {
 
                   <Separator />
 
-                  {/* INPUT TALLAS (Desactivado visualmente en modo edición) */}
+                  {/* INPUT TALLAS */}
                   <div
                     className={cn(
                       "transition-all duration-200",
-                      isSizeEditMode &&
+                      isSizeDeleteMode &&
                         "opacity-50 pointer-events-none grayscale",
                     )}
                   >
@@ -368,7 +403,7 @@ export function VariantGeneratorDialog({ onGenerate }: Props) {
               <div
                 className={cn(
                   "space-y-2 transition-opacity duration-200",
-                  (isColorEditMode || isSizeEditMode) &&
+                  (isColorDeleteMode || isSizeDeleteMode) &&
                     "opacity-50 pointer-events-none grayscale",
                 )}
               >
@@ -388,10 +423,10 @@ export function VariantGeneratorDialog({ onGenerate }: Props) {
               Cerrar
             </Button>
             <Button
-              disabled={isColorEditMode || isSizeEditMode}
+              disabled={isColorDeleteMode || isSizeDeleteMode}
               className={cn(
                 "space-y-2 transition-opacity duration-200",
-                (isColorEditMode || isSizeEditMode) &&
+                (isColorDeleteMode || isSizeDeleteMode) &&
                   "opacity-50 pointer-events-none",
               )}
               onClick={handleGenerateClick}
@@ -401,6 +436,7 @@ export function VariantGeneratorDialog({ onGenerate }: Props) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
       <AlertDialog
         open={!!itemToDelete}
         onOpenChange={(val) => !val && setItemToDelete(null)}

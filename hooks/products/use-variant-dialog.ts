@@ -8,6 +8,7 @@ import {
   getPresetColors,
   createPresetSize,
   createPresetColor,
+  updatePresetColor,
   deletePresetSize,
   deletePresetColor,
 } from "@/app/(admin)/admin/products/_action/attributes-actions";
@@ -20,7 +21,6 @@ type UseVariantDialogProps = {
   onGenerate: (variants: ProductFormValues["variants"]) => void;
 };
 
-// REGEX PARA VALIDAR HEXADECIMAL (Seguridad)
 const HEX_REGEX = /^#([0-9A-F]{3}){1,2}$/i;
 
 export function useVariantDialog({ onGenerate }: UseVariantDialogProps) {
@@ -33,10 +33,9 @@ export function useVariantDialog({ onGenerate }: UseVariantDialogProps) {
   const [isLoadingAttributes, setIsLoadingAttributes] = useState(false);
 
   // --- ESTADOS DE UI
-  const [isColorEditMode, setIsColorEditMode] = useState(false);
-  const [isSizeEditMode, setIsSizeEditMode] = useState(false);
+  const [isColorDeleteMode, setIsColorDeleteMode] = useState(false);
+  const [isSizeDeleteMode, setIsSizeDeleteMode] = useState(false);
   const [isCustomizingColor, setIsCustomizingColor] = useState(false);
-  const [duplicateError, setDuplicateError] = useState<string | null>(null);
 
   // --- ESTADOS DEL FORMULARIO
   const [selectedPresetColor, setSelectedPresetColor] = useState("custom");
@@ -45,6 +44,19 @@ export function useVariantDialog({ onGenerate }: UseVariantDialogProps) {
   const [genColorHex, setGenColorHex] = useState("#000000");
   const [genStock, setGenStock] = useState(10);
   const [customSizeInput, setCustomSizeInput] = useState("");
+
+  // --- DETECCIÓN DE DUPLICADOS Y CAMBIOS  ---
+  const existingColorMatch = useMemo(() => {
+    if (!genColorName.trim()) return undefined;
+    const searchName = genColorName.trim().toLowerCase();
+    return rawColors.find((c) => c.name.toLowerCase() === searchName);
+  }, [genColorName, rawColors]);
+
+  // ¿Es una actualización? (Existe nombre PERO el hex es diferente)
+  const isColorUpdate = useMemo(() => {
+    if (!existingColorMatch) return false;
+    return existingColorMatch.hex.toLowerCase() !== genColorHex.toLowerCase();
+  }, [existingColorMatch, genColorHex]);
 
   // Cargar datos
   const loadAttributes = useCallback(async () => {
@@ -71,25 +83,12 @@ export function useVariantDialog({ onGenerate }: UseVariantDialogProps) {
   const handleOpenChange = (val: boolean) => {
     setOpen(val);
     if (!val) {
-      setIsColorEditMode(false);
-      setIsSizeEditMode(false);
+      setIsColorDeleteMode(false);
+      setIsSizeDeleteMode(false);
       setIsCustomizingColor(false);
-      setDuplicateError(null);
       resetForm();
     }
   };
-
-  useEffect(() => {
-    if (isColorEditMode) {
-      setIsCustomizingColor(false);
-    }
-  }, [isColorEditMode]);
-
-  useEffect(() => {
-    if (isSizeEditMode) {
-      setGenSizes([]);
-    }
-  }, [isSizeEditMode]);
 
   // --- ORDENAMIENTO ---
   const clothingSizes = useMemo(
@@ -110,7 +109,7 @@ export function useVariantDialog({ onGenerate }: UseVariantDialogProps) {
     return [...rawColors].sort((a, b) => a.name.localeCompare(b.name));
   }, [rawColors]);
 
-  // --- LÓGICA DE COLORES (Toggle & Custom) ---
+  // --- HANDLERS COLOR ---
   const handlePresetChange = (name: string) => {
     if (selectedPresetColor === name) {
       setSelectedPresetColor("custom");
@@ -134,40 +133,59 @@ export function useVariantDialog({ onGenerate }: UseVariantDialogProps) {
 
   const handleUserHexChange = (val: string) => {
     setGenColorHex(val);
-    setSelectedPresetColor("custom");
     setIsCustomizingColor(true);
   };
 
   const handleUserNameChange = (val: string) => {
     setGenColorName(val);
-    if (duplicateError) setDuplicateError(null);
-    if (selectedPresetColor !== "custom") setSelectedPresetColor("custom");
+    const match = rawColors.find(
+      (c) => c.name.toLowerCase() === val.trim().toLowerCase(),
+    );
+
+    if (match) {
+      setSelectedPresetColor(match.name);
+      setGenColorHex(match.hex);
+    } else {
+      if (selectedPresetColor !== "custom") {
+        setSelectedPresetColor("custom");
+      }
+    }
+
     setIsCustomizingColor(true);
   };
 
-  // Añadir color
+  // --- LÓGICA PRINCIPAL: GUARDAR O ACTUALIZAR COLOR ---
   const addCustomColor = async (name: string, hex: string) => {
     const cleanName = name.trim();
     if (!cleanName) return;
 
-    // 1. VALIDACIÓN HEX
     if (!HEX_REGEX.test(hex)) {
       toast.error("Código de color inválido");
       return;
     }
 
     const finalName = capitalize(name.trim());
-    if (!finalName) return;
 
-    // 2. BUSCAR DUPLICADO POR NOMBRE
-    const existingColor = rawColors.find(
-      (c) => c.name.toLowerCase() === cleanName.toLowerCase(),
-    );
-
-    if (existingColor) {
-      toast.error(`El color "${existingColor.name}" ya existe.`);
-      setDuplicateError(existingColor.name);
-
+    if (existingColorMatch) {
+      if (isColorUpdate) {
+        const res = await updatePresetColor(existingColorMatch.id, hex);
+        if (res.success && res.color) {
+          setRawColors((prev) =>
+            prev.map((c) =>
+              c.id === existingColorMatch.id ? (res.color as PresetColor) : c,
+            ),
+          );
+          toast.success(`Color ${finalName} actualizado correctamente.`);
+          setSelectedPresetColor(finalName);
+          setIsCustomizingColor(false);
+        } else {
+          toast.error("Error al actualizar el color.");
+        }
+      } else {
+        setSelectedPresetColor(existingColorMatch.name);
+        setIsCustomizingColor(false);
+        toast.info(`Color ${finalName} seleccionado.`);
+      }
       return;
     }
 
@@ -177,13 +195,12 @@ export function useVariantDialog({ onGenerate }: UseVariantDialogProps) {
       toast.success(`Color ${finalName} guardado.`);
       setSelectedPresetColor(finalName);
       setIsCustomizingColor(false);
-      setDuplicateError(null);
     } else {
-      toast.error("Error al guardar color");
+      toast.error("Error al guardar color.");
     }
   };
 
-  // --- LÓGICA DE TALLAS ---
+  // --- TALLAS (Sin cambios importantes) ---
   const addCustomSize = async () => {
     const val = customSizeInput.trim().toUpperCase();
     if (!val) return;
@@ -217,20 +234,18 @@ export function useVariantDialog({ onGenerate }: UseVariantDialogProps) {
     if (type === "size") {
       const res = await deletePresetSize(id, name);
       if (res.error) return toast.error(res.error);
-
       setRawSizes((prev) => prev.filter((s) => s.id !== id));
       setGenSizes((prev) => prev.filter((s) => s !== name));
       toast.success("Talla eliminada.");
     } else {
       const res = await deletePresetColor(id, name);
       if (res.error) return toast.error(res.error);
-
       setRawColors((prev) => prev.filter((c) => c.id !== id));
+      if (selectedPresetColor === name) resetForm();
       toast.success("Color eliminado.");
     }
   };
 
-  // --- GENERACIÓN ---
   const handleGenerateClick = async () => {
     if (!genColorName.trim()) return toast.error("Elige un color.");
     if (genSizes.length === 0) return toast.error("Elige al menos una talla.");
@@ -263,20 +278,19 @@ export function useVariantDialog({ onGenerate }: UseVariantDialogProps) {
   };
 
   return {
-    // UI States
     open,
     isLoadingAttributes,
-    isColorEditMode,
-    isSizeEditMode,
+    isColorDeleteMode,
+    isSizeDeleteMode,
     isCustomizingColor,
 
-    // Data
+    existingColorMatch,
+    isColorUpdate,
+
     dbSizes: rawSizes,
     dbColors: sortedColors,
     clothingSizes,
     shoeSizes,
-
-    // Form Values
     selectedPresetColor,
     genSizes,
     genColorName,
@@ -284,18 +298,14 @@ export function useVariantDialog({ onGenerate }: UseVariantDialogProps) {
     genStock,
     customSizeInput,
 
-    // Errors
-    duplicateError,
+    duplicateError: existingColorMatch?.name || null,
 
-    // Actions & Setters
     handleOpenChange,
-    setIsColorEditMode,
-    setIsSizeEditMode,
+    setIsColorDeleteMode,
+    setIsSizeDeleteMode,
     setGenStock,
     setCustomSizeInput,
     setGenColorName,
-
-    // Handlers Lógicos
     handlePresetChange,
     handleUserHexChange,
     handleUserNameChange,
