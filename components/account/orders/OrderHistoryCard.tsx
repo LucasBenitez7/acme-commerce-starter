@@ -44,7 +44,7 @@ export function OrderHistoryCard({ order }: Props) {
             <span className="text-sm uppercase font-semibold">
               Nº de Pedido
             </span>
-            <span className="text-xs font-medium">
+            <span className="text-xs font-medium uppercase">
               {order.id.toUpperCase()}
             </span>
           </div>

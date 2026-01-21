@@ -71,7 +71,7 @@ export function AccountSidebar({ user }: Props) {
             key={item.href}
             href={item.href}
             className={cn(
-              "flex w-full items-center gap-3 px-3 py-2.5 text-sm font-semibold text-center rounded-xs transition-colors justify-center",
+              "flex w-full items-center gap-3 px-3 py-3 text-sm font-semibold text-center transition-colors justify-center",
               isActive
                 ? "bg-foreground text-background shadow-sm"
                 : "hover:bg-neutral-100 active:bg-neutral-100",
@@ -90,7 +90,7 @@ export function AccountSidebar({ user }: Props) {
       <Button
         variant={"ghost"}
         onClick={() => signOut({ callbackUrl: "/" })}
-        className="w-full lg:w-auto text-red-600 hover:bg-red-50 active:bg-red-100 hover:text-red-600 py-2.5"
+        className="w-full lg:w-auto text-red-600 hover:bg-red-50 active:bg-red-100 hover:text-red-600 py-3 rounded-none"
       >
         <FaRightFromBracket className="size-4" />
         Cerrar sesión

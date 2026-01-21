@@ -161,7 +161,9 @@ export default async function OrderDetailPage({
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <h3 className="font-semibold uppercase mb-1">Nº de Pedido</h3>
-                <p className="font-mono text-xs">{order.id.toUpperCase()}</p>
+                <p className="font-mono text-xs uppercase">
+                  {order.id.toUpperCase()}
+                </p>
               </div>
               <div>
                 <h3 className="font-semibold uppercase mb-1">Relizado</h3>

@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { FaArrowLeft } from "react-icons/fa6";
 
 import {
   getCategoryForEdit,
@@ -27,8 +29,15 @@ export default async function EditCategoryPage({ params }: Props) {
   const hasProducts = category._count.products > 0;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 py-2">
-      <div className="flex items-start justify-between border-b pb-4">
+    <div className="max-w-5xl mx-auto space-y-6 py-2">
+      <div className="flex items-center justify-between border-b pb-2">
+        <Link
+          href="/admin/categories"
+          className="hover:bg-neutral-100 p-2 rounded-xs transition-colors"
+        >
+          <FaArrowLeft className="size-4" />
+        </Link>
+
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">
             {category.name}

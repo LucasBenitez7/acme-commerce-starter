@@ -26,6 +26,11 @@ export function SuccessClient({ order }: { order: DisplayOrder }) {
     0,
   );
 
+  const createdDate = new Date(order.createdAt).toLocaleString("es-ES", {
+    dateStyle: "long",
+    timeStyle: "short",
+  });
+
   return (
     <div className="space-y-4 flex flex-col items-center max-w-2xl mx-auto w-full">
       <div className="space-y-3 w-full font-medium text-sm">
@@ -41,23 +46,42 @@ export function SuccessClient({ order }: { order: DisplayOrder }) {
       </div>
 
       <div className="w-full space-y-4">
-        <Card>
-          <CardHeader className="py-3 pb-1 px-4 border-b">
-            <CardTitle className="text-lg font-semibold flex items-center">
+        <Card className="px-4">
+          <CardHeader className="py-3 pb-1 border-b">
+            <CardTitle className="text-lg font-semibold flex items-center justify-center">
               Detalles del pedido
             </CardTitle>
           </CardHeader>
-          <CardContent className="grid md:grid-cols-2 gap-6 p-4 text-sm">
-            <div className="space-y-2">
-              <div className="space-y-1">
-                <p className="text-foreground font-medium">
-                  {order.contact.name}
+          <CardContent className="grid gap-6 py-4 px-0 text-sm font-medium">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <h3 className="font-semibold uppercase mb-1">Nº de Pedido</h3>
+                <p className="font-mono text-xs uppercase">
+                  {order.id.toUpperCase()}
                 </p>
-                <p>{order.contact.phone}</p>
+              </div>
 
-                <p className="text-foreground font-medium mt-2">
+              <div className="text-xs text-foreground space-y-1">
+                <h3 className="font-semibold text-sm uppercase mb-1">
+                  Método de pago
+                </h3>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-xs text-foreground space-y-1">
+                <h3 className="font-semibold text-sm uppercase mb-1">
+                  Datos de contacto
+                </h3>
+                <p>{order.contact.name}</p>
+                <p>{order.email}</p>
+                <p>{order.contact.phone}</p>
+              </div>
+
+              <div className="text-xs text-foreground space-y-1">
+                <h3 className="font-semibold text-sm uppercase mb-1">
                   {order.shippingInfo.label}
-                </p>
+                </h3>
                 <div className="space-y-1">
                   {order.shippingInfo.addressLines.map((line, i) => (
                     <p key={i}>{line} </p>
@@ -69,8 +93,8 @@ export function SuccessClient({ order }: { order: DisplayOrder }) {
         </Card>
 
         {/* 3. RESUMEN DE ITEMS */}
-        <Card className="overflow-hidden">
-          <CardHeader className="py-4 pb-2 px-4 border-b">
+        <Card className="overflow-hidden px-4">
+          <CardHeader className="py-4 pb-2 px-0 border-b">
             <CardTitle className="text-lg font-semibold flex items-center gap-1">
               Productos
               <span className="text-base">({totalItemsQty})</span>
@@ -80,7 +104,7 @@ export function SuccessClient({ order }: { order: DisplayOrder }) {
           <CardContent className="px-0">
             <ul className="py-2">
               {order.items.map((item) => (
-                <li key={item.id} className="flex gap-3 px-3 py-2">
+                <li key={item.id} className="flex gap-3 py-2">
                   <div className="relative aspect-[3/4] h-28 w-20 shrink-0 overflow-hidden rounded-xs bg-neutral-100">
                     {item.image ? (
                       <Image
@@ -125,7 +149,7 @@ export function SuccessClient({ order }: { order: DisplayOrder }) {
             </ul>
 
             {/* TOTALES */}
-            <div className="border-t p-4 space-y-2">
+            <div className="border-t py-4 space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal</span>
                 <span>{formatCurrency(order.totals.subtotal)}</span>

@@ -190,7 +190,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
       <div className="space-y-4 font-medium">
         <Card className="px-4">
           <h2 className="text-lg font-semibold text-center pt-3 pb-2 mb-1 border-b">
-            Detalles del Pedido (Admin)
+            Detalles del Pedido
           </h2>
 
           <CardContent className="space-y-6 py-3 px-0">
@@ -199,7 +199,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
                 <h3 className="font-semibold uppercase text-sm">
                   Nº de Pedido
                 </h3>
-                <p className="font-mono text-sm truncate" title={order.id}>
+                <p className="font-mono text-sm uppercase" title={order.id}>
                   {order.id}
                 </p>
               </div>

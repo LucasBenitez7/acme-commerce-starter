@@ -51,7 +51,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Pedidos</h1>
+        <h1 className="text-2xl font-semibold border-b w-full pb-2">Pedidos</h1>
       </div>
 
       {/* TABS DE NAVEGACIÓN RÁPIDA */}

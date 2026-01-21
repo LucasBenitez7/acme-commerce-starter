@@ -35,8 +35,8 @@ export default async function AdminCategoriesPage({ searchParams }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold tracking-tight">Categorías</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-2">
+        <h1 className="text-2xl font-semibold">Categorías</h1>
         <Link
           href="/admin/categories/new"
           className="flex items-center font-medium gap-2 bg-foreground text-white hover:bg-foreground/80 transition-colors py-2 px-3 rounded-xs text-sm"

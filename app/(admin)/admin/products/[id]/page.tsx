@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { FaUndo } from "react-icons/fa";
 import {
   FaArrowUpRightFromSquare,
+  FaArrowLeft,
   FaBoxOpen,
   FaCartShopping,
   FaLayerGroup,
@@ -36,15 +37,17 @@ export default async function EditProductPage({
 
   return (
     <div className="space-y-4 max-w-5xl mx-auto pb-10">
-      {/* --- HEADER --- */}
-      <h1 className="text-2xl font-bold border-b pb-1 mb-6">
-        {product?.id ? "Editar Producto" : "Nuevo Producto"}
-      </h1>
+      <div className="flex items-center justify-between gap-4 border-b pb-2">
+        <Link
+          href="/admin/products"
+          className="hover:bg-neutral-100 p-2 rounded-xs transition-colors"
+        >
+          <FaArrowLeft className="size-4" />
+        </Link>
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold flex items-center gap-2">
-            {product.name}
+            {product.name.slice(0, 30)}
 
             {product.isArchived && (
               <span className="bg-amber-100 px-2 py-0.5 rounded-md text-xs font-medium text-amber-700 border border-amber-200">

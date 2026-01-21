@@ -67,7 +67,7 @@ export default async function AdminProductsPage({ searchParams }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex sm:flex-row sm:items-center justify-between gap-4 border-b pb-2">
         <h1 className="text-2xl font-bold tracking-tight">Productos</h1>
 
         <Link

@@ -64,7 +64,7 @@ export const FULFILLMENT_STATUS_CONFIG: Record<
   { label: string; color: string; badge: string }
 > = {
   UNFULFILLED: {
-    label: "Pendientes",
+    label: "Pendiente",
     color: "bg-neutral-400",
     badge: "bg-neutral-100 text-neutral-600 border-neutral-200",
   },
