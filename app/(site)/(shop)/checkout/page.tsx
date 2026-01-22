@@ -1,160 +1,74 @@
-import { cookies } from "next/headers";
-import Image from "next/image";
-import { redirect } from "next/navigation";
+import { type UserAddress } from "@prisma/client";
+import { FaLock } from "react-icons/fa6";
 
 import { CheckoutForm } from "@/components/checkout/CheckoutForm";
+import { CheckoutProvider } from "@/components/checkout/CheckoutProvider";
+import { CheckoutSummary } from "@/components/checkout/CheckoutSummary";
+import { CheckoutLocalFooter } from "@/components/checkout/layout/CheckoutFooter";
 import { CheckoutHeader } from "@/components/checkout/layout/CheckoutHeader";
-import { CheckoutLocalFooter } from "@/components/checkout/layout/CheckoutLocalFooter";
 import { Container } from "@/components/ui";
 
 import { auth } from "@/lib/auth";
-import { formatMinor } from "@/lib/currency";
-import { CART_COOKIE_NAME, parseCartCookie } from "@/lib/server/cart-cookie";
-import { buildOrderDraftFromCart } from "@/lib/server/orders";
+import { prisma } from "@/lib/db";
+
+export const dynamic = "force-dynamic";
 
 export default async function CheckoutPage() {
   const session = await auth();
   const user = session?.user || null;
 
-  const cookieStore = await cookies();
-  const rawCart = cookieStore.get(CART_COOKIE_NAME)?.value;
+  const defaultValues = {
+    email: user?.email || "",
+    firstName: user?.firstName || "",
+    lastName: user?.lastName || "",
+    phone: user?.phone || "",
+  };
 
-  const lines = parseCartCookie(rawCart);
-  const orderDraft = await buildOrderDraftFromCart(lines);
-
-  if (!orderDraft.items.length) {
-    redirect("/catalogo");
+  let savedAddresses: UserAddress[] = [];
+  if (user?.id) {
+    savedAddresses = await prisma.userAddress.findMany({
+      where: { userId: user.id },
+      orderBy: { isDefault: "desc" },
+    });
   }
 
-  const totalQty = orderDraft.items.reduce(
-    (sum, item) => sum + item.quantity,
-    0,
-  );
-
   return (
-    <Container className="px-0 bg-neutral-100">
-      <div className="grid lg:grid-cols-[minmax(0,2fr)_minmax(0,0.8fr)] lg:items-start">
-        {/* Columna izquierda: header + formulario + footer (solo en desktop) */}
-        <section className="flex flex-col lg:min-h-screen">
-          <CheckoutHeader />
+    <Container>
+      <CheckoutProvider defaultValues={defaultValues}>
+        <div className="grid lg:grid-cols-[1.5fr_1fr] items-start">
+          <div className="flex flex-col lg:min-h-screen">
+            <div className="flex-1">
+              <CheckoutHeader />
 
-          <div className="flex-1 px-4 py-4">
-            <CheckoutForm
-              defaultFirstName={user?.firstName}
-              defaultLastName={user?.lastName}
-              defaultEmail={user?.email}
-              defaultPhone={user?.phone}
-            />
-          </div>
+              <div className="max-w-7xl mx-auto px-4 lg:px-6 pb-6">
+                <div className="flex gap-2 items-center border-b border-neutral-300 my-4 mb-5 pb-1 pr-1">
+                  <FaLock />
+                  <h1 className="text-xl font-semibold text-left">
+                    Proceso de compra segura
+                  </h1>
+                </div>
 
-          <CheckoutLocalFooter />
-        </section>
-
-        {/* Columna derecha: resumen del pedido */}
-        <aside className="lg:sticky lg:top-0 px-4 lg:px-0">
-          <div className="flex h-full flex-col border bg-background lg:h-screen">
-            {/* Header del resumen (siempre visible) */}
-            <header className="shrink-0 px-4">
-              <h2 className="flex items-baseline gap-1 py-4 text-lg font-semibold">
-                Resumen de compra{" "}
-                <span className="text-base">({totalQty})</span>
-              </h2>
-            </header>
-
-            {/* Body scrollable */}
-            <div className="flex-1 overflow-y-auto px-4">
-              <ul className="space-y-2 text-sm">
-                {orderDraft.items.map((item) => {
-                  const lineTotalMinor = item.subtotalMinor;
-                  const key = `${item.productId}-${item.variantId}`;
-
-                  return (
-                    <li
-                      key={key}
-                      className="grid grid-cols-[auto_1fr_auto] items-center gap-2 py-1"
-                    >
-                      <div
-                        className="relative h-32 w-24 shrink-0 overflow-hidden rounded-xs bg-neutral-100"
-                        aria-hidden="true"
-                      >
-                        {item.imageUrl && (
-                          <Image
-                            src={item.imageUrl}
-                            alt={item.name}
-                            fill
-                            sizes="200px"
-                            className="object-cover"
-                          />
-                        )}
-                      </div>
-
-                      <div className="flex flex-col h-full justify-between py-1 font-medium">
-                        <div className="space-y-1">
-                          <p className="text-sm">{item.name}</p>
-                          <p className="text-xs">{item.variantName}</p>
-                          <div className="flex gap-1">
-                            <p className="text-xs">x{item.quantity}</p>
-                            {item.quantity > 1 && (
-                              <div className="text-xs text-muted-foreground">
-                                {lineTotalMinor
-                                  ? formatMinor(
-                                      lineTotalMinor / item.quantity,
-                                      orderDraft.currency,
-                                    )
-                                  : "—"}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="text-sm font-medium">
-                          {formatMinor(lineTotalMinor, orderDraft.currency)}
-                        </div>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
+                <CheckoutForm
+                  savedAddresses={savedAddresses}
+                  userId={user?.id}
+                />
+              </div>
             </div>
 
-            {/* Footer del resumen */}
-            <footer className="mt-3 shrink-0 border-t px-4">
-              <div className="flex items-center justify-between pt-4 text-sm">
-                <span className="text-base">Descuentos</span>
-                {/* TODO: conectar con promos reales */}
-                <span>45,50 €</span>
-              </div>
-              <div className="flex items-center justify-between pb-6 pt-4 text-base font-semibold">
-                <span className="text-lg">Total</span>
-                <span>
-                  {formatMinor(orderDraft.totalMinor, orderDraft.currency)}
-                </span>
-              </div>
-            </footer>
+            <div className="hidden lg:block mt-auto">
+              <CheckoutLocalFooter />
+            </div>
           </div>
-        </aside>
-      </div>
 
-      {/* Footer local SOLO en mobile: va debajo de TODO (incluido el resumen) */}
-      <footer className="mt-6 border-t bg-background py-6 px-4 text-xs text-muted-foreground lg:hidden">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <p>
-            © {new Date().getFullYear()} lsbstack. Todos los derechos
-            reservados.
-          </p>
-          <div className="flex items-center gap-3">
-            <a href="#" className="hover:underline">
-              Privacidad
-            </a>
-            <a href="#" className="hover:underline">
-              Términos
-            </a>
-            <a href="#" className="hover:underline">
-              Contacto
-            </a>
+          <div className="lg:sticky lg:top-0 lg:h-screen px-4 lg:px-0">
+            <CheckoutSummary />
+          </div>
+
+          <div className="lg:hidden mt-8">
+            <CheckoutLocalFooter />
           </div>
         </div>
-      </footer>
+      </CheckoutProvider>
     </Container>
   );
 }

@@ -1,31 +1,27 @@
-export type SupportedCurrency = "EUR" | "PYG";
+export type SupportedCurrency = "EUR" | "USD" | "GBP";
 
 export const MINOR_UNITS: Record<SupportedCurrency, number> = {
   EUR: 2,
-  PYG: 0,
+  USD: 2,
+  GBP: 2,
 } as const;
-
-const RAW = process.env.NEXT_PUBLIC_DEFAULT_CURRENCY;
-export const DEFAULT_CURRENCY: SupportedCurrency =
-  RAW === "PYG" ? "PYG" : "EUR";
-if (
-  process.env.NODE_ENV !== "production" &&
-  RAW &&
-  RAW !== "PYG" &&
-  RAW !== "EUR"
-) {
-  console.warn(
-    `[currency] NEXT_PUBLIC_DEFAULT_CURRENCY="${RAW}" no es válida. Usando ${DEFAULT_CURRENCY}. Permitidas: EUR | PYG.`,
-  );
-}
 
 export const LOCALE_BY_CURRENCY: Record<SupportedCurrency, string> = {
   EUR: "es-ES",
-  PYG: "es-PY",
+  USD: "en-US",
+  GBP: "en-GB",
 } as const;
 
+// Moneda por defecto si falla la configuración
+export const DEFAULT_CURRENCY: SupportedCurrency = "EUR";
+
 export function parseCurrency(input?: string | null): SupportedCurrency {
-  return input === "PYG" ? "PYG" : "EUR";
+  if (!input) return DEFAULT_CURRENCY;
+  const code = input.toUpperCase();
+  if (code === "USD" || code === "GBP" || code === "EUR") {
+    return code as SupportedCurrency;
+  }
+  return DEFAULT_CURRENCY;
 }
 
 export function toMajor(amountMinor: number, currency: SupportedCurrency) {
@@ -33,20 +29,23 @@ export function toMajor(amountMinor: number, currency: SupportedCurrency) {
   return amountMinor / 10 ** decimals;
 }
 
-export function formatMinor(
+export function formatCurrency(
   amountMinor: number,
-  currency: SupportedCurrency,
-  locale?: string,
+  currencyInput: string = DEFAULT_CURRENCY,
+  localeInput?: string,
 ) {
-  const l = locale ?? LOCALE_BY_CURRENCY[currency];
+  const currency = parseCurrency(currencyInput);
+  const locale = localeInput ?? LOCALE_BY_CURRENCY[currency];
   const major = toMajor(amountMinor, currency);
 
   try {
-    return new Intl.NumberFormat(l, { style: "currency", currency }).format(
-      major,
-    );
-  } catch {
-    const fixed = major.toFixed(MINOR_UNITS[currency]);
-    return `${fixed} ${currency}`;
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency,
+      maximumFractionDigits: MINOR_UNITS[currency],
+    }).format(major);
+  } catch (e) {
+    // Fallback por seguridad
+    return `${major.toFixed(2)} ${currency}`;
   }
 }

@@ -1,108 +1,76 @@
-import Link from "next/link";
-import { FaSignOutAlt } from "react-icons/fa";
-import { FaUser, FaBoxOpen, FaPhone } from "react-icons/fa6";
+import { FaUser, FaEnvelope, FaPhone } from "react-icons/fa6";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Button,
-} from "@/components/ui";
+import { Card, CardContent } from "@/components/ui/card";
 
-import { auth, signOut } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-
-export default async function AccountPage() {
+export default async function AccountProfilePage() {
   const session = await auth();
-  if (!session?.user) return null;
+  const user = session?.user;
 
-  // Extraemos los nuevos campos
-  const { name, email, role, firstName, lastName, phone } = session.user;
+  if (!user) return null;
 
-  // Construimos el nombre completo real o usamos el fallback
-  const displayName =
-    firstName && lastName ? `${firstName} ${lastName}` : name || "Sin nombre";
+  const isVerified = "verified";
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 grid-cols-1">
-        {/* Tarjeta de Perfil */}
-        <Card className="py-4 px-4">
-          <CardHeader className="px-0 flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Información Personal
-            </CardTitle>
-            <FaUser className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="space-y-1 px-0">
-            <div className="text-2xl font-bold">{displayName}</div>
-            <p className="text-xs text-muted-foreground">{email}</p>
-            {phone && (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1">
-                <FaPhone className="h-3 w-3" />
-                <span>{phone}</span>
-              </div>
-            )}
-
-            {role === "admin" && (
-              <span className="mt-2 inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
-                Admin
-              </span>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Tarjeta de Acceso Rápido a Pedidos */}
-        <Card className="py-4 px-4">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-0">
-            <CardTitle className="text-sm font-medium px-0">
-              Mis Pedidos
-            </CardTitle>
-            <FaBoxOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="px-0">
-            <p className="text-xs text-muted-foreground mb-4">
-              Consulta el estado de tus compras recientes.
-            </p>
-            <Button asChild variant="outline" size="sm" className="w-full">
-              <Link href="/account/orders">Ver historial completo</Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Tarjeta de Sesión (Cerrar sesión) */}
-        <Card className="border-red-100 bg-red-50/50 dark:border-red-900/20 dark:bg-red-900/10 p-4">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-0">
-            <CardTitle className="text-sm font-medium text-red-600 px-0">
-              Zona de peligro
-            </CardTitle>
-            <FaSignOutAlt className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent className="px-0">
-            <p className="text-xs text-muted-foreground mb-4">
-              Cierra la sesión de este dispositivo.
-            </p>
-            <form
-              action={async () => {
-                "use server";
-                await signOut({ redirectTo: "/" });
-              }}
-            >
-              <Button
-                type="submit"
-                variant="destructive"
-                size="sm"
-                className="w-full"
-              >
-                Cerrar sesión
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+    <div className="space-y-4">
+      <div>
+        <h2 className="text-2xl text-center sm:text-left font-semibold pb-2 border-b border-neutral-300">
+          Mi Cuenta
+        </h2>
       </div>
+
+      <Card className="overflow-hidden pb-0">
+        <CardContent className="p-4">
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* GRUPO 1: INFORMACIÓN BÁSICA */}
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-sm font-semibold uppercase">
+                <FaUser className="size-3" /> Nombre
+              </div>
+              <p className="text-sm font-medium text-foreground pl-6">
+                {user.firstName || "No especificado"}
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-sm font-semibold uppercase">
+                <FaUser className="size-3" /> Apellidos
+              </div>
+              <p className="text-sm font-medium text-foreground pl-6">
+                {user.lastName || "No especificado"}
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-sm font-semibold uppercase">
+                <FaEnvelope className="size-3" /> Correo Electrónico
+                {isVerified === "verified" && (
+                  <div className="flex items-center py-0-5 px-2 rounded-full bg-blue-50 text-blue-600 text-xs font-medium lowercase">
+                    verificado
+                  </div>
+                )}
+              </div>
+              <p className="text-sm font-medium text-foreground pl-6">
+                {user.email}
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-sm font-semibold uppercase">
+                <FaPhone className="size-3" /> Teléfono
+              </div>
+              <p className="text-sm font-medium text-foreground pl-6">
+                {user.phone || (
+                  <span className="text-neutral-400 italic text-sm">
+                    No registrado
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

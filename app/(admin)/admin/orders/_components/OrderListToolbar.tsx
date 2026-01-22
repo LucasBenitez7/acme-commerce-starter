@@ -1,14 +1,15 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { FaFilter, FaSort, FaXmark } from "react-icons/fa6";
+import { useState } from "react";
+import { FaFilter, FaSort, FaCheck, FaChevronRight } from "react-icons/fa6";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { SearchInput } from "@/components/ui/SearchInput";
 import {
   Select,
   SelectContent,
@@ -17,149 +18,237 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import {
+  ADMIN_FILTER_PAYMENT,
+  ADMIN_FILTER_FULFILLMENT,
+  ORDER_SORT_OPTIONS,
+} from "@/lib/orders/constants";
 import { cn } from "@/lib/utils";
 
+import { useOrderFilters } from "@/hooks/order/use-order-filters";
+
+import type { PaymentStatus, FulfillmentStatus } from "@prisma/client";
+
 export function OrderListToolbar() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const {
+    activeSort,
+    activePaymentStatuses,
+    activeFulfillmentStatuses,
+    updateParams,
+    togglePaymentStatus,
+    toggleFulfillmentStatus,
+  } = useOrderFilters();
 
-  // --- LÓGICA DE URL ---
-  const updateParams = (updates: Record<string, string | null>) => {
-    const params = new URLSearchParams(searchParams.toString());
+  const [isPaymentOpen, setIsPaymentOpen] = useState(true);
+  const [isFulfillmentOpen, setIsFulfillmentOpen] = useState(false);
 
-    Object.entries(updates).forEach(([key, value]) => {
-      if (value) {
-        params.set(key, value);
-      } else {
-        params.delete(key);
-      }
-    });
-
-    router.push(`/admin/orders?${params.toString()}`);
-  };
-
-  // --- ESTADOS ---
-  const activeSort = searchParams.get("sort") || "date_desc";
-  const activeStatuses =
-    searchParams.get("status_filter")?.split(",").filter(Boolean) || [];
-
-  const handleStatusToggle = (status: string) => {
-    const newStatuses = activeStatuses.includes(status)
-      ? activeStatuses.filter((s) => s !== status)
-      : [...activeStatuses, status];
-
-    updateParams({
-      status_filter: newStatuses.length > 0 ? newStatuses.join(",") : null,
-    });
-  };
-
-  // Opciones de Estado para el filtro
-  const STATUS_OPTIONS = [
-    { label: "Pagado", value: "PAID", color: "bg-green-500" },
-    { label: "Pendiente", value: "PENDING_PAYMENT", color: "bg-yellow-500" },
-    { label: "Solicitado", value: "RETURN_REQUESTED", color: "bg-orange-500" },
-    { label: "Devuelto", value: "RETURNED", color: "bg-blue-500" },
-    { label: "Cancelado", value: "CANCELLED", color: "bg-neutral-500" },
-    { label: "Expirado", value: "EXPIRED", color: "bg-neutral-400" },
-  ];
-
-  // Opciones de Ordenación
-  const SORT_OPTIONS = [
-    { label: "Fecha: Reciente", value: "date_desc" },
-    { label: "Fecha: Antigua", value: "date_asc" },
-    { label: "Total: Alto a Bajo", value: "total_desc" },
-    { label: "Total: Bajo a Alto", value: "total_asc" },
-  ];
+  const hasActiveFilters =
+    activePaymentStatuses.length > 0 || activeFulfillmentStatuses.length > 0;
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      {/* 1. FILTRO ESTADOS (POPOVER MULTI-SELECT) */}
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button variant="outline" size="sm" className="h-8 border-dashed">
-            <FaFilter className="mr-2 h-3.5 w-3.5" />
-            Estados
-            {activeStatuses.length > 0 && (
-              <span className="ml-1.5 rounded-full bg-black px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                {activeStatuses.length}
-              </span>
-            )}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[300px] p-4" align="start">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h4 className="font-medium leading-none">Filtrar por Estado</h4>
-              {activeStatuses.length > 0 && (
-                <button
-                  onClick={() => updateParams({ status_filter: null })}
-                  className="text-xs text-muted-foreground hover:text-red-600 flex items-center gap-1"
+    <div className="flex flex-col lg:flex-row gap-3 w-full justify-between items-end lg:items-center">
+      <div className="flex-1 min-w-[200px] w-full sm:w-auto lg:w-[350px]">
+        <SearchInput placeholder="Buscar por ID..." paramName="query" />
+      </div>
+
+      <div className="flex flex-wrap gap-3 justify-between w-full lg:w-auto items-center">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "relative border border-border h-9",
+                hasActiveFilters && "border-foreground bg-accent/50",
+              )}
+            >
+              <FaFilter className="size-3.5 text-foreground mr-2" />
+              Filtrar
+              {hasActiveFilters && (
+                <span className="ml-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-foreground text-[10px] text-background font-bold">
+                  {activePaymentStatuses.length +
+                    activeFulfillmentStatuses.length}
+                </span>
+              )}
+            </Button>
+          </PopoverTrigger>
+
+          <PopoverContent
+            className="w-[280px] p-2 translate-x-8 lg:translate-x-0"
+            align="end"
+          >
+            <div className="space-y-1 max-h-[400px] overflow-y-auto pr-1">
+              {/* SECCIÓN 1: ESTADO DE PAGO */}
+              <div
+                className={cn(
+                  "rounded-sm transition-all",
+                  isPaymentOpen && "bg-neutral-50 pb-2",
+                )}
+              >
+                <Button
+                  variant="ghost"
+                  onClick={() => setIsPaymentOpen(!isPaymentOpen)}
+                  className="w-full justify-between h-8 hover:bg-neutral-100 px-2"
                 >
-                  <FaXmark /> Limpiar
-                </button>
+                  <span className="text-xs font-bold uppercase text-neutral-500">
+                    Pago
+                  </span>
+                  <FaChevronRight
+                    className={cn(
+                      "size-3 transition-transform duration-200 text-neutral-400",
+                      isPaymentOpen && "rotate-90",
+                    )}
+                  />
+                </Button>
+
+                {isPaymentOpen && (
+                  <div className="px-1 pt-1 space-y-0.5 animate-in slide-in-from-top-1 fade-in duration-200">
+                    {ADMIN_FILTER_PAYMENT.map((status) => {
+                      const isSelected = activePaymentStatuses.includes(
+                        status.value as PaymentStatus,
+                      );
+                      return (
+                        <div
+                          key={status.value}
+                          onClick={() => togglePaymentStatus(status.value)}
+                          className="flex items-center gap-2 py-1.5 rounded-sm cursor-pointer px-2 hover:bg-neutral-200/50 text-sm select-none transition-colors"
+                        >
+                          <div
+                            className={cn(
+                              "w-4 h-4 border rounded-sm flex items-center justify-center transition-colors bg-white",
+                              isSelected
+                                ? "bg-black border-black text-white"
+                                : "border-neutral-300",
+                            )}
+                          >
+                            {isSelected && <FaCheck className="w-2.5 h-2.5" />}
+                          </div>
+                          <div
+                            className={cn(
+                              "w-2 h-2 rounded-full ml-1",
+                              status.color,
+                            )}
+                          />
+                          <span className="truncate text-sm">
+                            {status.label}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* SECCIÓN 2: ESTADO DE ENVÍO */}
+              <div
+                className={cn(
+                  "rounded-sm transition-all mt-1",
+                  isFulfillmentOpen && "bg-neutral-50 pb-2",
+                )}
+              >
+                <Button
+                  variant="ghost"
+                  onClick={() => setIsFulfillmentOpen(!isFulfillmentOpen)}
+                  className="w-full justify-between h-8 hover:bg-neutral-100 px-2"
+                >
+                  <span className="text-xs font-bold uppercase text-neutral-500">
+                    Logística
+                  </span>
+                  <FaChevronRight
+                    className={cn(
+                      "size-3 transition-transform duration-200 text-neutral-400",
+                      isFulfillmentOpen && "rotate-90",
+                    )}
+                  />
+                </Button>
+
+                {isFulfillmentOpen && (
+                  <div className="px-1 pt-1 space-y-0.5 animate-in slide-in-from-top-1 fade-in duration-200">
+                    {ADMIN_FILTER_FULFILLMENT.map((status) => {
+                      const isSelected = activeFulfillmentStatuses.includes(
+                        status.value as FulfillmentStatus,
+                      );
+                      return (
+                        <div
+                          key={status.value}
+                          onClick={() => toggleFulfillmentStatus(status.value)}
+                          className="flex items-center gap-2 py-1.5 rounded-sm cursor-pointer px-2 hover:bg-neutral-200/50 text-sm select-none transition-colors"
+                        >
+                          <div
+                            className={cn(
+                              "w-4 h-4 border rounded-sm flex items-center justify-center transition-colors bg-white",
+                              isSelected
+                                ? "bg-black border-black text-white"
+                                : "border-neutral-300",
+                            )}
+                          >
+                            {isSelected && <FaCheck className="w-2.5 h-2.5" />}
+                          </div>
+                          <div
+                            className={cn(
+                              "w-2 h-2 rounded-full ml-1",
+                              status.color,
+                            )}
+                          />
+                          <span className="truncate text-sm">
+                            {status.label}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* BOTÓN LIMPIAR */}
+              {hasActiveFilters && (
+                <div className="pt-2 border-t mt-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="w-full h-8"
+                    onClick={() =>
+                      updateParams({
+                        payment_filter: null,
+                        fulfillment_filter: null,
+                      })
+                    }
+                  >
+                    Limpiar filtros
+                  </Button>
+                </div>
               )}
             </div>
+          </PopoverContent>
+        </Popover>
 
-            <div className="grid grid-cols-2 gap-2">
-              {STATUS_OPTIONS.map((status) => {
-                const isSelected = activeStatuses.includes(status.value);
-                return (
-                  <div
-                    key={status.value}
-                    onClick={() => handleStatusToggle(status.value)}
-                    className={cn(
-                      "cursor-pointer flex items-center gap-2 p-2 rounded border text-xs transition-all select-none group",
-                      isSelected
-                        ? "bg-white border-black ring-1 ring-black shadow-sm z-10"
-                        : "bg-white border-neutral-200 hover:border-blue-400",
-                    )}
-                  >
-                    {/* Indicador visual redondo */}
-                    <div
-                      className={cn(
-                        "h-3 w-3 rounded-full flex items-center justify-center shrink-0",
-                        status.color, // Color del punto según el estado
-                        isSelected ? "ring-2 ring-offset-1 ring-black" : "",
-                      )}
-                    />
-                    <span
-                      className={cn("truncate", isSelected && "font-medium")}
-                    >
-                      {status.label}
-                    </span>
-                  </div>
-                );
-              })}
+        {/* ORDENAR POR */}
+        <Select
+          value={activeSort}
+          onValueChange={(val) => updateParams({ sort: val })}
+        >
+          <SelectTrigger
+            showIcon={false}
+            className={cn(
+              "h-9 w-[180px] font-medium hover:cursor-pointer focus-none",
+              activeSort !== "date_desc" && "border-foreground",
+            )}
+          >
+            <div className="flex items-center gap-2">
+              <FaSort className="text-foreground" />
+              <span className="text-foreground">
+                <SelectValue placeholder="Ordenar por" />
+              </span>
             </div>
-          </div>
-        </PopoverContent>
-      </Popover>
-
-      <div className="flex-1" />
-
-      {/* 2. ORDENAR (SELECT SINGLE) */}
-      <Select
-        value={activeSort}
-        onValueChange={(val) => updateParams({ sort: val })}
-      >
-        <SelectTrigger className="h-8 w-[180px] text-xs font-medium">
-          <div className="flex items-center gap-2">
-            <FaSort className="h-3.5 w-3.5 text-muted-foreground" />
-            <SelectValue placeholder="Ordenar por" />
-          </div>
-        </SelectTrigger>
-        <SelectContent align="end">
-          {SORT_OPTIONS.map((option) => (
-            <SelectItem
-              key={option.value}
-              value={option.value}
-              className="text-xs"
-            >
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+          </SelectTrigger>
+          <SelectContent align="end" className="py-1">
+            {ORDER_SORT_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 }

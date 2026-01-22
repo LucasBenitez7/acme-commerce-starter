@@ -1,185 +1,326 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { FaMapMarkerAlt } from "react-icons/fa";
-import { FaArrowLeft, FaBoxOpen, FaReceipt } from "react-icons/fa6";
-
-import { UserOrderActions } from "@/components/account/UserOrderActions";
-import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+  FaArrowLeft,
+  FaReceipt,
+  FaClipboardList,
+  FaCircleCheck,
+  FaClock,
+  FaBan,
+} from "react-icons/fa6";
 
+import { UserOrderActions } from "@/components/account/orders/UserOrderActions";
+import { OrderTracker } from "@/components/order/OrderTracker";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Image } from "@/components/ui/image";
+
+import { getUserOrderFullDetails } from "@/lib/account/queries";
 import { auth } from "@/lib/auth";
-import { formatMinor, parseCurrency } from "@/lib/currency";
-import { prisma } from "@/lib/db";
+import { formatCurrency, parseCurrency } from "@/lib/currency";
+import { getShippingLabel } from "@/lib/locations";
+import { getOrderCancellationDetailsUser } from "@/lib/orders/utils";
+
+import type { UserOrderDetail } from "@/lib/orders/types";
 
 export const dynamic = "force-dynamic";
 
-type Props = {
+export default async function OrderDetailPage({
+  params,
+}: {
   params: Promise<{ id: string }>;
-};
-
-export default async function UserOrderDetailPage({ params }: Props) {
+}) {
+  const { id } = await params;
   const session = await auth();
   if (!session?.user?.id) return null;
 
-  const { id } = await params;
+  const orderData = await getUserOrderFullDetails(session.user.id, id);
+  if (!orderData) notFound();
 
-  const order = await prisma.order.findUnique({
-    where: { id, userId: session.user.id },
-    include: { items: true },
-  });
-
-  if (!order) notFound();
-
+  const order: UserOrderDetail = orderData;
   const currency = parseCurrency(order.currency);
 
-  const totalPaid = order.totalMinor;
+  const { originalQty, refundedAmountMinor, returnedQty } = order.summary;
 
-  const totalRefunded = order.items.reduce((acc, item) => {
-    return acc + item.priceMinorSnapshot * item.quantityReturned;
-  }, 0);
+  const createdDate = new Date(order.createdAt).toLocaleString("es-ES", {
+    dateStyle: "long",
+    timeStyle: "short",
+  });
 
-  const finalTotal = totalPaid - totalRefunded;
-  const isFullyReturned = order.status === "RETURNED";
+  const deliveryDateFormatted = order.deliveredAt
+    ? new Date(order.deliveredAt).toLocaleString("es-ES", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+      })
+    : null;
+
+  const isDelivered =
+    (order.fulfillmentStatus === "DELIVERED" ||
+      order.fulfillmentStatus === "RETURNED") &&
+    deliveryDateFormatted;
+
+  const contactName = [order.firstName, order.lastName]
+    .filter(Boolean)
+    .join(" ");
+
+  const hasRefunds =
+    order.paymentStatus === "REFUNDED" ||
+    order.paymentStatus === "PARTIALLY_REFUNDED";
+
+  const hasActiveReturn = !!order.returnReason;
+
+  const hasIncidents = order.history.some((h) => h.type === "INCIDENT");
+
+  const showHistoryButton =
+    hasRefunds || hasActiveReturn || (hasIncidents && !order.isCancelled);
+
+  const cancellationData = getOrderCancellationDetailsUser(order);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button asChild variant="outline" size="icon" className="h-8 w-8">
-          <Link href="/account/orders">
-            <FaArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-xl font-bold">
-            Pedido #{order.id.slice(-8).toUpperCase()}
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            {new Date(order.createdAt).toLocaleDateString("es-ES", {
-              dateStyle: "long",
-            })}
-          </p>
+    <div className="space-y-4 mx-auto">
+      {/* HEADER DE NAVEGACIÓN */}
+      <div className="flex flex-col sm:flex-row items-start justify-between gap-4 border-b pb-3">
+        <Link
+          href="/account/orders"
+          className="hover:bg-neutral-100 p-2 rounded-xs transition-colors"
+        >
+          <FaArrowLeft className="size-4" />
+        </Link>
+
+        <div className="flex flex-col sm:flex-row items-center justify-end gap-2 w-full">
+          <UserOrderActions
+            orderId={order.id}
+            paymentStatus={order.paymentStatus}
+            fulfillmentStatus={order.fulfillmentStatus}
+            isCancelled={order.isCancelled}
+          />
+
+          {showHistoryButton && (
+            <Button
+              asChild
+              variant="outline"
+              className="w-full sm:w-fit bg-blue-50 hover:bg-blue-100"
+            >
+              <Link href={`/account/orders/${order.id}/history`}>
+                <FaClipboardList className="size-3.5" />
+                Detalles de devolución
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* Avisos de Estado */}
-      {order.status === "RETURN_REQUESTED" && (
-        <div className="bg-orange-50 border border-orange-200 text-orange-800 p-4 rounded-xs text-sm">
-          <strong>Devolución en proceso:</strong> Tu solicitud está siendo
-          revisada por nuestro equipo.
+      {order.isCancelled && (
+        <div className="flex flex-col">
+          {cancellationData && (
+            <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+              <div className=" text-red-700">
+                {cancellationData.isExpired ? (
+                  <FaClock className="size-5" />
+                ) : (
+                  <FaBan className="size-5" />
+                )}
+              </div>
+              <div className="flex-1">
+                <h3 className="text-red-700 font-bold text-lg flex items-center gap-2">
+                  {cancellationData.bannerTitle}
+                </h3>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      {order.rejectionReason && order.status === "PAID" && (
-        <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-xs text-sm">
-          <strong>Solicitud rechazada:</strong> {order.rejectionReason}
-        </div>
-      )}
+      <Card className={order.isCancelled ? "hidden" : "pb-2"}>
+        <CardHeader className="px-4 py-0">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2 text-center p-0">
+            {isDelivered && (
+              <div className="flex border-b py-4 w-full text-left">
+                <h3 className="flex items-center gap-2 font-semibold text-xl text-green-700">
+                  Entregado el {deliveryDateFormatted}{" "}
+                  <FaCircleCheck className="size-5" />
+                </h3>
+              </div>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="px-2 pb-2">
+          <OrderTracker status={order.fulfillmentStatus} />
+        </CardContent>
+      </Card>
 
-      <div className="grid gap-6 md:grid-cols-[2fr_1fr]">
-        {/* Lista de Productos */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <FaBoxOpen className="text-muted-foreground" /> Productos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="divide-y divide-neutral-100">
-              {order.items.map((item) => (
-                <li key={item.id} className="py-3 flex justify-between text-sm">
-                  <div>
-                    <p className="font-medium">{item.nameSnapshot}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {item.sizeSnapshot} / {item.colorSnapshot}
-                    </p>
+      <div className="space-y-4 font-medium">
+        <Card className="px-4">
+          <h2 className="text-lg font-semibold text-center pt-3 pb-2 mb-1 border-b">
+            Detalles del Pedido
+          </h2>
 
-                    {/* Feedback de item devuelto */}
-                    {item.quantityReturned > 0 && (
-                      <div className="mt-1 text-xs font-medium text-red-600 bg-red-50 w-fit px-2 py-0.5 rounded">
-                        Devuelto: {item.quantityReturned} de {item.quantity}
+          <CardContent className="space-y-4 py-3 px-0">
+            {/* DATOS GENERALES */}
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <h3 className="font-semibold uppercase mb-1">Nº de Pedido</h3>
+                <p className="font-mono text-xs uppercase">
+                  {order.id.toUpperCase()}
+                </p>
+              </div>
+              <div>
+                <h3 className="font-semibold uppercase mb-1">Relizado</h3>
+                <p className="text-xs">{createdDate}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-xs text-foreground space-y-1">
+                <h3 className="font-semibold text-sm uppercase mb-1">
+                  Datos de contacto
+                </h3>
+                <p>{contactName}</p>
+                <p>{order.email}</p>
+                <p>{order.phone}</p>
+              </div>
+
+              <div className="text-xs text-foreground space-y-1">
+                <h3 className="font-semibold text-sm uppercase mb-1">
+                  Método de pago
+                </h3>
+                <p className="font-medium">
+                  {order.paymentMethod
+                    ? order.paymentMethod.replace("_", " ")
+                    : "Tarjeta de Crédito"}
+                </p>
+              </div>
+            </div>
+
+            <div className="text-xs text-foreground space-y-1">
+              <h3 className="font-semibold text-sm uppercase mb-1">
+                {getShippingLabel(order.shippingType?.toLowerCase())}
+              </h3>
+              <p>
+                {order.street} {order.addressExtra || ""}
+              </p>
+              <p>
+                {order.postalCode} {order.city}
+              </p>
+              <p>
+                {order.province}, {order.country}
+              </p>
+            </div>
+
+            {/* LISTA DE PRODUCTOS CON FOTOS */}
+            <div className="pt-0 border-t">
+              <h3 className="text-lg my-3 font-semibold">
+                Productos <span className="text-base">({originalQty})</span>
+              </h3>
+
+              <ul className="space-y-4">
+                {order.items.map((item) => {
+                  const productImages = item.product?.images || [];
+                  const matchingImg =
+                    productImages.find(
+                      (img) => img.color === item.colorSnapshot,
+                    ) || productImages[0];
+                  const imgUrl = matchingImg?.url;
+                  const lineTotal =
+                    (item.priceMinorSnapshot || 0) * item.quantity;
+
+                  return (
+                    <li
+                      key={item.id}
+                      className="flex gap-3 items-start text-sm"
+                    >
+                      <div className="relative h-24 w-16 shrink-0 overflow-hidden rounded-xs bg-neutral-100 border">
+                        {imgUrl ? (
+                          <Image
+                            src={imgUrl}
+                            alt={item.nameSnapshot}
+                            fill
+                            className="object-cover"
+                            sizes="200px"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-neutral-300">
+                            <FaReceipt className="size-4" />
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  <div className="text-right">
-                    <p>{formatMinor(item.subtotalMinor, currency)}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {item.quantity} x{" "}
-                      {formatMinor(item.priceMinorSnapshot, currency)}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ul>
+
+                      <div className="flex-1 space-y-1">
+                        <div className="flex justify-between">
+                          <Link
+                            href={
+                              item.product?.slug
+                                ? `/product/${item.product.slug}`
+                                : "#"
+                            }
+                            className="flex font-medium hover:underline underline-offset-3 text-foreground"
+                          >
+                            {item.nameSnapshot}
+                          </Link>
+                          <span className="font-medium tabular-nums">
+                            {formatCurrency(lineTotal, currency)}
+                          </span>
+                        </div>
+
+                        <div className="text-xs flex gap-2 text-foreground">
+                          {[item.sizeSnapshot, item.colorSnapshot]
+                            .filter(Boolean)
+                            .join(" / ")}
+                        </div>
+
+                        <div className="flex justify-between items-center text-xs pt-1">
+                          <span>X{item.quantity}</span>
+                          {item.quantityReturned > 0 && (
+                            <span className="text-red-600 font-medium bg-red-50 px-1.5 py-0.5 rounded-full">
+                              Devuelto: {item.quantityReturned}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+
+            {/* --- TOTALES Y RESUMEN --- */}
+            <div className="pt-4 pb-1 space-y-2 border-t">
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>Subtotal ({originalQty})</span>
+                <span>{formatCurrency(order.itemsTotalMinor, currency)}</span>
+              </div>
+
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>Envío</span>
+                <span>
+                  {order.shippingCostMinor === 0
+                    ? "Gratis"
+                    : formatCurrency(order.shippingCostMinor, currency)}
+                </span>
+              </div>
+
+              {order.taxMinor > 0 && (
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <span>Impuestos</span>
+                  <span>{formatCurrency(order.taxMinor, currency)}</span>
+                </div>
+              )}
+
+              <div className="flex justify-between pt-2 items-center font-semibold text-lg mt-2">
+                <span>Total</span>
+                <span>{formatCurrency(order.totalMinor, currency)}</span>
+              </div>
+
+              {refundedAmountMinor > 0 && (
+                <div className="flex justify-between text-base font-semibold pt-3 border-t">
+                  <span>Reembolsado ({returnedQty})</span>
+                  <span>{formatCurrency(refundedAmountMinor, currency)}</span>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
-
-        {/* Resumen Financiero */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <FaReceipt className="text-muted-foreground" /> Resumen
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Subtotal Pagado</span>
-                <span>{formatMinor(totalPaid, currency)}</span>
-              </div>
-
-              {totalRefunded > 0 && (
-                <div className="flex justify-between text-red-600">
-                  <span>Reembolsado</span>
-                  <span>- {formatMinor(totalRefunded, currency)}</span>
-                </div>
-              )}
-
-              <Separator className="my-2" />
-
-              <div className="flex justify-between font-bold text-base">
-                <span>Total Final</span>
-                <span>{formatMinor(finalTotal, currency)}</span>
-              </div>
-            </CardContent>
-
-            {/* Acciones (Solo si no ha devuelto todo ya) */}
-            {!isFullyReturned &&
-              (order.status === "PAID" ||
-                order.status === "PENDING_PAYMENT" ||
-                order.status === "RETURN_REQUESTED") && (
-                <CardFooter className="bg-muted/20 p-3 border-t">
-                  <UserOrderActions
-                    orderId={order.id}
-                    status={order.status}
-                    items={order.items}
-                  />
-                </CardFooter>
-              )}
-          </Card>
-
-          <Card>
-            <CardContent className="p-4 text-sm">
-              <div className="flex items-start gap-3">
-                <FaMapMarkerAlt className="mt-0.5 text-muted-foreground" />
-                <div>
-                  <p className="font-medium">Dirección de Envío</p>
-                  <p className="text-muted-foreground text-xs mt-1">
-                    {order.street} <br />
-                    {order.postalCode}, {order.city} <br />
-                    {order.province}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </div>
   );

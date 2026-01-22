@@ -6,7 +6,7 @@ import { type FormEvent, useState } from "react";
 
 import { Button, Input, Label, PasswordInput } from "@/components/ui";
 
-import { loginSchema } from "@/lib/validation/auth";
+import { loginSchema } from "@/lib/auth/schema";
 
 type LoginFormProps = {
   redirectTo: string;
@@ -152,23 +152,14 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
         Continuar con GitHub
       </Button>
 
-      <Button
-        type="button"
-        variant="outline"
-        className="w-full text-xs"
-        onClick={handleLoginWithGithub}
-      >
-        Continuar con Google
-      </Button>
-
-      <Button
-        type="button"
-        variant="outline"
-        className="w-full text-xs"
-        onClick={handleLoginWithGithub}
-      >
-        Continuar con Icloud
-      </Button>
+      {/* <Button
+				type="button"
+				variant="outline"
+				className="w-full text-xs"
+				onClick={handleLoginWithGithub}
+			>
+				Continuar con Google
+			</Button> */}
 
       <p className="mt-2 text-xs font-medium">
         ¿No tienes cuenta?{" "}

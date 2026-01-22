@@ -1,17 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  FaArrowLeft,
-  FaUser,
-  FaUserShield,
-  FaCalendar,
-  FaClipboardCheck,
-} from "react-icons/fa6";
+import { FaArrowLeft, FaCalendar, FaBoxOpen } from "react-icons/fa6";
 
 import { Card, CardContent } from "@/components/ui/card";
+import { Image } from "@/components/ui/image";
 
-import { prisma } from "@/lib/db";
+import { SYSTEM_MSGS } from "@/lib/orders/constants";
+import { getAdminOrderById } from "@/lib/orders/queries";
+import { formatHistoryReason, getEventVisuals } from "@/lib/orders/utils";
 import { cn } from "@/lib/utils";
+
+import type { HistoryDetailsJson } from "@/lib/orders/types";
 
 export const dynamic = "force-dynamic";
 
@@ -19,146 +18,208 @@ type Props = {
   params: Promise<{ id: string }>;
 };
 
-type HistoryDetailItem = {
-  name: string;
-  quantity: number;
-  variant?: string | null;
-};
-
 export default async function OrderHistoryPage({ params }: Props) {
   const { id } = await params;
-
-  const order = await prisma.order.findUnique({
-    where: { id },
-    include: {
-      history: { orderBy: { createdAt: "desc" } },
-      user: true,
-    },
-  });
+  const order = await getAdminOrderById(id);
 
   if (!order) notFound();
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-10">
-      {/* Header */}
-      <div className="flex items-center gap-3 border-b pb-4">
-        <Link href={`/admin/orders/${id}`}>
-          <FaArrowLeft className="h-4 w-4" />
+    <div className="space-y-6 max-w-5xl mx-auto">
+      {/* HEADER */}
+      <div className="relative flex items-center justify-center border-b pb-4">
+        <Link
+          href={`/admin/orders/${order.id}`}
+          className="absolute left-0 hover:bg-neutral-100 p-2 rounded-xs transition-colors"
+        >
+          <FaArrowLeft className="size-4" />
         </Link>
+        <h1 className="text-xl font-semibold">Historial del Pedido</h1>
       </div>
-      <div className="max-w-3xl mx-auto space-y-6">
-        <div className="flex flex-col border-b">
-          <h1 className="text-xl font-semibold tracking-tight text-center p-3">
-            Historial de Eventos del Pedido{" "}
-            <span className="text-lg">#{order.id.slice().toUpperCase()}</span>
-          </h1>
-        </div>
+
+      <div className="max-w-5xl mx-auto space-y-6">
         {order.history.length === 0 && (
-          <div className="text-center py-10 text-muted-foreground bg-neutral-50 rounded">
+          <div className="text-center py-10 text-muted-foreground bg-neutral-50 rounded border border-dashed">
             No hay eventos registrados.
           </div>
         )}
 
         {order.history.map((event) => {
-          const isAdmin = event.actor === "admin";
-          const details = event.details
-            ? (event.details as unknown as HistoryDetailItem[])
-            : [];
+          const details =
+            (event.details as unknown as HistoryDetailsJson) || {};
+          const itemsList = details.items || [];
+          const note = details.note;
+          const totalAffectedQty = itemsList.reduce(
+            (acc, i) => acc + i.quantity,
+            0,
+          );
 
-          let iconColor = isAdmin
-            ? "bg-orange-200 text-orange-600"
-            : "bg-blue-100 text-blue-600";
+          const visual = getEventVisuals(
+            event.actor,
+            event.type,
+            event.snapshotStatus,
+          );
+          const { actorConfig, isAdmin, statusColor } = visual;
+          const StatusIcon = visual.statusIcon;
+
+          const isCreation = event.reason === SYSTEM_MSGS.ORDER_CREATED;
+
+          const showCleanText = isAdmin || isCreation;
+
+          const isCancelled = event.reason === SYSTEM_MSGS.CANCELLED_BY_USER;
 
           return (
-            <div key={event.id} className="flex items-start group">
+            <div
+              key={event.id}
+              className="flex items-start group relative pl-4 md:pl-0"
+            >
+              {/* COLUMNA IZQUIERDA (Icono Actor) */}
               <div className="w-full">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
                     <div
                       className={cn(
-                        "flex items-center justify-center h-9 w-9 rounded-full border-2 border-white shadow-sm",
-                        iconColor,
+                        "flex items-center justify-center h-10 w-10 rounded-full border-2 shadow-sm z-10",
+                        actorConfig.bg,
+                        actorConfig.text,
+                        actorConfig.border,
                       )}
                     >
-                      {" "}
-                      {isAdmin ? (
-                        <FaUserShield className="h-4 w-4" />
-                      ) : (
-                        <FaUser className="h-4 w-4" />
-                      )}
+                      <actorConfig.icon className="size-4" />
                     </div>
 
-                    <span
-                      className={cn(
-                        "inline-flex items-center rounded-xs px-2 py-1 text-xs font-medium ring-1 ring-inset",
-                        isAdmin
-                          ? "bg-orange-50 text-orange-600 ring-orange-700/10"
-                          : "bg-blue-50 text-blue-600 ring-blue-700/10",
-                      )}
-                    >
-                      {isAdmin ? "ADMINISTRADOR" : "CLIENTE"}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-foreground">
-                    <FaCalendar className="h-3 w-3" />
-                    {new Date(event.createdAt).toLocaleString("es-ES")}
+                    <div className="flex flex-col space-y-1">
+                      <span className="text-sm font-bold text-foreground">
+                        {actorConfig.label}
+                      </span>
+                      <div className="flex items-center gap-1 text-xs text-foreground">
+                        <FaCalendar className="size-3" />
+                        {new Date(event.createdAt).toLocaleString("es-ES", {
+                          day: "2-digit",
+                          month: "short",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
+                {/* TARJETA DE CONTENIDO */}
                 <Card
                   className={cn(
-                    "shadow-sm overflow-hidden",
-                    isAdmin
-                      ? "border-orange-100 bg-orange-50/10"
-                      : "border-blue-100",
+                    "shadow-sm overflow-hidden transition-all",
+                    actorConfig.cardBorder,
                   )}
                 >
-                  <CardContent className="p-4 space-y-3">
-                    {/* Mensaje Principal */}
-                    <div className="flex flex-col">
-                      {isAdmin && event.reason && (
-                        <h3 className="text-sm font-medium">{event.reason}</h3>
-                      )}
-
-                      {!isAdmin && event.reason && (
-                        <h3 className="text-sm font-medium">
-                          Motivo: "{event.reason}"
+                  <CardContent className="p-5 space-y-2">
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        {StatusIcon && (
+                          <StatusIcon className={cn("size-4", statusColor)} />
+                        )}
+                        <h3 className="font-semibold text-base">
+                          {event.snapshotStatus}
                         </h3>
-                      )}
+                      </div>
+
+                      <div className="text-base font-medium text-foreground ">
+                        {showCleanText ? (
+                          <span className="text-sm font-semibold">
+                            {formatHistoryReason(event.reason)}
+                          </span>
+                        ) : (
+                          <div className="flex flex-col">
+                            {!isCancelled && (
+                              <div>
+                                <span className="text-xs font-semibold uppercase text-foreground mb-1">
+                                  Motivo de solicitud:
+                                </span>
+                                <div className="text-sm p-3 px-3 rounded-xs border bg-background">
+                                  "{formatHistoryReason(event.reason)}"
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {note && (
+                          <div className="mt-3">
+                            <div className="text-sm p-3 rounded-xs border bg-background">
+                              <span className="font-bold text-xs block mb-1 uppercase">
+                                Nota / Observación:
+                              </span>
+                              "{note}"
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    {/* LISTA DE PRODUCTOS AFECTADOS */}
-                    {details.length > 0 && (
-                      <div className="mt-3 bg-white rounded-xs border border-neutral-200 p-3">
-                        <p className="text-xs font-semibold text-neutral-500 uppercase mb-2 flex items-center gap-2">
-                          <FaClipboardCheck /> Productos{" "}
-                          {event.status === "RETURN_REQUESTED"
-                            ? "Solicitados"
-                            : "Procesados"}
-                          :
-                        </p>
-                        <ul className="space-y-1.5">
-                          {details.map((item, idx) => (
-                            <li
-                              key={idx}
-                              className="text-sm flex justify-between items-center border-b border-neutral-100 last:border-0 pb-1 last:pb-0"
-                            >
-                              <div className="flex flex-col">
-                                <span className="font-medium text-neutral-800">
-                                  {item.name}
-                                </span>
-                                {item.variant && (
-                                  <span className="text-xs text-muted-foreground">
-                                    {item.variant}
+                    {itemsList.length > 0 && (
+                      <div className="mt-2 bg-white rounded-xs border border-neutral-200 overflow-hidden">
+                        <div className="p-4 text-base font-semibold border-b">
+                          Productos ({totalAffectedQty})
+                        </div>
+
+                        <div className="py-2">
+                          {itemsList.map((historyItem, idx) => {
+                            const matchedLiveItem = order.items.find(
+                              (i) => i.nameSnapshot === historyItem.name,
+                            );
+
+                            const productImages =
+                              matchedLiveItem?.product?.images || [];
+
+                            const variantString = historyItem.variant || "";
+
+                            const matchingImg =
+                              productImages.find((img) =>
+                                variantString.includes(img.color || "###"),
+                              ) || productImages[0];
+
+                            const imgUrl = matchingImg?.url;
+
+                            return (
+                              <div
+                                key={idx}
+                                className="flex items-start gap-3 py-2 px-3"
+                              >
+                                {/* FOTO */}
+                                <div className="relative h-24 w-16 shrink-0 overflow-hidden rounded-xs bg-neutral-100">
+                                  {imgUrl ? (
+                                    <Image
+                                      src={imgUrl}
+                                      alt={historyItem.name}
+                                      fill
+                                      className="object-cover"
+                                      sizes="200px"
+                                    />
+                                  ) : (
+                                    <div className="flex h-full w-full items-center justify-center text-neutral-300">
+                                      <FaBoxOpen className="size-4" />
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* INFO */}
+                                <div className="flex flex-col h-full">
+                                  <span className="font-medium text-sm pb-1">
+                                    {historyItem.name}
                                   </span>
-                                )}
+                                  {historyItem.variant && (
+                                    <span className="text-xs font-medium">
+                                      {historyItem.variant}
+                                    </span>
+                                  )}
+                                  <span className="text-xs font-medium">
+                                    X{historyItem.quantity}
+                                  </span>
+                                </div>
                               </div>
-                              <span className="font-bold text-xs bg-neutral-100 px-2 py-0.5 rounded text-neutral-700">
-                                x{item.quantity}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
                   </CardContent>

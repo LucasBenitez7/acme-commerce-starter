@@ -4,32 +4,34 @@ import {
   SectionHeader,
 } from "@/components/catalog";
 
-import { PER_PAGE, parsePage } from "@/lib/catalog/pagination";
-import { fetchProductsPage } from "@/lib/server/products";
-
-import type { SP } from "@/types/catalog";
+import { getUserFavoriteIds } from "@/lib/favorites/queries";
+import { PER_PAGE, parsePage } from "@/lib/pagination";
+import { getPublicProducts } from "@/lib/products/queries";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
-export const fetchCache = "force-no-store";
-export const runtime = "nodejs";
 
-export default async function CatalogoPage({
-  searchParams,
-}: {
-  searchParams: SP;
-}) {
-  const sp = (await searchParams) ?? {};
+type Props = {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
+
+export default async function CategoryPage({ params, searchParams }: Props) {
+  const sp = await searchParams;
   const page = Math.max(1, parsePage(sp.page, 1));
 
-  const { rows, total } = await fetchProductsPage({ page, perPage: PER_PAGE });
-  const items = rows;
+  const { rows, total } = await getPublicProducts({
+    page,
+    limit: PER_PAGE,
+  });
+
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+
+  const favoriteIds = await getUserFavoriteIds();
 
   return (
     <section className="px-4">
       <SectionHeader title="Todas las prendas" />
-      <ProductGrid items={items} />
+      <ProductGrid items={rows} favoriteIds={favoriteIds} />
       <PaginationNav page={page} totalPages={totalPages} base="/catalogo" />
     </section>
   );

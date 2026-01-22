@@ -1,30 +1,35 @@
-import { prisma } from "@/lib/db";
+import Link from "next/link";
+import { FaArrowLeft } from "react-icons/fa6";
 
-import { ProductForm } from "../_components/ProductForm";
+import { getProductFormDependencies } from "@/lib/products/service";
+
+import { ProductForm } from "../_components/form/ProductForm";
 
 export default async function NewProductPage() {
-  const categories = await prisma.category.findMany({
-    select: { id: true, name: true },
-    orderBy: { name: "asc" },
-  });
+	const props = await getProductFormDependencies();
 
-  const variantsData = await prisma.productVariant.findMany({
-    select: { size: true, color: true },
-    distinct: ["size", "color"], // Truco para sacar únicos (aunque sacará combinaciones, lo filtraremos en JS)
-  });
+	return (
+		<div className="max-w-5xl mx-auto space-y-6">
+			<div className="grid grid-cols-[1fr_auto_1fr] items-center border-b gap-2 pb-2">
+				<div className="flex justify-start">
+					<Link
+						href="/admin/products"
+						className="hover:bg-neutral-100 p-2 rounded-xs transition-colors"
+					>
+						<FaArrowLeft className="size-4" />
+					</Link>
+				</div>
 
-  // Extraemos listas únicas
-  const existingSizes = Array.from(new Set(variantsData.map((v) => v.size)));
-  const existingColors = Array.from(new Set(variantsData.map((v) => v.color)));
+				<div className="flex justify-center">
+					<h1 className="text-2xl font-semibold tracking-tight flex-1 text-center">
+						Nuevo Producto
+					</h1>
+				</div>
 
-  return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">Nuevo Producto</h1>
-      <ProductForm
-        categories={categories}
-        existingSizes={existingSizes}
-        existingColors={existingColors}
-      />
-    </div>
-  );
+				<div />
+			</div>
+
+			<ProductForm {...props} />
+		</div>
+	);
 }

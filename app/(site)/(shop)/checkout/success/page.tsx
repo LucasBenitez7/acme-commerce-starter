@@ -1,194 +1,32 @@
-import Image from "next/image";
 import { redirect } from "next/navigation";
-import { FaCheckCircle } from "react-icons/fa";
 
-import { ClearCartOnMount } from "@/components/checkout/core/ClearCartOnMount";
-import {
-  buildContactSummary,
-  buildShippingSummary,
-} from "@/components/checkout/shared/checkout-summary";
 import { Container } from "@/components/ui";
 
-import { formatMinor, parseCurrency } from "@/lib/currency";
-import { prisma } from "@/lib/db";
+import { getOrderSuccessDetails } from "@/lib/account/queries";
+import { formatOrderForDisplay } from "@/lib/orders/utils";
 
-import type { ShippingType } from "@/hooks/use-checkout-form";
+import { SuccessClient } from "./SuccessClient";
+
+export const dynamic = "force-dynamic";
 
 type Props = {
   searchParams: Promise<{ orderId?: string }>;
 };
 
-export default async function CheckoutSuccessPage({ searchParams }: Props) {
-  const sp = await searchParams;
-  const orderId = sp.orderId;
+export default async function SuccessPage({ searchParams }: Props) {
+  const { orderId } = await searchParams;
 
-  if (!orderId) {
-    redirect("/");
-  }
+  if (!orderId) redirect("/");
 
-  const order = await prisma.order.findUnique({
-    where: { id: orderId },
-    include: {
-      items: {
-        include: {
-          product: {
-            select: {
-              images: {
-                orderBy: [{ sort: "asc" }, { id: "asc" }],
-                take: 1,
-                select: { url: true },
-              },
-            },
-          },
-        },
-      },
-    },
-  });
+  const order = await getOrderSuccessDetails(orderId);
 
-  if (!order) {
-    redirect("/");
-  }
+  if (!order) redirect("/");
 
-  const currency = parseCurrency(order.currency);
-  const totalQty = order.items.reduce((sum, item) => sum + item.quantity, 0);
-
-  const shippingTypeFromDb: ShippingType =
-    order.shippingType === "STORE"
-      ? "store"
-      : order.shippingType === "PICKUP"
-        ? "pickup"
-        : "home";
-
-  const contact = buildContactSummary({
-    firstName: order.firstName,
-    lastName: order.lastName,
-    email: order.email,
-    phone: order.phone,
-  });
-
-  const shipping = buildShippingSummary({
-    shippingType: shippingTypeFromDb,
-    street: order.street,
-    addressExtra: order.addressExtra,
-    postalCode: order.postalCode,
-    province: order.province,
-    city: order.city,
-    storeLocationId: order.storeLocationId,
-    pickupLocationId: order.pickupLocationId,
-    pickupSearch: order.pickupSearch,
-  });
+  const clientOrder = formatOrderForDisplay(order);
 
   return (
-    <Container className="lg:py-6 py-4 px-4 max-w-2xl">
-      <ClearCartOnMount />
-
-      <div className="flex flex-col gap-2 mb-4">
-        <h1 className="text-2xl font-semibold tracking-tight items-center flex gap-2 md:text-3xl">
-          Su pedido se ha realizado correctamente{" "}
-          <FaCheckCircle className="bg-background outline-none text-green-700" />
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Gracias por tu compra. Más adelante conectaremos el envío de correos
-          de confirmación.
-        </p>
-      </div>
-
-      <div className="mb-4 rounded-xs border bg-card p-4">
-        <p className="text-lg font-medium">
-          Número de pedido:{" "}
-          <span className="font-mono text-base md:text-sm">{order.id}</span>
-        </p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Guarda este identificador por si te haga falta.
-        </p>
-      </div>
-
-      <section className="mb-4 flex flex-col space-y-4 text-xs text-foreground font-medium bg-card border rounded-xs p-4">
-        <div>
-          <p className="text-base font-semibold">Datos de contacto</p>
-          <div className="space-y-1 ">
-            <dd>{contact.fullName || "—"}</dd>
-            <dd>{contact.phone || "—"}</dd>
-            <dd className="text-muted-foreground font-normal">{order.email}</dd>
-          </div>
-        </div>
-        <div>
-          <p className="text-base font-semibold">{shipping.label || "—"}</p>
-          <dd>{shipping.details || "—"}</dd>
-        </div>
-      </section>
-
-      <section className="space-y-4 rounded-xs border bg-card">
-        <div className="flex items-baseline justify-between gap-2">
-          <h2 className="text-base font-semibold pt-4 px-4">
-            Resumen de la compra <span className="text-base">({totalQty})</span>
-          </h2>
-        </div>
-
-        <ul className="space-y-3 text-sm px-4">
-          {order.items.map((item) => {
-            const imageUrl = item.product?.images?.[0]?.url ?? null;
-            const lineTotalMinor = item.subtotalMinor;
-
-            return (
-              <li
-                key={item.id}
-                className="grid grid-cols-[auto_1fr_auto] items-center gap-2 py-1"
-              >
-                <div
-                  className="relative h-20 w-16 shrink-0 overflow-hidden rounded-xs bg-neutral-100"
-                  aria-hidden="true"
-                >
-                  {imageUrl && (
-                    <Image
-                      src={imageUrl}
-                      alt={item.nameSnapshot}
-                      fill
-                      sizes="120px"
-                      className="object-cover"
-                    />
-                  )}
-                </div>
-                <div className="flex h-full justify-between font-medium">
-                  <div className="space-y-1">
-                    <p className="text-sm">{item.nameSnapshot}</p>
-
-                    <div className="flex flex-col items-baseline gap-1 text-xs text-foreground">
-                      {/* MOSTRAR VARIANTES REALES */}
-                      {item.sizeSnapshot && (
-                        <p className="text-xs">Talla: {item.sizeSnapshot}</p>
-                      )}
-                      {item.colorSnapshot && (
-                        <p className="text-xs">Color: {item.colorSnapshot}</p>
-                      )}
-
-                      <div className="flex gap-1 pt-1 text-foreground">
-                        <span className="font-medium">x{item.quantity}</span>
-                        {item.quantity > 1 && (
-                          <span className="text-muted-foreground font-normal">
-                            {formatMinor(item.priceMinorSnapshot, currency)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="text-sm font-medium">
-                    {formatMinor(lineTotalMinor, currency)}
-                  </div>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-
-        <div className="flex items-center text-lg justify-between font-semibold border-t p-4">
-          <span>Total</span>
-          <span className="text-base">
-            {formatMinor(order.totalMinor, currency)}
-          </span>
-        </div>
-      </section>
+    <Container className="py-6 px-4 lg:py-10">
+      <SuccessClient order={clientOrder} />
     </Container>
   );
 }

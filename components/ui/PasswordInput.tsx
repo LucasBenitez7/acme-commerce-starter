@@ -24,7 +24,7 @@ const PasswordInput = forwardRef<HTMLInputElement, ComponentProps<"input">>(
           onClick={() => setShow((prev) => !prev)}
           className="absolute right-0 top-0 h-full px-3 py-2 hover:cursor-pointer hover:bg-transparent text-muted-foreground hover:text-foreground transition-colors"
           aria-label={show ? "Ocultar contraseña" : "Mostrar contraseña"}
-          tabIndex={-1} // Para que el tabulador salte input-input y no al ojo
+          tabIndex={-1}
         >
           {show ? (
             <FaEyeSlash className="size-4" aria-hidden="true" />

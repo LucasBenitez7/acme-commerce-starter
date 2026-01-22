@@ -1,56 +1,70 @@
 "use client";
-import { HiOutlineShoppingBag } from "react-icons/hi2";
+
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui";
+import { useCartStore } from "@/store/cart";
 
-import { upsertDetails } from "@/lib/cart-details";
-import { cn } from "@/lib/utils";
+import { Button } from "../ui";
 
-import { useAppDispatch } from "@/hooks/use-app-dispatch";
-import { addItem } from "@/store/cart.slice";
-
-import { type AddToCartProps } from "./AddToCartButton";
+export type AddToCartProps = {
+  product: {
+    id: string;
+    slug: string;
+    name: string;
+    images: { url: string }[];
+  };
+  variant: {
+    id: string;
+    priceCents: number | null;
+    color: string;
+    size: string;
+    stock: number;
+  };
+  disabled?: boolean;
+  className?: string;
+};
 
 export function AddToCartIcon({
-  slug,
-  variantId,
-  variantName,
-  qty = 1,
-  details,
+  product,
+  variant,
   disabled,
   className,
 }: AddToCartProps) {
-  const dispatch = useAppDispatch();
+  const addItem = useCartStore((state) => state.addItem);
+
   const onClick = () => {
-    if (!variantId) return;
+    if (!variant?.id) return;
 
-    if (details) {
-      upsertDetails({
-        ...details,
-        slug,
-        variantId,
-        variantName,
-      });
-    }
-
-    dispatch(addItem({ slug, variantId, qty }));
+    addItem({
+      productId: product.id,
+      variantId: variant.id,
+      slug: product.slug,
+      name: product.name,
+      price: variant.priceCents ?? 0,
+      image: product.images[0]?.url,
+      color: variant.color,
+      size: variant.size,
+      quantity: 1,
+      maxStock: variant.stock,
+    });
 
     toast.success("Añadido correctamente", {
-      description: `${details?.name} (${variantName})`,
+      description: `${product.name} (${variant.size} / ${variant.color})`,
       duration: 2000,
     });
   };
 
   return (
-    <button
+    <Button
       type="button"
       onClick={onClick}
-      disabled={disabled}
-      className={cn("", className)}
-      aria-label="Añadir a la cesta"
+      variant={"default"}
+      disabled={disabled || !variant?.id}
+      className={
+        className ?? "hover:cursor-pointer w-full rounded-xs text-base"
+      }
     >
-      <HiOutlineShoppingBag className="size-6 hover:cursor-pointer" />
-    </button>
+      +
+    </Button>
   );
 }

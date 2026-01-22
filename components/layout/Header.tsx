@@ -3,28 +3,35 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { useRef, useState } from "react";
+import { useRef, useState, useCallback } from "react";
+import { CgClose } from "react-icons/cg";
 import { FaSignOutAlt } from "react-icons/fa";
-import { FaRegUser, FaHeart, FaBoxOpen, FaUser } from "react-icons/fa6";
+import {
+  FaRegUser,
+  FaRegHeart,
+  FaBoxOpen,
+  FaUser,
+  FaMapLocationDot,
+} from "react-icons/fa6";
 import { IoSearch } from "react-icons/io5";
+import { RiMenu2Line } from "react-icons/ri";
 
 import { CartButtonWithSheet } from "@/components/cart/CartButtonWithSheet";
 import {
   Sheet,
   SheetContent,
   SheetTitle,
-  BurgerButton,
   Button,
+  SheetTrigger,
 } from "@/components/ui";
 
-import { useAutoCloseOnRouteChange } from "@/hooks/use-auto-close-on-route-change";
-import { useLockBodyScroll } from "@/hooks/use-lock-body-scroll";
-import { useMounted } from "@/hooks/use-mounted";
-import { useSheetSafety } from "@/hooks/use-sheet-safety";
+import { useCloseOnNav } from "@/hooks/common/use-close-on-nav";
+import { useMounted } from "@/hooks/common/use-mounted";
+import { useCartStore } from "@/store/cart";
 
 import { SiteSidebar } from "./SiteSidebar";
 
-import type { CategoryLink } from "@/types/catalog";
+import type { CategoryLink } from "@/lib/categories/types";
 
 const SHEET_ID = "site-sidebar";
 
@@ -43,42 +50,31 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
 
   const HIDE_HEADER_ON: string[] = ["/checkout"];
   const hideHeader = HIDE_HEADER_ON.includes(pathname);
-  const isCartPage = pathname === "/cart";
+  const isCartPage = pathname === "/cart" || pathname === "/checkout/success";
+  const isAdmin = user?.role === "admin";
 
-  useLockBodyScroll(open && !hideHeader);
-
-  useAutoCloseOnRouteChange((open || accountMenuOpen) && !hideHeader, () => {
+  const closeMenu = useCallback(() => {
     setOpen(false);
-    setAccountMenuOpen(false);
-  });
+  }, []);
 
-  const {
-    handlePointerLeaveHeader,
-    handlePointerLeaveSheet,
-    handleAnyNavClickCapture,
-    onInteractOutside,
-  } = useSheetSafety({ open, setOpen, safeRef, sheetId: SHEET_ID });
+  useCloseOnNav(closeMenu);
 
-  if (hideHeader) {
-    return null;
-  }
-
-  const logo = (
-    <Link
-      href="/"
-      className="mx-2 flex justify-self-center px-2 text-3xl font-semibold focus:outline-none"
-    >
-      Logo lsb
-    </Link>
-  );
+  if (hideHeader) return null;
 
   const userInitial =
     typeof user?.name === "string" && user.name.trim() !== ""
       ? user.name.trim().charAt(0).toUpperCase()
       : (user?.email?.charAt(0)?.toUpperCase() ?? null);
 
+  const userLastName =
+    typeof user?.lastName === "string" && user.lastName.trim() !== ""
+      ? user.lastName.trim().charAt(0).toUpperCase()
+      : "";
+
   const showTooltip = mounted && !isSessionLoading && !user;
   const accountTooltip = showTooltip ? "Iniciar sesión" : undefined;
+
+  const favoritosUrl = user ? `/account/favorites` : `/auth/login`;
 
   function handleAccountClick() {
     if (isSessionLoading) return;
@@ -94,37 +90,50 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
 
   async function handleSignOut() {
     setAccountMenuOpen(false);
-    if (typeof window !== "undefined") {
-      window.localStorage.removeItem("cart.v1");
-      document.cookie =
-        "cart.v1=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-    }
+    useCartStore.getState().clearCart();
     await signOut({ callbackUrl: "/" });
   }
+
+  const logo = (
+    <Link
+      href="/"
+      className="mx-2 flex justify-self-center px-2 text-3xl font-semibold focus:outline-none"
+    >
+      Logo lsb
+    </Link>
+  );
 
   return (
     <>
       <header
         ref={safeRef}
-        onPointerLeave={handlePointerLeaveHeader}
-        onClickCapture={handleAnyNavClickCapture}
         className="mx-auto w-full z-[100] sticky top-0 h-[var(--header-h)] grid grid-cols-[1fr_auto_1fr] items-center bg-background border-b px-4"
       >
         <div className="flex justify-self-start items-center h-full content-center">
           <Sheet open={open} onOpenChange={setOpen} modal={false}>
-            <BurgerButton
-              open={open}
-              onToggle={() => setOpen((v) => !v)}
-              controlsId={SHEET_ID}
-              aria-disabled={open}
-            />
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                className="relative px-2"
+                aria-label="Menu"
+              >
+                <RiMenu2Line
+                  className={`size-6 transition-all duration-300 ease-in-out ${
+                    open ? "scale-0 opacity-0" : "scale-100 opacity-100"
+                  }`}
+                />
+                <CgClose
+                  className={`absolute size-6 transition-all duration-300 ease-in-out ${
+                    open ? "scale-100 opacity-100" : "scale-0 opacity-0"
+                  }`}
+                />
+              </Button>
+            </SheetTrigger>
+
             <SheetContent
               id={SHEET_ID}
               side="left"
               className="w-[min(360px,92vw)] sm:w-[360px] lg:w-[400px] outline-none"
-              onPointerLeave={handlePointerLeaveSheet}
-              onClickCapture={handleAnyNavClickCapture}
-              onInteractOutside={onInteractOutside}
               onEscapeKeyDown={() => setOpen(false)}
             >
               <div className="overflow-y-auto h-full focus:outline-none">
@@ -140,7 +149,13 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
 
         {/*------------- NAV ------------- */}
         <nav className="justify-self-end h-full flex items-center gap-3 text-sm">
-          <div className="hidden sm:flex items-center gap-1 border-b border-neutral-500">
+          <div
+            className={
+              hideHeader
+                ? "hidden"
+                : "hidden sm:flex items-center gap-1 border-b border-neutral-500"
+            }
+          >
             <IoSearch className="size-[20px]" />
             <input
               type="search"
@@ -152,7 +167,9 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
           <div className="flex gap-1 relative items-center h-full">
             {/* WRAPPER para Hover en Desktop */}
             <div
-              className="relative flex items-center h-full"
+              className={
+                hideHeader ? "hidden" : "relative flex items-center h-full"
+              }
               onMouseEnter={() => {
                 if (user) setAccountMenuOpen(true);
               }}
@@ -170,8 +187,9 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
                 size={"icon-lg"}
               >
                 {userInitial ? (
-                  <span className="flex h-[24px] pt-[0.5px] w-[24px] items-center justify-center rounded-full border-2 border-foreground text-[14px] font-semibold bg-background">
+                  <span className="flex h-[24px] pt-[0.5px] w-[24px] items-center justify-center rounded-full border-2 border-foreground text-[12px] font-semibold bg-background">
                     {userInitial}
+                    {userLastName}
                   </span>
                 ) : (
                   <FaRegUser className="size-[1.375rem]" aria-hidden="true" />
@@ -180,13 +198,10 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
 
               {/* MENÚ FLOTANTE */}
               {user && accountMenuOpen && (
-                <div className="hidden sm:block absolute right-0 top-[calc(100%-20px)] pt-4 w-72 z-30 animate-in fade-in zoom-in-95 duration-200">
-                  <div className="rounded-xs border bg-popover shadow-xl overflow-hidden">
+                <div className="hidden sm:block absolute right-0 top-[calc(100%-20px)] pt-4 w-72 z-[100] animate-in fade-in zoom-in-95 duration-200">
+                  <div className="rounded-xs border bg-popover shadow-xl overflow-hidden px-2">
                     {/* Cabecera del menú */}
-                    <div className="bg-muted/30 p-4 border-b flex items-center gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-lg">
-                        {userInitial}
-                      </div>
+                    <div className="p-4 border-b flex items-center gap-3">
                       <div className="flex-1 overflow-hidden">
                         <p className="text-sm font-semibold truncate text-foreground">
                           {user.name || "Usuario"}
@@ -198,39 +213,39 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
                     </div>
 
                     {/* Opciones de navegación */}
-                    <div className="p-2 space-y-1">
+                    <div className="space-y-1 py-2">
                       <Link
                         href="/account"
-                        className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xs hover:bg-neutral-100 transition-colors text-foreground/80 hover:text-foreground"
+                        className="flex items-center gap-2 p-2.5 text-sm font-medium rounded-xs hover:bg-neutral-100 active:bg-neutral-100 transition-colors text-foreground hover:text-foreground"
                         onClick={() => setAccountMenuOpen(false)}
                       >
-                        <FaUser className="size-4 text-muted-foreground" />
+                        <FaUser className="size-4 text-foreground" />
                         Mi cuenta
                       </Link>
                       <Link
                         href="/account/orders"
-                        className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xs hover:bg-neutral-100 transition-colors text-foreground/80 hover:text-foreground"
+                        className="flex items-center gap-2 p-2.5 text-sm font-medium rounded-xs hover:bg-neutral-100 active:bg-neutral-100 transition-colors text-foreground hover:text-foreground"
                         onClick={() => setAccountMenuOpen(false)}
                       >
-                        <FaBoxOpen className="size-4 text-muted-foreground" />
+                        <FaBoxOpen className="size-4 text-foreground" />
                         Mis pedidos
                       </Link>
                       <Link
-                        href="/favoritos"
-                        className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xs hover:bg-neutral-100 transition-colors text-foreground/80 hover:text-foreground"
+                        href="/account/addresses"
+                        className="flex items-center gap-2 p-2.5 text-sm font-medium rounded-xs hover:bg-neutral-100 active:bg-neutral-100 transition-colors text-foreground hover:text-foreground"
                         onClick={() => setAccountMenuOpen(false)}
                       >
-                        <FaHeart className="size-4 text-muted-foreground" />
-                        Mis favoritos
+                        <FaMapLocationDot className="size-4 text-foreground" />
+                        Mis Direcciones
                       </Link>
                     </div>
 
                     {/* Footer acciones */}
-                    <div className="p-2 border-t bg-muted/10">
+                    <div className="py-2 border-t">
                       <button
                         type="button"
                         onClick={handleSignOut}
-                        className="flex w-full hover:cursor-pointer items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xs text-red-600 hover:bg-red-50 transition-colors"
+                        className="flex w-full hover:cursor-pointer items-center gap-3 p-2.5 text-sm font-medium rounded-xs text-red-600 hover:bg-red-50 active:bg-red-50 transition-colors"
                       >
                         <FaSignOutAlt className="size-4" />
                         Cerrar sesión
@@ -241,20 +256,34 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
               )}
             </div>
 
+            <div>
+              <Link
+                href={favoritosUrl}
+                className="relative tip-bottom items-center rounded-xs p-2.5 hover:bg-neutral-100 active:bg-neutral-100 transition-colors text-foreground"
+                data-tip="Favoritos"
+                aria-label="Favoritos"
+              >
+                <FaRegHeart className="size-5 text-foreground" />
+              </Link>
+            </div>
+
             <div
               style={isCartPage ? { pointerEvents: "none" } : undefined}
               aria-disabled={isCartPage}
               aria-hidden={isCartPage}
+              className={isCartPage ? "hidden" : ""}
             >
               <CartButtonWithSheet />
             </div>
           </div>
 
-          <Button asChild variant={"outline"} className="text-base">
-            <Link href="/admin" className="px-4 text-base">
-              Admin
-            </Link>
-          </Button>
+          {isAdmin && (
+            <Button asChild variant={"default"} className="text-base">
+              <Link href="/admin" className="px-4 text-base">
+                Admin
+              </Link>
+            </Button>
+          )}
         </nav>
       </header>
       <div
@@ -263,7 +292,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
         className={`fixed inset-x-0 bottom-0 top-[var(--header-h)] z-[70] bg-black print:hidden
               ${
                 open
-                  ? "opacity-30 motion-safe:transition-opacity duration-400 ease-out pointer-events-auto"
+                  ? "opacity-40 motion-safe:transition-opacity duration-400 ease-out pointer-events-auto"
                   : "opacity-0 motion-safe:transition-opacity duration-200 ease-out pointer-events-none"
               }`}
       ></div>

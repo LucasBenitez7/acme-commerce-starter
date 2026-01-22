@@ -1,12 +1,12 @@
 "use client";
-import { useRouter } from "next/navigation";
-import { useState, useEffect, useMemo } from "react";
-import { FaTriangleExclamation } from "react-icons/fa6";
-import { toast } from "sonner";
 
-import { Button, Input } from "@/components/ui";
+import { useRouter } from "next/navigation";
+import { FaBoxOpen, FaTriangleExclamation } from "react-icons/fa6";
+
+import { Button, Input, Textarea } from "@/components/ui";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Image } from "@/components/ui/image";
 import {
   Select,
   SelectContent,
@@ -15,147 +15,72 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { REJECTION_REASONS } from "@/lib/constants";
+import { REJECTION_REASONS } from "@/lib/orders/constants";
 
-import { processPartialReturnAction } from "@/app/(admin)/admin/orders/actions";
+import { useReturnForm } from "@/hooks/order/use-return-form";
 
-type OrderItem = {
-  id: string;
-  nameSnapshot: string;
-  sizeSnapshot: string | null;
-  colorSnapshot: string | null;
-  quantity: number;
-  quantityReturned: number;
-  quantityReturnRequested: number;
+import type { ReturnableItem } from "@/lib/orders/types";
+
+type Props = {
+  orderId: string;
+  items: ReturnableItem[];
+  returnReason?: string | null;
 };
 
-export function ReturnForm({
-  orderId,
-  items,
-}: {
-  orderId: string;
-  items: OrderItem[];
-}) {
+export function ReturnForm({ orderId, items, returnReason }: Props) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
 
-  const [returnMap, setReturnMap] = useState<Record<string, number>>({});
-
-  const [rejectionReason, setRejectionReason] = useState("");
-  const [customRejection, setCustomRejection] = useState("");
-
-  useEffect(() => {
-    const initialMap: Record<string, number> = {};
-    items.forEach((item) => {
-      if (item.quantityReturnRequested > 0) {
-        initialMap[item.id] = item.quantityReturnRequested;
-      }
-    });
-    setReturnMap(initialMap);
-  }, [items]);
-
-  const totalRequestedQty = useMemo(
-    () => items.reduce((acc, i) => acc + i.quantityReturnRequested, 0),
-    [items],
-  );
-
-  const totalAcceptedQty = useMemo(
-    () => Object.values(returnMap).reduce((acc, qty) => acc + qty, 0),
-    [returnMap],
-  );
-
-  const isPartialRejection =
-    totalRequestedQty > 0 && totalAcceptedQty < totalRequestedQty;
-
-  const handleToggleItem = (itemId: string, max: number, checked: boolean) => {
-    setReturnMap((prev) => {
-      const next = { ...prev };
-      if (checked) next[itemId] = max;
-      else delete next[itemId];
-      return next;
-    });
-  };
-
-  const handleQtyChange = (itemId: string, val: string, max: number) => {
-    const num = parseInt(val) || 0;
-    if (num < 0) return;
-    if (num > max) return;
-    setReturnMap((prev) => ({ ...prev, [itemId]: num }));
-  };
-
-  const handleSubmit = async () => {
-    let finalRejectionNote = undefined;
-
-    if (isPartialRejection) {
-      if (!rejectionReason) {
-        toast.error(
-          "Debes indicar un motivo de rechazo para los artículos no aceptados.",
-        );
-        return;
-      }
-      finalRejectionNote =
-        rejectionReason === "Otro motivo" ? customRejection : rejectionReason;
-
-      if (rejectionReason === "Otro motivo" && !customRejection.trim()) {
-        toast.error("Escribe el motivo del rechazo.");
-        return;
-      }
-    }
-
-    setLoading(true);
-    const payload = Object.entries(returnMap)
-      .filter(([_, qty]) => qty > 0)
-      .map(([itemId, qty]) => ({ itemId, qtyToReturn: qty }));
-
-    const res = await processPartialReturnAction(
-      orderId,
-      payload,
-      finalRejectionNote,
-    );
-
-    if (res.error) {
-      toast.error(res.error);
-      setLoading(false);
-    } else {
-      toast.success("Devolución procesada correctamente");
-      router.push(`/admin/orders/${orderId}`);
-      router.refresh();
-    }
-  };
+  const {
+    loading,
+    returnMap,
+    rejectionReason,
+    setRejectionReason,
+    customRejection,
+    setCustomRejection,
+    totalRequestedQty,
+    totalAcceptedQty,
+    isPartialRejection,
+    toggleItem,
+    changeQty,
+    handleSubmit,
+  } = useReturnForm(orderId, items);
 
   return (
     <div className="space-y-4">
-      <p className="text-foreground font-semibold text-xl">
-        Gestionar Devolución
-      </p>
       {totalRequestedQty > 0 && (
-        <Card className="bg-background p-4 text-sm flex flex-col items-start gap-2 shadow-none">
-          <span>
-            <span className="text-base font-semibold">Pedido:</span> {orderId}
-          </span>
+        <Card className="bg-background p-4 text-sm flex flex-col items-start gap-2 shadow-none border">
           <div className="flex items-center justify-between w-full gap-2">
-            <span>
-              <span className="text-base font-semibold">
-                Solicitud de devolución:{" "}
-              </span>{" "}
-              {totalRequestedQty}{" "}
-              {totalRequestedQty > 1 ? "artículos" : "artículo"}
+            <span className="font-semibold text-base">
+              <span>Solicitado: </span>({totalRequestedQty}{" "}
+              {totalRequestedQty > 1 ? "productos" : "producto"})
             </span>
-            <span className="px-2 py-1 rounded border text-xs font-semibold">
+
+            <span className="px-2 py-1 rounded text-xs text-background font-semibold bg-foreground">
               Aceptando: {totalAcceptedQty}
             </span>
           </div>
         </Card>
       )}
 
+      {returnReason && (
+        <div className="w-full border bg-background p-4">
+          <span className="font-semibold text-sm uppercase">
+            Motivo de devolución:
+          </span>
+          <p className="text-sm font-medium">"{returnReason}"</p>
+        </div>
+      )}
+
+      {/* Lista de Productos */}
       <Card className="shadow-none">
-        <h2 className="pt-4 px-4 text-base font-semibold">Productos:</h2>
+        <h2 className="pt-4 px-4 text-base font-semibold">
+          Seleccionar Productos:
+        </h2>
         <CardContent className="p-0">
           <div className="p-4 space-y-2">
             {items.map((item) => {
               const requested = item.quantityReturnRequested;
               const availableInOrder = item.quantity - item.quantityReturned;
-
               const isRequestContext = totalRequestedQty > 0;
 
               if (isRequestContext && requested <= 0) return null;
@@ -167,52 +92,68 @@ export function ReturnForm({
               return (
                 <div
                   key={item.id}
-                  className={`flex items-center gap-4 p-4 transition-colors border border-border ${
-                    isSelected
-                      ? " hover:bg-neutral-50 border-foreground"
-                      : "hover:bg-neutral-50"
+                  className={`flex items-center gap-4 p-4 transition-colors border border-border rounded-xs bg-background ${
+                    isSelected ? "border-foreground" : "hover:bg-neutral-50"
                   }`}
                 >
                   <Checkbox
                     checked={isSelected}
                     onCheckedChange={(c) =>
-                      handleToggleItem(item.id, maxLimit, c as boolean)
+                      toggleItem(item.id, maxLimit, c as boolean)
                     }
                   />
 
-                  <div className="flex-1 text-sm">
-                    <p className="font-medium text-base">{item.nameSnapshot}</p>
-                    <p className="font-medium text-xs">
-                      {item.sizeSnapshot} / {item.colorSnapshot}
-                    </p>
-                    <span className="font-medium text-xs">x{maxLimit}</span>
-                    {requested > 0 && (
-                      <p className="text-xs text-orange-600 font-medium">
-                        Solicitado: {requested}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    {isSelected ? (
-                      <>
-                        <span className="text-sm font-medium">Aceptar:</span>
-                        <Input
-                          type="number"
-                          min={1}
-                          max={maxLimit}
-                          className="text-left bg-white"
-                          value={returnMap[item.id] || ""}
-                          onChange={(e) =>
-                            handleQtyChange(item.id, e.target.value, maxLimit)
-                          }
+                  <div className="h-full flex w-full gap-3">
+                    <div className="relative h-24 w-16 shrink-0 overflow-hidden rounded-xs bg-neutral-100 border">
+                      {item.image ? (
+                        <Image
+                          src={item.image}
+                          alt={item.nameSnapshot}
+                          fill
+                          className="object-cover"
+                          sizes="200px"
                         />
-                      </>
-                    ) : (
-                      <span className="text-sm font-medium text-muted-foreground">
-                        Pendiente: {maxLimit}
-                      </span>
-                    )}
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-neutral-300">
+                          <FaBoxOpen />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 text-sm py-1">
+                      <p className="font-medium text-base pb-1">
+                        {item.nameSnapshot}
+                      </p>
+                      <p className="text-xs font-medium ">
+                        {[item.sizeSnapshot, item.colorSnapshot]
+                          .filter(Boolean)
+                          .join(" / ")}
+                      </p>
+                      {requested > 0 && (
+                        <p className="text-xs text-orange-600 font-medium mt-1">
+                          Solicitado: {requested}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      {isSelected ? (
+                        <>
+                          <span className="text-sm font-medium">Aceptar:</span>
+                          <Input
+                            type="number"
+                            min={1}
+                            max={maxLimit}
+                            className="w-20 text-center bg-white h-9"
+                            value={returnMap[item.id] || ""}
+                            onChange={(e) =>
+                              changeQty(item.id, e.target.value, maxLimit)
+                            }
+                          />
+                        </>
+                      ) : (
+                        ""
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -221,37 +162,27 @@ export function ReturnForm({
         </CardContent>
       </Card>
 
-      {/* --- SECCIÓN DE RECHAZO PARCIAL (Solo si hay discrepancia) --- */}
+      {/* Sección de Rechazo Parcial */}
       {isPartialRejection && totalAcceptedQty > 0 && (
         <div className="bg-orange-50 border border-orange-200 rounded-xs p-6 animate-in slide-in-from-bottom-2">
           <div className="flex items-center gap-2 mb-4 text-orange-800">
             <FaTriangleExclamation />
             <h3 className="font-semibold">Rechazo Parcial Detectado</h3>
           </div>
-          <p className="text-sm text-orange-900 mb-4">
-            El cliente solicitó devolver <strong>{totalRequestedQty}</strong>{" "}
-            artículos, pero tú estás aceptando{" "}
-            <strong>{totalAcceptedQty}</strong>, por favor indica el motivo por
-            el cual rechazas el resto.
+          <p className="text-sm text-orange-800 mb-4">
+            Indica el motivo por el cual rechazas el resto de artículos
+            solicitados.
           </p>
 
-          {/* TU DISEÑO DE SELECT + TEXTAREA */}
-          <div className="space-y-3 bg-white p-4 rounded-xs border border-orange-100">
+          <div className="space-y-3 bg-white p-4 rounded-sm border border-orange-100">
             <label className="text-sm font-medium">Motivo del rechazo</label>
             <Select value={rejectionReason} onValueChange={setRejectionReason}>
-              <SelectTrigger className="w-full hover:cursor-pointer text-foreground font-medium">
-                <SelectValue
-                  placeholder="-- Selecciona motivo --"
-                  className="placeholder:text-foreground text-foreground font-medium"
-                />
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="-- Selecciona motivo --" />
               </SelectTrigger>
-              <SelectContent className="font-medium">
+              <SelectContent>
                 {REJECTION_REASONS.map((r) => (
-                  <SelectItem
-                    key={r}
-                    value={r}
-                    className="hover:cursor-pointer rounded-xs"
-                  >
+                  <SelectItem key={r} value={r} className="cursor-pointer">
                     {r}
                   </SelectItem>
                 ))}
@@ -259,10 +190,8 @@ export function ReturnForm({
             </Select>
 
             {rejectionReason === "Otro motivo" && (
-              <textarea
-                className="w-full border rounded-xs p-2 text-sm bg-background flex min-h-[100px] resize-none focus:outline-none focus:border-foreground"
-                placeholder="Explica detalladamente por qué no aceptas estos artículos..."
-                rows={3}
+              <Textarea
+                placeholder="Explica detalladamente..."
                 value={customRejection}
                 onChange={(e) => setCustomRejection(e.target.value)}
               />
@@ -271,7 +200,7 @@ export function ReturnForm({
         </div>
       )}
 
-      {/* FOOTER */}
+      {/* Footer */}
       <div className="flex justify-end gap-4 border-t pt-6">
         <Button
           variant="outline"

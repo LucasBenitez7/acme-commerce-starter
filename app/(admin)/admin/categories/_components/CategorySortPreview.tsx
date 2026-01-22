@@ -1,0 +1,68 @@
+import { Badge } from "@/components/ui/badge";
+
+import { cn } from "@/lib/utils";
+
+type CategorySimple = {
+  id: string;
+  name: string;
+  sort: number;
+};
+
+interface Props {
+  existingCategories: CategorySimple[];
+  currentId?: string;
+}
+
+export function CategorySortPreview({ existingCategories, currentId }: Props) {
+  return (
+    <div className="bg-neutral-50 border rounded-xs p-4 space-y-3 h-fit">
+      <div className="space-y-1">
+        <h3 className="font-semibold text-sm">Orden Actual</h3>
+        <p className="text-xs text-muted-foreground">
+          Referencia para elegir la prioridad.
+        </p>
+      </div>
+
+      <div className="space-y-2 overflow-y-auto pr-2 scrollbar-thin">
+        {existingCategories.length === 0 && (
+          <p className="text-xs text-neutral-400 italic">
+            No hay categorías aún.
+          </p>
+        )}
+
+        {existingCategories.map((cat) => {
+          const isCurrent = cat.id === currentId;
+          return (
+            <div
+              key={cat.id}
+              className={cn(
+                "flex items-center gap-3 p-2 rounded-xs text-sm border transition-colors",
+                isCurrent
+                  ? "bg-foreground text-background"
+                  : "bg-background border hover:border-neutral-200",
+              )}
+            >
+              <Badge
+                variant={isCurrent ? "default" : "secondary"}
+                className={cn(
+                  "w-6 h-6 flex items-center font-semibold justify-center text-xs border border-neutral-300",
+                  isCurrent && "text-background",
+                )}
+              >
+                {cat.sort}
+              </Badge>
+              <span className={cn("truncate font-medium")}>{cat.name}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="pt-2 border-t text-xs text-neutral-400 leading-tight">
+        <p>
+          💡 Tip: Si repites un número, el sistema moverá automáticamente los
+          demás hacia abajo.
+        </p>
+      </div>
+    </div>
+  );
+}

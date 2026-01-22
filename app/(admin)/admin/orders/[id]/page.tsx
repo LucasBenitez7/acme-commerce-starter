@@ -1,26 +1,34 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  FaCheck,
-  FaUser,
   FaArrowLeft,
   FaClipboardList,
-  FaRotateLeft,
+  FaBoxOpen,
+  FaCircleCheck,
+  FaClock,
   FaBan,
 } from "react-icons/fa6";
 
+import { OrderTracker } from "@/components/order/OrderTracker";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Image } from "@/components/ui/image";
 
-import { formatMinor, parseCurrency } from "@/lib/currency";
-import { prisma } from "@/lib/db";
-import { cn } from "@/lib/utils";
+import { formatCurrency, parseCurrency } from "@/lib/currency";
+import { getShippingLabel } from "@/lib/locations";
+import { FULFILLMENT_STATUS_CONFIG } from "@/lib/orders/constants";
+import { getAdminOrderById } from "@/lib/orders/queries";
+import {
+  getOrderCancellationDetails,
+  getOrderShippingDetails,
+} from "@/lib/orders/utils";
 
 import {
-  AdminCancelButton,
-  AdminPayButton,
-  AdminRejectButton,
-} from "../_components/AdminOrderActions";
+  CancelOrderButton,
+  MarkPaidButton,
+  RejectReturnButton,
+} from "../_components/actions";
+import { AdminFulfillmentActions } from "../_components/AdminFulfillmentActions";
 
 export const dynamic = "force-dynamic";
 
@@ -30,285 +38,346 @@ type Props = {
 
 export default async function AdminOrderDetailPage({ params }: Props) {
   const { id } = await params;
-
-  const order = await prisma.order.findUnique({
-    where: { id },
-    include: {
-      items: true,
-      user: true,
-    },
-  });
+  const order = await getAdminOrderById(id);
 
   if (!order) notFound();
 
   const currency = parseCurrency(order.currency);
-  const originalQuantity = order.items.reduce(
-    (acc, item) => acc + item.quantity,
-    0,
-  );
-  const returnedQuantity = order.items.reduce(
-    (acc, item) => acc + item.quantityReturned,
-    0,
-  );
-  const netQuantity = originalQuantity - returnedQuantity;
-  const returnedAmountMinor = order.items.reduce((acc, item) => {
-    return acc + item.priceMinorSnapshot * item.quantityReturned;
-  }, 0);
-  const netTotalMinor = order.totalMinor - returnedAmountMinor;
+  const { originalQty, refundedAmountMinor, returnedQty, netTotalMinor } =
+    order.summary;
 
-  const requestedItems = order.items.filter(
+  const createdDate = new Date(order.createdAt).toLocaleString("es-ES", {
+    dateStyle: "long",
+    timeStyle: "short",
+  });
+
+  const deliveryDateFormatted = order.deliveredAt
+    ? new Date(order.deliveredAt).toLocaleString("es-ES", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+      })
+    : null;
+
+  const isDelivered =
+    (order.fulfillmentStatus === "DELIVERED" ||
+      order.fulfillmentStatus === "RETURNED") &&
+    deliveryDateFormatted;
+
+  const contactName = [order.firstName, order.lastName]
+    .filter(Boolean)
+    .join(" ");
+
+  const hasReturnRequest = order.items.some(
     (i) => i.quantityReturnRequested > 0,
   );
 
-  // --- CONFIGURACIÓN DE ESTADOS ---
-  const statusConfig: Record<string, { label: string; color: string }> = {
-    PAID: {
-      label: "Pagado",
-      color: "text-green-700",
-    },
-    PENDING_PAYMENT: {
-      label: "Pendiente de Pago",
-      color: "text-yellow-600",
-    },
-    RETURN_REQUESTED: {
-      label: "Devolución Solicitada",
-      color: "text-red-600",
-    },
-    RETURNED: {
-      label: "Devuelto",
-      color: "text-blue-700",
-    },
-    CANCELLED: {
-      label: "Cancelado",
-      color: "text-neutral-600",
-    },
-    EXPIRED: {
-      label: "Expirado",
-      color: "text-neutral-500",
-    },
-  };
+  const fulfillmentConfig = FULFILLMENT_STATUS_CONFIG[order.fulfillmentStatus];
+  const shippingDetails = getOrderShippingDetails(order);
+  const showHistoryButton = true;
 
-  const currentStatus = statusConfig[order.status] || {
-    label: order.status,
-    color: "text-gray-700",
-    icon: null,
-  };
+  const cancellationData = getOrderCancellationDetails(order);
 
   return (
-    <div className="space-y-4 max-w-5xl mx-auto">
-      {/* Header de Navegación */}
-      <div className="flex items-center justify-between border-b py-4">
-        <Link href="/admin/orders">
-          <FaArrowLeft className="h-4 w-4" />
-        </Link>
-        <div>
-          {order.status === "PENDING_PAYMENT" && (
-            <div className="flex gap-3">
-              <AdminPayButton orderId={order.id} />
-              <AdminCancelButton orderId={order.id} />
-            </div>
+    <div className="space-y-4 max-w-5xl mx-auto pb-10">
+      {/* HEADER */}
+      <div className="flex flex-col sm:flex-row items-start justify-between gap-4 border-b pb-3">
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/orders"
+            className="hover:bg-neutral-100 p-2 rounded-xs transition-colors"
+          >
+            <FaArrowLeft className="size-4" />
+          </Link>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-center justify-end gap-2 w-full sm:w-auto">
+          {showHistoryButton && (
+            <Button
+              asChild
+              variant="outline"
+              className="bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700 w-full sm:w-fit h-9"
+            >
+              <Link href={`/admin/orders/${order.id}/history`}>
+                <FaClipboardList className="size-3.5 mr-2" />
+                Historial / Incidencias
+              </Link>
+            </Button>
           )}
 
-          {order.status === "RETURN_REQUESTED" && (
-            <div className="flex gap-3">
-              <Button asChild variant="default" size="sm" className="px-2">
+          {!order.isCancelled && order.paymentStatus === "PENDING" && (
+            <>
+              <MarkPaidButton orderId={order.id} />
+              <CancelOrderButton
+                orderId={order.id}
+                paymentStatus={order.paymentStatus}
+              />
+            </>
+          )}
+
+          {!order.isCancelled && hasReturnRequest && (
+            <>
+              <Button
+                asChild
+                variant="default"
+                className="bg-orange-600 hover:bg-orange-700 w-full sm:w-fit h-9"
+              >
                 <Link href={`/admin/orders/${order.id}/return`}>
                   Gestionar Devolución
                 </Link>
               </Button>
-              <AdminRejectButton orderId={order.id} />
-            </div>
+              <RejectReturnButton orderId={order.id} />
+            </>
           )}
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-[2fr_1fr]">
-        {/* Columna Izquierda: Items y Totales */}
-        <div className="space-y-4 font-medium">
-          <Card className="px-4">
-            <h2 className="text-lg font-semibold text-center py-3">
-              Detalles del Pedido
-            </h2>
-            <CardContent className="space-y-3 py-3 px-0 border-t">
-              <div className="space-y-3">
-                <div className="flex flex-col justify-center items-start">
-                  <h2 className="text-base font-semibold">Nro de Pedido:</h2>
-                  <p className="text-xs font-medium">
-                    {order.id.slice().toUpperCase()}
-                  </p>
-                </div>
+      {/* --- BANNER DE ESTADO CANCELADO / EXPIRADO --- */}
+      {order.isCancelled && (
+        <div className="flex flex-col">
+          {cancellationData && (
+            <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+              <div className=" text-red-700">
+                {cancellationData.isExpired ? (
+                  <FaClock className="size-5" />
+                ) : (
+                  <FaBan className="size-5" />
+                )}
+              </div>
+              <div className="flex-1">
+                <h3 className="text-red-700 font-bold text-lg flex items-center gap-2">
+                  {cancellationData.bannerTitle}
+                </h3>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
-                <div className="flex flex-col justify-center items-start">
-                  <h2 className="text-base font-semibold">
-                    Realizado en fecha:
-                  </h2>
-                  <p className="text-xs font-medium">
-                    {new Date(order.createdAt).toLocaleString("es-ES")}
-                  </p>
-                </div>
+      {/* --- CARD DEL TRACKER (Con controles de Admin dentro) --- */}
+      <Card className={order.isCancelled ? "hidden" : "pb-2"}>
+        <CardHeader className="px-4 py-0">
+          <CardTitle className="text-sm font-semibold flex items-center justify-between gap-2 p-0 border-b py-4">
+            <div className="flex flex-col">
+              {isDelivered ? (
+                <span className="flex items-center gap-2 text-xl font-semibold text-green-700">
+                  Entregado el {deliveryDateFormatted}{" "}
+                  <FaCircleCheck className="size-5" />
+                </span>
+              ) : (
+                <span className="text-lg font-bold">
+                  {fulfillmentConfig.label}
+                </span>
+              )}
+            </div>
 
-                <div className="text-xs font-medium flex flex-col justify-center items-start">
-                  <h2 className="text-base font-semibold">Tipo de envío:</h2>
-                  <p className="font-medium">
-                    {order.shippingType === "HOME" && "Envío a domicilio"}
-                    {order.shippingType === "STORE" && "Recogida en tienda"}
-                    {order.shippingType === "PICKUP" && "Punto de recogida"}
-                  </p>
-                  <div className="text-foreground">
-                    <p>{order.pickupLocationId}</p>
-                    <p>{order.storeLocationId}</p>
-                  </div>
-                  <div className="text-foreground">
-                    <p>{order.street}</p>
-                    {order.addressExtra && <p>{order.addressExtra}</p>}
-                    <p>
-                      {order.postalCode} {order.city}
-                    </p>
-                    <p>{order.province}</p>
-                  </div>
-                </div>
+            <div className="flex items-center gap-2">
+              <AdminFulfillmentActions
+                orderId={order.id}
+                currentStatus={order.fulfillmentStatus}
+                isCancelled={order.isCancelled}
+                paymentStatus={order.paymentStatus}
+              />
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="px-2 pb-2 pt-2">
+          <OrderTracker status={order.fulfillmentStatus} />
+        </CardContent>
+      </Card>
 
-                {/* --- PRODUCTOS --- */}
-                <div className="flex flex-col justify-center items-start pt-3 border-t w-full">
-                  <h2 className="text-base mb-1 font-semibold">Productos:</h2>
-                  <ul className="w-full space-y-3 text-sm font-medium">
-                    {order.items.map((item) => (
-                      <li
-                        key={item.id}
-                        className="flex w-full items-end justify-between text-sm"
+      {/* --- CARD PRINCIPAL DE DETALLES --- */}
+      <div className="space-y-4 font-medium">
+        <Card className="px-4">
+          <h2 className="text-lg font-semibold text-center pt-3 pb-2 mb-1 border-b">
+            Detalles del Pedido
+          </h2>
+
+          <CardContent className="space-y-6 py-3 px-0">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <h3 className="font-semibold uppercase text-sm">
+                  Nº de Pedido
+                </h3>
+                <p className="font-mono text-sm uppercase" title={order.id}>
+                  {order.id}
+                </p>
+              </div>
+              <div>
+                <h3 className="font-semibold uppercase text-sm">Realizado</h3>
+                <p className="text-xs">{createdDate}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pb-4 border-b font-medium">
+              <div className="text-xs text-foreground space-y-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-sm uppercase flex items-center gap-2">
+                    Datos del Usuario
+                  </h3>
+                  {order.user && order.userId && (
+                    <div className="">
+                      <Link
+                        href={`/admin/users/${order.userId}`}
+                        className="text-xs font-bold text-foreground underline underline-offset-4"
                       >
-                        <div className="flex flex-col ">
-                          <div className="flex items-center">
-                            <span className="text-sm font-medium border-foreground">
-                              {item.nameSnapshot}
-                            </span>
-                          </div>
-                          <span className="text-xs">
-                            {item.sizeSnapshot && `${item.sizeSnapshot}`}
-                            {item.sizeSnapshot && item.colorSnapshot && " / "}
-                            {item.colorSnapshot && `${item.colorSnapshot}`}
-                          </span>
+                        Ver perfil del usuario &rarr;
+                      </Link>
+                    </div>
+                  )}
+                </div>
+                <p className="font-medium">{contactName}</p>
+                <Link
+                  href={`mailto:${order.email}`}
+                  className="text-blue-600 hover:underline block underline-offset-4"
+                >
+                  {order.email}
+                </Link>
+                <p>{order.phone || "Sin teléfono"}</p>
+              </div>
 
-                          <div className="text-xs flex gap-1">
-                            <span className="text-xs">x{item.quantity}</span>
-                            <span className="text-muted-foreground">
-                              {formatMinor(item.priceMinorSnapshot, currency)}
-                            </span>
+              {/* 3. DIRECCIÓN DE ENVÍO */}
+              <div className="text-xs text-foreground space-y-1">
+                <h3 className="font-semibold text-sm uppercase mb-1">
+                  {getShippingLabel(order.shippingType?.toLowerCase())}
+                </h3>
+                {shippingDetails.addressLines.map((line, i) => (
+                  <p key={i}>{line}</p>
+                ))}
+              </div>
+
+              <div>
+                <h3 className="font-semibold uppercase text-sm">
+                  Método de Pago
+                </h3>
+                <p className="text-xs font-medium">
+                  {order.paymentMethod
+                    ? order.paymentMethod.replace("_", " ")
+                    : "Tarjeta"}
+                </p>
+              </div>
+            </div>
+
+            {/* 4. LISTA DE PRODUCTOS (Estilo User pero con badges Admin) */}
+            <div className="pt-0">
+              <h3 className="text-lg mb-6 font-semibold">
+                Productos <span className="text-base">({originalQty})</span>
+              </h3>
+
+              <ul className="space-y-4">
+                {order.items.map((item) => {
+                  const productImages = item.product?.images || [];
+                  const matchingImg =
+                    productImages.find(
+                      (img) => img.color === item.colorSnapshot,
+                    ) || productImages[0];
+                  const imgUrl = matchingImg?.url;
+                  const lineTotal =
+                    (item.priceMinorSnapshot || 0) * item.quantity;
+
+                  return (
+                    <li
+                      key={item.id}
+                      className="flex gap-3 items-start text-sm group"
+                    >
+                      {/* FOTO */}
+                      <div className="relative h-24 w-16 shrink-0 overflow-hidden rounded-xs bg-neutral-100 border">
+                        {imgUrl ? (
+                          <Image
+                            src={imgUrl}
+                            alt={item.nameSnapshot}
+                            fill
+                            className="object-cover"
+                            sizes="100px"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-neutral-300">
+                            <FaBoxOpen className="size-4" />
                           </div>
+                        )}
+                      </div>
+
+                      {/* INFO */}
+                      <div className="flex-1 space-y-1">
+                        <div className="flex justify-between items-start">
+                          <Link
+                            href={`/admin/products/${item.productId}`}
+                            className="font-medium hover:underline underline-offset-3"
+                          >
+                            {item.nameSnapshot}
+                          </Link>
+                          <span className="font-medium tabular-nums">
+                            {formatCurrency(lineTotal, currency)}
+                          </span>
+                        </div>
+
+                        <div className="text-xs flex gap-2 font-medium">
+                          {[item.sizeSnapshot, item.colorSnapshot]
+                            .filter(Boolean)
+                            .join(" / ")}
+                        </div>
+
+                        {/* BADGES DE CANTIDAD Y ESTADO (ADMIN) */}
+                        <div className="flex flex-wrap gap-2 items-center justify-between text-xs">
+                          <span className="font-medium ">x{item.quantity}</span>
+
                           {item.quantityReturned > 0 && (
-                            <span className="flex text-xs text-red-600">
+                            <span className="text-red-700 bg-red-50 border border-red-100 px-2 py-0.5 rounded font-medium">
                               Devuelto: {item.quantityReturned}
                             </span>
                           )}
+
+                          {item.quantityReturnRequested > 0 && (
+                            <span className="text-orange-700 bg-orange-50 border border-orange-100 px-2 py-0.5 rounded font-medium animate-pulse">
+                              Solicitado: {item.quantityReturnRequested}
+                            </span>
+                          )}
                         </div>
-                        <div className="text-right">
-                          <div>{formatMinor(item.subtotalMinor, currency)}</div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+
+            {/* 5. TOTALES Y RESUMEN */}
+            <div className="pt-4 pb-1 space-y-2 border-t mt-4">
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>Subtotal</span>
+                <span>{formatCurrency(order.itemsTotalMinor, currency)}</span>
               </div>
 
-              {/* --- TOTALES Y RESUMEN --- */}
-              <div className=" pt-4 pb-1 space-y-1 border-t">
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>Envío</span>
+                <span>
+                  {order.shippingCostMinor === 0
+                    ? "Gratis"
+                    : formatCurrency(order.shippingCostMinor, currency)}
+                </span>
+              </div>
+
+              {order.taxMinor > 0 && (
                 <div className="flex justify-between text-sm text-muted-foreground">
-                  <span>Subtotal ({originalQuantity})</span>
-                  <span>{formatMinor(order.totalMinor, currency)}</span>
-                </div>
-
-                {returnedAmountMinor > 0 && (
-                  <div className="flex justify-between text-sm text-red-600 font-medium">
-                    <span>Devueltos ({returnedQuantity})</span>
-                    <span>- {formatMinor(returnedAmountMinor, currency)}</span>
-                  </div>
-                )}
-
-                <div className="flex justify-between pt-2 items-center font-semibold text-lg">
-                  <span>
-                    Total Neto{" "}
-                    <span className="text-base">({netQuantity})</span>
-                  </span>
-                  <span className="flex text-base gap-2">
-                    {formatMinor(netTotalMinor, currency)}
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Columna Derecha: Datos del Cliente */}
-        <div className="space-y-3">
-          <Card className="py-3">
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                Estado
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm space-y-3">
-              <div
-                className={cn(
-                  "flex items-center gap-1 text-sm font-medium",
-                  currentStatus.color,
-                )}
-              >
-                {currentStatus.label}
-                {order.status === "PAID" && <FaCheck className="h-3 w-3" />}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="py-3">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center gap-2">
-                <FaUser className="text-neutral-500" />
-                Cliente
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm space-y-3">
-              <div className="font-medium">
-                <p>
-                  {order.firstName} {order.lastName}
-                </p>
-                <p>{order.email}</p>
-                <p className="text-xs">{order.phone}</p>
-              </div>
-
-              {order.user && (
-                <div className="pt-3 border-t mt-3">
-                  <Link
-                    href={`/admin/users/${order.userId}`}
-                    className="border-b border-transparent w-max transition-all duration-200 hover:border-slate-800 font-medium"
-                  >
-                    Ver detalles del usuario
-                  </Link>
+                  <span>Impuestos</span>
+                  <span>{formatCurrency(order.taxMinor, currency)}</span>
                 </div>
               )}
-            </CardContent>
-          </Card>
 
-          {(order.returnReason ||
-            order.rejectionReason ||
-            requestedItems.length > 0) && (
-            <Card className="overflow-hidden border-orange-200">
-              <CardContent className=" border-orange-100 py-3 font-medium px-4">
-                <div className="flex items-center gap-2 text-orange-800">
-                  <FaClipboardList className="h-4 w-4" />
-                  {requestedItems && (
-                    <Link
-                      href={`/admin/orders/${order.id}/history`}
-                      className=" border-b border-transparent  text-sm hover:border-orange-800 w-max transition-all duration-200"
-                    >
-                      {" "}
-                      Ver Historial Devoluciones
-                    </Link>
-                  )}
+              {/* REEMBOLSOS (Destacado en rojo si hay) */}
+              {refundedAmountMinor > 0 && (
+                <div className="flex justify-between text-sm text-red-600 font-medium  border-red-100">
+                  <span>Reembolsado ({returnedQty})</span>
+                  <span>- {formatCurrency(refundedAmountMinor, currency)}</span>
                 </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+              )}
+
+              <div className="flex justify-between pt-2 items-center font-bold text-lg mt-2">
+                <span>Total</span>
+                <span>{formatCurrency(netTotalMinor, currency)}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

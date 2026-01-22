@@ -1,38 +1,67 @@
-import { Button, PendingLink } from "@/components/ui";
+"use client";
 
-import { makePageHref } from "@/lib/catalog/pagination";
+import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
 
-export function PaginationNav({
-  page,
-  totalPages,
-  base,
-}: {
-  page: number;
+import { Button } from "@/components/ui/button";
+
+import { cn } from "@/lib/utils";
+
+interface Props {
   totalPages: number;
-  base: string;
-}) {
-  const prevPage = Math.max(1, page - 1);
-  const nextPage = Math.min(totalPages, page + 1);
-  const prevHref = makePageHref(base, prevPage);
-  const nextHref = makePageHref(base, nextPage);
+  page: number;
+  base?: string;
+}
+
+export function PaginationNav({ totalPages, page, base }: Props) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const basePath = base ?? pathname;
+
+  if (totalPages <= 1) return null;
+
+  const createPageUrl = (pageNumber: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", pageNumber.toString());
+    return `${basePath}?${params.toString()}`;
+  };
+
+  const hasPrev = page > 1;
+  const hasNext = page < totalPages;
 
   return (
     <nav
       aria-label="Paginación"
-      className="flex items-center justify-end gap-2 pb-8"
+      className="flex items-center justify-center gap-2"
     >
-      <p className="text-sm text-neutral-500">
-        Página {page} de {totalPages}
-      </p>
-      <Button asChild variant="outline" disabled={page <= 1}>
-        <PendingLink href={prevHref} rel="prev" className="px-4 py-2">
-          Anterior
-        </PendingLink>
+      <Button
+        variant="outline"
+        size="icon"
+        asChild
+        disabled={!hasPrev}
+        className={cn("h-8 w-8", !hasPrev && "opacity-50 pointer-events-none")}
+      >
+        <Link href={createPageUrl(page - 1)} rel="prev" aria-label="Anterior">
+          <FaChevronLeft className="size-4 hover:cursor-pointer" />
+        </Link>
       </Button>
-      <Button asChild disabled={page >= totalPages}>
-        <PendingLink href={nextHref} rel="next" className="px-4 py-2">
-          Siguiente
-        </PendingLink>
+
+      <span className="text-sm font-medium px-2">
+        Página {page} de {totalPages}
+      </span>
+
+      <Button
+        variant="outline"
+        size="icon"
+        asChild
+        disabled={!hasNext}
+        className={cn("h-8 w-8", !hasNext && "opacity-50 pointer-events-none")}
+      >
+        <Link href={createPageUrl(page + 1)} rel="next" aria-label="Siguiente">
+          <FaChevronRight className="size-4 hover:cursor-pointer" />
+        </Link>
       </Button>
     </nav>
   );

@@ -1,217 +1,130 @@
 import Link from "next/link";
-import { FaCalendar, FaMapMarkerAlt } from "react-icons/fa";
+import { FaBoxOpen } from "react-icons/fa6";
 
-import { UserOrderActions } from "@/components/account/UserOrderActions";
+import { OrderHistoryCard } from "@/components/account/orders/OrderHistoryCard";
+import { PaginationNav } from "@/components/catalog/PaginationNav";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { SearchInput } from "@/components/ui/SearchInput";
 
+import { getUserOrders } from "@/lib/account/queries";
 import { auth } from "@/lib/auth";
-import { formatMinor, parseCurrency } from "@/lib/currency";
-import { prisma } from "@/lib/db";
+import { ORDER_TABS } from "@/lib/orders/constants";
+import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-function getStatusBadge(status: string) {
-  switch (status) {
-    case "PAID":
-      return (
-        <span className="inline-flex items-center rounded-xs bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-          Pagado
-        </span>
-      );
-    case "PENDING_PAYMENT":
-      return (
-        <span className="inline-flex items-center rounded-xs bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
-          Pendiente
-        </span>
-      );
-    case "CANCELLED":
-      return (
-        <span className="inline-flex items-center rounded-xs bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
-          Cancelado
-        </span>
-      );
-    case "RETURN_REQUESTED":
-      return (
-        <span className="inline-flex items-center rounded-xs bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-800 border border-orange-200 animate-pulse">
-          Devolución Solicitada
-        </span>
-      );
-    case "RETURNED":
-      return (
-        <span className="inline-flex items-center rounded-xs bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 border border-blue-200">
-          Devuelto
-        </span>
-      );
-    default:
-      return (
-        <span className="inline-flex items-center rounded-xs bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
-          {status}
-        </span>
-      );
-  }
-}
+type Props = {
+  searchParams: Promise<{
+    page?: string;
+    status?: string;
+    q?: string;
+  }>;
+};
 
-export default async function AccountOrdersPage() {
+export default async function AccountOrdersPage({ searchParams }: Props) {
+  const sp = await searchParams;
+  const page = Number(sp.page) || 1;
+  const statusTab = sp.status;
+  const query = sp.q || "";
+
   const session = await auth();
+
   if (!session?.user?.id) return null;
 
-  const orders = await prisma.order.findMany({
-    where: { userId: session.user.id },
-    orderBy: { createdAt: "desc" },
-    include: {
-      items: {
-        include: {
-          product: { select: { slug: true } },
-        },
-      },
-    },
-  });
-
-  if (orders.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center rounded-xs border border-dashed p-8 text-center animate-in fade-in-50">
-        <h3 className="mt-4 text-lg font-semibold">No tienes pedidos</h3>
-        <p className="mb-4 mt-2 text-sm text-muted-foreground">
-          Parece que aún no has comprado nada. ¡Echa un vistazo al catálogo!
-        </p>
-        <Button asChild>
-          <Link href="/catalogo">Ir a la tienda</Link>
-        </Button>
-      </div>
-    );
-  }
+  const { orders, totalPages, totalCount } = await getUserOrders(
+    session.user.id,
+    page,
+    5,
+    statusTab,
+    query,
+  );
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">Mis Pedidos</h2>
-        <p className="text-muted-foreground">
-          Historial de tus compras y su estado actual.
-        </p>
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 border-b border-neutral-300 pb-3">
+          <h2 className="text-2xl font-semibold">Mis Pedidos ({totalCount})</h2>
+
+          <div className="flex min-w-[200px] w-full sm:w-[480px]">
+            <SearchInput placeholder="Buscar pedidos..." />
+          </div>
+        </div>
+
+        {/* --- PESTAÑAS DE NAVEGACIÓN --- */}
+        <div className="flex gap-4 text-sm sm:text-base overflow-x-auto pb-1 scrollbar-hide">
+          {ORDER_TABS.map((tab) => {
+            const isActive =
+              statusTab === tab.value || (!statusTab && !tab.value);
+
+            return (
+              <Link
+                key={tab.label}
+                href={
+                  tab.value
+                    ? `/account/orders?status=${tab.value}`
+                    : "/account/orders"
+                }
+                className={cn(
+                  "pb-2 border-b-2 font-medium transition-colors whitespace-nowrap px-1",
+                  isActive
+                    ? "border-foreground text-foreground"
+                    : "border-transparent text-neutral-500 hover:text-neutral-800 hover:border-neutral-300",
+                )}
+              >
+                {tab.label}
+              </Link>
+            );
+          })}
+        </div>
       </div>
 
-      <div className="grid gap-4">
-        {orders.map((order) => {
-          const currency = parseCurrency(order.currency);
-          const createdDate = new Date(order.createdAt).toLocaleDateString(
-            "es-ES",
-            {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            },
-          );
-          const itemsCount = order.items.reduce(
-            (acc, i) => acc + i.quantity,
-            0,
-          );
+      {/* --- LISTADO DE PEDIDOS --- */}
+      {orders.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-xs border p-12 text-center bg-neutral-50 mt-4">
+          <div className="p-4 bg-white rounded-full shadow-sm mb-4">
+            <FaBoxOpen className="size-8 text-foreground" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-1">
+            {query
+              ? "No se encontraron resultados"
+              : "No hay pedidos para mostrar"}
+          </h3>
+          <p className="text-muted-foreground mb-4 text-sm max-w-sm mx-auto">
+            {query
+              ? `No hay coincidencias para "${query}"`
+              : statusTab
+                ? "No tienes pedidos en este estado."
+                : "Aún no has realizado ningún pedido."}
+          </p>
 
-          return (
-            <Card key={order.id} className="overflow-hidden">
-              <div className="border-b bg-muted/40 p-4">
-                <div className="grid grid-cols-[1fr_auto] gap-4">
-                  <div className="grid gap-2">
-                    <div className="text-base">
-                      Pedido{" "}
-                      <span className="font-mono text-muted-foreground">
-                        #{order.id.slice(-8).toUpperCase()}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <FaCalendar className="h-3 w-3" />
-                      {createdDate}
-                    </div>
-                    <span>{getStatusBadge(order.status)}</span>
-                  </div>
+          {!statusTab && !query && (
+            <Button asChild>
+              <Link href="/catalogo">Ir a la tienda</Link>
+            </Button>
+          )}
 
-                  <div className="grid gap-3 h-max">
-                    <Link
-                      href={`/account/orders/${order.id}`}
-                      className="border-b border-foreground text-xs font-medium hover:text-slate-700 hover:border-slate-600"
-                    >
-                      Ver detalles del pedido
-                    </Link>
-                  </div>
-                </div>
-              </div>
-              <CardContent className="p-4 text-sm">
-                <div className="flex flex-col gap-4 sm:flex-row sm:justify-between">
-                  <div className="space-y-2">
-                    <p className="font-medium">Artículos ({itemsCount})</p>
-                    <ul className="text-muted-foreground text-xs space-y-1">
-                      {order.items.slice(0, 3).map((item) => (
-                        <li key={item.id} className="flex gap-2">
-                          <span className="font-medium text-foreground">
-                            {item.quantity}x
-                          </span>
-                          {item.product ? (
-                            <Link
-                              href={`/product/${item.product.slug}`}
-                              className="font-medium hover:underline"
-                            >
-                              {item.nameSnapshot}
-                            </Link>
-                          ) : (
-                            <span className="font-medium text-muted-foreground">
-                              {item.nameSnapshot}
-                            </span>
-                          )}
+          {(statusTab || query) && (
+            <Button variant="default" asChild>
+              <Link href="/account/orders">
+                {query ? "Limpiar búsqueda" : "Ver todos los pedidos"}
+              </Link>
+            </Button>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {orders.map((order) => (
+            <OrderHistoryCard key={order.id} order={order} />
+          ))}
+        </div>
+      )}
 
-                          {(item.sizeSnapshot || item.colorSnapshot) && (
-                            <span className="text-muted-foreground/70">
-                              ({item.sizeSnapshot} / {item.colorSnapshot})
-                            </span>
-                          )}
-                        </li>
-                      ))}
-                      {order.items.length > 3 && (
-                        <li className="pt-1 italic">
-                          ... y {order.items.length - 3} más
-                        </li>
-                      )}
-                    </ul>
-                    <span className="text-xs font-semibold">
-                      {formatMinor(order.totalMinor, currency)}
-                    </span>
-                  </div>
-
-                  <div className="space-y-1 text-right sm:text-left">
-                    <div className="flex items-center gap-1 font-medium sm:justify-end">
-                      <FaMapMarkerAlt className="h-3 w-3 text-muted-foreground" />
-                      Envío
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {order.shippingType === "HOME" && "Envío a domicilio"}
-                      {order.shippingType === "STORE" && "Retirar en tienda"}
-                      {order.shippingType === "PICKUP" && "Punto de recogida"}
-                      {order.pickupLocationId} - {order.postalCode} -{" "}
-                      {order.city} - {order.province} - {order.street} -{" "}
-                      {order.storeLocationId}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-
-              {(order.status === "PENDING_PAYMENT" ||
-                order.status === "PAID" ||
-                order.status === "RETURN_REQUESTED" ||
-                order.status === "RETURNED") && (
-                <div className="bg-muted/20 p-3 flex justify-end">
-                  <div className="w-full sm:w-auto">
-                    <UserOrderActions
-                      orderId={order.id}
-                      status={order.status}
-                      items={order.items}
-                    />
-                  </div>
-                </div>
-              )}
-            </Card>
-          );
-        })}
-      </div>
+      {totalPages > 1 && (
+        <div className="pt-4 border-t">
+          <PaginationNav totalPages={totalPages} page={page} />
+        </div>
+      )}
     </div>
   );
 }

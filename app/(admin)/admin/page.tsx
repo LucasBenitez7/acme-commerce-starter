@@ -6,203 +6,240 @@ import {
   FaRotateLeft,
   FaWallet,
   FaArrowTrendUp,
+  FaTags,
+  FaLayerGroup,
+  FaTriangleExclamation,
+  FaBoxesStacked,
 } from "react-icons/fa6";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { formatMinor, DEFAULT_CURRENCY } from "@/lib/currency";
-import { prisma } from "@/lib/db";
+import { getDashboardStats } from "@/lib/admin/queries";
+import { formatCurrency, DEFAULT_CURRENCY } from "@/lib/currency";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  // 1. Consultas Generales
-  const [totalOrders, totalProducts, totalUsers, pendingOrders] =
-    await Promise.all([
-      prisma.order.count(),
-      prisma.product.count(),
-      prisma.user.count(),
-      prisma.order.count({ where: { status: "PENDING_PAYMENT" } }),
-    ]);
-
-  // 2. Consulta Financiera Compleja
-  const financialOrders = await prisma.order.findMany({
-    where: {
-      status: { in: ["PAID", "RETURN_REQUESTED", "RETURNED"] },
-    },
-    select: {
-      totalMinor: true,
-      items: {
-        select: {
-          priceMinorSnapshot: true,
-          quantityReturned: true,
-        },
-      },
-    },
-  });
-
-  // 3. Cálculos en Memoria
-  let grossRevenue = 0;
-  let totalRefunds = 0;
-  let returnedItemsCount = 0;
-
-  for (const order of financialOrders) {
-    grossRevenue += order.totalMinor;
-
-    const orderRefundValue = order.items.reduce((acc, item) => {
-      returnedItemsCount += item.quantityReturned;
-      return acc + item.priceMinorSnapshot * item.quantityReturned;
-    }, 0);
-
-    totalRefunds += orderRefundValue;
-  }
-
-  const netRevenue = grossRevenue - totalRefunds;
+  const stats = await getDashboardStats();
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
+    <div className="space-y-8 animate-in fade-in duration-500">
+      {/* HEADER */}
+      <div className="flex flex-col gap-1">
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">
-          Resumen financiero y operativo de tu tienda.
+          Visión general del rendimiento de tu tienda.
         </p>
       </div>
 
-      {/* --- SECCIÓN FINANCIERA --- */}
+      {/* --- SECCIÓN 1: FINANZAS (KPIs Principales) --- */}
       <div>
-        <h3 className="text-lg font-medium mb-4">Finanzas</h3>
+        <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
+          Rendimiento Financiero
+        </h3>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {/* 1. Ingresos Brutos */}
-          <Card className="border-l-4 border-l-blue-500 shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Ventas Totales (Bruto)
+          {/* Ingresos Brutos */}
+          <Card className="py-4 px-0">
+            <CardHeader className="px-4 flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-base font-medium">
+                Ventas Brutas
               </CardTitle>
-              <FaMoneyBillWave className="h-4 w-4 text-blue-500" />
+              <FaMoneyBillWave className="size-4 text-blue-500" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4">
               <div className="text-2xl font-bold">
-                {formatMinor(grossRevenue, DEFAULT_CURRENCY)}
+                {formatCurrency(stats.grossRevenue, DEFAULT_CURRENCY)}
               </div>
-              <p className="text-xs text-muted-foreground">
-                Volumen total transaccionado
+              <p className="text-xs text-foreground">
+                Total facturado histórico
               </p>
             </CardContent>
           </Card>
 
-          {/* 2. Reembolsos */}
-          <Card className="border-l-4 border-l-red-500 shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+          {/* Reembolsos */}
+          <Card className="py-4 px-0">
+            <CardHeader className="px-4 flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-base font-medium">
                 Reembolsos
               </CardTitle>
-              <FaRotateLeft className="h-4 w-4 text-red-500" />
+              <FaRotateLeft className="size-4 text-red-500" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4">
               <div className="text-2xl font-bold text-red-600">
-                - {formatMinor(totalRefunds, DEFAULT_CURRENCY)}
+                - {formatCurrency(stats.totalRefunds, DEFAULT_CURRENCY)}
               </div>
-              <p className="text-xs text-muted-foreground">
-                Dinero devuelto a clientes
-              </p>
+              <p className="text-xs text-foreground">Devoluciones procesadas</p>
             </CardContent>
           </Card>
 
-          {/* 3. Ingresos Netos (El dato más importante) */}
-          <Card className="border-l-4 border-l-green-500 shadow-md bg-green-50/30">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-bold text-green-800">
+          {/* NETO (Destacado) */}
+          <Card className="bg-emerald-50/50 border-emerald-200 py-4">
+            <CardHeader className="px-4 flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-base font-bold text-emerald-700">
                 Ingresos Netos
               </CardTitle>
-              <FaWallet className="h-4 w-4 text-green-600" />
+              <FaWallet className="size-4 text-emerald-600" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-700">
-                {formatMinor(netRevenue, DEFAULT_CURRENCY)}
+            <CardContent className="px-4">
+              <div className="text-2xl font-bold text-emerald-700">
+                {formatCurrency(stats.netRevenue, DEFAULT_CURRENCY)}
               </div>
-              <p className="text-xs text-green-600 font-medium">
-                Beneficio real en caja
+              <p className="text-xs text-emerald-600/80 font-medium">
+                Beneficio real tras devoluciones
               </p>
             </CardContent>
           </Card>
 
-          {/* 4. Productos Devueltos (Inventario) */}
-          <Card className="border-l-4 border-l-orange-400 shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Items Devueltos
+          {/* Ticket Medio (Calculado al vuelo) */}
+          <Card className="py-4 px-0">
+            <CardHeader className="px-4 flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-base font-medium">
+                Ticket Medio
               </CardTitle>
-              <FaBox className="h-4 w-4 text-orange-400" />
+              <FaArrowTrendUp className="size-4 text-purple-500" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-orange-600">
-                {returnedItemsCount}{" "}
-                <span className="text-sm font-normal text-muted-foreground">
-                  u.
-                </span>
+            <CardContent className="px-4">
+              <div className="text-2xl font-bold">
+                {stats.totalOrders > 0
+                  ? formatCurrency(
+                      Math.round(stats.grossRevenue / stats.totalOrders),
+                      DEFAULT_CURRENCY,
+                    )
+                  : formatCurrency(0, DEFAULT_CURRENCY)}
               </div>
-              <p className="text-xs text-muted-foreground">
-                Productos reingresados a stock
-              </p>
+              <p className="text-xs text-foreground">Promedio por pedido</p>
             </CardContent>
           </Card>
         </div>
       </div>
 
-      {/* --- SECCIÓN OPERATIVA --- */}
+      {/* --- SECCIÓN 2: INVENTARIO Y PRODUCTOS (NUEVO) --- */}
       <div>
-        <h3 className="text-lg font-medium mb-4">Operaciones</h3>
+        <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
+          Inventario y Catálogo (Activo)
+        </h3>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Pedidos
+          {/* Productos Activos vs Archivados */}
+          <Card className="py-4 px-0">
+            <CardHeader className="px-4 flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-base font-medium">
+                Productos Activos
               </CardTitle>
-              <FaClipboardList className="h-4 w-4 text-muted-foreground" />
+              <FaBox className="size-4 text-slate-500" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalOrders}</div>
-              <p className="text-xs text-muted-foreground">
-                {pendingOrders} pendientes de pago
+            <CardContent className="px-4">
+              <div className="text-2xl font-bold">{stats.activeProducts}</div>
+              <p className="text-xs text-foreground">
+                De {stats.totalProducts} creados ({stats.archivedProducts}{" "}
+                archivados)
               </p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Catálogo</CardTitle>
-              <FaBox className="h-4 w-4 text-muted-foreground" />
+          {/* Variantes Activas */}
+          <Card className="py-4 px-0">
+            <CardHeader className="px-4 flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-base font-medium">
+                Variantes a la venta
+              </CardTitle>
+              <FaTags className="size-4 text-indigo-500" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalProducts}</div>
-              <p className="text-xs text-muted-foreground">Productos activos</p>
+            <CardContent className="px-4">
+              <div className="text-2xl font-bold">{stats.totalVariants}</div>
+              <p className="text-xs text-foreground">Combinaciones activas</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Clientes</CardTitle>
-              <FaUsers className="h-4 w-4 text-muted-foreground" />
+          {/* Stock Disponible Real */}
+          <Card className="py-4 px-0">
+            <CardHeader className="px-4 flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-base font-medium">
+                Stock Disponible
+              </CardTitle>
+              <FaLayerGroup className="size-4 text-teal-500" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalUsers}</div>
-              <p className="text-xs text-muted-foreground">
-                Usuarios registrados
+            <CardContent className="px-4">
+              <div className="text-2xl font-bold">{stats.totalStock}</div>
+              <p className="text-xs text-foreground">
+                Unidades listas para vender
               </p>
             </CardContent>
           </Card>
 
-          {/* Card de Crecimiento (Placeholder visual) */}
-          <Card className="bg-neutral-900 text-white">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-neutral-300">
-                Estado
+          {/* Alerta Agotados */}
+          <Card
+            className={
+              stats.outOfStockVariants > 0
+                ? "border-orange-200 bg-orange-50/30  py-4"
+                : "py-4"
+            }
+          >
+            <CardHeader className="px-4 flex flex-row items-center justify-between space-y-0">
+              <CardTitle className="text-base font-medium text-orange-700">
+                Agotados
               </CardTitle>
-              <FaArrowTrendUp className="h-4 w-4 text-green-400" />
+              <FaTriangleExclamation className="size-4 text-orange-500" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">Activo</div>
-              <p className="text-xs text-neutral-400">Tienda operativa v1.0</p>
+            <CardContent className="px-4 py-2">
+              <div className="text-2xl font-bold text-orange-700">
+                {stats.outOfStockVariants}
+              </div>
+              <p className="text-xs text-orange-600/80 font-medium">
+                Variantes activas sin stock
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+      {/* --- SECCIÓN 3: OPERACIONES (Pedidos y Usuarios) --- */}
+      <div>
+        <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
+          Actividad
+        </h3>
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card className="py-4 px-0">
+            <CardHeader className="px-4 flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-base font-medium">
+                Pedidos Totales
+              </CardTitle>
+              <FaClipboardList className="size-4 text-slate-500" />
+            </CardHeader>
+            <CardContent className="px-4">
+              <div className="text-2xl font-bold">{stats.totalOrders}</div>
+              <p className="text-xs text-foreground">
+                {stats.pendingOrders > 0 && (
+                  <span className="text-amber-600 font-medium">
+                    {stats.pendingOrders} pendientes de pago
+                  </span>
+                )}
+                {stats.pendingOrders === 0 && "Todos procesados"}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="py-4 px-0">
+            <CardHeader className="px-4 flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-base font-medium">Clientes</CardTitle>
+              <FaUsers className="size-4 text-slate-500" />
+            </CardHeader>
+            <CardContent className="px-4">
+              <div className="text-2xl font-bold">{stats.totalUsers}</div>
+              <p className="text-xs text-foreground">Usuarios registrados</p>
+            </CardContent>
+          </Card>
+
+          <Card className="py-4 px-0">
+            <CardHeader className="px-4 flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-base font-medium">
+                Logística Inversa
+              </CardTitle>
+              <FaBoxesStacked className="size-4 text-slate-500" />
+            </CardHeader>
+            <CardContent className="px-4">
+              <div className="text-2xl font-bold">
+                {stats.returnedItemsCount}
+              </div>
+              <p className="text-xs text-foreground">Productos devueltos</p>
             </CardContent>
           </Card>
         </div>

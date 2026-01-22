@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useActionState } from "react";
 import { toast } from "sonner";
 
@@ -11,6 +12,8 @@ import {
   type CategoryFormState,
 } from "../actions";
 
+import { CategorySortPreview } from "./CategorySortPreview";
+
 type Props = {
   category?: {
     id: string;
@@ -18,6 +21,7 @@ type Props = {
     slug: string;
     sort: number;
   };
+  existingCategories?: { id: string; name: string; sort: number }[];
 };
 
 const INITIAL_STATE: CategoryFormState = {
@@ -25,7 +29,7 @@ const INITIAL_STATE: CategoryFormState = {
   errors: {},
 };
 
-export function CategoryForm({ category }: Props) {
+export function CategoryForm({ category, existingCategories = [] }: Props) {
   const isEditing = !!category;
 
   const action = isEditing
@@ -38,55 +42,75 @@ export function CategoryForm({ category }: Props) {
   >(action, INITIAL_STATE);
 
   useEffect(() => {
-    if (state.message && state.message !== "") {
-      toast.error(state.message);
+    if (state.message) toast.error(state.message);
+    if (state.errors && Object.keys(state.errors).length > 0) {
+      toast.error("Revisa los campos marcados.");
     }
   }, [state]);
 
   return (
-    <form
-      action={formAction}
-      className="space-y-6 max-w-lg bg-white p-6 rounded-xs border shadow-sm"
-    >
-      <div className="space-y-2">
-        <Label>Nombre (Menú)</Label>
-        <Input
-          name="name"
-          defaultValue={category?.name}
-          placeholder="Ej: Zapatillas"
+    <div className="grid gap-8 lg:grid-cols-[300px_1fr] items-start">
+      {/* COLUMNA IZQUIERDA */}
+      <div className="lg:block">
+        <CategorySortPreview
+          existingCategories={existingCategories}
+          currentId={category?.id}
         />
-        {state.errors?.name && (
-          <p className="text-red-500 text-xs">{state.errors.name[0]}</p>
-        )}
       </div>
 
-      <div className="space-y-2">
-        <Label>Orden (Prioridad en menú)</Label>
-        <Input name="sort" type="number" defaultValue={category?.sort ?? 0} />
-        <p className="text-xs text-muted-foreground">
-          0 sale primero, 10 sale último.
-        </p>
-        {state.errors?.sort && (
-          <p className="text-red-500 text-xs">{state.errors.sort[0]}</p>
-        )}
-      </div>
+      {/* COLUMNA DERECHA*/}
+      <form action={formAction} className="space-y-6">
+        <div className="grid gap-6 bg-background px-4 py-6 rounded-xs border shadow-sm">
+          <div className="space-y-2">
+            <Label htmlFor="name">Nombre</Label>
+            <Input
+              id="name"
+              name="name"
+              defaultValue={category?.name}
+              placeholder="Ej: Zapatillas"
+              autoFocus={!isEditing}
+              aria-invalid={!!state.errors?.name}
+              className={state.errors?.name ? "border-red-500" : ""}
+            />
+            {state.errors?.name && (
+              <p className="text-red-500 text-xs">{state.errors.name[0]}</p>
+            )}
+          </div>
 
-      <div className="flex justify-end gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => window.history.back()}
-        >
-          Cancelar
-        </Button>
-        <Button type="submit" disabled={isPending}>
-          {isPending
-            ? "Guardando..."
-            : isEditing
-              ? "Guardar Cambios"
-              : "Crear Categoría"}
-        </Button>
-      </div>
-    </form>
+          <div className="space-y-2">
+            <Label htmlFor="sort">Prioridad (Orden)</Label>
+            <Input
+              id="sort"
+              name="sort"
+              type="number"
+              defaultValue={category?.sort ?? 0}
+              className="max-w-[120px]"
+            />
+            <p className="text-xs text-muted-foreground">
+              Menor número = Más arriba en el menú.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end gap-3">
+          <Button
+            variant="outline"
+            asChild
+            type="button"
+            className="p-3 flex-1 lg:flex-0"
+          >
+            <Link href="/admin/categories">Cancelar</Link>
+          </Button>
+          <Button
+            type="submit"
+            variant={"default"}
+            disabled={isPending}
+            className="p-3 flex-1 lg:flex-0"
+          >
+            {isPending ? "Guardando..." : isEditing ? "Guardar" : "Crear"}
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 }

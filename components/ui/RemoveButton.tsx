@@ -12,7 +12,7 @@ export function RemoveButton({ onRemove, className }: CartRemoveButtonProps) {
     <button
       type="button"
       className={`
-         group relative flex h-6 w-6 items-center justify-center rounded-xs hover:cursor-pointer
+         group relative flex items-center justify-center rounded-xs hover:cursor-pointer
         ${className ?? ""}
       `}
       aria-label="Quitar de la cesta"

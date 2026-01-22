@@ -24,31 +24,28 @@ export function DeleteCategoryButton({ id, hasProducts }: Props) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Verificación inicial antes de abrir el diálogo
   const handleOpenCheck = () => {
     if (hasProducts) {
-      toast.error(
-        "No puedes borrar una categoría que tiene productos. Elimina o mueve los productos primero.",
-      );
+      toast.error("No puedes borrar una categoría con productos.", {
+        description: "Mueve o elimina los productos asociados primero.",
+      });
       return;
     }
     setOpen(true);
   };
 
-  // Acción real de borrado
   const handleDelete = async () => {
     setLoading(true);
     try {
       const res = await deleteCategoryAction(id);
-
       if (res?.error) {
         toast.error(res.error);
       } else {
         toast.success("Categoría eliminada correctamente");
         setOpen(false);
       }
-    } catch (error) {
-      toast.error("Ocurrió un error inesperado");
+    } catch {
+      toast.error("Error inesperado al eliminar.");
     } finally {
       setLoading(false);
     }
@@ -60,27 +57,26 @@ export function DeleteCategoryButton({ id, hasProducts }: Props) {
         variant="destructive"
         onClick={handleOpenCheck}
         disabled={loading}
-        className="bg-red-600 hover:bg-red-700 text-white shadow-sm font-semibold"
       >
-        Borrar
+        {loading ? "Borrando..." : "Eliminar"}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-xl">¿Eliminar categoría?</DialogTitle>
-            <DialogDescription className="text-slate-600 font-medium pt-2">
-              Esta acción es irreversible. La categoría se eliminará
-              permanentemente de la base de datos.
+            <DialogTitle>¿Estás completamente seguro?</DialogTitle>
+            <DialogDescription>
+              Esta acción no se puede deshacer. La categoría se eliminará
+              permanentemente.
             </DialogDescription>
           </DialogHeader>
 
-          <DialogFooter className="gap-4 pt-4">
+          <DialogFooter className="gap-3 mt-3">
             <Button
               variant="outline"
               onClick={() => setOpen(false)}
               disabled={loading}
-              className="border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold"
+              className="py-3"
             >
               Cancelar
             </Button>
@@ -88,9 +84,9 @@ export function DeleteCategoryButton({ id, hasProducts }: Props) {
               variant="destructive"
               onClick={handleDelete}
               disabled={loading}
-              className="bg-red-600 hover:bg-red-700 text-white font-bold shadow-sm"
+              className="py-3"
             >
-              {loading ? "Eliminando..." : "Confirmar Eliminación"}
+              {loading ? "Eliminando..." : "Sí, eliminar"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -6,44 +6,37 @@ import {
   SectionHeader,
 } from "@/components/catalog";
 
-import { PER_PAGE, parsePage } from "@/lib/catalog/pagination";
-import { getCategoryBySlug } from "@/lib/server/categories";
-import { fetchProductsPage } from "@/lib/server/products";
-
-import type { ParamsSlug, SP } from "@/types/catalog";
+import { getCategoryBySlug } from "@/lib/categories/queries";
+import { getUserFavoriteIds } from "@/lib/favorites/queries";
+import { PER_PAGE, parsePage } from "@/lib/pagination";
+import { getPublicProducts } from "@/lib/products/queries";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
-export const fetchCache = "force-no-store";
-export const runtime = "nodejs";
 
-export default async function CategoryPage({
-  params,
-  searchParams,
-}: {
-  params: ParamsSlug;
-  searchParams: SP;
-}) {
+type Props = {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
+
+export default async function CategoryPage({ params, searchParams }: Props) {
   const { slug } = await params;
-  const sp = (await searchParams) ?? {};
+  const sp = await searchParams;
   const page = Math.max(1, parsePage(sp.page, 1));
 
   const cat = await getCategoryBySlug(slug);
   if (!cat) notFound();
 
-  const { rows, total } = await fetchProductsPage({
-    page,
-    perPage: PER_PAGE,
-    where: { categoryId: cat.id },
-  });
+  const [{ rows, total }, favoriteIds] = await Promise.all([
+    getPublicProducts({ page, limit: PER_PAGE, categorySlug: slug }),
+    getUserFavoriteIds(),
+  ]);
 
-  const items = rows;
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
 
   return (
     <section className="px-4">
-      <SectionHeader title={String(cat.name)} />
-      <ProductGrid items={items} />
+      <SectionHeader title={cat.name} />
+      <ProductGrid items={rows} favoriteIds={favoriteIds} />
       <PaginationNav
         page={page}
         totalPages={totalPages}

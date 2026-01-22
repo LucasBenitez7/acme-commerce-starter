@@ -6,7 +6,7 @@ import { type FormEvent, useState } from "react";
 
 import { Button, Input, Label, PasswordInput } from "@/components/ui";
 
-import { registerSchema } from "@/lib/validation/auth";
+import { registerSchema } from "@/lib/auth/schema";
 
 type Props = {
   action: (

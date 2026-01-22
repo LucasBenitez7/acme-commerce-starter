@@ -7,22 +7,23 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   try {
     const authHeader = request.headers.get("authorization");
+
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const timeLimit = new Date(Date.now() - 30 * 60 * 1000);
+    const TIMEOUT_MS = 60 * 60 * 1000;
+
+    const timeLimit = new Date(Date.now() - TIMEOUT_MS);
 
     const expiredOrders = await prisma.order.findMany({
       where: {
-        status: "PENDING_PAYMENT",
-        createdAt: {
-          lt: timeLimit,
-        },
+        paymentStatus: "PENDING",
+        fulfillmentStatus: "UNFULFILLED",
+        isCancelled: false,
+        createdAt: { lt: timeLimit },
       },
-      include: {
-        items: true,
-      },
+      include: { items: true },
     });
 
     if (expiredOrders.length === 0) {
@@ -32,20 +33,35 @@ export async function GET(request: Request) {
     const results = await Promise.allSettled(
       expiredOrders.map(async (order) => {
         return prisma.$transaction(async (tx) => {
+          // 1. Devolver Stock
           for (const item of order.items) {
             if (item.variantId) {
               await tx.productVariant.update({
                 where: { id: item.variantId },
-                data: {
-                  stock: { increment: item.quantity },
-                },
+                data: { stock: { increment: item.quantity } },
               });
             }
           }
 
+          // 2. Marcar orden como Expirada
           await tx.order.update({
             where: { id: order.id },
-            data: { status: "EXPIRED" },
+            data: {
+              isCancelled: true,
+              paymentStatus: "FAILED",
+            },
+          });
+
+          // 3. Historial
+          await tx.orderHistory.create({
+            data: {
+              orderId: order.id,
+              type: "INCIDENT",
+              snapshotStatus: "Expirado",
+              actor: "system",
+              reason:
+                "Tiempo de pago agotado (1h). Pedido expirado automáticamente.",
+            },
           });
 
           return order.id;
@@ -53,14 +69,9 @@ export async function GET(request: Request) {
       }),
     );
 
-    const successCount = results.filter((r) => r.status === "fulfilled").length;
-    const failCount = results.filter((r) => r.status === "rejected").length;
-
     return NextResponse.json({
-      message: "Process completed",
+      message: "Expired process completed",
       processed: expiredOrders.length,
-      succeeded: successCount,
-      failed: failCount,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
