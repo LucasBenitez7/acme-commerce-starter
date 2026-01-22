@@ -68,3 +68,8 @@ export type PresetColor = {
   name: string;
   hex: string;
 };
+
+export type FavoriteProductItem = PublicProductListItem & {
+  favoriteId: string;
+  addedAt: Date;
+};

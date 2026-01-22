@@ -29,6 +29,7 @@ model User {
   sessions  Session[]
   addresses UserAddress[]
   orders    Order[]
+  favorites Favorite[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -127,9 +128,10 @@ model Product {
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id])
 
-  images     ProductImage[]
-  variants   ProductVariant[]
-  orderItems OrderItem[]
+  images      ProductImage[]
+  variants    ProductVariant[]
+  orderItems  OrderItem[]
+  favoritedBy Favorite[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -326,4 +328,36 @@ model OrderHistory {
   createdAt DateTime @default(now())
 
   @@index([orderId])
+}
+
+// ==========================================
+// 4. FAVORITOS (WISHLIST)
+// ==========================================
+model Favorite {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@index([productId])
+}
+
+// ==========================================
+// 5. SEGURIDAD (PASSWORD RESET)
+// ==========================================
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
+
+  @@unique([email, token])
 }
