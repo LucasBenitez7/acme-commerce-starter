@@ -19,8 +19,8 @@ export default async function AccountLayout({
   }
 
   return (
-    <Container className="py-8 px-4">
-      <div className="flex flex-col gap-8">
+    <Container className="py-6 px-4">
+      <div className="flex flex-col gap-6">
         <AccountSidebar user={session.user} />
 
         {/* CONTENIDO PRINCIPAL */}

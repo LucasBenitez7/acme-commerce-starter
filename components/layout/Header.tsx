@@ -6,7 +6,13 @@ import { useSession, signOut } from "next-auth/react";
 import { useRef, useState, useCallback } from "react";
 import { CgClose } from "react-icons/cg";
 import { FaSignOutAlt } from "react-icons/fa";
-import { FaRegUser, FaHeart, FaBoxOpen, FaUser } from "react-icons/fa6";
+import {
+  FaRegUser,
+  FaRegHeart,
+  FaBoxOpen,
+  FaUser,
+  FaMapLocationDot,
+} from "react-icons/fa6";
 import { IoSearch } from "react-icons/io5";
 import { RiMenu2Line } from "react-icons/ri";
 
@@ -67,6 +73,8 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
 
   const showTooltip = mounted && !isSessionLoading && !user;
   const accountTooltip = showTooltip ? "Iniciar sesión" : undefined;
+
+  const favoritosUrl = user ? `/account/favorites` : `/auth/login`;
 
   function handleAccountClick() {
     if (isSessionLoading) return;
@@ -143,7 +151,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
         <nav className="justify-self-end h-full flex items-center gap-3 text-sm">
           <div
             className={
-              isCartPage
+              hideHeader
                 ? "hidden"
                 : "hidden sm:flex items-center gap-1 border-b border-neutral-500"
             }
@@ -160,7 +168,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
             {/* WRAPPER para Hover en Desktop */}
             <div
               className={
-                isCartPage ? "hidden" : "relative flex items-center h-full"
+                hideHeader ? "hidden" : "relative flex items-center h-full"
               }
               onMouseEnter={() => {
                 if (user) setAccountMenuOpen(true);
@@ -223,12 +231,12 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
                         Mis pedidos
                       </Link>
                       <Link
-                        href="/favoritos"
+                        href="/account/addresses"
                         className="flex items-center gap-2 p-2.5 text-sm font-medium rounded-xs hover:bg-neutral-100 active:bg-neutral-100 transition-colors text-foreground hover:text-foreground"
                         onClick={() => setAccountMenuOpen(false)}
                       >
-                        <FaHeart className="size-4 text-foreground" />
-                        Mis favoritos
+                        <FaMapLocationDot className="size-4 text-foreground" />
+                        Mis Direcciones
                       </Link>
                     </div>
 
@@ -246,6 +254,17 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
                   </div>
                 </div>
               )}
+            </div>
+
+            <div>
+              <Link
+                href={favoritosUrl}
+                className="relative tip-bottom items-center rounded-xs p-2.5 hover:bg-neutral-100 active:bg-neutral-100 transition-colors text-foreground"
+                data-tip="Favoritos"
+                aria-label="Favoritos"
+              >
+                <FaRegHeart className="size-5 text-foreground" />
+              </Link>
             </div>
 
             <div

@@ -35,7 +35,7 @@ const NAV_ITEMS = [
   },
   {
     label: "Favoritos",
-    href: "/account/favorites",
+    href: "/account/favoritos",
     icon: FaHeart,
   },
   {

@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import { ImSpinner8 } from "react-icons/im";
 
 import { CartUndoNotification } from "@/components/cart/CartUndoNotification";
@@ -10,7 +11,11 @@ import { formatCurrency, DEFAULT_CURRENCY } from "@/lib/currency";
 
 import { useCartLogic } from "@/hooks/cart/use-cart-logic";
 
-export default function CartClientPage() {
+export default function CartClientPage({
+  favoriteIds = new Set(),
+}: {
+  favoriteIds?: Set<string>;
+}) {
   const {
     items,
     totalQty,
@@ -23,6 +28,23 @@ export default function CartClientPage() {
     handleRemoveItem,
     handleCheckout,
   } = useCartLogic();
+
+  const [localFavorites, setLocalFavorites] =
+    useState<Set<string>>(favoriteIds);
+
+  useEffect(() => {
+    setLocalFavorites(favoriteIds);
+  }, [favoriteIds]);
+
+  const handleToggleLocal = (productId: string, isNowFavorite: boolean) => {
+    const next = new Set(localFavorites);
+    if (isNowFavorite) {
+      next.add(productId);
+    } else {
+      next.delete(productId);
+    }
+    setLocalFavorites(next);
+  };
 
   if (!cartStore) return null;
 
@@ -61,6 +83,7 @@ export default function CartClientPage() {
               {items.map((item) => {
                 const isMaxed = item.quantity >= item.maxStock;
                 const isOutOfStock = item.maxStock === 0;
+                const isFav = favoriteIds.has(item.productId);
 
                 return (
                   <div key={item.variantId} className="p-0 flex gap-3">
@@ -98,20 +121,18 @@ export default function CartClientPage() {
                             </Link>
 
                             <FavoriteButton
-                              onToggle={() => {
-                                false;
-                              }}
-                              isFavorite={false}
+                              key={`${item.variantId}-${isFav}`}
+                              productId={item.productId}
+                              initialIsFavorite={isFav}
+                              onToggle={(newState) =>
+                                handleToggleLocal(item.productId, newState)
+                              }
+                              className="shrink-0 mr-0.5"
+                              iconSize={"size-4.5"}
                             />
                           </div>
                           <p className="text-xs font-medium">
                             {item.size} / {item.color}
-                          </p>
-                          <p className="font-medium text-xs tabular-nums">
-                            {formatCurrency(
-                              item.price * item.quantity,
-                              DEFAULT_CURRENCY,
-                            )}
                           </p>
                         </div>
                       </div>
@@ -150,6 +171,12 @@ export default function CartClientPage() {
                               +
                             </button>
                           </div>
+                          <p className="font-medium text-sm">
+                            {formatCurrency(
+                              item.price * item.quantity,
+                              DEFAULT_CURRENCY,
+                            )}
+                          </p>
                         </div>
 
                         <RemoveButton

@@ -49,7 +49,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
   const isReturnsTab = sp.status === "RETURNS";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold border-b w-full pb-2">Pedidos</h1>
       </div>

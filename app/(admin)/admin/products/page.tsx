@@ -66,7 +66,7 @@ export default async function AdminProductsPage({ searchParams }: Props) {
   const isArchivedView = status === "archived";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex sm:flex-row sm:items-center justify-between gap-4 border-b pb-2">
         <h1 className="text-2xl font-bold tracking-tight">Productos</h1>
 
@@ -74,7 +74,7 @@ export default async function AdminProductsPage({ searchParams }: Props) {
           href="/admin/products/new"
           className="flex items-center font-medium gap-2 bg-foreground text-background py-2 px-3 rounded-xs text-sm"
         >
-          <FaPlus className="h-4 w-4" /> Añadir producto
+          <FaPlus className="size-4" /> Añadir producto
         </Link>
       </div>
 

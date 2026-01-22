@@ -1,11 +1,15 @@
-export const dynamic = "force-dynamic";
+import { getUserFavoriteIds } from "@/lib/favorites/queries";
 
 import CartClientPage from "./CartClientPage";
 
-export default function CartPage() {
+export const dynamic = "force-dynamic";
+
+export default async function CartPage() {
+  const favoriteIds = await getUserFavoriteIds();
+
   return (
     <>
-      <CartClientPage />
+      <CartClientPage favoriteIds={favoriteIds} />
     </>
   );
 }
