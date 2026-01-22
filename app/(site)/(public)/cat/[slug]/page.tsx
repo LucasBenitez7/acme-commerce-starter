@@ -7,6 +7,7 @@ import {
 } from "@/components/catalog";
 
 import { getCategoryBySlug } from "@/lib/categories/queries";
+import { getUserFavoriteIds } from "@/lib/favorites/queries";
 import { PER_PAGE, parsePage } from "@/lib/pagination";
 import { getPublicProducts } from "@/lib/products/queries";
 
@@ -25,18 +26,17 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const cat = await getCategoryBySlug(slug);
   if (!cat) notFound();
 
-  const { rows, total } = await getPublicProducts({
-    page,
-    limit: PER_PAGE,
-    categorySlug: slug,
-  });
+  const [{ rows, total }, favoriteIds] = await Promise.all([
+    getPublicProducts({ page, limit: PER_PAGE, categorySlug: slug }),
+    getUserFavoriteIds(),
+  ]);
 
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
 
   return (
     <section className="px-4">
       <SectionHeader title={cat.name} />
-      <ProductGrid items={rows} />
+      <ProductGrid items={rows} favoriteIds={favoriteIds} />
       <PaginationNav
         page={page}
         totalPages={totalPages}

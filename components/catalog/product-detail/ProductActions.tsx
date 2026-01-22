@@ -19,6 +19,7 @@ export type Props = {
   imageUrl?: string;
   selectedColor: string | null;
   onColorChange: (color: string) => void;
+  initialIsFavorite?: boolean;
 };
 
 export function ProductActions({
@@ -26,6 +27,7 @@ export function ProductActions({
   imageUrl,
   selectedColor,
   onColorChange,
+  initialIsFavorite = false,
 }: Props) {
   const {
     id,
@@ -164,9 +166,10 @@ export function ProductActions({
       {/* BOTONES DE ACCIÓN */}
       <div className="flex gap-2">
         <FavoriteButton
-          isFavorite={false}
-          onToggle={() => {}}
-          className="h-12 w-12 border rounded-md shrink-0 hover:border-foreground transition-colors"
+          productId={id}
+          initialIsFavorite={initialIsFavorite}
+          className="h-12 w-12 border rounded-xs shrink-0 hover:border-foreground transition-colors"
+          iconSize={"size-5"}
         />
         <div className="flex-1">
           <AddToCartButton

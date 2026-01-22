@@ -4,6 +4,7 @@ import {
   SectionHeader,
 } from "@/components/catalog";
 
+import { getUserFavoriteIds } from "@/lib/favorites/queries";
 import { PER_PAGE, parsePage } from "@/lib/pagination";
 import { getPublicProducts } from "@/lib/products/queries";
 
@@ -25,10 +26,12 @@ export default async function CategoryPage({ params, searchParams }: Props) {
 
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
 
+  const favoriteIds = await getUserFavoriteIds();
+
   return (
     <section className="px-4">
       <SectionHeader title="Todas las prendas" />
-      <ProductGrid items={rows} />
+      <ProductGrid items={rows} favoriteIds={favoriteIds} />
       <PaginationNav page={page} totalPages={totalPages} base="/catalogo" />
     </section>
   );

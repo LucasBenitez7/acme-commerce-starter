@@ -12,7 +12,13 @@ import { useProductCard } from "@/hooks/products/use-product-card";
 
 import type { PublicProductListItem } from "@/lib/products/types";
 
-export function ProductCard({ item }: { item: PublicProductListItem }) {
+export function ProductCard({
+  item,
+  initialIsFavorite = false,
+}: {
+  item: PublicProductListItem;
+  initialIsFavorite?: boolean;
+}) {
   const {
     imageContainerRef,
     showSizes,
@@ -127,14 +133,15 @@ export function ProductCard({ item }: { item: PublicProductListItem }) {
                 {item.name}
               </h3>
             </Link>
-            <p className="text-xs font-medium text-foreground">
+            <p className="text-sm font-medium text-foreground">
               {formatCurrency(item.priceCents, DEFAULT_CURRENCY)}
             </p>
           </div>
           <FavoriteButton
-            isFavorite={false}
-            onToggle={() => {}}
+            productId={item.id}
+            initialIsFavorite={initialIsFavorite}
             className="shrink-0"
+            iconSize="size-4.5"
           />
         </div>
 

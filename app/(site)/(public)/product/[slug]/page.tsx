@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { ProductClient } from "@/components/catalog/product-detail/ProductClient";
 
+import { checkIsFavorite } from "@/lib/favorites/queries";
 import {
   getProductMetaBySlug,
   getProductFullBySlug,
@@ -14,6 +15,7 @@ import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
 
+// --- METADATA (SEO) ---
 export async function generateMetadata({
   params,
   searchParams,
@@ -23,6 +25,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const { color } = await searchParams;
+
   const product = await getProductMetaBySlug(slug);
 
   if (!product) return { title: "Producto no encontrado" };
@@ -43,6 +46,7 @@ export async function generateMetadata({
   };
 }
 
+// --- PÁGINA PRINCIPAL ---
 export default async function ProductPage({
   params,
   searchParams,
@@ -52,13 +56,16 @@ export default async function ProductPage({
 }) {
   const { slug } = await params;
   const { color: colorParam } = await searchParams;
+
   const p = await getProductFullBySlug(slug);
 
   if (!p) notFound();
 
+  const isFavoriteInitial = await checkIsFavorite(p.id);
+
   const { initialColor, initialImage } = getInitialProductState(p, colorParam);
 
-  // JSON-LD para Google
+  // JSON-LD para Google (Schema.org)
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -79,6 +86,7 @@ export default async function ProductPage({
   return (
     <div className="bg-background w-full justify-center">
       <section className="space-y-3 px-4 py-6 max-w-6xl mx-auto">
+        {/* Breadcrumbs */}
         <nav className="text-sm text-muted-foreground overflow-x-auto whitespace-nowrap pb-2">
           <Link className="hover:text-foreground" href="/">
             Inicio
@@ -108,6 +116,7 @@ export default async function ProductPage({
           product={p}
           initialImage={initialImage}
           initialColor={initialColor}
+          initialIsFavorite={isFavoriteInitial}
         />
 
         {/* Script JSON-LD */}
@@ -120,6 +129,7 @@ export default async function ProductPage({
   );
 }
 
+// Generación estática de rutas (opcional, para ISR)
 export async function generateStaticParams() {
   const db = process.env.DATABASE_URL ?? "";
   if (!db || db.includes("localhost")) return [];

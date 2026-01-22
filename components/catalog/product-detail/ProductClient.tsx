@@ -12,9 +12,15 @@ type Props = {
   product: PublicProductDetail;
   initialImage: string;
   initialColor: string | null;
+  initialIsFavorite: boolean;
 };
 
-export function ProductClient({ product, initialImage, initialColor }: Props) {
+export function ProductClient({
+  product,
+  initialImage,
+  initialColor,
+  initialIsFavorite,
+}: Props) {
   const {
     selectedColor,
     filteredImages,
@@ -51,6 +57,7 @@ export function ProductClient({ product, initialImage, initialColor }: Props) {
           imageUrl={filteredImages[0]?.url}
           selectedColor={selectedColor}
           onColorChange={handleColorChange}
+          initialIsFavorite={initialIsFavorite}
         />
 
         <div className="pt-6 border-t space-y-1">
