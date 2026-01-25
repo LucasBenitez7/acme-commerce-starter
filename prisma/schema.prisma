@@ -228,9 +228,10 @@ model Order {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  paymentStatus     PaymentStatus     @default(PENDING)
-  fulfillmentStatus FulfillmentStatus @default(UNFULFILLED)
-  isCancelled       Boolean           @default(false)
+  stripePaymentIntentId String?           @unique
+  paymentStatus         PaymentStatus     @default(PENDING)
+  fulfillmentStatus     FulfillmentStatus @default(UNFULFILLED)
+  isCancelled           Boolean           @default(false)
 
   currency          String
   itemsTotalMinor   Int

@@ -284,9 +284,9 @@ export async function requestOrderReturn(
       data: {
         orderId,
         type: "INCIDENT",
-        snapshotStatus: "Solicitud de Devolución",
+        snapshotStatus: SYSTEM_MSGS.RETURN_REQUESTED,
         actor: "user",
-        reason: `${SYSTEM_MSGS.RETURN_REQUESTED}: ${reason}`,
+        reason: reason,
         details: { items: historyItems } as any,
       },
     });

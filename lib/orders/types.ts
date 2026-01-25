@@ -44,6 +44,7 @@ export type AdminOrderListItem = {
   itemsCount: number;
   refundedAmountMinor: number;
   netTotalMinor: number;
+  history?: { snapshotStatus: string }[];
 };
 
 export type AdminOrderDetail = Order & {

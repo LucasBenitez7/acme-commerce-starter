@@ -1,46 +1,10 @@
 import "server-only";
-import { type PaymentStatus, type FulfillmentStatus } from "@prisma/client";
+import { type FulfillmentStatus } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
-import {
-  PAYMENT_STATUS_CONFIG,
-  FULFILLMENT_STATUS_CONFIG,
-  SYSTEM_MSGS,
-} from "@/lib/orders/constants";
+import { FULFILLMENT_STATUS_CONFIG, SYSTEM_MSGS } from "@/lib/orders/constants";
 
 import type { OrderActionActor } from "@/lib/orders/types";
-
-// 1. ADMIN: Actualizar Estado de PAGO (Dinero)
-export async function updatePaymentStatus(
-  orderId: string,
-  newStatus: PaymentStatus,
-  actorName: OrderActionActor = "admin",
-) {
-  return prisma.$transaction(async (tx) => {
-    const order = await tx.order.findUnique({
-      where: { id: orderId },
-    });
-
-    if (!order) throw new Error("Pedido no encontrado");
-
-    await tx.order.update({
-      where: { id: orderId },
-      data: { paymentStatus: newStatus },
-    });
-
-    const readableLabel = PAYMENT_STATUS_CONFIG[newStatus]?.label || newStatus;
-
-    await tx.orderHistory.create({
-      data: {
-        orderId,
-        type: "STATUS_CHANGE",
-        snapshotStatus: readableLabel,
-        actor: actorName,
-        reason: `Estado de pago actualizado a: ${readableLabel}`,
-      },
-    });
-  });
-}
 
 // 2. ADMIN: Actualizar Estado de LOGÍSTICA (La Caja)
 export async function updateFulfillmentStatus(

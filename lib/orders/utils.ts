@@ -1,4 +1,10 @@
-import { ShippingType, type Order, type OrderItem } from "@prisma/client";
+import {
+  PaymentStatus,
+  FulfillmentStatus,
+  ShippingType,
+  type Order,
+  type OrderItem,
+} from "@prisma/client";
 import {
   FaUser,
   FaUserShield,
@@ -258,3 +264,46 @@ export function formatOrderForDisplay(order: OrderWithDetails) {
 }
 
 export type DisplayOrder = ReturnType<typeof formatOrderForDisplay>;
+
+export function getReturnStatusBadge(order: {
+  paymentStatus: string;
+  fulfillmentStatus: string;
+  history?: { snapshotStatus: string }[];
+}) {
+  if (
+    order.paymentStatus === PaymentStatus.REFUNDED ||
+    order.paymentStatus === PaymentStatus.PARTIALLY_REFUNDED
+  ) {
+    return {
+      label: "Reembolsado",
+      badgeClass: "bg-purple-100 text-purple-700 border-purple-200",
+    };
+  }
+
+  if (order.fulfillmentStatus === FulfillmentStatus.RETURNED) {
+    return {
+      label: "Devuelto",
+      badgeClass: "bg-indigo-100 text-indigo-700 border-indigo-200",
+    };
+  }
+
+  const history = order.history || [];
+  const hasRequest = history.some(
+    (h) => h.snapshotStatus === SYSTEM_MSGS.RETURN_REQUESTED,
+  );
+  const isClosed = history.some(
+    (h) =>
+      h.snapshotStatus === SYSTEM_MSGS.RETURN_ACCEPTED ||
+      h.snapshotStatus === SYSTEM_MSGS.RETURN_REJECTED,
+  );
+
+  if (hasRequest && !isClosed) {
+    return {
+      label: "Solicitud Pendiente",
+      badgeClass:
+        "bg-orange-100 text-orange-700 border-orange-200 font-semibold",
+    };
+  }
+
+  return null;
+}
