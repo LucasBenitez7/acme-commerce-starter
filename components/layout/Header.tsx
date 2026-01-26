@@ -74,7 +74,7 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
   const showTooltip = mounted && !isSessionLoading && !user;
   const accountTooltip = showTooltip ? "Iniciar sesión" : undefined;
 
-  const favoritosUrl = user ? `/account/favorites` : `/auth/login`;
+  const favoritosUrl = user ? `/account/favoritos` : `/auth/login`;
 
   function handleAccountClick() {
     if (isSessionLoading) return;
