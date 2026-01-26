@@ -1,13 +1,11 @@
-import type { PaymentStatus, FulfillmentStatus } from "@prisma/client";
+import { PaymentStatus, type FulfillmentStatus } from "@prisma/client";
 
-// ===========================================================================
 // 1. MENSAJES DEL SISTEMA (LOGS E HISTORIAL)
-// ===========================================================================
 export const SYSTEM_MSGS = {
   ORDER_CREATED: "Creación del pedido",
 
   // Devoluciones
-  RETURN_REQUESTED: "Solicitud de Devolución creada por el usuario",
+  RETURN_REQUESTED: "Solicitud de Devolución",
   RETURN_ACCEPTED: "Devolución procesada y stock restaurado",
   RETURN_PARTIAL_ACCEPTED: "Devolución Aceptada",
   RETURN_PARTIAL_REJECTED: "Parte de la solicitud no fue aceptada",
@@ -23,9 +21,7 @@ export const SYSTEM_MSGS = {
 
 export type SystemMessageType = (typeof SYSTEM_MSGS)[keyof typeof SYSTEM_MSGS];
 
-// ===========================================================================
 // 2. CONFIGURACIÓN VISUAL (BADGES, COLORES, LABELS)
-// ===========================================================================
 // --- A. ESTADOS DE PAGO (Dinero) ---
 export const PAYMENT_STATUS_CONFIG: Record<
   PaymentStatus,
@@ -42,9 +38,9 @@ export const PAYMENT_STATUS_CONFIG: Record<
     badge: "bg-green-100 text-green-700 border-green-200",
   },
   REFUNDED: {
-    label: "Reembolsado",
-    color: "bg-neutral-600",
-    badge: "bg-neutral-100 text-neutral-700 border-neutral-200",
+    label: "Reembolso completo",
+    color: "bg-orange-600",
+    badge: "bg-orange-100 text-orange-700 border-orange-200",
   },
   PARTIALLY_REFUNDED: {
     label: "Reembolso",
@@ -64,12 +60,12 @@ export const FULFILLMENT_STATUS_CONFIG: Record<
   { label: string; color: string; badge: string }
 > = {
   UNFULFILLED: {
-    label: "Pendiente",
+    label: "Procesando...",
     color: "bg-neutral-400",
     badge: "bg-neutral-100 text-neutral-600 border-neutral-200",
   },
   PREPARING: {
-    label: "Preparando",
+    label: "Preparando pedido",
     color: "bg-blue-500",
     badge: "bg-blue-100 text-blue-700 border-blue-200",
   },
@@ -96,7 +92,6 @@ export const FULFILLMENT_STATUS_CONFIG: Record<
 };
 
 // --- C. ESTADOS ESPECIALES (Cancelado / Expirado) ---
-// Aquí definimos los labels y colores para no usar strings sueltos
 export const SPECIAL_STATUS_CONFIG = {
   CANCELLED: {
     label: "Cancelado",
@@ -110,10 +105,7 @@ export const SPECIAL_STATUS_CONFIG = {
   },
 } as const;
 
-// ===========================================================================
 // 3. UI HELPERS & FILTROS
-// ===========================================================================
-
 export const ORDER_TABS = [
   { label: "Todos", value: undefined },
   { label: "Pendientes de Pago", value: "PENDING_PAYMENT" },
@@ -127,7 +119,7 @@ export const ORDER_TABS = [
 export const ADMIN_FILTER_PAYMENT = Object.entries(PAYMENT_STATUS_CONFIG)
   .filter(
     ([status]) =>
-      !["FAILED", "REFUNDED", "PARTIALLY_REFUNDED"].includes(status),
+      !["REFUNDED", "PARTIALLY_REFUNDED", "PENDING"].includes(status),
   )
   .map(([value, config]) => ({
     value,
@@ -158,15 +150,15 @@ export function getUserDisplayStatus(order: {
 
   // 2. Prioridad: Problemas de Pago o Reembolsos
   if (
-    order.paymentStatus === "REFUNDED" ||
-    order.paymentStatus === "PARTIALLY_REFUNDED" ||
-    order.paymentStatus === "FAILED"
+    order.paymentStatus === PaymentStatus.REFUNDED ||
+    order.paymentStatus === PaymentStatus.PARTIALLY_REFUNDED ||
+    order.paymentStatus === PaymentStatus.FAILED
   ) {
     return PAYMENT_STATUS_CONFIG[order.paymentStatus];
   }
 
   // 3. Prioridad: Pendiente de Pago
-  if (order.paymentStatus === "PENDING") {
+  if (order.paymentStatus === PaymentStatus.PENDING) {
     return PAYMENT_STATUS_CONFIG.PENDING;
   }
 

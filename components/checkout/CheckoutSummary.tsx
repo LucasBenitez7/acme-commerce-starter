@@ -2,9 +2,7 @@
 
 import Link from "next/link";
 import { useFormContext } from "react-hook-form";
-import { ImSpinner8 } from "react-icons/im";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Image } from "@/components/ui/image";
 
@@ -83,38 +81,19 @@ export function CheckoutSummary() {
 
         {items.length > 0 && (
           <div className="shrink-0 border-t p-4 pb-0 bg-background mt-auto">
-            <div className="flex items-center justify-between text-sm font-normal mb-2">
+            <div className="flex items-center justify-between text-sm font-medium mb-2">
               <span>Subtotal</span>
               <span>{formatCurrency(total)}</span>
             </div>
 
-            <div className="flex items-center justify-between text-sm font-normal mb-4">
+            <div className="flex items-center justify-between text-sm font-medium">
               <span>Envio</span>
               <span className="text-green-600">Gratis</span>
             </div>
 
-            <div className="flex items-center justify-between text-base font-medium mb-4">
+            <div className="flex items-center justify-between text-lg font-semibold mt-4 mb-2">
               <span>Total</span>
               <span>{formatCurrency(total)}</span>
-            </div>
-
-            <div className="flex items-center justify-between my-2 gap-4">
-              <Button
-                type="submit"
-                size="icon"
-                disabled={isSubmitting}
-                form="checkout-main-form"
-                aria-label="Pagar ahora"
-                className="w-full bg-green-600 hover:bg-green-700 h-11 text-background text-base font-medium"
-              >
-                {isSubmitting ? (
-                  <>
-                    <ImSpinner8 className="animate-spin size-6" />
-                  </>
-                ) : (
-                  "Pagar ahora"
-                )}
-              </Button>
             </div>
           </div>
         )}

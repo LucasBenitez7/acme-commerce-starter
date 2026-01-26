@@ -10,14 +10,11 @@ export function useOrderFilters() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // --- LECTURA DE URL ---
   const activeSort = searchParams.get("sort") || "date_desc";
 
-  // Filtros separados por comas en la URL
   const paymentParam = searchParams.get("payment_filter");
   const fulfillmentParam = searchParams.get("fulfillment_filter");
 
-  // Arrays tipados
   const activePaymentStatuses = paymentParam
     ? (paymentParam.split(",") as PaymentStatus[])
     : [];
@@ -26,7 +23,6 @@ export function useOrderFilters() {
     ? (fulfillmentParam.split(",") as FulfillmentStatus[])
     : [];
 
-  // --- ACTUALIZADOR DE URL (Genérico) ---
   const updateParams = useCallback(
     (newParams: Record<string, string | null | undefined>) => {
       const params = new URLSearchParams(searchParams.toString());
@@ -48,9 +44,6 @@ export function useOrderFilters() {
     [searchParams, pathname, router],
   );
 
-  // BORRADO: useEffect de búsqueda
-
-  // --- HANDLERS ESPECÍFICOS ---
   const togglePaymentStatus = (status: string) => {
     const current = new Set(activePaymentStatuses);
     if (current.has(status as PaymentStatus)) {
@@ -62,7 +55,6 @@ export function useOrderFilters() {
     updateParams({ payment_filter: value });
   };
 
-  // Toggle para LOGÍSTICA (FulfillmentStatus)
   const toggleFulfillmentStatus = (status: string) => {
     const current = new Set(activeFulfillmentStatuses);
     if (current.has(status as FulfillmentStatus)) {

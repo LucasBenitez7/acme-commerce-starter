@@ -1,13 +1,23 @@
 "use server";
 
+import Stripe from "stripe";
+
 import { auth } from "@/lib/auth";
+import { type SupportedCurrency } from "@/lib/currency";
+import { prisma } from "@/lib/db";
 import { createOrderSchema } from "@/lib/orders/schema";
-import { createOrder } from "@/lib/orders/service";
+import { createOrder, updateOrderAddress } from "@/lib/orders/service";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+  apiVersion: "2025-12-15.clover",
+});
 
 export type CheckoutActionState = {
   error?: string;
   success?: boolean;
   orderId?: string;
+  clientSecret?: string;
+  isStripe?: boolean;
 };
 
 export async function createOrderAction(
@@ -15,8 +25,9 @@ export async function createOrderAction(
   formData: FormData,
 ): Promise<CheckoutActionState> {
   const session = await auth();
-
   const rawData: Record<string, any> = {};
+
+  const existingOrderId = formData.get("existingOrderId") as string | null;
 
   formData.forEach((value, key) => {
     if (key === "cartItems") {
@@ -44,15 +55,52 @@ export async function createOrderAction(
   }
 
   try {
-    const order = await createOrder(validation.data, session?.user?.id);
+    let order;
 
-    if (order?.id) {
-      return { success: true, orderId: order.id };
+    if (existingOrderId) {
+      order = await updateOrderAddress(existingOrderId, validation.data);
+    } else {
+      order = await createOrder(validation.data, session?.user?.id);
     }
+
+    if (!order?.id) {
+      return { error: "Error al procesar el pedido." };
+    }
+
+    if (validation.data.paymentMethod === "card") {
+      let clientSecret = "";
+
+      if (order.stripePaymentIntentId) {
+        const intent = await stripe.paymentIntents.retrieve(
+          order.stripePaymentIntentId,
+        );
+        clientSecret = intent.client_secret as string;
+      } else {
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: order.totalMinor,
+          currency: "EUR",
+          automatic_payment_methods: { enabled: true },
+          metadata: { orderId: order.id },
+        });
+
+        await prisma.order.update({
+          where: { id: order.id },
+          data: { stripePaymentIntentId: paymentIntent.id },
+        });
+        clientSecret = paymentIntent.client_secret as string;
+      }
+
+      return {
+        success: true,
+        orderId: order.id,
+        clientSecret: clientSecret,
+        isStripe: true,
+      };
+    }
+
+    return { success: true, orderId: order.id, isStripe: false };
   } catch (error: any) {
     console.error("Checkout Error:", error);
-    return { error: error.message || "Error al procesar el pedido." };
+    return { error: error.message || "Error procesando el pedido." };
   }
-
-  return { error: "Error desconocido." };
 }

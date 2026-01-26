@@ -55,10 +55,7 @@ export function SiteSidebar({ categories }: { categories: CategoryLink[] }) {
               href="/catalogo"
               prefetch={false}
               aria-current={isCatalogoAll ? "page" : undefined}
-              className={cn(
-                "fx-underline-anim",
-                isCatalogoAll && "fx-underline-anim-active",
-              )}
+              className={cn("fx-underline-anim")}
             >
               Todas las prendas
             </Link>
@@ -72,10 +69,7 @@ export function SiteSidebar({ categories }: { categories: CategoryLink[] }) {
                   href={`/cat/${c.slug}`}
                   prefetch={false}
                   aria-current={isActive ? "page" : undefined}
-                  className={cn(
-                    "fx-underline-anim",
-                    isActive && "fx-underline-anim-active",
-                  )}
+                  className={cn("fx-underline-anim")}
                 >
                   {c.label}
                 </Link>

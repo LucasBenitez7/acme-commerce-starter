@@ -9,11 +9,14 @@ export async function GET(request: Request) {
     const authHeader = request.headers.get("authorization");
 
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+      console.warn("[CRON] Unauthorized attempt to run expire-orders");
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const TIMEOUT_MS = 60 * 60 * 1000;
+    const start = Date.now();
+    console.log("[CRON] Starting expire-orders job...");
 
+    const TIMEOUT_MS = 60 * 60 * 1000;
     const timeLimit = new Date(Date.now() - TIMEOUT_MS);
 
     const expiredOrders = await prisma.order.findMany({
@@ -27,7 +30,10 @@ export async function GET(request: Request) {
     });
 
     if (expiredOrders.length === 0) {
-      return NextResponse.json({ message: "No pending orders to expire." });
+      return NextResponse.json({
+        message: "No pending orders to expire.",
+        timestamp: new Date().toISOString(),
+      });
     }
 
     const results = await Promise.allSettled(
@@ -56,11 +62,10 @@ export async function GET(request: Request) {
           await tx.orderHistory.create({
             data: {
               orderId: order.id,
-              type: "INCIDENT",
-              snapshotStatus: "Expirado",
+              type: "STATUS_CHANGE",
+              snapshotStatus: "Expirado Automatically",
               actor: "system",
-              reason:
-                "Tiempo de pago agotado (1h). Pedido expirado automáticamente.",
+              reason: "Tiempo de pago agotado (1h). Stock liberado.",
             },
           });
 
@@ -69,13 +74,24 @@ export async function GET(request: Request) {
       }),
     );
 
+    const successful = results.filter((r) => r.status === "fulfilled").length;
+    const failed = results.filter((r) => r.status === "rejected").length;
+    const duration = Date.now() - start;
+
+    console.log(
+      `[CRON] Finished. Success: ${successful}, Failed: ${failed}. Duration: ${duration}ms`,
+    );
+
     return NextResponse.json({
       message: "Expired process completed",
       processed: expiredOrders.length,
+      successful,
+      failed,
+      duration: `${duration}ms`,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error("[CRON JOB ERROR]", error);
+    console.error("[CRON JOB CRITICAL ERROR]", error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

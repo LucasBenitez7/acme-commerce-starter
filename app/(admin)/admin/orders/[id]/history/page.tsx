@@ -54,6 +54,7 @@ export default async function OrderHistoryPage({ params }: Props) {
             0,
           );
 
+          // Usamos tu helper visual potente
           const visual = getEventVisuals(
             event.actor,
             event.type,
@@ -62,19 +63,25 @@ export default async function OrderHistoryPage({ params }: Props) {
           const { actorConfig, isAdmin, statusColor } = visual;
           const StatusIcon = visual.statusIcon;
 
-          const isCreation = event.reason === SYSTEM_MSGS.ORDER_CREATED;
+          // Detectamos tipos de evento para limpiar la UI
+          const isReturnRequest =
+            event.snapshotStatus === SYSTEM_MSGS.RETURN_REQUESTED;
+          const isUserCancellation =
+            event.reason === SYSTEM_MSGS.CANCELLED_BY_USER;
 
-          const showCleanText = isAdmin || isCreation;
+          // Texto formateado limpio
+          const useRequestLayout =
+            !isAdmin && (isReturnRequest || isUserCancellation);
 
-          const isCancelled = event.reason === SYSTEM_MSGS.CANCELLED_BY_USER;
+          const formattedReason = formatHistoryReason(event.reason);
 
           return (
             <div
               key={event.id}
               className="flex items-start group relative pl-4 md:pl-0"
             >
-              {/* COLUMNA IZQUIERDA (Icono Actor) */}
               <div className="w-full">
+                {/* CABECERA DEL EVENTO (Actor + Fecha) */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <div
@@ -112,50 +119,51 @@ export default async function OrderHistoryPage({ params }: Props) {
                     actorConfig.cardBorder,
                   )}
                 >
-                  <CardContent className="p-5 space-y-2">
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        {StatusIcon && (
-                          <StatusIcon className={cn("size-4", statusColor)} />
-                        )}
-                        <h3 className="font-semibold text-base">
-                          {event.snapshotStatus}
-                        </h3>
-                      </div>
-
-                      <div className="text-base font-medium text-foreground ">
-                        {showCleanText ? (
-                          <span className="text-sm font-semibold">
-                            {formatHistoryReason(event.reason)}
-                          </span>
-                        ) : (
-                          <div className="flex flex-col">
-                            {!isCancelled && (
-                              <div>
-                                <span className="text-xs font-semibold uppercase text-foreground mb-1">
-                                  Motivo de solicitud:
-                                </span>
-                                <div className="text-sm p-3 px-3 rounded-xs border bg-background">
-                                  "{formatHistoryReason(event.reason)}"
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {note && (
-                          <div className="mt-3">
-                            <div className="text-sm p-3 rounded-xs border bg-background">
-                              <span className="font-bold text-xs block mb-1 uppercase">
-                                Nota / Observación:
-                              </span>
-                              "{note}"
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                  <CardContent className="p-5 space-y-3">
+                    {/* 1. TÍTULO DEL ESTADO (Ej: "Pago Fallido", "Pedido Creado") */}
+                    <div className="flex items-center gap-2">
+                      {StatusIcon && (
+                        <StatusIcon className={cn("size-4", statusColor)} />
+                      )}
+                      <h3 className="font-semibold text-base">
+                        {event.snapshotStatus}
+                      </h3>
                     </div>
 
+                    {/* 2. RAZÓN / MENSAJE DEL SISTEMA */}
+                    {/* Aquí eliminamos la lógica condicional loca. Mostramos el texto limpio. */}
+                    <div className="text-sm text-foreground">
+                      {!useRequestLayout ? (
+                        /* CASO A: Creación, Pagos, Admin, Sistema -> Texto Limpio */
+                        <span className="font-medium text-foreground">
+                          {formattedReason}
+                        </span>
+                      ) : (
+                        /* CASO B: Usuario solicitando Devolución/Cancelación -> Caja con Motivo */
+                        <div className="flex flex-col gap-1">
+                          <span className="text-xs font-bold uppercase text-foreground">
+                            Motivo de solicitud:
+                          </span>
+                          <div className="p-3 bg-white border rounded-sm text-neutral-800 italic">
+                            "{formattedReason}"
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 3. NOTA ADICIONAL (Opcional) */}
+                    {note && (
+                      <div className="mt-3">
+                        <div className="text-sm p-3 rounded-xs border bg-background">
+                          <span className="font-bold text-xs block mb-1 uppercase">
+                            Nota / Observación:
+                          </span>
+                          "{note}"
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 4. LISTA DE PRODUCTOS AFECTADOS (Si los hay) */}
                     {itemsList.length > 0 && (
                       <div className="mt-2 bg-white rounded-xs border border-neutral-200 overflow-hidden">
                         <div className="p-4 text-base font-semibold border-b">

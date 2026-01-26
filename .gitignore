@@ -42,3 +42,6 @@ docker-data/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Payment
+stripe.exe

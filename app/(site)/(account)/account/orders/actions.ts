@@ -1,8 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import Stripe from "stripe";
 
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 import {
   cancelOrder,
   requestOrderReturn,
@@ -53,5 +55,69 @@ export async function requestReturnUserAction(
   } catch (error: any) {
     console.error(error);
     return { error: error.message || "Error al solicitar la devolución" };
+  }
+}
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+  apiVersion: "2025-12-15.clover",
+});
+
+export async function getPaymentIntentAction(orderId: string) {
+  const session = await auth();
+  if (!session?.user?.id) return { error: "Debes iniciar sesión" };
+
+  try {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId, userId: session.user.id },
+    });
+
+    if (!order) return { error: "Pedido no encontrado." };
+
+    if (order.paymentStatus === "PAID") {
+      return { error: "El pedido ya está pagado." };
+    }
+
+    let clientSecret = "";
+
+    if (order.stripePaymentIntentId) {
+      const intent = await stripe.paymentIntents.retrieve(
+        order.stripePaymentIntentId,
+      );
+
+      if (intent.status === "canceled") {
+        const newIntent = await stripe.paymentIntents.create({
+          amount: order.totalMinor,
+          currency: order.currency.toLowerCase(),
+          automatic_payment_methods: { enabled: true },
+          metadata: { orderId: order.id },
+        });
+
+        await prisma.order.update({
+          where: { id: order.id },
+          data: { stripePaymentIntentId: newIntent.id },
+        });
+        clientSecret = newIntent.client_secret as string;
+      } else {
+        clientSecret = intent.client_secret as string;
+      }
+    } else {
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: order.totalMinor,
+        currency: order.currency.toLowerCase(),
+        automatic_payment_methods: { enabled: true },
+        metadata: { orderId: order.id },
+      });
+
+      await prisma.order.update({
+        where: { id: order.id },
+        data: { stripePaymentIntentId: paymentIntent.id },
+      });
+      clientSecret = paymentIntent.client_secret as string;
+    }
+
+    return { success: true, clientSecret };
+  } catch (error: any) {
+    console.error("PaymentIntent Error:", error);
+    return { error: error.message || "Error al iniciar el pago." };
   }
 }
