@@ -19,6 +19,8 @@ export function SuccessClient({ order }: { order: DisplayOrder }) {
 
   useEffect(() => {
     clearCart();
+
+    localStorage.removeItem("checkout_session");
   }, [clearCart]);
 
   const totalItemsQty = order.items.reduce(

@@ -188,9 +188,9 @@ export function ShippingSection(props: Props) {
                             props.selectedAddressId === addr.id;
                           return (
                             <div
-                              key={addr.id}
                               onClick={() => handleSelectAddress(addr.id)}
-                              className={`relative flex items-center gap-5 border rounded-xs px-4 py-3 transition-all duration-200 ${
+                              key={addr.id}
+                              className={`relative flex flex-col border rounded-xs transition-all duration-200  px-4 py-3 ${
                                 props.isAddressConfirmed
                                   ? "cursor-default"
                                   : isSelected
@@ -198,85 +198,90 @@ export function ShippingSection(props: Props) {
                                     : "border-border hover:border-foreground bg-neutral-50 cursor-pointer"
                               }`}
                             >
-                              {/* ... (Tu lógica de Checkbox Visual) ... */}
-                              <div className="shrink-0">
-                                {props.isAddressConfirmed ? (
-                                  <FaCircleCheck className="text-foreground size-5" />
-                                ) : (
-                                  <div
-                                    className={`flex h-4 w-4 items-center justify-center rounded-full border border-primary text-primary ${
-                                      isSelected ? "" : "opacity-50"
-                                    }`}
-                                  >
-                                    {isSelected && (
-                                      <div className="h-2.5 w-2.5 rounded-full bg-current" />
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Contenido de la dirección */}
-                              <div className="flex-1 font-normal text-sm">
-                                <div className="flex items-center justify-between">
-                                  <span className="font-semibold">
-                                    {addr.firstName} {addr.lastName}
-                                  </span>
-                                  {!props.isAddressConfirmed && (
-                                    <button
-                                      type="button"
-                                      className="text-xs font-medium fx-underline-anim"
-                                      onClick={(e) => handleEditClick(e, addr)}
+                              <div
+                                className={`relative flex items-center gap-4`}
+                              >
+                                <div className="shrink-0">
+                                  {props.isAddressConfirmed ? (
+                                    <FaCircleCheck className="text-foreground size-5" />
+                                  ) : (
+                                    <div
+                                      className={`flex h-4 w-4 items-center justify-center rounded-full border border-primary text-primary ${
+                                        isSelected ? "" : "opacity-50"
+                                      }`}
                                     >
-                                      Editar
-                                    </button>
+                                      {isSelected && (
+                                        <div className="h-2.5 w-2.5 rounded-full bg-current" />
+                                      )}
+                                    </div>
                                   )}
                                 </div>
-                                <span className="block mt-0.5">
-                                  {addr.phone}
-                                </span>
-                                <p>
-                                  {addr.street}, {addr.details || ""},{" "}
-                                  {addr.postalCode}
-                                </p>
-                                <p>
-                                  {addr.city}, {addr.province}, {addr.country}
-                                </p>
 
-                                {addr.isDefault && (
-                                  <Badge
-                                    variant="default"
-                                    className="text-xs px-2 py-0.5 mt-3"
-                                  >
-                                    Predeterminada
-                                  </Badge>
-                                )}
-
-                                {/* Botones de acción dentro de la tarjeta seleccionada */}
-                                {!props.isAddressConfirmed && isSelected && (
-                                  <div className="flex gap-4 pt-4">
-                                    <Button
-                                      type="button"
-                                      onClick={handleAddNewClick}
-                                      variant="outline"
-                                      className="flex-1"
-                                    >
-                                      <FaPlus className="size-3" /> Añadir nueva
-                                      dirección
-                                    </Button>
-                                    {props.selectedAddressId && (
-                                      <Button
+                                {/* Contenido de la dirección */}
+                                <div className="flex-1 font-normal text-sm">
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-semibold">
+                                      {addr.firstName} {addr.lastName}
+                                    </span>
+                                    {!props.isAddressConfirmed && (
+                                      <button
                                         type="button"
-                                        onClick={props.onConfirmAddress}
-                                        variant="default"
-                                        className="flex-1"
+                                        className="text-xs font-medium fx-underline-anim"
+                                        onClick={(e) =>
+                                          handleEditClick(e, addr)
+                                        }
                                       >
-                                        <FaCheck className="size-3" /> Usar esta
-                                        dirección
-                                      </Button>
+                                        Editar
+                                      </button>
                                     )}
                                   </div>
-                                )}
+                                  <span className="block mt-0.5">
+                                    {addr.phone}
+                                  </span>
+                                  <p>
+                                    {addr.street}, {addr.details || ""},{" "}
+                                    {addr.postalCode}
+                                  </p>
+                                  <p>
+                                    {addr.city}, {addr.province}, {addr.country}
+                                  </p>
+
+                                  {addr.isDefault && (
+                                    <Badge
+                                      variant="default"
+                                      className="text-xs px-2 py-0.5 mt-2"
+                                    >
+                                      Predeterminada
+                                    </Badge>
+                                  )}
+                                </div>
                               </div>
+
+                              {/* Botones de acción dentro de la tarjeta seleccionada */}
+                              {!props.isAddressConfirmed && isSelected && (
+                                <div className="flex gap-4 pt-4 pb-2">
+                                  <Button
+                                    type="button"
+                                    onClick={handleAddNewClick}
+                                    variant="outline"
+                                    className="flex-1"
+                                  >
+                                    <FaPlus className="size-3" /> Añadir nueva
+                                    dirección
+                                  </Button>
+                                  {props.selectedAddressId && (
+                                    <Button
+                                      type="button"
+                                      onClick={props.onConfirmAddress}
+                                      variant="default"
+                                      className="flex-1"
+                                    >
+                                      <FaCheck className="size-3" /> Usar esta
+                                      dirección
+                                    </Button>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           );
                         })}

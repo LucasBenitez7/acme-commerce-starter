@@ -17,29 +17,44 @@ export function CheckoutForm({ savedAddresses = [], userId }: Props) {
     selectedAddressId,
     setSelectedAddressId,
     isAddressConfirmed,
-    setIsAddressConfirmed,
+
+    onConfirmAddress,
+    onChangeAddress,
+
     onCheckoutSubmit,
+    isPending,
+    stripeData,
   } = useCheckout(savedAddresses);
 
   const isGuestUser = !userId;
 
   return (
-    <form
-      id="checkout-main-form"
-      onSubmit={onCheckoutSubmit}
-      className="space-y-6"
-    >
-      <ShippingSection
-        savedAddresses={savedAddresses}
-        selectedAddressId={selectedAddressId}
-        setSelectedAddressId={setSelectedAddressId}
-        isAddressConfirmed={isAddressConfirmed}
-        onConfirmAddress={() => setIsAddressConfirmed(true)}
-        onChangeAddress={() => setIsAddressConfirmed(false)}
-        isGuest={isGuestUser}
-      />
+    <>
+      <form
+        id="checkout-main-form"
+        onSubmit={onCheckoutSubmit}
+        className="space-y-6"
+      >
+        <ShippingSection
+          savedAddresses={savedAddresses}
+          selectedAddressId={selectedAddressId}
+          setSelectedAddressId={setSelectedAddressId}
+          isAddressConfirmed={isAddressConfirmed}
+          onConfirmAddress={onConfirmAddress}
+          onChangeAddress={onChangeAddress}
+          isGuest={isGuestUser}
+        />
+      </form>
 
-      <PaymentSection isOpen={isAddressConfirmed} />
-    </form>
+      <div
+        className={`transition-all duration-700 ease-in-out mt-6 ${
+          isAddressConfirmed
+            ? "opacity-100 translate-y-0"
+            : "pointer-events-none"
+        }`}
+      >
+        <PaymentSection isOpen={isAddressConfirmed} stripeData={stripeData} />
+      </div>
+    </>
   );
 }
