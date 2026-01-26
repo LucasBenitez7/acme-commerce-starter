@@ -23,11 +23,7 @@ import {
   getOrderShippingDetails,
 } from "@/lib/orders/utils";
 
-import {
-  CancelOrderButton,
-  MarkPaidButton,
-  RejectReturnButton,
-} from "../_components/actions";
+import { RejectReturnButton } from "../_components/actions";
 import { AdminFulfillmentActions } from "../_components/AdminFulfillmentActions";
 
 export const dynamic = "force-dynamic";
@@ -103,16 +99,6 @@ export default async function AdminOrderDetailPage({ params }: Props) {
                 Historial / Incidencias
               </Link>
             </Button>
-          )}
-
-          {!order.isCancelled && order.paymentStatus === "PENDING" && (
-            <>
-              <MarkPaidButton orderId={order.id} />
-              <CancelOrderButton
-                orderId={order.id}
-                paymentStatus={order.paymentStatus}
-              />
-            </>
           )}
 
           {!order.isCancelled && hasReturnRequest && (
@@ -328,7 +314,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
                           )}
 
                           {item.quantityReturnRequested > 0 && (
-                            <span className="text-orange-700 bg-orange-50 border border-orange-100 px-2 py-0.5 rounded font-medium animate-pulse">
+                            <span className="text-orange-700 bg-orange-50 border border-orange-100 px-2 py-0.5 rounded font-medium">
                               Solicitado: {item.quantityReturnRequested}
                             </span>
                           )}

@@ -86,13 +86,13 @@ export function ProductTable({ products }: ProductTableProps) {
                       <span className="font-medium">{product.name}</span>
 
                       {isArchived && (
-                        <span className="inline-flex items-center rounded-full bg-amber-50 px-1 text-[10px] font-medium text-amber-700 border border-amber-200">
+                        <span className="inline-flex items-center rounded-full bg-amber-50 px-1 text-[10px] mt-0.5 font-medium text-amber-700 border border-amber-200">
                           Archivado
                         </span>
                       )}
 
                       {isOutOfStock && !isArchived && (
-                        <span className="inline-flex items-center rounded-full bg-red-50 px-1 text-[10px] font-medium text-red-700 border border-red-200">
+                        <span className="inline-flex items-center rounded-full bg-red-50 px-1 text-[10px] mt-0.5 font-medium text-red-700 border border-red-200">
                           Agotado
                         </span>
                       )}

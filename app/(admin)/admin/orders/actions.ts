@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 
 import { auth } from "@/lib/auth";
 import {
-  updatePaymentStatus,
   updateFulfillmentStatus,
   rejectOrderReturnRequest,
   processOrderReturn,
@@ -12,25 +11,7 @@ import {
   type ReturnItemInput,
 } from "@/lib/orders/service";
 
-import type { PaymentStatus, FulfillmentStatus } from "@prisma/client";
-
-// --- 1. Cambio de Estado de PAGO ---
-export async function updatePaymentStatusAction(
-  orderId: string,
-  newStatus: PaymentStatus,
-) {
-  const session = await auth();
-  if (session?.user?.role !== "admin") return { error: "No autorizado" };
-
-  try {
-    await updatePaymentStatus(orderId, newStatus, "admin");
-    revalidatePath("/admin/orders");
-    revalidatePath(`/admin/orders/${orderId}`);
-    return { success: true };
-  } catch (error: any) {
-    return { error: error.message || "Error al actualizar pago" };
-  }
-}
+import type { FulfillmentStatus } from "@prisma/client";
 
 // --- 2. Cambio de Estado de LOGÍSTICA ---
 export async function updateFulfillmentStatusAction(

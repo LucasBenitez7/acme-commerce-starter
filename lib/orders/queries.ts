@@ -3,6 +3,7 @@ import "server-only";
 import { type Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
+import { SYSTEM_MSGS } from "@/lib/orders/constants";
 
 import {
   type GetOrdersParams,
@@ -23,8 +24,15 @@ export async function getAdminOrders({
 
   const where: Prisma.OrderWhereInput = {};
 
-  // --- 1. BUSCADOR GLOBAL ---
+  const hasPaymentFilter = paymentFilter && paymentFilter.length > 0;
+
+  if (!statusTab && !hasPaymentFilter && !query) {
+    where.paymentStatus = { not: "PENDING" };
+  }
+
   if (query) {
+    if (!statusTab && !hasPaymentFilter) delete where.paymentStatus;
+
     where.OR = [
       { id: { contains: query, mode: "insensitive" } },
       { email: { contains: query, mode: "insensitive" } },
@@ -33,29 +41,30 @@ export async function getAdminOrders({
     ];
   }
 
-  // --- 2. FILTROS DEL TOOLBAR (Payment / Logistics) ---
-  // Solo aplicamos esto si NO estamos en un Tab especial que sobrescriba la lógica
-  if (paymentFilter && paymentFilter.length > 0) {
-    where.paymentStatus = { in: paymentFilter };
+  if (hasPaymentFilter) {
+    const expandedFilter = new Set(paymentFilter);
+    if (expandedFilter.has("PAID")) {
+      expandedFilter.add("REFUNDED");
+      expandedFilter.add("PARTIALLY_REFUNDED");
+    }
+    where.paymentStatus = { in: Array.from(expandedFilter) };
   }
   if (fulfillmentFilter && fulfillmentFilter.length > 0) {
     where.fulfillmentStatus = { in: fulfillmentFilter };
   }
 
-  // --- 3. LÓGICA DE TABS (Aquí estaba el fallo) ---
   if (statusTab) {
     switch (statusTab) {
       // A. PENDIENTES DE PAGO
       case "PENDING_PAYMENT":
-        where.paymentStatus = "PENDING";
+        where.paymentStatus = "FAILED";
         where.isCancelled = false;
         break;
 
-      // B. EN PROCESO (OJO: Aquí corregí "IN_PROGRESS" por "ACTIVE")
+      // B. EN PROCESO
       case "ACTIVE":
         where.paymentStatus = "PAID";
         where.isCancelled = false;
-        // Solo mostramos lo que NO ha sido entregado ni devuelto
         where.fulfillmentStatus = {
           in: ["UNFULFILLED", "PREPARING", "READY_FOR_PICKUP", "SHIPPED"],
         };
@@ -68,36 +77,40 @@ export async function getAdminOrders({
         break;
 
       // D. DEVOLUCIONES / REEMBOLSOS
-      // Solo mostramos pedidos que fueron PAGADOS y luego Reembolsados
       case "RETURNS":
-        where.isCancelled = false; // Si está cancelado manual, va al otro tab
-        where.paymentStatus = { in: ["REFUNDED", "PARTIALLY_REFUNDED"] };
+        where.isCancelled = false;
+        where.OR = [
+          { paymentStatus: { in: ["REFUNDED", "PARTIALLY_REFUNDED"] } },
+          { fulfillmentStatus: "RETURNED" },
+          {
+            history: {
+              some: {
+                snapshotStatus: SYSTEM_MSGS.RETURN_REQUESTED,
+              },
+            },
+          },
+        ];
         break;
 
-      // E. EXPIRADOS (Lógica del Cron)
-      // Cancelado + Fallido + Logística SIN TOCAR (Unfulfilled)
+      // E. EXPIRADOS
       case "EXPIRED":
         where.isCancelled = true;
         where.paymentStatus = "FAILED";
         where.fulfillmentStatus = "UNFULFILLED";
         break;
 
-      // F. CANCELADOS (Manuales)
-      // Aquí entran los que tú cancelaste a mano siendo pendientes.
-      // (Si cancelas uno pagado, se convierte en REFUNDED y va al tab RETURNS)
+      // F. CANCELADOS
       case "CANCELLED":
         where.isCancelled = true;
-        // Para diferenciarlo del expirado: El manual tiene "RETURNED" en logística
-        // o si permites cancelar sin reembolso (raro), lo cazamos aquí.
         where.OR = [
           { fulfillmentStatus: "RETURNED" },
-          { paymentStatus: { not: "FAILED" } }, // Por si acaso hay un cancelado raro
+          { paymentStatus: { not: "FAILED" } },
         ];
         break;
     }
   }
 
-  // 4. Ordenamiento
+  // 5. ORDENAMIENTO
   let orderBy:
     | Prisma.OrderOrderByWithRelationInput
     | Prisma.OrderOrderByWithRelationInput[] = { createdAt: "desc" };
@@ -120,7 +133,7 @@ export async function getAdminOrders({
       break;
   }
 
-  // 5. Ejecución
+  // 6. EJECUCIÓN DB
   const [ordersRaw, total] = await Promise.all([
     prisma.order.findMany({
       where,
@@ -132,12 +145,16 @@ export async function getAdminOrders({
         items: {
           select: { priceMinorSnapshot: true, quantityReturned: true },
         },
+        history: {
+          select: { snapshotStatus: true },
+          orderBy: { createdAt: "desc" },
+        },
       },
     }),
     prisma.order.count({ where }),
   ]);
 
-  // 6. Mapeo a DTO (Igual que tenías)
+  // 7. MAPEO A DTO (Formato para la tabla)
   const orders: AdminOrderListItem[] = ordersRaw.map((o) => {
     const refundedAmount = o.items.reduce(
       (acc, item) => acc + item.priceMinorSnapshot * item.quantityReturned,
@@ -167,12 +184,14 @@ export async function getAdminOrders({
         lastName: o.lastName,
         email: o.email,
       },
+      history: o.history,
     };
   });
 
   return { orders, total, totalPages: Math.ceil(total / limit) };
 }
 
+// --- DETALLE DE PEDIDO (ADMIN) ---
 export async function getAdminOrderById(
   id: string,
 ): Promise<AdminOrderDetail | null> {
@@ -219,7 +238,7 @@ export async function getAdminOrderById(
   };
 }
 
-// Helper ligero para devoluciones
+// Helper para devoluciones
 export async function getOrderForReturn(orderId: string) {
   const order = await prisma.order.findUnique({
     where: { id: orderId },

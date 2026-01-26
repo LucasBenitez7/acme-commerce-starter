@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/table";
 
 import { formatCurrency } from "@/lib/currency";
+import { getReturnStatusBadge } from "@/lib/orders/utils";
+import { cn } from "@/lib/utils";
 
 import type { AdminOrderListItem } from "@/lib/orders/types";
 
@@ -48,21 +50,32 @@ export function OrderTable({ orders, showRefunds }: OrderTableProps) {
       <Table>
         <TableHeader className="bg-neutral-50">
           <TableRow>
-            <TableHead>ID</TableHead>
+            <TableHead>Nº de pedido</TableHead>
             <TableHead>Fecha</TableHead>
             <TableHead>Cliente</TableHead>
             <TableHead className="text-center">Estado</TableHead>
+            {/* CAMBIO: Título de columna dinámico */}
             <TableHead className="text-right">
-              {showRefunds ? "Reembolsado" : "Total"}
+              {showRefunds ? "Total / Reembolso" : "Total"}
             </TableHead>
             <TableHead className="text-center px-4">Acciones</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {orders.map((order) => {
-            const amountToShow = showRefunds
-              ? order.refundedAmountMinor
-              : order.netTotalMinor;
+            const returnAlert = getReturnStatusBadge(order);
+            const isReturnPending =
+              returnAlert?.label === "Solicitud Pendiente";
+
+            let amountToShow = order.netTotalMinor;
+
+            if (showRefunds) {
+              if (isReturnPending) {
+                amountToShow = order.totalMinor;
+              } else {
+                amountToShow = order.refundedAmountMinor;
+              }
+            }
 
             return (
               <TableRow
@@ -71,7 +84,7 @@ export function OrderTable({ orders, showRefunds }: OrderTableProps) {
               >
                 {/* 1. ID */}
                 <TableCell className="font-mono text-xs font-medium">
-                  {order.id.toUpperCase()}
+                  {order.id.slice(-8).toUpperCase()}
                 </TableCell>
 
                 {/* 2. FECHA */}
@@ -83,25 +96,37 @@ export function OrderTable({ orders, showRefunds }: OrderTableProps) {
                 <TableCell>
                   <div className="flex flex-col">
                     <span className="font-medium text-sm">
-                      {order.guestInfo.firstName} {order.guestInfo.lastName}
+                      {order.user?.name || order.guestInfo.firstName}{" "}
+                      {order.guestInfo.lastName}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      {order.guestInfo.email}
+                      {order.user?.email || order.guestInfo.email}
                     </span>
                   </div>
                 </TableCell>
 
-                {/* 4. ESTADO */}
+                {/* 4. ESTADO (AQUÍ ESTÁ LA CORRECCIÓN VISUAL) */}
                 <TableCell className="text-center">
-                  <OrderStatusBadge
-                    paymentStatus={order.paymentStatus}
-                    fulfillmentStatus={order.fulfillmentStatus}
-                    isCancelled={order.isCancelled}
-                    className="text-xs uppercase px-2 py-0.5"
-                  />
+                  {returnAlert ? (
+                    <span
+                      className={cn(
+                        "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold uppercase",
+                        returnAlert.badgeClass,
+                      )}
+                    >
+                      {returnAlert.label}
+                    </span>
+                  ) : (
+                    <OrderStatusBadge
+                      paymentStatus={order.paymentStatus}
+                      fulfillmentStatus={order.fulfillmentStatus}
+                      isCancelled={order.isCancelled}
+                      className="text-xs uppercase px-2 py-0.5"
+                    />
+                  )}
                 </TableCell>
 
-                {/* 5. TOTAL */}
+                {/* 5. TOTAL (CORREGIDO) */}
                 <TableCell className="text-right font-medium">
                   {formatCurrency(amountToShow, order.currency)}
                 </TableCell>

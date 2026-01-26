@@ -91,16 +91,9 @@ export function UserTable({ users }: UserTableProps) {
               </TableCell>
 
               <TableCell className="py-3 text-center">
-                {user._count.orders > 0 ? (
-                  <Badge
-                    variant="default"
-                    className="border-foreground text-xs"
-                  >
-                    {user._count.orders}
-                  </Badge>
-                ) : (
-                  <span className="text-neutral-400 text-xs">-</span>
-                )}
+                <Badge variant="default" className="border-foreground text-xs">
+                  {user._count.orders}
+                </Badge>
               </TableCell>
 
               <TableCell className="py-3 text-center">
