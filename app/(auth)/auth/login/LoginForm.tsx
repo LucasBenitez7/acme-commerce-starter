@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { type FormEvent, useState } from "react";
@@ -20,7 +21,6 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Mensaje de éxito si venimos del registro (opcional)
   const successMessage =
     searchParams.get("success") === "registered"
       ? "Cuenta creada correctamente. Inicia sesión."
@@ -36,13 +36,11 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData.entries());
 
-    // 1. Validación con Zod
     const result = loginSchema.safeParse(data);
 
     if (!result.success) {
       const formattedErrors: Record<string, string> = {};
       result.error.issues.forEach((issue) => {
-        // Usamos String() para evitar el error de índice
         if (issue.path[0]) {
           formattedErrors[String(issue.path[0])] = issue.message;
         }
@@ -54,8 +52,6 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
     setIsSubmitting(true);
 
     try {
-      // 2. Login con NextAuth (Credentials)
-      // redirect: false es importante para manejar el error aquí mismo
       const res = await signIn("credentials", {
         redirect: false,
         email: result.data.email.toLowerCase(),
@@ -64,7 +60,6 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
       });
 
       if (res?.error) {
-        // "CredentialsSignin" es el código estándar cuando falla user/pass
         if (res.error === "CredentialsSignin") {
           setFormError("Email o contraseña incorrectos.");
         } else {
@@ -74,8 +69,6 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
         return;
       }
 
-      // 3. Éxito
-      // router.refresh() actualiza el servidor para que el layout sepa que hay sesión
       router.refresh();
       router.push(redirectToParam);
     } catch (error) {
@@ -131,49 +124,22 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
 
       {formError && <p className="text-xs text-red-600">{formError}</p>}
 
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
+      <Button type="submit" className="w-full h-10" disabled={isSubmitting}>
         {isSubmitting ? "Iniciando sesión..." : "Iniciar sesión"}
       </Button>
 
-      {/* Separador */}
-      <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-        <span className="h-px flex-1 bg-border" />
-        <span>o</span>
-        <span className="h-px flex-1 bg-border" />
-      </div>
-
-      {/* GitHub Login */}
-      <Button
-        type="button"
-        variant="outline"
-        className="w-full text-xs"
-        onClick={handleLoginWithGithub}
-      >
-        Continuar con GitHub
-      </Button>
-
-      {/* <Button
-				type="button"
-				variant="outline"
-				className="w-full text-xs"
-				onClick={handleLoginWithGithub}
-			>
-				Continuar con Google
-			</Button> */}
-
-      <p className="mt-2 text-xs font-medium">
-        ¿No tienes cuenta?{" "}
+      <div className="flex justify-start">
         <a
-          href={`/auth/register?redirectTo=${encodeURIComponent(redirectToParam)}`}
-          className="fx-underline-anim"
+          href="/forgot-password"
+          className="font-medium text-xs text-foreground hover:underline active:underline underline-offset-2"
         >
-          Crear cuenta
+          ¿Has olvidado tu contraseña?
         </a>
-      </p>
+      </div>
 
       {/* Lógica: Si venimos de un intento de compra, ofrecemos continuar como invitado */}
       {redirectToParam.includes("checkout") && (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-4 mb-6">
           <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
             <span className="h-px flex-1 bg-border" />
             <span>o</span>
@@ -183,9 +149,8 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
           <Button
             type="button"
             variant="outline"
-            className="w-full text-xs hover:cursor-pointer"
+            className="w-full h-10 hover:cursor-pointer"
             onClick={() => {
-              // Navegamos directamente al checkout sin loguearnos
               router.push("/checkout");
             }}
           >
@@ -193,6 +158,19 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
           </Button>
         </div>
       )}
+
+      <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+        <span className="h-px flex-1 bg-border" />
+        <span>¿No tienes cuenta?</span>
+        <span className="h-px flex-1 bg-border" />
+      </div>
+
+      <Link
+        href={`/auth/register?redirectTo=${encodeURIComponent(redirectToParam)}`}
+        className="border border-border rounded-xs text-center flex items-center justify-center w-full h-10 font-medium hover:cursor-pointer text-sm hover:bg-neutral-50 text-foreground active:bg-neutral-50"
+      >
+        Crear cuenta
+      </Link>
     </form>
   );
 }

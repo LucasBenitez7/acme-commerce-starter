@@ -28,7 +28,6 @@ export async function registerAction(formData: FormData) {
 
     const passwordHash = await hash(password, 10);
 
-    // Concatenamos nombre completo para el campo legacy 'name'
     const fullName = `${firstName} ${lastName}`.trim();
 
     await prisma.user.create({
@@ -42,6 +41,23 @@ export async function registerAction(formData: FormData) {
         role: "user",
       },
     });
+
+    // Enviar email de bienvenida
+    try {
+      const { resend } = await import("@/lib/email/client");
+      const { WelcomeEmail } = await import(
+        "@/lib/email/templates/WelcomeEmail"
+      );
+
+      await resend.emails.send({
+        from: process.env.EMAIL_FROM || "onboarding@resend.dev",
+        to: emailLower,
+        subject: "¡Bienvenido a LSB Shop!",
+        react: WelcomeEmail({ firstName, lastName }),
+      });
+    } catch (emailError) {
+      console.error("Error al enviar email de bienvenida:", emailError);
+    }
 
     return { success: true };
   } catch (e) {

@@ -168,17 +168,17 @@ export function RegisterForm({ action, redirectTo }: Props) {
 
       {formError && <p className="text-xs text-red-600">{formError}</p>}
 
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
+      <Button type="submit" className="w-full h-10" disabled={isSubmitting}>
         {isSubmitting ? "Registrando..." : "Crear cuenta"}
       </Button>
 
-      <p className="mt-2 text-xs text-muted-foreground">
+      <p className="mt-2 text-xs text-foreground font-medium">
         ¿Ya tienes cuenta?{" "}
         <a
           href={`/auth/login?redirectTo=${encodeURIComponent(redirectTo)}`}
-          className="fx-underline-anim"
+          className="text-xs text-foreground hover:underline active:underline underline-offset-2"
         >
-          Inicia sesión
+          Iniciar sesión
         </a>
       </p>
     </form>

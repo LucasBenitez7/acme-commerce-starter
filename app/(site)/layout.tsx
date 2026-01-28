@@ -9,7 +9,7 @@ import Providers from "@/app/providers";
 import type { ReactNode } from "react";
 
 export const metadata = {
-  title: "Acme Commerce",
+  title: "LSB Shop",
   description: "Tu tienda de confianza",
 };
 

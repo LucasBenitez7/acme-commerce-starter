@@ -187,9 +187,8 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
                 size={"icon-lg"}
               >
                 {userInitial ? (
-                  <span className="flex h-[24px] pt-[0.5px] w-[24px] items-center justify-center rounded-full border-2 border-foreground text-[12px] font-semibold bg-background">
+                  <span className="flex h-[24px] pt-[0.5px] w-[24px] items-center justify-center rounded-full border-2 border-foreground text-sm font-bold bg-background">
                     {userInitial}
-                    {userLastName}
                   </span>
                 ) : (
                   <FaRegUser className="size-[1.375rem]" aria-hidden="true" />

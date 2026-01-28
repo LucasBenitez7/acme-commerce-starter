@@ -1,7 +1,5 @@
 import { redirect } from "next/navigation";
 
-import { Container } from "@/components/ui";
-
 import { auth } from "@/lib/auth";
 
 import { registerAction } from "./actions";
@@ -25,18 +23,16 @@ export default async function RegisterPage({ searchParams }: Props) {
   }
 
   return (
-    <Container className="bg-neutral-100 p-6 lg:p-8">
-      <div className="max-w-lg mx-auto border p-6 bg-background rounded-xs">
-        <h1 className="text-2xl font-semibold tracking-tight">Crear cuenta</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Regístrate para guardar tus datos y ver el historial de pedidos.
-        </p>
-
-        <div className="mt-6">
-          {/* Pasamos la acción directamente */}
-          <RegisterForm action={registerAction} redirectTo={redirectTo} />
+    <div className="flex items-center justify-center bg-neutral-50 w-full mt-20">
+      <div className="w-full sm:w-lg border p-6 bg-background rounded-xs shadow-sm">
+        <div className="flex flex-col space-y-2 text-center mb-6">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Crear cuenta
+          </h1>
         </div>
+
+        <RegisterForm action={registerAction} redirectTo={redirectTo} />
       </div>
-    </Container>
+    </div>
   );
 }
