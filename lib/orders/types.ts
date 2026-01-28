@@ -147,3 +147,40 @@ export type GetOrdersParams = {
   paymentFilter?: PaymentStatus[];
   fulfillmentFilter?: FulfillmentStatus[];
 };
+
+// SECCIÓN 5: VISUALIZACIÓN (Order Display)
+export interface OrderDisplayData {
+  id: string;
+  email: string;
+  createdAt: Date | string;
+  paymentStatus: string;
+  fulfillmentStatus: string;
+  isCancelled: boolean;
+  currency: string;
+  paymentMethod: string | null;
+  contact: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+  shippingInfo: {
+    label: string;
+    addressLines: string[];
+  };
+  items: {
+    id: string;
+    name: string;
+    slug: string;
+    subtitle: string;
+    quantity: number;
+    price: number;
+    image: string | null;
+  }[];
+  totals: {
+    subtotal: number;
+    shipping: number;
+    tax: number;
+    total: number;
+    refunded?: number;
+  };
+}

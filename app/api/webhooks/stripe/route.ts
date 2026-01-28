@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     }
     event = stripe.webhooks.constructEvent(body, signature, endpointSecret);
   } catch (err: any) {
-    console.error(`⚠️ Webhook signature verification failed.`, err.message);
+    console.error(`Webhook signature verification failed.`, err.message);
     return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
   }
 
@@ -35,25 +35,93 @@ export async function POST(req: Request) {
         const orderId = paymentIntent.metadata.orderId;
 
         if (orderId) {
-          await prisma.$transaction(async (tx) => {
-            await tx.order.update({
-              where: { id: orderId },
-              data: {
-                paymentStatus: "PAID",
-                fulfillmentStatus: "PREPARING",
+          const order = await prisma.order.findUnique({
+            where: { id: orderId },
+            include: {
+              items: {
+                include: {
+                  product: {
+                    include: {
+                      images: true,
+                    },
+                  },
+                },
               },
+            },
+          });
+
+          if (order) {
+            // 1. Obtener detalles del método de pago (si existen)
+            let paymentMethodString = "Tarjeta de Crédito";
+
+            try {
+              // Recuperamos el PaymentIntent expandido para asegurar que tenemos los datos del cargo y método de pago
+              const extendedPaymentIntent =
+                await stripe.paymentIntents.retrieve(paymentIntent.id, {
+                  expand: ["payment_method"],
+                });
+
+              const pm =
+                extendedPaymentIntent.payment_method as Stripe.PaymentMethod;
+              const cardDetails = pm?.card;
+
+              if (cardDetails) {
+                const brandRaw = cardDetails.brand || "Tarjeta";
+                const brand =
+                  brandRaw.charAt(0).toUpperCase() + brandRaw.slice(1);
+                paymentMethodString = `${brand} •••• ${cardDetails.last4}`;
+              }
+            } catch (stripeError) {
+              console.error("Error retrieving Stripe details:", stripeError);
+              // Fallback to default string
+            }
+
+            // 2. Actualizar estado y método de pago
+            await prisma.$transaction(async (tx) => {
+              await tx.order.update({
+                where: { id: orderId },
+                data: {
+                  paymentStatus: "PAID",
+                  fulfillmentStatus: "PREPARING",
+                  paymentMethod: paymentMethodString,
+                },
+              });
+
+              await tx.orderHistory.create({
+                data: {
+                  orderId,
+                  type: "STATUS_CHANGE",
+                  snapshotStatus: "Pagado y Preparando",
+                  actor: "system",
+                  reason: `Pago confirmado por Stripe (${paymentMethodString})`,
+                },
+              });
             });
 
-            await tx.orderHistory.create({
-              data: {
-                orderId,
-                type: "STATUS_CHANGE",
-                snapshotStatus: "Pagado y Preparando",
-                actor: "system",
-                reason: `Pago confirmado por Stripe`,
-              },
-            });
-          });
+            // 2. Enviar email de confirmación
+            try {
+              const { resend } = await import("@/lib/email/client");
+              const { OrderSuccessEmail } = await import(
+                "@/lib/email/templates/OrderSuccessEmail"
+              );
+              const { formatOrderForDisplay } = await import(
+                "@/lib/orders/utils"
+              );
+
+              const displayOrder = formatOrderForDisplay(order);
+              displayOrder.paymentMethod = paymentMethodString;
+              displayOrder.paymentStatus = "PAID";
+
+              await resend.emails.send({
+                from: process.env.EMAIL_FROM || "onboarding@resend.dev",
+                to: order.email,
+                subject: `Pedido realizado con éxito`,
+                react: OrderSuccessEmail({ order: displayOrder }),
+              });
+            } catch (emailError) {
+              console.error("Error sending order email:", emailError);
+            }
+          }
         }
         break;
       }

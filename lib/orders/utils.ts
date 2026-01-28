@@ -221,7 +221,11 @@ type OrderWithDetails = Order & {
   })[];
 };
 
-export function formatOrderForDisplay(order: OrderWithDetails) {
+import type { OrderDisplayData } from "./types";
+
+export function formatOrderForDisplay(
+  order: OrderWithDetails,
+): OrderDisplayData {
   return {
     id: order.id,
     email: order.email,
@@ -229,9 +233,12 @@ export function formatOrderForDisplay(order: OrderWithDetails) {
     paymentStatus: order.paymentStatus,
     fulfillmentStatus: order.fulfillmentStatus,
     isCancelled: order.isCancelled,
+    currency: order.currency,
+    paymentMethod: order.paymentMethod,
     totals: {
       subtotal: order.itemsTotalMinor,
       shipping: order.shippingCostMinor,
+      tax: order.taxMinor,
       total: order.totalMinor,
     },
     shippingInfo: getOrderShippingDetails(order),
@@ -263,7 +270,7 @@ export function formatOrderForDisplay(order: OrderWithDetails) {
   };
 }
 
-export type DisplayOrder = ReturnType<typeof formatOrderForDisplay>;
+export type DisplayOrder = OrderDisplayData;
 
 export function getReturnStatusBadge(order: {
   paymentStatus: string;
