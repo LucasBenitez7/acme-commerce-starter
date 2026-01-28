@@ -84,7 +84,7 @@ export function OrderTable({ orders, showRefunds }: OrderTableProps) {
               >
                 {/* 1. ID */}
                 <TableCell className="font-mono text-xs font-medium">
-                  {order.id.slice(-8).toUpperCase()}
+                  {order.id.toUpperCase()}
                 </TableCell>
 
                 {/* 2. FECHA */}

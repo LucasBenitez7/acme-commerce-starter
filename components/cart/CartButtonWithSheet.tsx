@@ -222,17 +222,17 @@ export function CartButtonWithSheet() {
               </div>
             )}
 
-            <div className="flex items-center justify-between text-xs font-medium mb-2">
+            <div className="flex items-center justify-between text-sm font-medium mb-2">
               <span>Subtotal</span>
               <span>{formatCurrency(totalPrice, DEFAULT_CURRENCY)}</span>
             </div>
 
-            <div className="flex items-center justify-between text-xs font-medium mb-4">
+            <div className="flex items-center justify-between text-sm font-medium mb-4">
               <span>Envio</span>
               <span className="text-green-600">Gratis</span>
             </div>
 
-            <div className="flex items-center justify-between text-base font-medium mb-4">
+            <div className="flex items-center justify-between text-lg font-semibold mb-4">
               <span>Total</span>
               <span>{formatCurrency(totalPrice, DEFAULT_CURRENCY)}</span>
             </div>

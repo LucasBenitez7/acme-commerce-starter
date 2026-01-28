@@ -66,7 +66,7 @@ export default async function AdminUserDetailPage({ params }: Props) {
 
                 <div className="mt-2 mb-4">
                   <Badge
-                    variant={user.role === "ADMIN" ? "default" : "secondary"}
+                    variant={user.role === "ADMIN" ? "default" : "default"}
                   >
                     {user.role === "ADMIN" && (
                       <FaUserShield className="size-3" />
