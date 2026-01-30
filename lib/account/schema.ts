@@ -1,7 +1,21 @@
 import { z } from "zod";
 
+import { passwordSchema } from "@/lib/auth/schema";
+
 export const phoneRegex = /^[0-9+\s]+$/;
 export const postalCodeRegex = /^\d{5}$/;
+
+// 0. Security Schema
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Introduce tu contraseña actual"),
+    newPassword: passwordSchema,
+    confirmNewPassword: z.string().min(1, "Confirma la nueva contraseña"),
+  })
+  .refine((data) => data.newPassword === data.confirmNewPassword, {
+    message: "Las contraseñas no coinciden",
+    path: ["confirmNewPassword"],
+  });
 
 // 1. Schema BASE
 export const baseAddressSchema = z.object({
@@ -34,3 +48,5 @@ export const addressFormSchema = baseAddressSchema.extend({
 
 export type BaseAddressValues = z.infer<typeof baseAddressSchema>;
 export type AddressFormValues = z.infer<typeof addressFormSchema>;
+
+export type ChangePasswordValues = z.infer<typeof changePasswordSchema>;
