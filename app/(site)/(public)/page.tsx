@@ -1,20 +1,15 @@
-import { ProductGrid, SectionHeader } from "@/components/catalog";
+import FeaturedGrid from "@/components/home/FeaturedGrid";
+import HeroSection from "@/components/home/HeroSection";
+import InterestSection from "@/components/home/InterestSection";
+import SaleBanner from "@/components/home/SaleBanner";
 
-import { PER_PAGE } from "@/lib/pagination";
-import { getPublicProducts } from "@/lib/products/queries";
-
-export const dynamic = "force-dynamic";
-
-export default async function HomePage() {
-  const { rows } = await getPublicProducts({
-    page: 1,
-    limit: PER_PAGE,
-  });
-
+export default function HomePage() {
   return (
-    <section className="px-4">
-      <SectionHeader title="Home" />
-      <ProductGrid items={rows} />
-    </section>
+    <main className="flex min-h-screen flex-col">
+      <HeroSection />
+      <FeaturedGrid />
+      <SaleBanner />
+      <InterestSection />
+    </main>
   );
 }

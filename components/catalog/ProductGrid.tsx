@@ -9,7 +9,7 @@ interface ProductGridProps {
 
 export function ProductGrid({ items, favoriteIds }: ProductGridProps) {
   return (
-    <div className="py-6 grid gap-x-1 gap-y-6 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="py-6 grid gap-x-1 gap-y-6 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 px-1">
       {items.map((p) => (
         <ProductCard
           key={p.slug}

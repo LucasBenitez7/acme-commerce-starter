@@ -12,9 +12,10 @@ interface Props {
   totalPages: number;
   page: number;
   base?: string;
+  className?: string;
 }
 
-export function PaginationNav({ totalPages, page, base }: Props) {
+export function PaginationNav({ totalPages, page, base, className }: Props) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -34,7 +35,7 @@ export function PaginationNav({ totalPages, page, base }: Props) {
   return (
     <nav
       aria-label="Paginación"
-      className="flex items-center justify-center gap-2"
+      className={cn("flex items-center justify-end gap-2", className)}
     >
       <Button
         variant="outline"
