@@ -6,13 +6,13 @@ import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/db";
 
 interface VerifyEmailPageProps {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export default async function VerifyEmailPage({
   searchParams,
 }: VerifyEmailPageProps) {
-  const token = searchParams.token;
+  const { token } = await searchParams;
 
   if (!token || typeof token !== "string") {
     return (
