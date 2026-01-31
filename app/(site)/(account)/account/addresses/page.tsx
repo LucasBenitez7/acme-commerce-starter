@@ -16,7 +16,7 @@ export default async function AccountAddressesPage() {
   const addresses = await getUserAddresses(session.user.id);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-300 pb-3">
         <div>
           <h2 className="text-2xl font-semibold text-center">
