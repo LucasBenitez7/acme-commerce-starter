@@ -11,7 +11,7 @@ export default function SaleBanner() {
   const { saleBanner } = homeConfig;
 
   return (
-    <section className="relative w-full py-24 h-[90vh] flex items-center justify-center text-center overflow-hidden">
+    <section className="relative w-full py-24 h-[95vh] flex items-center justify-center text-center overflow-hidden">
       {/* Background Image */}
       {saleBanner.backgroundImage ? (
         <div className="absolute inset-0 size-full">
@@ -21,7 +21,7 @@ export default function SaleBanner() {
             fill
             className="object-cover"
           />
-          <div className="absolute inset-0 bg-black/0" />
+          <div className="absolute inset-0 bg-black/20" />
         </div>
       ) : (
         <div

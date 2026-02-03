@@ -16,7 +16,7 @@ export default async function InterestSection() {
   return (
     <section className="w-full pt-10 pb-20 bg-background">
       <div className="w-full">
-        <div className="mb-4 ml-0 sm:ml-10 text-center sm:text-left flex justify-center sm:justify-start items-center">
+        <div className="mb-4 ml-0 sm:ml-8 text-center sm:text-left flex justify-center sm:justify-start items-center">
           <FaArrowRightLong className="mr-2 hidden sm:block sm:size-8" />
 
           <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl font-heading uppercase">

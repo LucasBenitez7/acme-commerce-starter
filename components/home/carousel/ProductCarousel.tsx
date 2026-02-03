@@ -59,7 +59,7 @@ export function ProductCarousel({ products }: ProductCarouselProps) {
       <Button
         variant="outline"
         size="icon"
-        className="absolute left-2 top-1/2 -translate-y-1/2 z-10 hidden group-hover:flex bg-white/90 shadow-md hover:bg-white rounded-full border-neutral-200"
+        className="absolute left-2 top-1/2 -translate-y-1/2 z-10 hidden group-hover:flex bg-neutral-100 shadow-md hover:bg-white rounded-full border-neutral-200"
         onClick={scrollPrev}
         disabled={!canScrollPrev}
       >
@@ -68,7 +68,7 @@ export function ProductCarousel({ products }: ProductCarouselProps) {
       <Button
         variant="outline"
         size="icon"
-        className="absolute right-2 top-1/2 -translate-y-1/2 z-10 hidden group-hover:flex bg-white/90 shadow-md hover:bg-white rounded-full border-neutral-200"
+        className="absolute right-2 top-1/2 -translate-y-1/2 z-10 hidden group-hover:flex bg-neutral-100 shadow-md hover:bg-white rounded-full border-neutral-200"
         onClick={scrollNext}
         disabled={!canScrollNext}
       >

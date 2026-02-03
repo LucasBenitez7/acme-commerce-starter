@@ -32,11 +32,10 @@ export const VerificationEmail = ({
 
           <Section style={cardContainer}>
             <Heading style={subHeader}>Verifica tu correo electrónico</Heading>
-            <Text style={text}>Hola,</Text>
             <Text style={text}>
-              Gracias por registrarte en LSB Shop. Para asegurar la seguridad de
-              tu cuenta y acceder a todas las funciones, por favor verifica tu
-              dirección de email.
+              Hola, Gracias por registrarte en LSB Shop. Para asegurar la
+              seguridad de tu cuenta y acceder a todas las funciones, por favor
+              verifica tu dirección de email.
             </Text>
 
             <Section style={btnContainer}>

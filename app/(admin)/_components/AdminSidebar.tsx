@@ -90,7 +90,7 @@ export function AdminSidebar({ user }: Props) {
             className="text-left justify-start flex w-full pl-2"
             asChild
           >
-            <Link href="/">
+            <Link href="/catalogo">
               <FaStore className="size-4 mr-2" />
               Volver a la tienda
             </Link>

@@ -56,7 +56,7 @@ export function CategoryTable({
           {categories.map((cat) => (
             <TableRow key={cat.id} className="hover:bg-neutral-50">
               {/* 1. ORDEN */}
-              <TableCell className="text-center font-mono text-xs py-4">
+              <TableCell className="text-center font-mono text-xs font-medium py-4">
                 {cat.sort}
               </TableCell>
 

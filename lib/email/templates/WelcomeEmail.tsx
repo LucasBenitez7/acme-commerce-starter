@@ -30,13 +30,15 @@ export const WelcomeEmail = ({
         <style>{`:root { color-scheme: light; supported-color-schemes: light; }`}</style>
       </Head>
       <Body style={main}>
-        <Preview>¡Bienvenido a LSB Shop!</Preview>
+        <Preview>
+          ¡Hola, {firstName} {lastName}!
+        </Preview>
         <Container style={container}>
           <Heading style={header}>LSB SHOP</Heading>
 
           <Section style={cardContainer}>
             <Heading style={subHeader}>
-              Bienvenido, {firstName} {lastName} 👋
+              ¡Hola, {firstName} {lastName}!
             </Heading>
             <Text style={text}>
               Gracias por unirte a LSB Shop. Estamos encantados de tenerte aquí.

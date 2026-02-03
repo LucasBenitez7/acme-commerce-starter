@@ -104,7 +104,7 @@ function VerifyResult({
         </h1>
         <p className="text-muted-foreground max-w-sm mx-auto">{message}</p>
       </div>
-      <Button asChild>
+      <Button asChild className="h-11">
         <Link href="/">Volver a la tienda</Link>
       </Button>
     </div>

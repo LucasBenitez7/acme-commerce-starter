@@ -2,7 +2,7 @@
 
 Monorepo de e‑commerce (Next.js 15 + Tailwind v4 + Prisma + PostgreSQL) con PNPM + Turborepo, CI en GitHub Actions y despliegue en Vercel.
 
-> **Stack principal**: Next.js (App Router), TypeScript, Tailwind CSS v4, Prisma ORM, PostgreSQL, Redis, Meilisearch, PNPM Workspaces, Turborepo, ESLint (flat), Prettier, Husky + lint‑staged.
+> **Stack principal**: Next.js (App Router), TypeScript, Tailwind CSS v4, Prisma ORM, PostgreSQL, PNPM Workspaces, Turborepo, ESLint (flat), Prettier, Husky + lint‑staged.
 
 ---
 
@@ -12,7 +12,6 @@ Monorepo de e‑commerce (Next.js 15 + Tailwind v4 + Prisma + PostgreSQL) con PN
 - **Next.js 15 (App Router)** con React 19.
 - **Tailwind v4** + utilidades de UI.
 - **Prisma ORM** con **PostgreSQL** (Docker Compose) y migraciones versionadas.
-- **Redis** y **Meilisearch** listos en `docker-compose.yml`.
 - **Calidad de código**: ESLint (flat), Prettier, Husky + lint‑staged (pre‑commit).
 - **CI**: flujo de checks en GitHub Actions.
 - **Vercel**: producción en `main` y previsualizaciones en `development` (ajustable).
@@ -73,11 +72,6 @@ APP_ENV=development
 # DB (coincide con docker-compose: 5433)
 DATABASE_URL=postgresql://postgres:postgres@localhost:5433/lsbstack
 
-# Redis / Meili (opcionales)
-REDIS_URL=redis://localhost:6379
-MEILI_HOST=http://localhost:7700
-MEILI_MASTER_KEY=meili_master_key
-
 # Opcional
 NEXT_PUBLIC_ADMIN_URL=http://localhost:3000/admin
 ```
@@ -86,7 +80,7 @@ NEXT_PUBLIC_ADMIN_URL=http://localhost:3000/admin
 
 ### 2) Servicios de desarrollo
 
-Arranca Postgres (y opcionalmente Redis/Meili):
+Arranca Postgres:
 
 ```bash
 # solo DB
@@ -228,7 +222,6 @@ pnpm exec lint-staged
 - [ ] Rutas protegidas + panel admin.
 - [ ] Favoritos, pedidos/ordenes del usuario.
 - [ ] Seed inicial (categorías/productos demo).
-- [ ] Búsqueda con Meilisearch.
 - [ ] Integración pagos / impuestos por región.
 
 ---

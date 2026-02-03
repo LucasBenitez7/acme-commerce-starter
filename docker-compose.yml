@@ -15,25 +15,5 @@ services:
       timeout: 5s
       retries: 20
 
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 20
-
-  meilisearch:
-    image: getmeili/meilisearch:v1.11
-    environment:
-      MEILI_MASTER_KEY: meili_master_key
-    ports:
-      - "7700:7700"
-    volumes:
-      - meili_data:/meili_data
-
 volumes:
   pgdata:
-  meili_data:
