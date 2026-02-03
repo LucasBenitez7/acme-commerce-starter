@@ -266,7 +266,7 @@ export function ProductListToolbar({ categories, globalMaxPrice }: Props) {
             showIcon={false}
             className={cn(
               "h-9 w-[200px] font-medium hover:cursor-pointer focus-none",
-              activeSort !== "date_desc" && "border-foreground",
+              activeSort !== "order_asc" && "border-foreground",
             )}
           >
             <div className="flex items-center gap-2">

@@ -7,11 +7,6 @@ import { toast } from "sonner";
 
 import { Button, Input, Label } from "@/components/ui";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -19,8 +14,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-
-import { cn } from "@/lib/utils";
 
 import { quickCreateCategory } from "@/app/(admin)/admin/categories/actions";
 
@@ -41,8 +34,6 @@ export function GeneralSection({ categories: initialCats }: Props) {
   const [categories, setCategories] = useState(initialCats);
   const [isCreatingCat, setIsCreatingCat] = useState(false);
   const [newCatName, setNewCatName] = useState("");
-
-  const [isDescOpen, setIsDescOpen] = useState(false);
 
   const selectedCatId = watch("categoryId");
   const priceCentsValue = watch("priceCents");
@@ -107,6 +98,19 @@ export function GeneralSection({ categories: initialCats }: Props) {
             <p className="text-red-500 text-xs">El precio es requerido</p>
           )}
         </div>
+      </div>
+
+      <div className="space-y-2 w-fit">
+        <Label>Orden del producto en la lista</Label>
+        <Input
+          type="number"
+          placeholder="Ej: 1"
+          {...register("sortOrder")}
+          className="max-w-[70px] flex"
+        />
+        <p className="text-[10px] text-muted-foreground">
+          Esto es opcional, el orden por defecto es por fecha de creación.
+        </p>
       </div>
 
       {/* CATEGORÍA */}
@@ -178,47 +182,16 @@ export function GeneralSection({ categories: initialCats }: Props) {
       </div>
 
       {/* DESCRIPCIÓN */}
-      <div>
-        <Collapsible
-          open={isDescOpen}
-          onOpenChange={setIsDescOpen}
-          className={cn(
-            "col-span-2 rounded-xs border border-transparent transition-all duration-200",
-          )}
-        >
-          <div className="flex items-center justify-between">
-            <CollapsibleTrigger asChild>
-              <Button
-                variant="ghost"
-                type="button"
-                className={cn(
-                  "w-fit justify-between hover:bg-neutral-50 active:bg-neutral-50 font-medium px-0",
-                )}
-              >
-                <span className="text-sm font-medium text-foreground">
-                  Descripción
-                </span>
-                <FaChevronRight
-                  className={cn(
-                    "size-3.5 text-muted-foreground transition-transform duration-200",
-                    isDescOpen && "rotate-90",
-                  )}
-                />
-              </Button>
-            </CollapsibleTrigger>
-          </div>
-
-          <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
-            <div className="pt-1">
-              <Textarea
-                {...register("description")}
-                placeholder="Detalles del producto, materiales, cuidados..."
-                minRows={5}
-                className="bg-white mb-2"
-              />
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
+      <div className="space-y-2">
+        <Label className="text-sm font-medium text-foreground">
+          Descripción
+        </Label>
+        <Textarea
+          {...register("description")}
+          placeholder="Detalles del producto, materiales, cuidados..."
+          minRows={5}
+          className="bg-white"
+        />
 
         {errors.description && (
           <p className="text-red-500 text-xs">{errors.description.message}</p>

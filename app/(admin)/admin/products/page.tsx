@@ -72,7 +72,7 @@ export default async function AdminProductsPage({ searchParams }: Props) {
 
         <Link
           href="/admin/products/new"
-          className="flex items-center font-medium gap-2 bg-foreground text-background py-2 px-3 rounded-xs text-sm"
+          className="flex items-center font-medium gap-2 bg-foreground text-background py-2 px-3 rounded-xs text-sm hover:bg-foreground/80 transition-colors"
         >
           <FaPlus className="size-4" /> Añadir producto
         </Link>

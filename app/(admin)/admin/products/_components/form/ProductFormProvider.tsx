@@ -35,6 +35,7 @@ export function ProductFormProvider({ children, product }: Props) {
       priceCents: product?.priceCents || 0,
       categoryId: product?.categoryId || "",
       isArchived: product?.isArchived || false,
+      sortOrder: product?.sortOrder ?? null,
       slug: product?.slug || undefined,
       images: product?.images || [],
       variants: sortedVariants,
