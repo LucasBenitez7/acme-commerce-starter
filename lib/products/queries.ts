@@ -90,11 +90,16 @@ export async function getAdminProducts({
     }),
   };
 
-  let orderBy: Prisma.ProductOrderByWithRelationInput = { createdAt: "desc" };
+  let orderBy:
+    | Prisma.ProductOrderByWithRelationInput
+    | Prisma.ProductOrderByWithRelationInput[] = { createdAt: "desc" };
   const isStockSort = sort === "stock_asc" || sort === "stock_desc";
 
   if (!isStockSort && sort) {
     switch (sort) {
+      case "order_asc":
+        orderBy = [{ sortOrder: "asc" }, { createdAt: "desc" }];
+        break;
       case "date_asc":
         orderBy = { createdAt: "asc" };
         break;
@@ -179,7 +184,7 @@ export async function getPublicProducts({
   const [rows, total] = await Promise.all([
     prisma.product.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
       take: limit,
       skip: (page - 1) * limit,
       select: publicListSelect,

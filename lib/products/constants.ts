@@ -63,6 +63,7 @@ export const INITIAL_CATEGORIES = [
 
 // --- SORTING ---
 export const PRODUCT_SORT_OPTIONS = [
+  { label: "Orden numérico", value: "order_asc" },
   { label: "Más recientes", value: "date_desc" },
   { label: "Más antiguos", value: "date_asc" },
   { label: "Nombre ascendente", value: "name_asc" },

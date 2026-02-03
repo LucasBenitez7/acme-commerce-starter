@@ -120,6 +120,8 @@ model Product {
   description String
   isArchived  Boolean @default(false)
 
+  sortOrder Int?
+
   // Precio Base
   priceCents Int
   currency   String @default("EUR")

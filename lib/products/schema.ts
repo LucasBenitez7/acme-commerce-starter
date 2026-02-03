@@ -27,6 +27,10 @@ export const productSchema = z
     priceCents: z.coerce.number().min(1, "El precio es requerido"),
     categoryId: z.string().min(1, "Selecciona una categoría"),
     isArchived: z.boolean().default(false),
+    sortOrder: z.preprocess(
+      (val) => (val === "" ? null : val),
+      z.coerce.number().int().optional().nullable(),
+    ),
     images: z.array(productImageSchema).default([]),
     variants: z
       .array(productVariantSchema)

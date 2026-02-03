@@ -23,6 +23,7 @@ export function useProductSubmit(productId?: string) {
       formData.append("categoryId", data.categoryId);
       formData.append("isArchived", String(data.isArchived));
       if (data.slug) formData.append("slug", data.slug);
+      formData.append("sortOrder", String(data.sortOrder ?? ""));
 
       // JSON strings
       formData.append("imagesJson", JSON.stringify(data.images));

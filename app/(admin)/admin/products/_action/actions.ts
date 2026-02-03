@@ -45,6 +45,7 @@ export async function upsertProductAction(
       priceCents: Number(formData.get("priceCents")),
       categoryId: formData.get("categoryId"),
       isArchived: formData.get("isArchived") === "true",
+      sortOrder: Number(formData.get("sortOrder")) || null,
       slug: formData.get("slug") || undefined,
       images: safeJsonParse(String(formData.get("imagesJson")), []),
       variants: safeJsonParse(String(formData.get("variantsJson")), []),
