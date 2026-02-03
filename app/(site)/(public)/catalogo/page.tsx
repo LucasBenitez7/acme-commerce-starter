@@ -15,7 +15,7 @@ type Props = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
-export default async function CategoryPage({ params, searchParams }: Props) {
+export default async function CatalogPage({ params, searchParams }: Props) {
   const sp = await searchParams;
   const page = Math.max(1, parsePage(sp.page, 1));
 
