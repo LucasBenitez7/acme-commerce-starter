@@ -1,5 +1,3 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
 
@@ -7,51 +5,92 @@ import { Button } from "@/components/ui/button";
 
 import { homeConfig } from "@/lib/home-config";
 
-export default function SaleBanner() {
-  const { saleBanner } = homeConfig;
+import type { StoreConfig } from "@prisma/client";
+
+interface Props {
+  config: StoreConfig | null;
+  maxDiscount?: number;
+}
+
+export default function SaleBanner({ config, maxDiscount = 0 }: Props) {
+  const defaults = homeConfig.saleBanner;
+
+  const sale = {
+    title: config?.saleTitle || "REBAJAS",
+    subtitle:
+      config?.saleSubtitle || (maxDiscount > 0 ? `-${maxDiscount}%` : ""),
+    desktopSrc: config?.saleImage || defaults.backgroundImage,
+    mobileSrc:
+      config?.saleMobileImage || config?.saleImage || defaults.backgroundImage,
+    backgroundColor: config?.saleBackgroundColor || defaults.backgroundColor,
+    ctaLink: config?.saleLink || "/rebajas",
+    ctaText: "VER REBAJAS",
+    footerText: "",
+  };
+
+  const hasImage = !!sale.desktopSrc;
 
   return (
-    <section className="relative w-full py-24 h-[95vh] flex items-center justify-center text-center overflow-hidden">
+    <section className="relative w-full py-24 h-[95vh] flex items-center justify-center text-center overflow-hidden bg-black">
       {/* Background Image */}
-      {saleBanner.backgroundImage ? (
+      {hasImage ? (
         <div className="absolute inset-0 size-full">
-          <Image
-            src={saleBanner.backgroundImage}
-            alt="Sale Background"
-            fill
-            className="object-cover"
-          />
-          <div className="absolute inset-0 bg-black/20" />
+          {/* Mobile Image */}
+          <div className="block md:hidden size-full relative">
+            <Image
+              src={sale.mobileSrc}
+              alt="Sale Background Mobile"
+              fill
+              className="object-cover opacity-80"
+              sizes="100vw"
+            />
+          </div>
+
+          {/* Desktop Image */}
+          <div className="hidden md:block size-full relative">
+            <Image
+              src={sale.desktopSrc}
+              alt="Sale Background Desktop"
+              fill
+              className="object-cover opacity-80"
+              sizes="100vw"
+            />
+          </div>
+          <div className="absolute inset-0 bg-black/10" />
         </div>
       ) : (
         <div
           className="absolute inset-0 size-full"
-          style={{ backgroundColor: saleBanner.backgroundColor }}
+          style={{ backgroundColor: sale.backgroundColor }}
         />
       )}
 
       {/* Content */}
       <div className="relative z-10 max-w-4xl px-4 text-red-600">
-        <h2 className="text-4xl font-medium sm:text-5xl lg:text-8xl uppercase">
-          {saleBanner.title}
+        <h2 className="text-5xl font-semibold sm:text-6xl lg:text-8xl uppercase tracking-widest mb-6">
+          {sale.title}
         </h2>
-        <p className="my-2 text-lg font-normal sm:text-2xl">
-          {saleBanner.subtitle}
-        </p>
-        <p className="mb-6 text-4xl font-medium sm:text-8xl">
-          {saleBanner.subtitle2}
-        </p>
+        {maxDiscount > 0 && (
+          <>
+            <p className="text-xl">Hasta</p>
+            <p className="my-6 text-4xl font-semibold sm:text-8xl tracking-wide">
+              {sale.subtitle}
+            </p>
+          </>
+        )}
+
         <Button
           asChild
-          variant="outline"
+          variant="default"
           size="lg"
-          className="border-red-600 bg-red-600 hover:bg-red-500 text-white border-none transition-all duration-300 rounded-none px-8 h-11"
+          className="bg-red-600 text-white hover:bg-red-500 border-none rounded-none px-10 h-12 text-base font-medium"
         >
-          <Link href={saleBanner.ctaLink}>{saleBanner.ctaText}</Link>
+          <Link href={sale.ctaLink}>VER REBAJAS</Link>
         </Button>
       </div>
-      <p className="mb-4 mt-2 text-sm font-normal bottom-0 absolute z-20 text-red-600">
-        {saleBanner.subtitle3}
+
+      <p className="mb-8 bottom-0 absolute z-20 text-red-600 text-xs tracking-widest">
+        {sale.footerText}
       </p>
     </section>
   );

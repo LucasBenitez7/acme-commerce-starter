@@ -4,7 +4,7 @@ import { Gallery, ProductActions } from "@/components/catalog/product-detail";
 
 import { formatCurrency } from "@/lib/currency";
 
-import { useProductDetail } from "@/hooks/products/use-product-detail";
+import { useProductDetail } from "@/hooks/products/store/use-product-detail";
 
 import type { PublicProductDetail } from "@/lib/products/types";
 
@@ -47,8 +47,25 @@ export function ProductClient({
           <h1 className="text-xl font-semibold tracking-tight text-foreground">
             {product.name}
           </h1>
-          <p className="text-base font-medium">
-            {formatCurrency(product.priceCents, product.currency)}
+          <p className="text-base font-medium flex items-center gap-3">
+            {product.compareAtPrice &&
+              product.compareAtPrice > product.priceCents && (
+                <>
+                  <span className="text-muted-foreground line-through text-sm">
+                    {formatCurrency(product.compareAtPrice, product.currency)}
+                  </span>
+                </>
+              )}
+            <span
+              className={
+                product.compareAtPrice &&
+                product.compareAtPrice > product.priceCents
+                  ? "text-red-600 text-lg"
+                  : "text-lg"
+              }
+            >
+              {formatCurrency(product.priceCents, product.currency)}
+            </span>
           </p>
         </div>
 
@@ -60,9 +77,9 @@ export function ProductClient({
           initialIsFavorite={initialIsFavorite}
         />
 
-        <div className="pt-6 border-t space-y-1">
-          <h3 className="font-medium text-sm text-foreground">Descripción</h3>
-          <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
+        <div className="pt-6 border-t space-y-2">
+          <h3 className="font-medium text-base text-foreground">Descripción</h3>
+          <p className="text-sm text-foreground whitespace-pre-line leading-relaxed">
             {product.description || "Sin descripción disponible."}
           </p>
         </div>

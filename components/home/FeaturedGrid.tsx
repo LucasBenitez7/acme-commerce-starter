@@ -4,49 +4,73 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 
-import { homeConfig } from "@/lib/home-config";
+import type { Category } from "@prisma/client";
 
-export default function FeaturedGrid() {
-  const { featuredCollections } = homeConfig;
+interface Props {
+  categories: Category[];
+}
 
+export default function FeaturedGrid({ categories }: Props) {
   return (
-    <section className="relative w-full bg-background">
+    <section className="relative w-full">
       {/* GRID */}
-      <div className="grid w-full grid-cols-1 md:grid-cols-2 py-0.5">
-        {featuredCollections.slice(0, 4).map((item, index) => (
-          <motion.div
-            key={`${item.title}-${index}`}
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
-            viewport={{ once: true }}
-            className="group relative aspect-[4/5] md:aspect-[4/3] w-full overflow-hidden cursor-pointer"
-          >
-            <Link href={item.link} className="block size-full">
-              {/* IMAGE */}
-              <div className="absolute inset-0 size-full">
-                <Image
-                  src={item.src}
-                  alt={item.title}
-                  fill
-                  priority={index < 2}
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  style={{
-                    objectPosition: (item as any).objectPosition || "center",
-                  }}
-                />
-              </div>
+      <div className="grid w-full grid-cols-1 md:grid-cols-2">
+        {categories.slice(0, 4).map((cat, index) => {
+          const productFallback =
+            (cat as any).products?.[0]?.images?.[0]?.url ||
+            "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80";
 
-              {/* TEXT (Bottom Center) */}
-              <div className="absolute bottom-0 left-0 flex flex-col items-center justify-end p-6 pb-6 text-center text-background">
-                <h3 className="text-lg md:text-2xl font-semibold uppercase sm:text-xl font-heading underline sm:no-underline sm:hover:underline underline-offset-4">
-                  {item.title}
-                </h3>
-              </div>
-            </Link>
-          </motion.div>
-        ))}
+          const desktopImageSrc = (cat as any).image || productFallback;
+
+          const mobileImageSrc = (cat as any).mobileImage || desktopImageSrc;
+
+          return (
+            <motion.div
+              key={cat.id}
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              viewport={{ once: true }}
+              className="group relative aspect-[4/5] md:aspect-[4/3] w-full overflow-hidden cursor-pointer"
+            >
+              <Link href={`/cat/${cat.slug}`} className="block size-full">
+                <div className="absolute inset-0 size-full">
+                  <div className="block md:hidden size-full relative">
+                    <Image
+                      src={mobileImageSrc}
+                      alt={cat.name}
+                      fill
+                      priority={index < 2}
+                      className="object-cover object-top"
+                      sizes="100vw"
+                    />
+                  </div>
+
+                  <div className="hidden md:block size-full relative">
+                    <Image
+                      src={desktopImageSrc}
+                      alt={cat.name}
+                      fill
+                      priority={index < 2}
+                      className="object-cover"
+                      sizes="50vw"
+                    />
+                  </div>
+                  <div className="absolute inset-0" />
+                </div>
+
+                <div className="absolute bottom-0 left-0 flex justify-between items-center w-full p-3 space-y-1 text-center text-black z-20">
+                  <h3 className="text-xl md:text-2xl font-bold uppercase tracking-wider">
+                    {cat.name}
+                  </h3>
+                  <span className="underline underline-offset-2 md:opacity-0 md:group-hover:opacity-100 md:group-hover:underline-offset-2 transition-all duration-300 font-medium text-left text-xs md:text-sm">
+                    VER TODOS
+                  </span>
+                </div>
+              </Link>
+            </motion.div>
+          );
+        })}
       </div>
     </section>
   );

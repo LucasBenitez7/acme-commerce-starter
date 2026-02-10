@@ -23,7 +23,7 @@ export function CarouselCard({ product }: CarouselCardProps) {
             alt={product.name}
             fill
             className="object-cover"
-            sizes="(max-width: 768px) 80vw, (max-width: 1200px) 25vw, 20vw"
+            sizes="(max-width: 1200px) 80vw, (max-width: 1200px) 25vw, 20vw"
           />
         </div>
       </Link>
@@ -36,8 +36,23 @@ export function CarouselCard({ product }: CarouselCardProps) {
         >
           {product.name}
         </Link>
-        <p className="text-xs font-medium text-foreground">
-          {formatCurrency(product.priceCents, DEFAULT_CURRENCY)}
+        <p className="text-xs font-medium text-foreground flex items-center gap-2">
+          {product.compareAtPrice &&
+            product.compareAtPrice > product.priceCents && (
+              <span className="text-muted-foreground line-through text-[10px]">
+                {formatCurrency(product.compareAtPrice, DEFAULT_CURRENCY)}
+              </span>
+            )}
+          <span
+            className={
+              product.compareAtPrice &&
+              product.compareAtPrice > product.priceCents
+                ? "text-red-600"
+                : ""
+            }
+          >
+            {formatCurrency(product.priceCents, DEFAULT_CURRENCY)}
+          </span>
         </p>
       </div>
     </div>

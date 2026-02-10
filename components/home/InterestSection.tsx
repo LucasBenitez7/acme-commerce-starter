@@ -2,12 +2,9 @@ import { FaArrowRightLong } from "react-icons/fa6";
 
 import { ProductCarousel } from "@/components/home/carousel/ProductCarousel";
 
-import { homeConfig } from "@/lib/home-config";
 import { getPublicProducts } from "@/lib/products/queries";
 
 export default async function InterestSection() {
-  const { productCarousel } = homeConfig;
-
   const { rows: products } = await getPublicProducts({
     page: 1,
     limit: 8,
@@ -20,7 +17,7 @@ export default async function InterestSection() {
           <FaArrowRightLong className="mr-2 hidden sm:block sm:size-8" />
 
           <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl font-heading uppercase">
-            {productCarousel.title}
+            TE PODRIA INTERESAR
           </h2>
         </div>
 

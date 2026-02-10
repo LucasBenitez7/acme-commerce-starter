@@ -1,50 +1,48 @@
 "use client";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 
 import type { CategoryLink } from "@/lib/categories/types";
 
-export function SiteSidebar({ categories }: { categories: CategoryLink[] }) {
+export function SiteSidebar({
+  categories,
+  maxDiscount,
+}: {
+  categories: CategoryLink[];
+  maxDiscount: number;
+}) {
   const pathname = usePathname();
-  const sp = useSearchParams();
-
-  const [, section = "", sub = ""] = pathname.split("/");
-
-  const catFromPath = section === "cat" ? sub : "";
-  const catFromQuery = sp.get("cat") ?? "";
-  const currentCat = catFromPath || catFromQuery;
 
   const isNovedades = pathname === "/novedades";
-  const isPromociones = pathname === "/promociones";
-  const isCatalogoAll = section === "catalogo" && !currentCat;
+  const isRebajas = pathname === "/rebajas";
+  const isCatalogo = pathname === "/catalogo";
 
   return (
     <aside>
-      <div className="px-6 flex flex-col">
-        <div className="flex flex-col pb-4 space-y-2">
+      <div className="px-6 flex flex-col mt-4">
+        <div className="flex flex-col pb-4 mb-4 space-y-2 border-b border-neutral-300">
+          <Link
+            href="/rebajas"
+            prefetch={false}
+            aria-current={isRebajas ? "page" : undefined}
+            className={cn(
+              "fx-underline-anim w-max text-2xl font-semibold pt-1 text-red-600",
+            )}
+          >
+            Rebajas {maxDiscount > 0 && `-${maxDiscount}%`}
+          </Link>
+
           <Link
             href="/novedades"
             prefetch={false}
             aria-current={isNovedades ? "page" : undefined}
             className={cn(
-              "fx-underline-anim w-max text-2xl font-medium pt-1",
-              isNovedades && "fx-underline-anim-active",
+              "fx-underline-anim w-max text-2xl font-semibold pt-1",
             )}
           >
             Novedades
-          </Link>
-          <Link
-            href="/promociones"
-            prefetch={false}
-            aria-current={isPromociones ? "page" : undefined}
-            className={cn(
-              "fx-underline-anim w-max text-2xl font-medium pt-1",
-              isPromociones && "fx-underline-anim-active",
-            )}
-          >
-            Promociones
           </Link>
         </div>
 
@@ -54,7 +52,7 @@ export function SiteSidebar({ categories }: { categories: CategoryLink[] }) {
             <Link
               href="/catalogo"
               prefetch={false}
-              aria-current={isCatalogoAll ? "page" : undefined}
+              aria-current={isCatalogo ? "page" : undefined}
               className={cn("fx-underline-anim")}
             >
               Todas las prendas
@@ -62,13 +60,11 @@ export function SiteSidebar({ categories }: { categories: CategoryLink[] }) {
           </li>
 
           {categories.map((c: CategoryLink) => {
-            const isActive = currentCat === c.slug;
             return (
               <li key={c.slug}>
                 <Link
                   href={`/cat/${c.slug}`}
                   prefetch={false}
-                  aria-current={isActive ? "page" : undefined}
                   className={cn("fx-underline-anim")}
                 >
                   {c.label}

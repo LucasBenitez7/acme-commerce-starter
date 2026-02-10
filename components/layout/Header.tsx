@@ -35,7 +35,13 @@ import type { CategoryLink } from "@/lib/categories/types";
 
 const SHEET_ID = "site-sidebar";
 
-export function Header({ categories }: { categories: CategoryLink[] }) {
+export function Header({
+  categories,
+  maxDiscount,
+}: {
+  categories: CategoryLink[];
+  maxDiscount: number;
+}) {
   const [open, setOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
@@ -133,12 +139,15 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
             <SheetContent
               id={SHEET_ID}
               side="left"
-              className="w-[min(360px,92vw)] sm:w-[360px] lg:w-[400px] outline-none"
+              className="w-full sm:w-[360px] lg:w-[400px] outline-none"
               onEscapeKeyDown={() => setOpen(false)}
             >
               <div className="overflow-y-auto h-full focus:outline-none">
                 <SheetTitle className="hidden">Menu</SheetTitle>
-                <SiteSidebar categories={categories} />
+                <SiteSidebar
+                  categories={categories}
+                  maxDiscount={maxDiscount}
+                />
               </div>
             </SheetContent>
           </Sheet>

@@ -45,7 +45,12 @@ export default async function FavoritesPage() {
           </Button>
         </div>
       ) : (
-        <ProductGrid items={favorites} favoriteIds={favoriteIds} />
+        <ProductGrid
+          items={favorites}
+          favoriteIds={favoriteIds}
+          className="lg:grid-cols-3"
+          shortenTitle={false}
+        />
       )}
     </section>
   );

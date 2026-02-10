@@ -8,20 +8,52 @@ import { Button } from "@/components/ui/button";
 
 import { homeConfig } from "@/lib/home-config";
 
-export default function HeroSection() {
-  const { hero } = homeConfig;
+import type { StoreConfig } from "@prisma/client";
+
+interface Props {
+  config: StoreConfig | null;
+}
+
+export default function HeroSection({ config }: Props) {
+  const hero = {
+    desktopSrc: config?.heroImage || homeConfig.hero.src,
+    mobileSrc:
+      config?.heroMobileImage || config?.heroImage || homeConfig.hero.src,
+    title: config?.heroTitle || "",
+    subtitle: config?.heroSubtitle || "",
+    ctaText: "VER NOVEDADES",
+    ctaLink: config?.heroLink || "/novedades",
+    overlayOpacity: homeConfig.hero.overlayOpacity,
+  };
 
   return (
-    <section className="relative h-[95vh] w-full overflow-hidden bg-black">
+    <section className="relative h-[95vh] w-full overflow-hidden">
       {/* BACKGROUND MEDIA */}
       <div className="absolute inset-0 size-full">
-        <Image
-          src={hero.src}
-          alt="Hero Background"
-          fill
-          priority
-          className="object-cover"
-        />
+        {/* Mobile Image */}
+        <div className="block md:hidden size-full relative">
+          <Image
+            src={hero.mobileSrc}
+            alt="Hero Background Mobile"
+            fill
+            priority
+            className="object-cover"
+            sizes="100vw"
+          />
+        </div>
+
+        {/* Desktop Image */}
+        <div className="hidden md:block size-full relative">
+          <Image
+            src={hero.desktopSrc}
+            alt="Hero Background Desktop"
+            fill
+            priority
+            className="object-cover"
+            sizes="100vw"
+          />
+        </div>
+
         {/* OVERLAY */}
         <div
           className="absolute inset-0"
@@ -46,10 +78,9 @@ export default function HeroSection() {
           <div className="flex justify-center gap-4">
             <Button
               asChild
-              size="lg"
-              className="bg-white text-foreground hover:bg-neutral-200 hover:text-foreground rounded-none px-8 h-11 text-base font-medium tracking-wider transition-all duration-300"
+              className="bg-white text-foreground hover:bg-neutral-200 hover:text-foreground rounded-none px-8 h-12 text-base font-medium tracking-wider transition-all duration-300"
             >
-              <Link href={hero.ctaLink}>{hero.ctaText}</Link>
+              <Link href={hero.ctaLink}>VER NOVEDADES</Link>
             </Button>
           </div>
         </motion.div>
