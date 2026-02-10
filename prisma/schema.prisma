@@ -99,10 +99,14 @@ model VerificationToken {
 // 2. CATÁLOGO DE PRODUCTOS
 // ==========================================
 model Category {
-  id   String @id @default(cuid())
-  slug String @unique
-  name String
-  sort Int    @default(0)
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  name        String
+  sort        Int       @default(0)
+  isFeatured  Boolean   @default(false)
+  image       String?
+  mobileImage String?
+  featuredAt  DateTime?
 
   parentId String?
   parent   Category?  @relation("SubCategories", fields: [parentId], references: [id])
@@ -123,8 +127,9 @@ model Product {
   sortOrder Int?
 
   // Precio Base
-  priceCents Int
-  currency   String @default("EUR")
+  priceCents     Int
+  compareAtPrice Int?
+  currency       String @default("EUR")
 
   // Relaciones
   categoryId String
@@ -192,6 +197,30 @@ model PresetColor {
   createdAt DateTime @default(now())
 
   @@unique([name, hex])
+}
+
+// ==========================================
+// --- CONFIGURACIÓN DE LA TIENDA (UI) ---
+// ==========================================
+model StoreConfig {
+  id String @id @default(cuid())
+
+  heroImage       String?
+  heroMobileImage String?
+  heroTitle       String? @default("Nueva Colección")
+  heroSubtitle    String? @default("Descubre las últimas tendencias")
+  heroLink        String? @default("/novedades")
+
+  saleImage       String?
+  saleMobileImage String?
+  saleTitle       String? @default("REBAJAS")
+  saleSubtitle    String? @default("Hasta 50% Dto.")
+  saleLink        String? @default("/rebajas")
+
+  saleBackgroundColor String? @default("#171717")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // ==========================================

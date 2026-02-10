@@ -10,6 +10,7 @@ const publicListSelect = {
   slug: true,
   name: true,
   priceCents: true,
+  compareAtPrice: true,
   currency: true,
   isArchived: true,
   category: { select: { name: true, slug: true } },
@@ -44,6 +45,7 @@ function toPublicListItem(row: any): PublicProductListItem {
     name: row.name,
     priceCents: row.priceCents,
     currency: (row.currency ?? "EUR") as any,
+    compareAtPrice: row.compareAtPrice,
     isArchived: row.isArchived,
     category: row.category,
     thumbnail: row.images[0]?.url ?? null,
@@ -60,9 +62,11 @@ type GetAdminProductsParams = {
   query?: string;
   sort?: string;
   categories?: string[];
+  // ...
   status?: string;
   minPrice?: number;
   maxPrice?: number;
+  onSale?: boolean;
 };
 
 export async function getAdminProducts({
@@ -74,6 +78,7 @@ export async function getAdminProducts({
   status,
   minPrice,
   maxPrice,
+  onSale,
 }: GetAdminProductsParams) {
   const skip = (page - 1) * limit;
   const isArchived = status === "archived";
@@ -82,6 +87,9 @@ export async function getAdminProducts({
     isArchived,
     ...(categories.length > 0 && { categoryId: { in: categories } }),
     priceCents: { gte: minPrice, lte: maxPrice },
+    ...(onSale && {
+      compareAtPrice: { gt: prisma.product.fields.priceCents },
+    }),
     ...(query && {
       OR: [
         { name: { contains: query, mode: "insensitive" } },
@@ -171,20 +179,31 @@ export async function getPublicProducts({
   page = 1,
   limit = 12,
   categorySlug,
+  sort,
+  onlyOnSale,
 }: {
   page?: number;
   limit?: number;
   categorySlug?: string;
+  onlyOnSale?: boolean;
+  sort?:
+    | Prisma.ProductOrderByWithRelationInput
+    | Prisma.ProductOrderByWithRelationInput[];
 }) {
   const where: Prisma.ProductWhereInput = {
     isArchived: false,
     ...(categorySlug && { category: { slug: categorySlug } }),
+    ...(onlyOnSale && {
+      compareAtPrice: { gt: prisma.product.fields.priceCents },
+    }),
   };
+
+  const orderBy = sort || [{ sortOrder: "asc" }, { createdAt: "desc" }];
 
   const [rows, total] = await Promise.all([
     prisma.product.findMany({
       where,
-      orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+      orderBy,
       take: limit,
       skip: (page - 1) * limit,
       select: publicListSelect,
@@ -205,6 +224,7 @@ export async function getProductFullBySlug(slug: string) {
       name: true,
       description: true,
       priceCents: true,
+      compareAtPrice: true,
       currency: true,
       isArchived: true,
       category: { select: { id: true, slug: true, name: true } },
@@ -270,4 +290,29 @@ export async function getMaxPrice() {
   });
 
   return product ? product.priceCents / 100 : 0;
+}
+
+export async function getMaxDiscountPercentage() {
+  const products = await prisma.product.findMany({
+    where: {
+      isArchived: false,
+      compareAtPrice: { gt: prisma.product.fields.priceCents },
+    },
+    select: { priceCents: true, compareAtPrice: true },
+  });
+
+  if (products.length === 0) return 0;
+
+  let maxDiscount = 0;
+
+  for (const p of products) {
+    if (p.compareAtPrice && p.compareAtPrice > p.priceCents) {
+      const discount = Math.round(
+        ((p.compareAtPrice - p.priceCents) / p.compareAtPrice) * 100,
+      );
+      if (discount > maxDiscount) maxDiscount = discount;
+    }
+  }
+
+  return maxDiscount;
 }
