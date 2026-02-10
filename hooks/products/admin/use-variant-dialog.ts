@@ -12,7 +12,7 @@ import {
   deletePresetSize,
   deletePresetColor,
 } from "@/app/(admin)/admin/products/_action/attributes-actions";
-import { useVariantGenerator } from "@/hooks/products/use-variant-generator";
+import { useVariantGenerator } from "@/hooks/products/admin/use-variant-generator";
 
 import type { ProductFormValues } from "@/lib/products/schema";
 import type { PresetSize, PresetColor } from "@/lib/products/types";
@@ -52,7 +52,6 @@ export function useVariantDialog({ onGenerate }: UseVariantDialogProps) {
     return rawColors.find((c) => c.name.toLowerCase() === searchName);
   }, [genColorName, rawColors]);
 
-  // ¿Es una actualización? (Existe nombre PERO el hex es diferente)
   const isColorUpdate = useMemo(() => {
     if (!existingColorMatch) return false;
     return existingColorMatch.hex.toLowerCase() !== genColorHex.toLowerCase();

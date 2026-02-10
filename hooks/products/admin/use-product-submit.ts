@@ -20,12 +20,14 @@ export function useProductSubmit(productId?: string) {
       formData.append("name", data.name);
       formData.append("description", data.description || "");
       formData.append("priceCents", String(data.priceCents));
+      if (data.compareAtPrice) {
+        formData.append("compareAtPrice", String(data.compareAtPrice));
+      }
       formData.append("categoryId", data.categoryId);
       formData.append("isArchived", String(data.isArchived));
       if (data.slug) formData.append("slug", data.slug);
       formData.append("sortOrder", String(data.sortOrder ?? ""));
 
-      // JSON strings
       formData.append("imagesJson", JSON.stringify(data.images));
       formData.append("variantsJson", JSON.stringify(data.variants));
 
