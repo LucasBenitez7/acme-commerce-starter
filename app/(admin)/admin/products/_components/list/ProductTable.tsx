@@ -49,6 +49,7 @@ export function ProductTable({ products }: ProductTableProps) {
       <Table>
         <TableHeader className="bg-neutral-50">
           <TableRow>
+            <TableHead className="w-[80px] text-center">Orden</TableHead>
             <TableHead className="w-[80px]">Imagen</TableHead>
             <TableHead>Nombre</TableHead>
             <TableHead>Categoría</TableHead>
@@ -67,6 +68,16 @@ export function ProductTable({ products }: ProductTableProps) {
 
             return (
               <TableRow key={product.id} className="hover:bg-neutral-50">
+                <TableCell className="text-center">
+                  {product.sortOrder ? (
+                    <span className="font-mono text-xs font-medium">
+                      {product.sortOrder}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground text-xs">-</span>
+                  )}
+                </TableCell>
+
                 {/* 1. IMAGEN */}
                 <TableCell className="py-2">
                   <div className="relative h-16 w-12 rounded-xs bg-neutral-100 overflow-hidden">
@@ -105,7 +116,21 @@ export function ProductTable({ products }: ProductTableProps) {
                 </TableCell>
 
                 <TableCell className="font-medium">
-                  {formatCurrency(product.priceCents, currency)}
+                  <div className="flex flex-col">
+                    {product.compareAtPrice &&
+                    product.compareAtPrice > product.priceCents ? (
+                      <>
+                        <span className="text-xs text-muted-foreground line-through">
+                          {formatCurrency(product.compareAtPrice, currency)}
+                        </span>
+                        <span className="text-red-600 text-sm">
+                          {formatCurrency(product.priceCents, currency)}
+                        </span>
+                      </>
+                    ) : (
+                      formatCurrency(product.priceCents, currency)
+                    )}
+                  </div>
                 </TableCell>
 
                 <TableCell className="text-center">

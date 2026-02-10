@@ -53,18 +53,16 @@ export const COLOR_MAP: Record<string, string> = PRODUCT_COLORS.reduce(
 export const INITIAL_CATEGORIES = [
   { slug: "chaquetas", name: "Chaquetas" },
   { slug: "pantalones", name: "Pantalones" },
-  { slug: "vestidos", name: "Vestidos" },
   { slug: "jeans", name: "Jeans" },
   { slug: "jerseys", name: "Jerseys" },
   { slug: "camisetas", name: "Camisetas" },
-  { slug: "ropa-interior", name: "Ropa interior" },
-  { slug: "zapatillas", name: "Zapatillas" },
 ] as const;
 
 // --- SORTING ---
 export const PRODUCT_SORT_OPTIONS = [
   { label: "Más recientes", value: "date_desc" },
   { label: "Más antiguos", value: "date_asc" },
+  { label: "Orden numérico", value: "order_asc" },
   { label: "Nombre ascendente", value: "name_asc" },
   { label: "Nombre descendente", value: "name_desc" },
   { label: "Precio (menor a mayor)", value: "price_asc" },

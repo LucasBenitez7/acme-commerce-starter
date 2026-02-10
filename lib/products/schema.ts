@@ -25,8 +25,13 @@ export const productSchema = z
     slug: z.string().optional().or(z.literal("")),
     description: z.string().min(3, "La descripción es requerida"),
     priceCents: z.coerce.number().min(1, "El precio es requerido"),
+    compareAtPrice: z.coerce.number().optional().nullable(),
     categoryId: z.string().min(1, "Selecciona una categoría"),
     isArchived: z.boolean().default(false),
+    sortOrder: z.preprocess(
+      (val) => (val === "" ? null : val),
+      z.coerce.number().int().optional().nullable(),
+    ),
     images: z.array(productImageSchema).default([]),
     variants: z
       .array(productVariantSchema)

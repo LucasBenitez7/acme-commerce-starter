@@ -50,6 +50,8 @@ export async function getAdminCategories({
     where.products = { some: {} };
   } else if (filter === "empty") {
     where.products = { none: {} };
+  } else if (filter === "featured") {
+    where.isFeatured = true;
   }
 
   // 2. Construir ORDER BY
@@ -91,7 +93,7 @@ export async function getCategoryForEdit(id: string) {
 
 export async function getCategoryOrderList() {
   return prisma.category.findMany({
-    select: { id: true, name: true, sort: true },
+    select: { id: true, name: true, sort: true, isFeatured: true },
     orderBy: { sort: "asc" },
   });
 }

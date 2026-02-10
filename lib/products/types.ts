@@ -33,6 +33,7 @@ export type PublicProductListItem = {
   slug: string;
   name: string;
   priceCents: number;
+  compareAtPrice: number | null;
   currency: SupportedCurrency;
   isArchived: boolean;
   category: { name: string; slug: string };
@@ -49,6 +50,7 @@ export type PublicProductDetail = {
   name: string;
   description: string;
   priceCents: number;
+  compareAtPrice: number | null;
   currency: SupportedCurrency;
   isArchived: boolean;
   category: { id: string; slug: string; name: string };

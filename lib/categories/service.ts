@@ -19,6 +19,9 @@ export const categorySchema = z.object({
   name: z.string().min(3, "Mínimo 3 caracteres").max(50),
   slug: z.string().optional(),
   sort: z.coerce.number().default(0),
+  isFeatured: z.boolean().optional().default(false),
+  image: z.string().optional().nullable(),
+  mobileImage: z.string().optional().nullable(),
 });
 
 export type CategoryInput = z.infer<typeof categorySchema>;
@@ -61,6 +64,10 @@ export async function createCategory(data: CategoryInput) {
       name: data.name,
       slug,
       sort: finalSort,
+      isFeatured: data.isFeatured,
+      featuredAt: data.isFeatured ? new Date() : null,
+      image: data.image,
+      mobileImage: data.mobileImage,
     },
   });
 
@@ -86,12 +93,24 @@ export async function updateCategory(id: string, data: CategoryInput) {
     await makeRoomForSortOrder(data.sort);
   }
 
+  // 3. Gestionar timestamp de destacado
+  let featuredAt = current?.featuredAt;
+  if (data.isFeatured && !current?.isFeatured) {
+    featuredAt = new Date();
+  } else if (!data.isFeatured) {
+    featuredAt = null;
+  }
+
   const res = await prisma.category.update({
     where: { id },
     data: {
       name: data.name,
       slug,
       sort: data.sort,
+      isFeatured: data.isFeatured,
+      featuredAt,
+      image: data.image,
+      mobileImage: data.mobileImage,
     },
   });
 

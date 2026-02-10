@@ -15,7 +15,7 @@ type Props = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
-export default async function CategoryPage({ params, searchParams }: Props) {
+export default async function CatalogPage({ params, searchParams }: Props) {
   const sp = await searchParams;
   const page = Math.max(1, parsePage(sp.page, 1));
 
@@ -29,10 +29,15 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const favoriteIds = await getUserFavoriteIds();
 
   return (
-    <section className="px-4">
+    <section className="pb-4">
       <SectionHeader title="Todas las prendas" />
       <ProductGrid items={rows} favoriteIds={favoriteIds} />
-      <PaginationNav page={page} totalPages={totalPages} base="/catalogo" />
+      <PaginationNav
+        page={page}
+        totalPages={totalPages}
+        base="/catalogo"
+        className="pr-4"
+      />
     </section>
   );
 }

@@ -34,7 +34,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
 
   return (
-    <section className="px-4">
+    <section>
       <SectionHeader title={cat.name} />
       <ProductGrid items={rows} favoriteIds={favoriteIds} />
       <PaginationNav

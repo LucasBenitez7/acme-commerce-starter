@@ -34,7 +34,7 @@ export default async function AdminPage() {
 
       {/* --- SECCIÓN 1: FINANZAS (KPIs Principales) --- */}
       <div>
-        <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
+        <h3 className="text-base font-semibold text-foreground uppercase mb-2">
           Rendimiento Financiero
         </h3>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -115,7 +115,7 @@ export default async function AdminPage() {
 
       {/* --- SECCIÓN 2: INVENTARIO Y PRODUCTOS (NUEVO) --- */}
       <div>
-        <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
+        <h3 className="text-base font-semibold text-foreground uppercase tracking-wider mb-2">
           Inventario y Catálogo (Activo)
         </h3>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -193,7 +193,7 @@ export default async function AdminPage() {
       </div>
       {/* --- SECCIÓN 3: OPERACIONES (Pedidos y Usuarios) --- */}
       <div>
-        <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
+        <h3 className="text-base font-semibold text-foreground uppercase tracking-wider mb-2">
           Actividad
         </h3>
         <div className="grid gap-4 md:grid-cols-3">

@@ -4,7 +4,7 @@ import { FaTriangleExclamation, FaImages } from "react-icons/fa6";
 
 import { cn } from "@/lib/utils";
 
-import { useProductImages } from "@/hooks/products/use-product-images";
+import { useProductImages } from "@/hooks/products/admin/use-product-images";
 
 import { ColorUploadButton } from "./ColorUploadButton";
 import { ImageRow } from "./ImageRow";

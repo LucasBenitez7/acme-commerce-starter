@@ -2,15 +2,10 @@
 
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { FaPlus, FaCheck, FaXmark, FaChevronRight } from "react-icons/fa6";
+import { FaPlus, FaCheck, FaXmark } from "react-icons/fa6";
 import { toast } from "sonner";
 
 import { Button, Input, Label } from "@/components/ui";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import {
   Select,
   SelectContent,
@@ -23,6 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 import { quickCreateCategory } from "@/app/(admin)/admin/categories/actions";
+import { useProductPricing } from "@/hooks/products/admin/use-product-pricing";
 
 import type { ProductFormValues } from "@/lib/products/schema";
 
@@ -42,21 +38,16 @@ export function GeneralSection({ categories: initialCats }: Props) {
   const [isCreatingCat, setIsCreatingCat] = useState(false);
   const [newCatName, setNewCatName] = useState("");
 
-  const [isDescOpen, setIsDescOpen] = useState(false);
-
   const selectedCatId = watch("categoryId");
-  const priceCentsValue = watch("priceCents");
 
-  const [priceInEuros, setPriceInEuros] = useState(
-    priceCentsValue ? (priceCentsValue / 100).toFixed(2) : "",
-  );
-
-  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setPriceInEuros(val);
-    const cents = Math.round(parseFloat(val || "0") * 100);
-    setValue("priceCents", cents, { shouldValidate: true });
-  };
+  // Custom Hook para manejo de precios
+  const {
+    basePriceInput,
+    salePriceInput,
+    handleBaseChange,
+    handleSaleChange,
+    discountPercent,
+  } = useProductPricing();
 
   const handleQuickCreateCat = async () => {
     if (!newCatName.trim()) return;
@@ -76,7 +67,7 @@ export function GeneralSection({ categories: initialCats }: Props) {
     <div className="flex flex-col space-y-6 bg-white p-4 rounded-xs border shadow-sm ">
       <h3 className="text-lg font-medium border-b pb-2">Información General</h3>
 
-      <div className="lg:flex space-y-4 lg:space-y-0 w-full inline-block gap-3">
+      <div className="flex flex-col space-y-4 w-full gap-3">
         <div className="space-y-2 flex-1">
           <Label>Nombre del Producto</Label>
           <Input {...register("name")} placeholder="Ej: Camiseta Oversize" />
@@ -85,28 +76,82 @@ export function GeneralSection({ categories: initialCats }: Props) {
           )}
         </div>
 
-        <div className="space-y-2 w-[150px]">
-          <Label>Precio (Euros)</Label>
-          <div className="relative">
-            <span className="absolute left-3 top-2 text-neutral-500 font-medium">
-              €
-            </span>
-            <Input
-              type="number"
-              step="0.01"
-              min="0"
-              placeholder="0.00"
-              value={priceInEuros}
-              onChange={handlePriceChange}
-              className="pl-8"
-            />
-            {/* Input oculto real que se registra en Zod */}
-            <input type="hidden" {...register("priceCents")} />
+        <div className="flex flex-col gap-4 w-full mb-0">
+          <div className="flex flex-col sm:flex-row gap-4 w-full">
+            {/* INPUT 1: PRECIO BASE / ORIGINAL */}
+            <div className="space-y-2 flex-1">
+              <Label className="text-foreground">Precio Base / Original</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-2 text-neutral-500 font-medium">
+                  €
+                </span>
+                <Input
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="0.00"
+                  value={basePriceInput}
+                  onChange={(e) => handleBaseChange(e.target.value)}
+                  className="pl-8 bg-white"
+                />
+              </div>
+              <p className="text-[10px] text-muted-foreground">
+                El precio normal o de lista. Si no hay oferta, este es el precio
+                de venta.
+              </p>
+            </div>
+
+            {/* INPUT 2: PRECIO OFERTA (OPCIONAL) */}
+            <div className="space-y-2 flex-1">
+              <Label className="text-foreground flex items-center gap-2">
+                Precio Oferta (Opcional)
+                {discountPercent > 0 && (
+                  <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full animate-in zoom-in font-bold">
+                    -{discountPercent}%
+                  </span>
+                )}
+              </Label>
+              <div className="relative">
+                <span className="absolute left-3 top-2 text-neutral-500 font-medium">
+                  €
+                </span>
+                <Input
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="Solo si hay descuento"
+                  value={salePriceInput}
+                  onChange={(e) => handleSaleChange(e.target.value)}
+                  className={cn(
+                    "pl-8 transition-colors",
+                    salePriceInput && discountPercent > 0
+                      ? "border-red-500 text-red-700 bg-red-50"
+                      : "bg-white",
+                  )}
+                />
+              </div>
+              <p className="text-[10px] text-muted-foreground">
+                Si se llena, este será el precio final y el Base aparecerá
+                tachado.
+              </p>
+            </div>
           </div>
-          {errors.priceCents && (
-            <p className="text-red-500 text-xs">El precio es requerido</p>
-          )}
         </div>
+
+        {/* INPUTS OCULTOS REALES */}
+        <input type="hidden" {...register("priceCents")} />
+        <input type="hidden" {...register("compareAtPrice")} />
+      </div>
+
+      <div className="space-y-2 w-fit">
+        <Label>Orden del producto en la lista</Label>
+        <Input
+          type="number"
+          placeholder="Ej: 1"
+          {...register("sortOrder")}
+          className="max-w-[70px] flex"
+        />
+        <p className="text-[10px] text-muted-foreground">
+          Esto es opcional, el orden por defecto es por fecha de creación.
+        </p>
       </div>
 
       {/* CATEGORÍA */}
@@ -178,47 +223,16 @@ export function GeneralSection({ categories: initialCats }: Props) {
       </div>
 
       {/* DESCRIPCIÓN */}
-      <div>
-        <Collapsible
-          open={isDescOpen}
-          onOpenChange={setIsDescOpen}
-          className={cn(
-            "col-span-2 rounded-xs border border-transparent transition-all duration-200",
-          )}
-        >
-          <div className="flex items-center justify-between">
-            <CollapsibleTrigger asChild>
-              <Button
-                variant="ghost"
-                type="button"
-                className={cn(
-                  "w-fit justify-between hover:bg-neutral-50 active:bg-neutral-50 font-medium px-0",
-                )}
-              >
-                <span className="text-sm font-medium text-foreground">
-                  Descripción
-                </span>
-                <FaChevronRight
-                  className={cn(
-                    "size-3.5 text-muted-foreground transition-transform duration-200",
-                    isDescOpen && "rotate-90",
-                  )}
-                />
-              </Button>
-            </CollapsibleTrigger>
-          </div>
-
-          <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
-            <div className="pt-1">
-              <Textarea
-                {...register("description")}
-                placeholder="Detalles del producto, materiales, cuidados..."
-                minRows={5}
-                className="bg-white mb-2"
-              />
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
+      <div className="space-y-2">
+        <Label className="text-sm font-medium text-foreground">
+          Descripción
+        </Label>
+        <Textarea
+          {...register("description")}
+          placeholder="Detalles del producto, materiales, cuidados..."
+          minRows={5}
+          className="bg-white"
+        />
 
         {errors.description && (
           <p className="text-red-500 text-xs">{errors.description.message}</p>

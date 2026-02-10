@@ -8,16 +8,18 @@ import { Image } from "@/components/ui/image";
 import { formatCurrency, DEFAULT_CURRENCY } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 
-import { useProductCard } from "@/hooks/products/use-product-card";
+import { useProductCard } from "@/hooks/products/store/use-product-card";
 
 import type { PublicProductListItem } from "@/lib/products/types";
 
 export function ProductCard({
   item,
   initialIsFavorite = false,
+  shortenTitle = false,
 }: {
   item: PublicProductListItem;
   initialIsFavorite?: boolean;
+  shortenTitle?: boolean;
 }) {
   const {
     imageContainerRef,
@@ -35,12 +37,18 @@ export function ProductCard({
     cartItems,
   } = useProductCard(item);
 
+  const displayName =
+    shortenTitle && item.name.length > 40
+      ? item.name.slice(0, 40) + "..."
+      : item.name;
+
   return (
     <div className="flex flex-col overflow-hidden bg-background transition-all h-full">
       <div
         ref={imageContainerRef}
         className="group/image relative aspect-[3/4] bg-neutral-100 overflow-hidden shrink-0"
       >
+        {/* Link to product detail */}
         <Link href={productUrl} className="block h-full w-full">
           <Image
             src={displayImage}
@@ -129,12 +137,25 @@ export function ProductCard({
         <div className="flex items-start justify-between gap-2">
           <div className="space-y-1 w-full">
             <Link href={productUrl} className="flex">
-              <h3 className="text-sm w-max font-medium leading-tight text-foreground line-clamp-1 hover:underline active:underline underline-offset-3">
-                {item.name}
+              <h3 className="text-sm font-medium leading-tight text-foreground line-clamp-1 hover:underline active:underline underline-offset-3">
+                {displayName}
               </h3>
             </Link>
-            <p className="text-sm font-medium text-foreground">
-              {formatCurrency(item.priceCents, DEFAULT_CURRENCY)}
+            <p className="text-sm font-medium text-foreground flex items-center gap-2">
+              {item.compareAtPrice && item.compareAtPrice > item.priceCents && (
+                <span className="text-muted-foreground line-through text-xs">
+                  {formatCurrency(item.compareAtPrice, DEFAULT_CURRENCY)}
+                </span>
+              )}
+              <span
+                className={
+                  item.compareAtPrice && item.compareAtPrice > item.priceCents
+                    ? "text-red-600"
+                    : ""
+                }
+              >
+                {formatCurrency(item.priceCents, DEFAULT_CURRENCY)}
+              </span>
             </p>
           </div>
           <FavoriteButton

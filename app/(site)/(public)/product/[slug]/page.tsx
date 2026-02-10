@@ -95,7 +95,7 @@ export default async function ProductPage({
             ›
           </span>
           <Link className="hover:text-foreground" href="/catalogo">
-            Catálogo
+            Todas las prendas
           </Link>
           <span aria-hidden className="mx-2">
             ›

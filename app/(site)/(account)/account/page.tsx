@@ -27,7 +27,24 @@ export default async function AccountProfilePage() {
         </h2>
       </div>
 
-      <Card className="overflow-hidden pb-0 mb-2">
+      {!isVerified && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xs p-4 flex flex-col sm:flex-row items-start justify-between gap-4 shadow w-full mb-2">
+          <div className="flex flex-col sm:flex-row">
+            <div>
+              <h3 className="text-sm font-semibold text-blue-800">
+                Tu correo no está verificado
+              </h3>
+              <p className="text-sm text-blue-700">
+                Verifica tu cuenta para asegurar el acceso y recibir
+                notificaciones importantes.
+              </p>
+            </div>
+          </div>
+          <VerifyEmailButton />
+        </div>
+      )}
+
+      <Card className="overflow-hidden pb-0">
         <CardContent className="p-4">
           <div className="grid gap-6 md:grid-cols-2">
             {/* GRUPO 1: INFORMACIÓN BÁSICA */}
@@ -78,23 +95,6 @@ export default async function AccountProfilePage() {
           </div>
         </CardContent>
       </Card>
-
-      {!isVerified && (
-        <div className="bg-blue-50 border border-blue-200 rounded-xs p-4 flex flex-col items-start justify-between gap-4 shadow w-fit">
-          <div className="flex flex-col">
-            <div>
-              <h3 className="text-sm font-semibold text-blue-800">
-                Tu correo no está verificado
-              </h3>
-              <p className="text-sm text-blue-700">
-                Verifica tu cuenta para asegurar el acceso y recibir
-                notificaciones importantes.
-              </p>
-            </div>
-          </div>
-          <VerifyEmailButton />
-        </div>
-      )}
     </div>
   );
 }

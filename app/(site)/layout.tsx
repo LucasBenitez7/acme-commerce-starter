@@ -3,6 +3,7 @@ import "@/app/globals.css";
 import { Header, Footer } from "@/components/layout";
 
 import { getHeaderCategories } from "@/lib/categories/queries";
+import { getMaxDiscountPercentage } from "@/lib/products/queries";
 
 import Providers from "@/app/providers";
 
@@ -18,12 +19,15 @@ export default async function SiteLayout({
 }: {
   children: ReactNode;
 }) {
-  const categories = await getHeaderCategories();
+  const [categories, maxDiscount] = await Promise.all([
+    getHeaderCategories(),
+    getMaxDiscountPercentage(),
+  ]);
 
   return (
     <Providers>
       <div className="flex min-h-dvh flex-col bg-neutral-50 text-neutral-900 font-sans">
-        <Header categories={categories} />
+        <Header categories={categories} maxDiscount={maxDiscount} />
 
         <div className="flex-1 flex flex-col">{children}</div>
 

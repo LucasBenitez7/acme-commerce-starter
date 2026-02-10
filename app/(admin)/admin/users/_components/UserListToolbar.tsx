@@ -31,7 +31,7 @@ export function UserListToolbar() {
           <SelectTrigger
             showIcon={false}
             className={cn(
-              "h-9 w-[200px] font-medium bg-background",
+              "h-9 w-full md:w-[200px] font-medium bg-background",
               activeSort !== "createdAt-desc" && "border-foreground",
             )}
           >

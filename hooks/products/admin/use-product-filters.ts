@@ -13,8 +13,10 @@ export function useProductFilters({
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // --- 1. ESTADOS ---
   const [minPrice, setMinPrice] = useState(searchParams.get("min") || "");
   const [maxPrice, setMaxPrice] = useState(searchParams.get("max") || "");
+  const onSale = searchParams.get("on_sale") === "true";
 
   const activeSort = searchParams.get("sort") || "date_desc";
   const activeCats =
@@ -23,7 +25,8 @@ export function useProductFilters({
   const hasPriceFilter = !!searchParams.get("min") || !!searchParams.get("max");
 
   const hasQuery = !!searchParams.get("q");
-  const hasActiveFilters = activeCats.length > 0 || hasPriceFilter || hasQuery;
+  const hasActiveFilters =
+    activeCats.length > 0 || hasPriceFilter || hasQuery || onSale;
 
   // --- 2. LÓGICA URL ---
   const updateParams = useCallback(
@@ -56,6 +59,10 @@ export function useProductFilters({
       ? activeCats.filter((id) => id !== catId)
       : [...activeCats, catId];
     updateParams({ categories: newCats.length > 0 ? newCats.join(",") : null });
+  };
+
+  const handleOnSaleToggle = () => {
+    updateParams({ on_sale: !onSale ? "true" : null });
   };
 
   // --- VALIDACIÓN DE PRECIO ---
@@ -109,10 +116,12 @@ export function useProductFilters({
     setMaxPrice: (val: string) => setPriceSafe(val, "max"),
     activeSort,
     activeCats,
+    onSale,
     hasActiveFilters,
     hasPriceFilter,
     handleSortChange,
     handleCategoryToggle,
+    handleOnSaleToggle,
     applyPriceFilter,
     clearPriceFilter,
   };

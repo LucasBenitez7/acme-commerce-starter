@@ -35,7 +35,13 @@ import type { CategoryLink } from "@/lib/categories/types";
 
 const SHEET_ID = "site-sidebar";
 
-export function Header({ categories }: { categories: CategoryLink[] }) {
+export function Header({
+  categories,
+  maxDiscount,
+}: {
+  categories: CategoryLink[];
+  maxDiscount: number;
+}) {
   const [open, setOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
@@ -59,17 +65,21 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
 
   useCloseOnNav(closeMenu);
 
+  // Bloquear scroll cuando el menú está abierto
+  if (typeof document !== "undefined") {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+  }
+
   if (hideHeader) return null;
 
   const userInitial =
     typeof user?.name === "string" && user.name.trim() !== ""
       ? user.name.trim().charAt(0).toUpperCase()
       : (user?.email?.charAt(0)?.toUpperCase() ?? null);
-
-  const userLastName =
-    typeof user?.lastName === "string" && user.lastName.trim() !== ""
-      ? user.lastName.trim().charAt(0).toUpperCase()
-      : "";
 
   const showTooltip = mounted && !isSessionLoading && !user;
   const accountTooltip = showTooltip ? "Iniciar sesión" : undefined;
@@ -133,12 +143,15 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
             <SheetContent
               id={SHEET_ID}
               side="left"
-              className="w-[min(360px,92vw)] sm:w-[360px] lg:w-[400px] outline-none"
+              className="w-full sm:w-[360px] lg:w-[400px] outline-none"
               onEscapeKeyDown={() => setOpen(false)}
             >
               <div className="overflow-y-auto h-full focus:outline-none">
                 <SheetTitle className="hidden">Menu</SheetTitle>
-                <SiteSidebar categories={categories} />
+                <SiteSidebar
+                  categories={categories}
+                  maxDiscount={maxDiscount}
+                />
               </div>
             </SheetContent>
           </Sheet>

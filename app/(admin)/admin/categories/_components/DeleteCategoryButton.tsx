@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -24,6 +25,8 @@ export function DeleteCategoryButton({ id, hasProducts }: Props) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const router = useRouter();
+
   const handleOpenCheck = () => {
     if (hasProducts) {
       toast.error("No puedes borrar una categoría con productos.", {
@@ -44,6 +47,7 @@ export function DeleteCategoryButton({ id, hasProducts }: Props) {
         toast.success("Categoría eliminada correctamente");
         setOpen(false);
       }
+      router.push("/admin/categories");
     } catch {
       toast.error("Error inesperado al eliminar.");
     } finally {
