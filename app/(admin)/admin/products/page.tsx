@@ -21,6 +21,7 @@ type Props = {
     max?: string;
     q?: string;
     page?: string;
+    on_sale?: string;
   }>;
 };
 
@@ -45,6 +46,7 @@ export default async function AdminProductsPage({ searchParams }: Props) {
 
   const minCents = parseCents(sp.min);
   const maxCents = parseCents(sp.max);
+  const onSale = sp.on_sale === "true";
 
   // Queries
   const [productsData, globalMaxPrice] = await Promise.all([
@@ -56,6 +58,7 @@ export default async function AdminProductsPage({ searchParams }: Props) {
       status,
       minPrice: minCents,
       maxPrice: maxCents,
+      onSale,
     }),
     getMaxPrice(),
   ]);
@@ -68,7 +71,7 @@ export default async function AdminProductsPage({ searchParams }: Props) {
   return (
     <div className="space-y-4">
       <div className="flex sm:flex-row sm:items-center justify-between gap-4 border-b pb-2">
-        <h1 className="text-2xl font-bold tracking-tight">Productos</h1>
+        <h1 className="text-2xl lg:text-3xl font-semibold">Productos</h1>
 
         <Link
           href="/admin/products/new"

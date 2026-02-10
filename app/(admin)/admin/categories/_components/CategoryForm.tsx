@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
+import { FaArrowUpRightFromSquare } from "react-icons/fa6";
 import { toast } from "sonner";
 
-import { Button, Input, Label } from "@/components/ui";
+import { Button, Input, Label, Switch } from "@/components/ui";
 
+import { SingleImageUpload } from "../../settings/_components/SingleImageUpload";
 import {
   createCategoryAction,
   updateCategoryAction,
@@ -20,6 +22,9 @@ type Props = {
     name: string;
     slug: string;
     sort: number;
+    isFeatured?: boolean;
+    image?: string | null;
+    mobileImage?: string | null;
   };
   existingCategories?: { id: string; name: string; sort: number }[];
 };
@@ -30,6 +35,13 @@ const INITIAL_STATE: CategoryFormState = {
 };
 
 export function CategoryForm({ category, existingCategories = [] }: Props) {
+  const [imageUrl, setImageUrl] = useState<string | null>(
+    category?.image || null,
+  );
+  const [mobileImageUrl, setMobileImageUrl] = useState<string | null>(
+    category?.mobileImage || null,
+  );
+  const [isFeatured, setIsFeatured] = useState(!!category?.isFeatured);
   const isEditing = !!category;
 
   const action = isEditing
@@ -49,7 +61,7 @@ export function CategoryForm({ category, existingCategories = [] }: Props) {
   }, [state]);
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[300px_1fr] items-start">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[360px_1fr] items-start">
       {/* COLUMNA IZQUIERDA */}
       <div className="lg:block">
         <CategorySortPreview
@@ -59,26 +71,44 @@ export function CategoryForm({ category, existingCategories = [] }: Props) {
       </div>
 
       {/* COLUMNA DERECHA*/}
-      <form action={formAction} className="space-y-6">
-        <div className="grid gap-6 bg-background px-4 py-6 rounded-xs border shadow-sm">
+      <form action={formAction} className="space-y-4">
+        <div className="grid space-y-6 bg-background px-4 py-6 rounded-xs border shadow-sm">
           <div className="space-y-2">
-            <Label htmlFor="name">Nombre</Label>
-            <Input
-              id="name"
-              name="name"
-              defaultValue={category?.name}
-              placeholder="Ej: Zapatillas"
-              autoFocus={!isEditing}
-              aria-invalid={!!state.errors?.name}
-              className={state.errors?.name ? "border-red-500" : ""}
-            />
+            <Label htmlFor="name" className="w-fit pointer-events-none">
+              Nombre
+            </Label>
+            <div className="grid grid-cols-[1fr_auto] gap-2 items-center">
+              <Input
+                id="name"
+                name="name"
+                defaultValue={category?.name}
+                placeholder="Ej: Zapatillas"
+                autoFocus={!isEditing}
+                aria-invalid={!!state.errors?.name}
+                className={state.errors?.name ? "border-red-500" : ""}
+              />
+              {isEditing && (
+                <Link
+                  href={`/cat/${category?.slug}`}
+                  target="_blank"
+                  className="text-xs fx-underline-anim font-medium mt-2"
+                >
+                  Ver en Tienda
+                  <span>
+                    <FaArrowUpRightFromSquare className="size-3.5 inline-block mb-1 ml-2" />
+                  </span>
+                </Link>
+              )}
+            </div>
             {state.errors?.name && (
               <p className="text-red-500 text-xs">{state.errors.name[0]}</p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="sort">Prioridad (Orden)</Label>
+            <Label htmlFor="sort" className="w-fit pointer-events-none">
+              Prioridad (Orden)
+            </Label>
             <Input
               id="sort"
               name="sort"
@@ -92,12 +122,80 @@ export function CategoryForm({ category, existingCategories = [] }: Props) {
           </div>
         </div>
 
+        <div className="flex flex-col rounded-xs border p-4 shadow-sm bg-background">
+          <div className="flex flex-row items-center justify-between ">
+            <div className="space-y-0.5">
+              <Label
+                htmlFor="isFeatured"
+                className="text-base font-semibold text-foreground flex items-center gap-2"
+              >
+                Destacada en Home
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Activa esto si quieres que esta categoría aparezca en la sección
+                principal de la tienda.
+              </p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="isFeatured"
+                checked={isFeatured}
+                onCheckedChange={setIsFeatured}
+                className="data-[state=checked]:bg-yellow-500 hover:cursor-pointer"
+              />
+              <input
+                type="hidden"
+                name="isFeatured"
+                value={isFeatured ? "on" : "off"}
+              />
+            </div>
+          </div>
+
+          <div className="animate-in fade-in slide-in-from-top-4 duration-300 space-y-4">
+            <div className="space-y-2 pt-4 border-t mt-4">
+              <Label>Imagen de Portada en pantallas grandes (4:3)</Label>
+              <SingleImageUpload
+                value={imageUrl}
+                onChange={setImageUrl}
+                label="Subir Imagen (4:3)"
+                className="aspect-[4/3] w-full max-w-[500px]"
+              />
+              <p className="text-xs text-muted-foreground">
+                Se recomienda una imagen en formato rectangular 4:3. Esta imagen
+                se usará en la grilla de la home, si no se sube, se usará la del
+                último producto.
+              </p>
+            </div>
+
+            <div className="space-y-2 pt-6 border-t">
+              <Label>Imagen de Portada en Mobile (4:5)</Label>
+              <SingleImageUpload
+                value={mobileImageUrl}
+                onChange={setMobileImageUrl}
+                label="Subir Imagen Mobile"
+                className="aspect-[4/5] w-full max-w-[300px]"
+              />
+              <p className="text-xs text-muted-foreground">
+                Se recomienda formato vertical 4:5. Si no se sube, se usará la
+                imagen de portada de pantallas grandes o la del último producto.
+              </p>
+            </div>
+          </div>
+
+          <input type="hidden" name="image" value={imageUrl || ""} />
+          <input
+            type="hidden"
+            name="mobileImage"
+            value={mobileImageUrl || ""}
+          />
+        </div>
+
         <div className="flex items-center justify-end gap-3">
           <Button
             variant="outline"
             asChild
             type="button"
-            className="p-3 flex-1 lg:flex-0"
+            className="p-3 px-6 flex-1 lg:flex-0"
           >
             <Link href="/admin/categories">Cancelar</Link>
           </Button>
@@ -105,7 +203,7 @@ export function CategoryForm({ category, existingCategories = [] }: Props) {
             type="submit"
             variant={"default"}
             disabled={isPending}
-            className="p-3 flex-1 lg:flex-0"
+            className="p-3 px-6 flex-1 lg:flex-0"
           >
             {isPending ? "Guardando..." : isEditing ? "Guardar" : "Crear"}
           </Button>

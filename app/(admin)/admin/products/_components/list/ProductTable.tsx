@@ -116,7 +116,21 @@ export function ProductTable({ products }: ProductTableProps) {
                 </TableCell>
 
                 <TableCell className="font-medium">
-                  {formatCurrency(product.priceCents, currency)}
+                  <div className="flex flex-col">
+                    {product.compareAtPrice &&
+                    product.compareAtPrice > product.priceCents ? (
+                      <>
+                        <span className="text-xs text-muted-foreground line-through">
+                          {formatCurrency(product.compareAtPrice, currency)}
+                        </span>
+                        <span className="text-red-600 text-sm">
+                          {formatCurrency(product.priceCents, currency)}
+                        </span>
+                      </>
+                    ) : (
+                      formatCurrency(product.priceCents, currency)
+                    )}
+                  </div>
                 </TableCell>
 
                 <TableCell className="text-center">

@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { productSchema, type ProductFormValues } from "@/lib/products/schema";
 import { sortVariantsHelper } from "@/lib/products/utils";
 
-import { useProductSubmit } from "@/hooks/products/use-product-submit";
+import { useProductSubmit } from "@/hooks/products/admin/use-product-submit";
 
 type ProductWithId = ProductFormValues & { id: string };
 
@@ -33,6 +33,7 @@ export function ProductFormProvider({ children, product }: Props) {
       name: product?.name || "",
       description: product?.description || "",
       priceCents: product?.priceCents || 0,
+      compareAtPrice: product?.compareAtPrice || null,
       categoryId: product?.categoryId || "",
       isArchived: product?.isArchived || false,
       sortOrder: product?.sortOrder ?? null,

@@ -42,14 +42,14 @@ export default async function AdminUsersPage({ searchParams }: Props) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold border-b w-full pb-2">
+        <h1 className="text-2xl lg:text-3xl font-semibold border-b w-full pb-2">
           Clientes / Usuarios
         </h1>
       </div>
 
       <Card>
         <CardHeader className="p-4 border-b flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <CardTitle className="text-lg font-semibold">
+          <CardTitle className="text-lg font-semibold text-left flex items-center justify-start w-full md:w-fit">
             Total <span className="text-base">({totalCount})</span>
           </CardTitle>
           <div className="w-full md:w-auto">

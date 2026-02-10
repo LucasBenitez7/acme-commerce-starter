@@ -46,6 +46,7 @@ export function CategoryTable({
         <TableHeader className="bg-neutral-50">
           <TableRow>
             <TableHead className="w-[80px] text-center">Orden</TableHead>
+            <TableHead className="text-center">Destacada</TableHead>
             <TableHead>Nombre</TableHead>
             <TableHead>Creado</TableHead>
             <TableHead className="text-center">Productos</TableHead>
@@ -58,6 +59,20 @@ export function CategoryTable({
               {/* 1. ORDEN */}
               <TableCell className="text-center font-mono text-xs font-medium py-4">
                 {cat.sort}
+              </TableCell>
+
+              {/* 2. DESTACADA */}
+              <TableCell className="text-center py-3">
+                {cat.isFeatured ? (
+                  <Badge
+                    variant="secondary"
+                    className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-yellow-200 gap-1.5"
+                  >
+                    Destacada
+                  </Badge>
+                ) : (
+                  <span></span>
+                )}
               </TableCell>
 
               <TableCell className="py-3">

@@ -35,6 +35,11 @@ export async function createCategoryAction(
       name: String(formData.get("name") || ""),
       slug: String(formData.get("slug") || "") || undefined,
       sort: formData.get("sort"),
+      isFeatured: formData.get("isFeatured") === "on",
+      image: formData.get("image") ? String(formData.get("image")) : null,
+      mobileImage: formData.get("mobileImage")
+        ? String(formData.get("mobileImage"))
+        : null,
     };
 
     const validated = categorySchema.safeParse(rawData);
@@ -64,6 +69,11 @@ export async function updateCategoryAction(
       name: String(formData.get("name") || ""),
       slug: String(formData.get("slug") || "") || undefined,
       sort: formData.get("sort"),
+      isFeatured: formData.get("isFeatured") === "on",
+      image: formData.get("image") ? String(formData.get("image")) : null,
+      mobileImage: formData.get("mobileImage")
+        ? String(formData.get("mobileImage"))
+        : null,
     };
 
     const validated = categorySchema.safeParse(rawData);

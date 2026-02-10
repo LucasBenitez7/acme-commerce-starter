@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useCallback } from "react";
 import { CgClose } from "react-icons/cg";
+import { FaUserShield } from "react-icons/fa6";
 import { RiMenu2Line } from "react-icons/ri";
 
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,13 @@ export function AdminHeader({ user }: Props) {
 
   useCloseOnNav(closeMenu);
 
+  const getAdminName = () => {
+    if (!user?.name) return "Admin";
+    const parts = user.name.trim().split(/\s+/);
+    if (parts.length >= 4) return `${parts[0]} ${parts[2]}`;
+    return `${parts[0]} ${parts[1] || ""}`.trim();
+  };
+
   return (
     <header className="sticky top-0 z-[100] w-full border-b bg-background h-14 grid grid-cols-[1fr_auto_1fr] items-center px-4">
       <div className="flex justify-self-start items-center">
@@ -57,21 +65,27 @@ export function AdminHeader({ user }: Props) {
 
           <SheetContent
             side="left"
-            className="w-full sm:w-[300px] p-0 outline-none border-r"
+            className="w-full sm:w-[340px] p-0 outline-none border-r"
           >
             <SheetTitle className="hidden">Admin Menu</SheetTitle>
-            <AdminSidebar user={user} />
+            <AdminSidebar />
           </SheetContent>
         </Sheet>
       </div>
 
-      {/* CENTRO: Logo */}
       <Link
         href="/"
-        className="text-lg font-bold tracking-tight flex items-center gap-2 justify-self-center"
+        className="text-2xl font-bold tracking-tight flex items-center gap-2 justify-self-center"
       >
-        LSB Admin
+        LSB SHOP
       </Link>
+
+      <div className="flex items-center gap-3 shrink-0 justify-self-end pr-2">
+        <h1 className="flex items-center gap-2 text-lg font-semibold">
+          <FaUserShield className="size-5" />
+          {getAdminName()}
+        </h1>
+      </div>
     </header>
   );
 }

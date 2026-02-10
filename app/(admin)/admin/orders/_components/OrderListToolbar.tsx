@@ -58,29 +58,23 @@ export function OrderListToolbar() {
               variant="outline"
               className={cn(
                 "relative border border-border h-9",
-                hasActiveFilters && "border-foreground bg-accent/50",
+                hasActiveFilters && "border-foreground",
               )}
             >
               <FaFilter className="size-3.5 text-foreground mr-2" />
               Filtrar
-              {hasActiveFilters && (
-                <span className="ml-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-foreground text-[10px] text-background font-bold">
-                  {activePaymentStatuses.length +
-                    activeFulfillmentStatuses.length}
-                </span>
-              )}
             </Button>
           </PopoverTrigger>
 
           <PopoverContent
-            className="w-[280px] p-2 translate-x-8 lg:translate-x-0"
+            className="w-[280px] p-0 translate-x-8 lg:translate-x-0"
             align="end"
           >
-            <div className="space-y-1 max-h-[400px] overflow-y-auto pr-1">
+            <div className="space-y-1 max-h-[400px] overflow-y-auto">
               {/* SECCIÓN 1: ESTADO DE PAGO */}
               <div
                 className={cn(
-                  "rounded-sm transition-all",
+                  "transition-all",
                   isPaymentOpen && "bg-neutral-50 pb-2",
                 )}
               >
@@ -89,12 +83,12 @@ export function OrderListToolbar() {
                   onClick={() => setIsPaymentOpen(!isPaymentOpen)}
                   className="w-full justify-between h-8 hover:bg-neutral-100 px-2"
                 >
-                  <span className="text-xs font-bold uppercase text-neutral-500">
+                  <span className="text-sm font-medium text-foreground">
                     Pago
                   </span>
                   <FaChevronRight
                     className={cn(
-                      "size-3 transition-transform duration-200 text-neutral-400",
+                      "size-3 transition-transform duration-200 text-foreground",
                       isPaymentOpen && "rotate-90",
                     )}
                   />
@@ -110,11 +104,11 @@ export function OrderListToolbar() {
                         <div
                           key={status.value}
                           onClick={() => togglePaymentStatus(status.value)}
-                          className="flex items-center gap-2 py-1.5 rounded-sm cursor-pointer px-2 hover:bg-neutral-200/50 text-sm select-none transition-colors"
+                          className="flex items-center gap-2 py-1.5 rounded-xs cursor-pointer px-2 hover:bg-neutral-200/50 text-sm select-none transition-colors"
                         >
                           <div
                             className={cn(
-                              "w-4 h-4 border rounded-sm flex items-center justify-center transition-colors bg-white",
+                              "w-4 h-4 border rounded-xs flex items-center justify-center transition-colors bg-white",
                               isSelected
                                 ? "bg-black border-black text-white"
                                 : "border-neutral-300",
@@ -141,8 +135,8 @@ export function OrderListToolbar() {
               {/* SECCIÓN 2: ESTADO DE ENVÍO */}
               <div
                 className={cn(
-                  "rounded-sm transition-all mt-1",
-                  isFulfillmentOpen && "bg-neutral-50 pb-2",
+                  "transition-all mt-1",
+                  isFulfillmentOpen && "bg-neutral-50 pb-1",
                 )}
               >
                 <Button
@@ -150,12 +144,12 @@ export function OrderListToolbar() {
                   onClick={() => setIsFulfillmentOpen(!isFulfillmentOpen)}
                   className="w-full justify-between h-8 hover:bg-neutral-100 px-2"
                 >
-                  <span className="text-xs font-bold uppercase text-neutral-500">
+                  <span className="text-sm font-medium text-foreground">
                     Logística
                   </span>
                   <FaChevronRight
                     className={cn(
-                      "size-3 transition-transform duration-200 text-neutral-400",
+                      "size-3 transition-transform duration-200 text-foreground",
                       isFulfillmentOpen && "rotate-90",
                     )}
                   />
@@ -171,11 +165,11 @@ export function OrderListToolbar() {
                         <div
                           key={status.value}
                           onClick={() => toggleFulfillmentStatus(status.value)}
-                          className="flex items-center gap-2 py-1.5 rounded-sm cursor-pointer px-2 hover:bg-neutral-200/50 text-sm select-none transition-colors"
+                          className="flex items-center gap-2 py-1.5 rounded-xs cursor-pointer px-2 hover:bg-neutral-200/50 text-sm select-none transition-colors"
                         >
                           <div
                             className={cn(
-                              "w-4 h-4 border rounded-sm flex items-center justify-center transition-colors bg-white",
+                              "w-4 h-4 border rounded-xs flex items-center justify-center transition-colors bg-white",
                               isSelected
                                 ? "bg-black border-black text-white"
                                 : "border-neutral-300",
@@ -201,11 +195,11 @@ export function OrderListToolbar() {
 
               {/* BOTÓN LIMPIAR */}
               {hasActiveFilters && (
-                <div className="pt-2 border-t mt-2">
+                <div className="p-1 pt-0">
                   <Button
-                    variant="secondary"
+                    variant="default"
                     size="sm"
-                    className="w-full h-8"
+                    className="w-full h-9"
                     onClick={() =>
                       updateParams({
                         payment_filter: null,

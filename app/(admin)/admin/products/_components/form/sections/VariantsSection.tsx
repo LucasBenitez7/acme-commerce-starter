@@ -16,7 +16,7 @@ import {
 import { type ProductFormValues } from "@/lib/products/schema";
 import { cn } from "@/lib/utils";
 
-import { useVariantsTable } from "@/hooks/products/use-variants-table";
+import { useVariantsTable } from "@/hooks/products/admin/use-variants-table";
 
 import { VariantGeneratorDialog } from "../dialogs/VariantGeneratorDialog";
 

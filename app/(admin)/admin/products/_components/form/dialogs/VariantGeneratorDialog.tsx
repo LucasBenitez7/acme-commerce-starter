@@ -7,7 +7,6 @@ import {
   FaWandMagicSparkles,
   FaPlus,
   FaRotate,
-  FaCheck,
 } from "react-icons/fa6";
 import { ImSpinner8 } from "react-icons/im";
 
@@ -35,7 +34,7 @@ import { Separator } from "@/components/ui/separator";
 
 import { cn } from "@/lib/utils";
 
-import { useVariantDialog } from "@/hooks/products/use-variant-dialog";
+import { useVariantDialog } from "@/hooks/products/admin/use-variant-dialog";
 
 import { ColorChip, SizeChip } from "./VariantChips";
 
@@ -120,7 +119,7 @@ export function VariantGeneratorDialog({ onGenerate }: Props) {
           </Button>
         </DialogTrigger>
 
-        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="md:max-w-xl  max-h-[85vh] mt-6 overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Generador de Variantes</DialogTitle>
             <DialogDescription>

@@ -1,4 +1,8 @@
+import Link from "next/link";
+import { FaPencil } from "react-icons/fa6";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 import { cn } from "@/lib/utils";
 
@@ -6,6 +10,7 @@ type CategorySimple = {
   id: string;
   name: string;
   sort: number;
+  isFeatured?: boolean;
 };
 
 interface Props {
@@ -15,15 +20,15 @@ interface Props {
 
 export function CategorySortPreview({ existingCategories, currentId }: Props) {
   return (
-    <div className="bg-neutral-50 border rounded-xs p-4 space-y-3 h-fit">
+    <div className="bg-background border rounded-xs p-4 px-3 space-y-3 h-fit">
       <div className="space-y-1">
-        <h3 className="font-semibold text-sm">Orden Actual</h3>
+        <h3 className="font-semibold text-base">Orden Actual del Menu</h3>
         <p className="text-xs text-muted-foreground">
           Referencia para elegir la prioridad.
         </p>
       </div>
 
-      <div className="space-y-2 overflow-y-auto pr-2 scrollbar-thin">
+      <div className="space-y-2 overflow-y-auto scrollbar-thin">
         {existingCategories.length === 0 && (
           <p className="text-xs text-neutral-400 italic">
             No hay categorías aún.
@@ -33,25 +38,54 @@ export function CategorySortPreview({ existingCategories, currentId }: Props) {
         {existingCategories.map((cat) => {
           const isCurrent = cat.id === currentId;
           return (
-            <div
-              key={cat.id}
-              className={cn(
-                "flex items-center gap-3 p-2 rounded-xs text-sm border transition-colors",
-                isCurrent
-                  ? "bg-foreground text-background"
-                  : "bg-background border hover:border-neutral-200",
-              )}
-            >
-              <Badge
-                variant={isCurrent ? "default" : "secondary"}
+            <div key={cat.id} className="flex items-center gap-2 group">
+              <div
                 className={cn(
-                  "w-6 h-6 flex items-center font-semibold justify-center text-xs border border-neutral-300",
-                  isCurrent && "text-background",
+                  "flex items-center gap-3 p-2 rounded-xs text-sm border transition-colors flex-1 min-w-0",
+                  isCurrent
+                    ? "bg-foreground text-background"
+                    : "bg-background border hover:border-neutral-200",
                 )}
               >
-                {cat.sort}
-              </Badge>
-              <span className={cn("truncate font-medium")}>{cat.name}</span>
+                <Badge
+                  variant={isCurrent ? "default" : "secondary"}
+                  className={cn(
+                    "w-6 h-6 flex items-center font-semibold justify-center text-xs flex-shrink-0",
+                    isCurrent && "text-background",
+                  )}
+                >
+                  {cat.sort}
+                </Badge>
+                <span className={cn("truncate font-medium flex-1")}>
+                  {cat.name}
+                </span>
+                {cat.isFeatured && (
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "text-[10px] px-1.5 h-5 border-yellow-500 text-yellow-600 bg-yellow-50 flex-shrink-0",
+                      isCurrent &&
+                        "border-white/30 text-yellow-200 bg-transparent",
+                    )}
+                  >
+                    Destacada
+                  </Badge>
+                )}
+              </div>
+
+              <Button
+                variant="ghost"
+                asChild
+                className="h-10 w-10 hover:bg-blue-600 active:bg-blue-600 hover:text-white active:text-white flex-shrink-0"
+              >
+                {!isCurrent ? (
+                  <Link href={`/admin/categories/${cat.id}`}>
+                    <FaPencil className="size-3" />
+                  </Link>
+                ) : (
+                  <FaPencil className="size-3 opacity-0 pointer-events-none" />
+                )}
+              </Button>
             </div>
           );
         })}

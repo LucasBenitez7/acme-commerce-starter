@@ -43,6 +43,7 @@ export async function upsertProductAction(
       name: formData.get("name"),
       description: formData.get("description"),
       priceCents: Number(formData.get("priceCents")),
+      compareAtPrice: Number(formData.get("compareAtPrice")) || null,
       categoryId: formData.get("categoryId"),
       isArchived: formData.get("isArchived") === "true",
       sortOrder: Number(formData.get("sortOrder")) || null,

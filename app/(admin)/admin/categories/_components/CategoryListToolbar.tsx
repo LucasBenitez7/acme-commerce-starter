@@ -75,21 +75,32 @@ export function CategoryListToolbar() {
             className="w-[200px] p-0 lg:-translate-x-1/4"
             align="start"
           >
-            <div className="py-2 px-1 space-y-1 font-medium">
+            <div className="py-2 font-medium">
               <div
                 onClick={() => updateParams({ filter: "all" })}
                 className={cn(
-                  "px-2 py-1.5 text-sm cursor-pointer hover:bg-neutral-100 transition-colors",
-                  currentFilter === "all" && "bg-neutral-100",
+                  "p-2 text-sm cursor-pointer hover:bg-neutral-100 transition-colors",
+                  currentFilter === "all" && "",
                 )}
               >
                 Todas
               </div>
               <div
+                onClick={() => updateParams({ filter: "featured" })}
+                className={cn(
+                  "p-2 text-sm cursor-pointer hover:bg-neutral-100 transition-colors",
+                  currentFilter === "featured" &&
+                    "bg-foreground text-background hover:bg-foreground hover:text-background pointer-events-none",
+                )}
+              >
+                Destacadas
+              </div>
+              <div
                 onClick={() => updateParams({ filter: "with_products" })}
                 className={cn(
-                  "px-2 py-1.5 text-sm cursor-pointer hover:bg-neutral-100 transition-colors",
-                  currentFilter === "with_products" && "bg-neutral-100",
+                  "p-2 text-sm cursor-pointer hover:bg-neutral-100 transition-colors",
+                  currentFilter === "with_products" &&
+                    "bg-foreground text-background hover:bg-foreground hover:text-background pointer-events-none",
                 )}
               >
                 Con productos
@@ -97,8 +108,9 @@ export function CategoryListToolbar() {
               <div
                 onClick={() => updateParams({ filter: "empty" })}
                 className={cn(
-                  "px-2 py-1.5 text-sm cursor-pointer hover:bg-neutral-100 transition-colors",
-                  currentFilter === "empty" && "bg-neutral-100",
+                  "p-2 text-sm cursor-pointer hover:bg-neutral-100 transition-colors",
+                  currentFilter === "empty" &&
+                    "bg-foreground text-background hover:bg-foreground hover:text-background pointer-events-none",
                 )}
               >
                 Vacías
