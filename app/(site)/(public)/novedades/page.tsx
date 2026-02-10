@@ -6,6 +6,8 @@ import { SectionHeader } from "@/components/catalog/SectionHeader";
 
 import { getPublicProducts } from "@/lib/products/queries";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Novedades | Acme Store",
   description: "Descubre los últimos productos añadidos a nuestra colección.",
