@@ -44,48 +44,71 @@ export function AdminHeader({ user }: Props) {
     return `${parts[0]} ${parts[1] || ""}`.trim();
   };
 
+  // Bloquear scroll cuando el menú está abierto
+  if (typeof document !== "undefined") {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+  }
+
   return (
-    <header className="sticky top-0 z-[100] w-full border-b bg-background h-14 grid grid-cols-[1fr_auto_1fr] items-center px-4">
-      <div className="flex justify-self-start items-center">
-        <Sheet open={open} onOpenChange={setOpen} modal={false}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" className="relative px-2" aria-label="Menu">
-              <RiMenu2Line
-                className={`size-6 transition-all duration-300 ease-in-out ${
-                  open ? "scale-0 opacity-0" : "scale-100 opacity-100"
-                }`}
-              />
-              <CgClose
-                className={`absolute size-6 transition-all duration-300 ease-in-out ${
-                  open ? "scale-100 opacity-100" : "scale-0 opacity-0"
-                }`}
-              />
-            </Button>
-          </SheetTrigger>
+    <>
+      <header className="sticky top-0 z-[100] w-full border-b bg-background h-14 grid grid-cols-[1fr_auto_1fr] items-center px-4">
+        <div className="flex justify-self-start items-center">
+          <Sheet open={open} onOpenChange={setOpen} modal={false}>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                className="relative px-2"
+                aria-label="Menu"
+              >
+                <RiMenu2Line
+                  className={`size-6 transition-all duration-300 ease-in-out ${
+                    open ? "scale-0 opacity-0" : "scale-100 opacity-100"
+                  }`}
+                />
+                <CgClose
+                  className={`absolute size-6 transition-all duration-300 ease-in-out ${
+                    open ? "scale-100 opacity-100" : "scale-0 opacity-0"
+                  }`}
+                />
+              </Button>
+            </SheetTrigger>
 
-          <SheetContent
-            side="left"
-            className="w-full sm:w-[340px] p-0 outline-none border-r"
-          >
-            <SheetTitle className="hidden">Admin Menu</SheetTitle>
-            <AdminSidebar />
-          </SheetContent>
-        </Sheet>
-      </div>
+            <SheetContent
+              side="left"
+              className="w-full sm:w-[340px] p-0 outline-none border-r"
+            >
+              <SheetTitle className="hidden">Admin Menu</SheetTitle>
+              <AdminSidebar />
+            </SheetContent>
+          </Sheet>
+        </div>
 
-      <Link
-        href="/"
-        className="text-2xl font-bold tracking-tight flex items-center gap-2 justify-self-center"
-      >
-        LSB SHOP
-      </Link>
+        <Link
+          href="/"
+          className="text-2xl font-bold tracking-tight flex items-center gap-2 justify-self-center"
+        >
+          LSB SHOP
+        </Link>
 
-      <div className="flex items-center gap-3 shrink-0 justify-self-end pr-2">
-        <h1 className="flex items-center gap-2 text-lg font-semibold">
-          <FaUserShield className="size-5" />
-          {getAdminName()}
-        </h1>
-      </div>
-    </header>
+        <div className="flex items-center gap-3 shrink-0 justify-self-end pr-2">
+          <h1 className="flex items-center gap-2 text-lg font-semibold">
+            <FaUserShield className="size-5" />
+            {getAdminName()}
+          </h1>
+        </div>
+      </header>
+
+      {/* Overlay para bloquear contenido debajo del header */}
+      <div
+        aria-hidden="true"
+        onClick={() => open && setOpen(false)}
+        className={`fixed inset-x-0 bottom-0 top-14 z-[90] bg-black/40 print:hidden transition-opacity duration-300 ease-in-out
+				${open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+      />
+    </>
   );
 }

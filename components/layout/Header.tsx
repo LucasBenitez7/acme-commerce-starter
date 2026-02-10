@@ -65,17 +65,21 @@ export function Header({
 
   useCloseOnNav(closeMenu);
 
+  // Bloquear scroll cuando el menú está abierto
+  if (typeof document !== "undefined") {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+  }
+
   if (hideHeader) return null;
 
   const userInitial =
     typeof user?.name === "string" && user.name.trim() !== ""
       ? user.name.trim().charAt(0).toUpperCase()
       : (user?.email?.charAt(0)?.toUpperCase() ?? null);
-
-  const userLastName =
-    typeof user?.lastName === "string" && user.lastName.trim() !== ""
-      ? user.lastName.trim().charAt(0).toUpperCase()
-      : "";
 
   const showTooltip = mounted && !isSessionLoading && !user;
   const accountTooltip = showTooltip ? "Iniciar sesión" : undefined;
