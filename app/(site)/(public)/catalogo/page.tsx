@@ -2,6 +2,7 @@ import {
   PaginationNav,
   ProductGrid,
   SectionHeader,
+  EmptyState,
 } from "@/components/catalog";
 
 import { getUserFavoriteIds } from "@/lib/favorites/queries";
@@ -31,13 +32,19 @@ export default async function CatalogPage({ params, searchParams }: Props) {
   return (
     <section className="pb-4">
       <SectionHeader title="Todas las prendas" />
-      <ProductGrid items={rows} favoriteIds={favoriteIds} />
-      <PaginationNav
-        page={page}
-        totalPages={totalPages}
-        base="/catalogo"
-        className="pr-4"
-      />
+      {rows.length > 0 ? (
+        <>
+          <ProductGrid items={rows} favoriteIds={favoriteIds} />
+          <PaginationNav
+            page={page}
+            totalPages={totalPages}
+            base="/catalogo"
+            className="pr-4"
+          />
+        </>
+      ) : (
+        <EmptyState title="Catálogo vacío" />
+      )}
     </section>
   );
 }

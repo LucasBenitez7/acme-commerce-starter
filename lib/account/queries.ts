@@ -126,6 +126,7 @@ export async function getUserOrders(
             product: {
               select: {
                 slug: true,
+                compareAtPrice: true,
                 images: {
                   select: { url: true, color: true },
                   orderBy: { sort: "asc" },
@@ -165,6 +166,7 @@ export async function getUserOrderFullDetails(userId: string, orderId: string) {
           product: {
             select: {
               slug: true,
+              compareAtPrice: true,
               images: {
                 select: { url: true, color: true },
                 orderBy: { sort: "asc" },
@@ -217,6 +219,7 @@ export async function getOrderSuccessDetails(orderId: string) {
           product: {
             select: {
               slug: true,
+              compareAtPrice: true,
               images: {
                 select: { url: true, color: true },
                 orderBy: { sort: "asc" },
@@ -224,6 +227,9 @@ export async function getOrderSuccessDetails(orderId: string) {
             },
           },
         },
+      },
+      history: {
+        orderBy: { createdAt: "desc" },
       },
     },
   });

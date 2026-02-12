@@ -17,13 +17,7 @@ import { IoSearch } from "react-icons/io5";
 import { RiMenu2Line } from "react-icons/ri";
 
 import { CartButtonWithSheet } from "@/components/cart/CartButtonWithSheet";
-import {
-  Sheet,
-  SheetContent,
-  SheetTitle,
-  Button,
-  SheetTrigger,
-} from "@/components/ui";
+import { Sheet, SheetContent, SheetTitle, Button } from "@/components/ui";
 
 import { useCloseOnNav } from "@/hooks/common/use-close-on-nav";
 import { useMounted } from "@/hooks/common/use-mounted";
@@ -120,31 +114,34 @@ export function Header({
         className="mx-auto w-full z-[100] sticky top-0 h-[var(--header-h)] grid grid-cols-[1fr_auto_1fr] items-center bg-background border-b px-4"
       >
         <div className="flex justify-self-start items-center h-full content-center">
-          <Sheet open={open} onOpenChange={setOpen} modal={false}>
-            <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                className="relative px-2"
-                aria-label="Menu"
-              >
-                <RiMenu2Line
-                  className={`size-6 transition-all duration-300 ease-in-out ${
-                    open ? "scale-0 opacity-0" : "scale-100 opacity-100"
-                  }`}
-                />
-                <CgClose
-                  className={`absolute size-6 transition-all duration-300 ease-in-out ${
-                    open ? "scale-100 opacity-100" : "scale-0 opacity-0"
-                  }`}
-                />
-              </Button>
-            </SheetTrigger>
+          {/* MENU TRIGGER */}
+          <Button
+            variant="ghost"
+            className="relative px-2"
+            aria-label="Menu"
+            aria-controls={SHEET_ID}
+            aria-expanded={open}
+            onClick={() => setOpen((prev) => !prev)}
+          >
+            <RiMenu2Line
+              className={`size-6 transition-all duration-300 ease-in-out ${
+                open ? "scale-0 opacity-0" : "scale-100 opacity-100"
+              }`}
+            />
+            <CgClose
+              className={`absolute size-6 transition-all duration-300 ease-in-out ${
+                open ? "scale-100 opacity-100" : "scale-0 opacity-0"
+              }`}
+            />
+          </Button>
 
+          <Sheet open={open} onOpenChange={setOpen} modal={false}>
             <SheetContent
               id={SHEET_ID}
               side="left"
               className="w-full sm:w-[360px] lg:w-[400px] outline-none"
               onEscapeKeyDown={() => setOpen(false)}
+              onInteractOutside={(e) => e.preventDefault()}
             >
               <div className="overflow-y-auto h-full focus:outline-none">
                 <SheetTitle className="hidden">Menu</SheetTitle>

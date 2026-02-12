@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 
+import { EmptyState } from "@/components/catalog/EmptyState";
 import { PaginationNav } from "@/components/catalog/PaginationNav";
 import { ProductGrid } from "@/components/catalog/ProductGrid";
 import { SectionHeader } from "@/components/catalog/SectionHeader";
@@ -31,11 +32,20 @@ export default async function RebajasPage({
       <SectionHeader title="Rebajas" className="text-red-600" />
 
       <div className="space-y-8">
-        <ProductGrid items={products} />
+        {products.length > 0 ? (
+          <>
+            <ProductGrid items={products} />
 
-        <Suspense>
-          <PaginationNav page={page} totalPages={Math.ceil(total / 12)} />
-        </Suspense>
+            <Suspense>
+              <PaginationNav page={page} totalPages={Math.ceil(total / 12)} />
+            </Suspense>
+          </>
+        ) : (
+          <EmptyState
+            title="No hay rebajas activas"
+            description="Revisa nuestro catálogo general para ver nuestros precios competitivos."
+          />
+        )}
       </div>
     </div>
   );

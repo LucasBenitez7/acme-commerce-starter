@@ -16,6 +16,7 @@ export type AddToCartProps = {
   variant: {
     id: string;
     priceCents: number | null;
+    compareAtPrice?: number | null;
     color: string;
     size: string;
     stock: number;
@@ -41,6 +42,7 @@ export function AddToCartButton({
       slug: product.slug,
       name: product.name,
       price: variant.priceCents ?? 0,
+      compareAtPrice: variant.compareAtPrice ?? undefined,
       image: product.images[0]?.url,
       color: variant.color,
       size: variant.size,

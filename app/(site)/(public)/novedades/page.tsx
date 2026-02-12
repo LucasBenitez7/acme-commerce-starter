@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 
+import { EmptyState } from "@/components/catalog/EmptyState";
 import { PaginationNav } from "@/components/catalog/PaginationNav";
 import { ProductGrid } from "@/components/catalog/ProductGrid";
 import { SectionHeader } from "@/components/catalog/SectionHeader";
@@ -32,11 +33,20 @@ export default async function NovedadesPage({
       <SectionHeader title="Novedades" rightSlot={false} />
 
       <div className="space-y-8">
-        <ProductGrid items={products} />
+        {products.length > 0 ? (
+          <>
+            <ProductGrid items={products} />
 
-        <Suspense>
-          <PaginationNav page={page} totalPages={Math.ceil(total / 12)} />
-        </Suspense>
+            <Suspense>
+              <PaginationNav page={page} totalPages={Math.ceil(total / 12)} />
+            </Suspense>
+          </>
+        ) : (
+          <EmptyState
+            title="Sin novedades por ahora"
+            description="Estamos preparando nuevas colecciones. ¡Vuelve pronto!"
+          />
+        )}
       </div>
     </div>
   );

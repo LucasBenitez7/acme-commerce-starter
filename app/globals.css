@@ -27,7 +27,7 @@
   --color-chart-4: var(--chart-4);
   --color-chart-3: var(--chart-3);
   --color-chart-1: var(--chart-1);
-  --color-chart-1: var(--chart-1);
+
   --color-destructive: var(--destructive);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
@@ -46,7 +46,6 @@
   --radius-xl: calc(var(--radius) + 4px);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
-  --border: var(--ver-box);
 }
 
 /* Tus variables base (puedes mantener las que ya tenías) */
@@ -73,7 +72,7 @@
   --accent-foreground: oklch(0.208 0.042 265.755);
   --destructive: oklch(0.577 0.245 27.325);
   --chart-1: oklch(0.646 0.222 41.116);
-  --chart-1: oklch(0.6 0.118 184.704);
+
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
@@ -85,7 +84,6 @@
   --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
   --sidebar-border: oklch(0.929 0.013 255.508);
   --sidebar-ring: oklch(0.704 0.04 256.788);
-  --ver-box: border-solid border-1 border-red-700;
 }
 
 .dark {
@@ -108,7 +106,7 @@
   --accent-foreground: oklch(0.984 0.003 247.858);
   --destructive: oklch(0.704 0.191 22.216);
   --chart-1: oklch(0.488 0.243 264.376);
-  --chart-1: oklch(0.696 0.17 162.48);
+
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);

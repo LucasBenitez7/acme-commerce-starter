@@ -46,6 +46,7 @@ export function useShippingAddressForm({
   // 2. Guardar OBLIGATORIAMENTE en la Base de Datos
   const handleSaveAndUse = async () => {
     const isValid = await trigger([
+      "email",
       "firstName",
       "lastName",
       "phone",
@@ -54,6 +55,7 @@ export function useShippingAddressForm({
       "city",
       "province",
       "country",
+      "details",
     ]);
 
     if (!isValid) {

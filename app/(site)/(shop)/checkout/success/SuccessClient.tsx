@@ -37,6 +37,7 @@ export function SuccessClient({ order }: { order: DisplayOrder }) {
       <div className="w-full space-y-4">
         <OrderSummaryCard
           id={order.id}
+          userId={order.userId}
           createdAt={order.createdAt}
           paymentMethod={
             order.paymentMethod ||
@@ -61,6 +62,8 @@ export function SuccessClient({ order }: { order: DisplayOrder }) {
             shipping: order.totals.shipping,
             tax: order.totals.tax,
             total: order.totals.total,
+            originalSubtotal: order.totals.originalSubtotal,
+            totalDiscount: order.totals.totalDiscount,
           }}
           currency={order.currency}
           variant="customer"
@@ -73,13 +76,21 @@ export function SuccessClient({ order }: { order: DisplayOrder }) {
             variant="outline"
             className="flex-1 py-3 text-sm font-medium"
           >
-            <Link href="/">Volver a la tienda</Link>
+            <Link href="/catalogo">Volver a la tienda</Link>
           </Button>
-          <Button asChild variant="default" className="flex-1 py-3 text-sm">
-            <Link href={`/account/orders/${order.id}`}>
-              Ver detalles del pedido
-            </Link>
-          </Button>
+          {order.userId ? (
+            <Button asChild variant="default" className="flex-1 py-3 text-sm">
+              <Link href={`/account/orders/${order.id}`}>
+                Ver detalles del pedido
+              </Link>
+            </Button>
+          ) : (
+            <Button asChild variant="default" className="flex-1 py-3 text-sm">
+              <Link href={`/tracking?orderId=${order.id}`}>
+                Ver detalles del pedido
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
     </div>

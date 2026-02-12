@@ -212,22 +212,122 @@ export function getOrderShippingDetails(order: Order) {
   return { label, addressLines: lines.filter(Boolean) };
 }
 
-type OrderWithDetails = Order & {
+export type OrderWithDetails = Order & {
   items: (OrderItem & {
     product: {
       slug: string;
+      compareAtPrice: number | null;
       images: { url: string; color: string | null }[];
     };
   })[];
+  history?: any[]; // Flexible for now
 };
 
-import type { OrderDisplayData } from "./types";
+import type { OrderDisplayData, UserReturnableItem } from "./types";
+
+export function canOrderBeReturned(order: {
+  paymentStatus: string;
+  fulfillmentStatus: string;
+  isCancelled: boolean;
+}) {
+  return (
+    !order.isCancelled &&
+    order.paymentStatus === "PAID" &&
+    order.fulfillmentStatus === "DELIVERED"
+  );
+}
+
+export function shouldShowHistoryButton(order: {
+  paymentStatus: string;
+  returnReason?: string | null;
+  history?: any[];
+  isCancelled: boolean;
+}) {
+  const hasRefunds =
+    order.paymentStatus === "REFUNDED" ||
+    order.paymentStatus === "PARTIALLY_REFUNDED";
+
+  const hasActiveReturn = !!order.returnReason;
+  const hasIncidents = order.history?.some((h: any) => h.type === "INCIDENT");
+
+  return hasRefunds || hasActiveReturn || (hasIncidents && !order.isCancelled);
+}
+
+export function getOrderTotals(order: OrderWithDetails) {
+  const originalSubtotal = calculateDiscounts(order.items);
+  const totalDiscount = originalSubtotal - order.itemsTotalMinor;
+
+  let refundedAmountMinor = order.items.reduce(
+    (acc, item) => acc + item.priceMinorSnapshot * item.quantityReturned,
+    0,
+  );
+  if (order.paymentStatus === "REFUNDED" && refundedAmountMinor === 0) {
+    refundedAmountMinor = order.totalMinor;
+  }
+  const netTotalMinor = order.totalMinor - refundedAmountMinor;
+
+  return {
+    originalSubtotal,
+    totalDiscount,
+    refundedAmountMinor,
+    netTotalMinor,
+  };
+}
+
+export function getReturnableItems(
+  order: OrderWithDetails,
+): UserReturnableItem[] {
+  return order.items
+    .map((item): UserReturnableItem | null => {
+      const productImages = item.product?.images || [];
+      const matchingImg =
+        productImages.find((img) => img.color === item.colorSnapshot) ||
+        productImages[0];
+
+      const maxReturnable =
+        item.quantity - item.quantityReturned - item.quantityReturnRequested;
+
+      if (maxReturnable <= 0) return null;
+
+      return {
+        id: item.id,
+        nameSnapshot: item.nameSnapshot,
+        sizeSnapshot: item.sizeSnapshot,
+        colorSnapshot: item.colorSnapshot,
+        maxQuantity: maxReturnable,
+        image: matchingImg?.url ?? undefined,
+      };
+    })
+    .filter((item): item is UserReturnableItem => item !== null);
+}
+
+export function calculateDiscounts(
+  items: {
+    priceMinorSnapshot: number;
+    quantity: number;
+    product?: { compareAtPrice?: number | null } | null;
+  }[],
+) {
+  let originalSubtotal = 0;
+  items.forEach((item) => {
+    const comparePrice = item.product?.compareAtPrice;
+    const price = item.priceMinorSnapshot;
+    const finalPrice =
+      comparePrice && comparePrice > price ? comparePrice : price;
+    originalSubtotal += finalPrice * item.quantity;
+  });
+  return originalSubtotal;
+}
 
 export function formatOrderForDisplay(
   order: OrderWithDetails,
 ): OrderDisplayData {
+  const originalSubtotal = calculateDiscounts(order.items);
+  const totalDiscount = originalSubtotal - order.itemsTotalMinor;
+
   return {
     id: order.id,
+    userId: order.userId,
     email: order.email,
     createdAt: order.createdAt,
     paymentStatus: order.paymentStatus,
@@ -240,6 +340,8 @@ export function formatOrderForDisplay(
       shipping: order.shippingCostMinor,
       tax: order.taxMinor,
       total: order.totalMinor,
+      originalSubtotal,
+      totalDiscount: totalDiscount > 0 ? totalDiscount : 0,
     },
     shippingInfo: getOrderShippingDetails(order),
     contact: {
@@ -264,6 +366,7 @@ export function formatOrderForDisplay(
           .join(" / "),
         quantity: item.quantity,
         price: item.priceMinorSnapshot,
+        compareAtPrice: item.product?.compareAtPrice ?? undefined,
         image: finalImageUrl,
       };
     }),

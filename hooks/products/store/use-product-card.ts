@@ -110,6 +110,7 @@ export function useProductCard(item: PublicProductListItem) {
       slug: item.slug,
       name: item.name,
       price: variantToAdd.priceCents ?? item.priceCents,
+      compareAtPrice: item.compareAtPrice ?? undefined,
       image: displayImage,
       color: variantToAdd.color,
       size: variantToAdd.size,

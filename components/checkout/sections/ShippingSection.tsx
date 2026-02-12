@@ -13,7 +13,6 @@ import {
 import { Button, Label } from "@/components/ui";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { RadioGroup } from "@/components/ui/radio-group";
 
 import { SHIPPING_METHODS } from "@/lib/locations";
 
@@ -44,6 +43,7 @@ export function ShippingSection(props: Props) {
     handleAddNewClick,
     handleFormSuccess,
     handleCancelForm,
+    guestAddress,
   } = useShippingSection(
     props.savedAddresses,
     props.selectedAddressId,
@@ -55,7 +55,10 @@ export function ShippingSection(props: Props) {
 
   const activeMethod = SHIPPING_METHODS.find((m) => m.id === shippingType);
 
-  const hasSavedAddresses = props.savedAddresses.length > 0;
+  const effectiveAddresses =
+    props.isGuest && guestAddress ? [guestAddress] : props.savedAddresses;
+
+  const hasSavedAddresses = effectiveAddresses.length > 0;
 
   return (
     <Card className="p-4">
@@ -63,53 +66,14 @@ export function ShippingSection(props: Props) {
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
             <FaTruck className="text-muted-foreground" />
-            {!isSelectingMethod ? "Método de entrega" : "Seleccione método"}
+            Método de entrega
           </CardTitle>
-          {!isSelectingMethod && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleChangeMethod}
-              className="h-auto p-1 px-2 text-xs font-medium rounded-full hover:bg-neutral-100"
-            >
-              Cambiar
-            </Button>
-          )}
         </div>
       </CardHeader>
 
       <CardContent className="space-y-6 px-0">
-        {/* 1. SELECCIÓN DE MÉTODO (Grid) */}
-        {isSelectingMethod && (
-          <RadioGroup
-            value={shippingType}
-            onValueChange={(val) => handleSelectMethod(val as any)}
-            className="grid grid-cols-1 sm:grid-cols-3 gap-4"
-          >
-            {SHIPPING_METHODS.map((method) => {
-              const Icon = method.icon;
-              return (
-                <div
-                  key={method.id}
-                  onClick={() => handleSelectMethod(method.id as any)}
-                  className={`border rounded-xs p-4 py-6 cursor-pointer text-center transition-all hover:border-foreground ${
-                    shippingType === method.id
-                      ? "border-foreground bg-neutral-50"
-                      : ""
-                  }`}
-                >
-                  <div className="flex items-center justify-center gap-2 font-medium text-sm">
-                    <Icon /> {method.label}
-                  </div>
-                </div>
-              );
-            })}
-          </RadioGroup>
-        )}
-
-        {/* 2. CONTENIDO DEL MÉTODO SELECCIONADO */}
-        {!isSelectingMethod && activeMethod && (
+        {/* 2. CONTENIDO DEL MÉTODO SELECCIONADO (SIEMPRE HOME) */}
+        {activeMethod && (
           <div>
             <div className="mb-4 border rounded-xs p-4 py-6 flex items-center justify-start font-medium text-sm gap-5">
               <FaCircleCheck className="text-foreground size-5" />
@@ -139,7 +103,8 @@ export function ShippingSection(props: Props) {
                             ? "Dirección confirmada"
                             : "Selecciona una dirección"}
                         </Label>
-                        {props.isAddressConfirmed && (
+                        {/* CAMBIAR: Solo para NO invitados */}
+                        {props.isAddressConfirmed && !props.isGuest && (
                           <Button
                             type="button"
                             variant="ghost"
@@ -176,13 +141,14 @@ export function ShippingSection(props: Props) {
                     )}
 
                     {/* --- CASO 2: HAY DIRECCIONES (LISTADO) --- */}
+                    {/* Si es GUEST y ya tiene dirección, NO mostramos botón de añadir nueva, solo la card para editar */}
                     {hasSavedAddresses && (
                       <div className="grid grid-cols-1 gap-3">
                         {(props.isAddressConfirmed
-                          ? props.savedAddresses.filter(
+                          ? effectiveAddresses.filter(
                               (a) => a.id === props.selectedAddressId,
                             )
-                          : props.savedAddresses
+                          : effectiveAddresses
                         ).map((addr) => {
                           const isSelected =
                             props.selectedAddressId === addr.id;
@@ -223,7 +189,9 @@ export function ShippingSection(props: Props) {
                                     <span className="font-semibold">
                                       {addr.firstName} {addr.lastName}
                                     </span>
-                                    {!props.isAddressConfirmed && (
+                                    {/* EDITAR: Si no está confirmada O es invitado (siempre puede editar) */}
+                                    {(!props.isAddressConfirmed ||
+                                      props.isGuest) && (
                                       <button
                                         type="button"
                                         className="text-xs font-medium fx-underline-anim"
@@ -258,37 +226,42 @@ export function ShippingSection(props: Props) {
                               </div>
 
                               {/* Botones de acción dentro de la tarjeta seleccionada */}
-                              {!props.isAddressConfirmed && isSelected && (
-                                <div className="flex gap-4 pt-4 pb-2">
-                                  <Button
-                                    type="button"
-                                    onClick={handleAddNewClick}
-                                    variant="outline"
-                                    className="flex-1"
-                                  >
-                                    <FaPlus className="size-3" /> Añadir nueva
-                                    dirección
-                                  </Button>
-                                  {props.selectedAddressId && (
+                              {/* SOLO MOSTRAR SI NO ES GUEST */}
+                              {!props.isGuest &&
+                                !props.isAddressConfirmed &&
+                                isSelected && (
+                                  <div className="flex gap-4 pt-4 pb-2">
                                     <Button
                                       type="button"
-                                      onClick={props.onConfirmAddress}
-                                      variant="default"
+                                      onClick={handleAddNewClick}
+                                      variant="outline"
                                       className="flex-1"
                                     >
-                                      <FaCheck className="size-3" /> Usar esta
+                                      <FaPlus className="size-3" /> Añadir nueva
                                       dirección
                                     </Button>
-                                  )}
-                                </div>
-                              )}
+
+                                    {props.selectedAddressId && (
+                                      <Button
+                                        type="button"
+                                        onClick={props.onConfirmAddress}
+                                        variant="default"
+                                        className="flex-1"
+                                      >
+                                        <FaCheck className="size-3" /> Usar esta
+                                        dirección
+                                      </Button>
+                                    )}
+                                  </div>
+                                )}
                             </div>
                           );
                         })}
 
                         {/* Botón de añadir extra si no hay ninguna seleccionada pero hay lista */}
                         {!props.selectedAddressId &&
-                          !props.isAddressConfirmed && (
+                          !props.isAddressConfirmed &&
+                          !props.isGuest && (
                             <Button
                               type="button"
                               onClick={handleAddNewClick}
