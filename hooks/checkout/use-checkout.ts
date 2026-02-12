@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -22,10 +22,12 @@ export function useCheckout(savedAddresses: UserAddress[]) {
 
   const [selectedAddressId, setSelectedAddressId] = useState<string>(() => {
     const def = savedAddresses.find((a) => a.isDefault);
-    return def ? def.id : savedAddresses[0]?.id || "";
+    return def ? def.id : "";
   });
 
-  const [isAddressConfirmed, setIsAddressConfirmed] = useState(false);
+  const [isAddressConfirmed, setIsAddressConfirmed] = useState(() => {
+    return savedAddresses.some((a) => a.isDefault);
+  });
   const [isPending, setIsPending] = useState(false);
 
   const [stripeData, setStripeData] = useState<{
@@ -166,6 +168,18 @@ export function useCheckout(savedAddresses: UserAddress[]) {
   const handleChangeAddress = () => {
     setIsAddressConfirmed(false);
   };
+
+  const autoConfirmAttempted = useRef(false);
+
+  useEffect(() => {
+    if (
+      !autoConfirmAttempted.current &&
+      savedAddresses?.some((a) => a.isDefault)
+    ) {
+      autoConfirmAttempted.current = true;
+      handleConfirmAddress();
+    }
+  }, [savedAddresses]);
 
   const onValidSubmit = async (data: CreateOrderInput) => {};
 

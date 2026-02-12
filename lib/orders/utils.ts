@@ -216,6 +216,7 @@ type OrderWithDetails = Order & {
   items: (OrderItem & {
     product: {
       slug: string;
+      compareAtPrice: number | null;
       images: { url: string; color: string | null }[];
     };
   })[];
@@ -223,11 +224,33 @@ type OrderWithDetails = Order & {
 
 import type { OrderDisplayData } from "./types";
 
+export function calculateDiscounts(
+  items: {
+    priceMinorSnapshot: number;
+    quantity: number;
+    product?: { compareAtPrice?: number | null } | null;
+  }[],
+) {
+  let originalSubtotal = 0;
+  items.forEach((item) => {
+    const comparePrice = item.product?.compareAtPrice;
+    const price = item.priceMinorSnapshot;
+    const finalPrice =
+      comparePrice && comparePrice > price ? comparePrice : price;
+    originalSubtotal += finalPrice * item.quantity;
+  });
+  return originalSubtotal;
+}
+
 export function formatOrderForDisplay(
   order: OrderWithDetails,
 ): OrderDisplayData {
+  const originalSubtotal = calculateDiscounts(order.items);
+  const totalDiscount = originalSubtotal - order.itemsTotalMinor;
+
   return {
     id: order.id,
+    userId: order.userId,
     email: order.email,
     createdAt: order.createdAt,
     paymentStatus: order.paymentStatus,
@@ -240,6 +263,8 @@ export function formatOrderForDisplay(
       shipping: order.shippingCostMinor,
       tax: order.taxMinor,
       total: order.totalMinor,
+      originalSubtotal,
+      totalDiscount: totalDiscount > 0 ? totalDiscount : 0,
     },
     shippingInfo: getOrderShippingDetails(order),
     contact: {
@@ -264,6 +289,7 @@ export function formatOrderForDisplay(
           .join(" / "),
         quantity: item.quantity,
         price: item.priceMinorSnapshot,
+        compareAtPrice: item.product?.compareAtPrice ?? undefined,
         image: finalImageUrl,
       };
     }),

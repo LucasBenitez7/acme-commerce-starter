@@ -1,7 +1,7 @@
 "use client";
 
 import { type UserAddress } from "@prisma/client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -22,6 +22,7 @@ export function useShippingSection(
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [addressToEdit, setAddressToEdit] = useState<UserAddress | null>(null);
+  const [guestAddress, setGuestAddress] = useState<UserAddress | null>(null);
 
   const [isSelectingMethod, setIsSelectingMethod] = useState(!shippingType);
 
@@ -60,7 +61,11 @@ export function useShippingSection(
     toast.success(
       addressToEdit ? "Dirección actualizada" : "Dirección guardada",
     );
+    if (updatedAddress.id === "guest-temp-id") {
+      setGuestAddress(updatedAddress);
+    }
     setSelectedAddressId(updatedAddress.id);
+    onConfirmAddress();
   };
 
   const handleCancelForm = () => {
@@ -80,5 +85,6 @@ export function useShippingSection(
     handleAddNewClick,
     handleFormSuccess,
     handleCancelForm,
+    guestAddress,
   };
 }

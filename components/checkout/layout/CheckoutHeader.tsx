@@ -17,9 +17,20 @@ import {
 export function CheckoutHeader() {
   const router = useRouter();
   const [openDialog, setOpenDialog] = useState(false);
+  const [destination, setDestination] = useState<{
+    href: string;
+    label: string;
+  } | null>(null);
 
-  const handleGoHome = () => {
-    router.push("/catalogo");
+  const handleNavigation = (href: string, label: string) => {
+    setDestination({ href, label });
+    setOpenDialog(true);
+  };
+
+  const confirmNavigation = () => {
+    if (destination) {
+      router.push(destination.href);
+    }
     setOpenDialog(false);
   };
 
@@ -30,21 +41,20 @@ export function CheckoutHeader() {
           <div className="flex justify-start">
             <Button
               variant="ghost"
-              className="p-2 rounded-xs"
-              onClick={() => setOpenDialog(true)}
+              className="p-2 rounded-xs tip-right"
+              onClick={() => handleNavigation("/cart", "Volver a la cesta")}
+              data-tip="Volver a la cesta"
             >
               <FaArrowLeft className="size-4" />
             </Button>
           </div>
-          <div className="flex justify-center">
-            <button
-              type="button"
-              className="flex items-center gap-2 text-xl font-bold hover:cursor-pointer"
-              onClick={() => setOpenDialog(true)}
-            >
-              <span className="text-black">LSB</span>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => handleNavigation("/catalogo", "Ir a la tienda")}
+            className="flex items-center gap-2 text-xl font-bold hover:opacity-80 transition-opacity hover:cursor-pointer"
+          >
+            <span className="text-black">LSB</span>
+          </button>
 
           <div />
         </div>
@@ -65,17 +75,17 @@ export function CheckoutHeader() {
             <Button
               variant="outline"
               onClick={() => setOpenDialog(false)}
-              className="font-semibold w-full sm:w-auto px-4 py-3 lg:flex-1"
+              className="font-semibold w-full sm:w-auto px-4 py-2 lg:flex-1"
             >
-              Seguir comprando
+              Quedarme aquí
             </Button>
 
             <Button
               variant="default"
-              onClick={handleGoHome}
-              className="font-semibold w-full sm:w-auto px-4 py-3 lg:flex-1"
+              onClick={confirmNavigation}
+              className="font-semibold w-full sm:w-auto px-4 py-2 lg:flex-1"
             >
-              Ir a la tienda
+              {destination?.label || "Salir"}
             </Button>
           </DialogFooter>
         </DialogContent>

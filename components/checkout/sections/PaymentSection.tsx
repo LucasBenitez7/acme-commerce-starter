@@ -48,11 +48,20 @@ export function PaymentSection({ isOpen = false, stripeData }: Props) {
       >
         <div className="overflow-hidden">
           <CardContent className="px-0 pt-2 space-y-4">
-            {stripeData && (
+            {stripeData ? (
               <StripeEmbedForm
                 clientSecret={stripeData.clientSecret}
                 orderId={stripeData.orderId}
               />
+            ) : (
+              <div className="space-y-4 animate-pulse">
+                <div className="h-12 bg-neutral-100 rounded-md w-full" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="h-12 bg-neutral-100 rounded-md w-full" />
+                  <div className="h-12 bg-neutral-100 rounded-md w-full" />
+                </div>
+                <div className="h-12 bg-neutral-200 rounded-md w-full mt-2" />
+              </div>
             )}
           </CardContent>
         </div>

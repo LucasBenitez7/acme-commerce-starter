@@ -4,6 +4,7 @@ import Stripe from "stripe";
 import { Container } from "@/components/ui";
 
 import { getOrderSuccessDetails } from "@/lib/account/queries";
+import { auth } from "@/lib/auth";
 import { formatOrderForDisplay } from "@/lib/orders/utils";
 
 import { SuccessClient } from "./SuccessClient";
@@ -19,6 +20,7 @@ type Props = {
 };
 
 export default async function SuccessPage({ searchParams }: Props) {
+  const session = await auth();
   const { orderId, payment_intent } = await searchParams;
 
   if (!orderId) redirect("/");
@@ -26,6 +28,19 @@ export default async function SuccessPage({ searchParams }: Props) {
   const order = await getOrderSuccessDetails(orderId);
 
   if (!order) redirect("/");
+
+  if (order.userId && session?.user?.id !== order.userId) {
+    redirect("/");
+  }
+
+  if (!order.userId) {
+    if (
+      order.stripePaymentIntentId &&
+      payment_intent !== order.stripePaymentIntentId
+    ) {
+      redirect("/");
+    }
+  }
 
   const clientOrder = formatOrderForDisplay(order);
 

@@ -18,6 +18,7 @@ import { getUserOrderFullDetails } from "@/lib/account/queries";
 import { auth } from "@/lib/auth";
 import { parseCurrency } from "@/lib/currency";
 import {
+  calculateDiscounts,
   getOrderCancellationDetailsUser,
   getOrderShippingDetails,
 } from "@/lib/orders/utils";
@@ -41,7 +42,7 @@ export default async function OrderDetailPage({
   const order: UserOrderDetail = orderData;
   const currency = parseCurrency(order.currency);
 
-  const { originalQty, refundedAmountMinor, returnedQty } = order.summary;
+  const { refundedAmountMinor, netTotalMinor } = order.summary;
 
   const deliveryDateFormatted = order.deliveredAt
     ? new Date(order.deliveredAt).toLocaleString("es-ES", {
@@ -72,6 +73,9 @@ export default async function OrderDetailPage({
     hasRefunds || hasActiveReturn || (hasIncidents && !order.isCancelled);
 
   const cancellationData = getOrderCancellationDetailsUser(order);
+
+  const originalSubtotal = calculateDiscounts(order.items);
+  const totalDiscount = originalSubtotal - order.itemsTotalMinor;
 
   return (
     <div className="space-y-4 mx-auto">
@@ -175,6 +179,7 @@ export default async function OrderDetailPage({
                 .join(" / "),
               quantity: item.quantity,
               price: item.priceMinorSnapshot,
+              compareAtPrice: item.product?.compareAtPrice ?? undefined,
               image: matchingImg?.url || null,
               badges:
                 item.quantityReturned > 0 ? (
@@ -189,9 +194,12 @@ export default async function OrderDetailPage({
             shipping: order.shippingCostMinor,
             tax: order.taxMinor,
             refunded: refundedAmountMinor,
-            total: order.totalMinor,
+            total: netTotalMinor,
+            originalSubtotal: originalSubtotal,
+            totalDiscount: totalDiscount > 0 ? totalDiscount : 0,
           }}
           currency={currency}
+          userId={order.userId}
         />
       </div>
     </div>

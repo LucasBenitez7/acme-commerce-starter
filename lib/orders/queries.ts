@@ -202,6 +202,7 @@ export async function getAdminOrderById(
         include: {
           product: {
             select: {
+              compareAtPrice: true,
               images: {
                 select: { url: true, color: true },
                 orderBy: { sort: "asc" },

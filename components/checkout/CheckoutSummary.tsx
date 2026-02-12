@@ -11,9 +11,17 @@ import { formatCurrency, DEFAULT_CURRENCY } from "@/lib/currency";
 import { useCartStore } from "@/store/cart";
 
 export function CheckoutSummary() {
-  const { items, getTotalPrice, getTotalItems } = useCartStore();
+  const {
+    items,
+    getTotalPrice,
+    getTotalItems,
+    getOriginalTotalPrice,
+    getSavings,
+  } = useCartStore();
   const totalQty = getTotalItems();
   const total = getTotalPrice();
+  const originalTotal = getOriginalTotalPrice();
+  const savings = getSavings();
   const {
     formState: { isSubmitting },
   } = useFormContext() || { formState: { isSubmitting: false } };
@@ -60,12 +68,30 @@ export function CheckoutSummary() {
                         >
                           {item.name}
                         </Link>
-                        <p className="font-medium text-sm tabular-nums">
-                          {formatCurrency(
-                            item.price * item.quantity,
-                            DEFAULT_CURRENCY,
-                          )}
-                        </p>
+                        <div className="flex flex-col items-end gap-0.5">
+                          <div className="flex items-center gap-2">
+                            {(item.compareAtPrice ?? 0) > item.price && (
+                              <p className="text-xs text-muted-foreground line-through tabular-nums">
+                                {formatCurrency(
+                                  (item.compareAtPrice ?? 0) * item.quantity,
+                                  DEFAULT_CURRENCY,
+                                )}
+                              </p>
+                            )}
+                            <p
+                              className={`font-semibold text-sm tabular-nums ${
+                                (item.compareAtPrice ?? 0) > item.price
+                                  ? "text-red-600"
+                                  : "text-foreground"
+                              }`}
+                            >
+                              {formatCurrency(
+                                item.price * item.quantity,
+                                DEFAULT_CURRENCY,
+                              )}
+                            </p>
+                          </div>
+                        </div>
                       </div>
                       <p className="text-xs font-medium">
                         {item.size} / {item.color}
@@ -81,17 +107,24 @@ export function CheckoutSummary() {
 
         {items.length > 0 && (
           <div className="shrink-0 border-t p-4 pb-0 bg-background mt-auto">
-            <div className="flex items-center justify-between text-sm font-medium mb-2">
+            <div className="flex items-center justify-between text-sm font-medium mb-1">
               <span>Subtotal</span>
-              <span>{formatCurrency(total)}</span>
+              <span>{formatCurrency(originalTotal)}</span>
             </div>
+
+            {savings > 0 && (
+              <div className="flex items-center justify-between text-sm font-medium mb-1 text-red-600">
+                <span>Descuentos</span>
+                <span>-{formatCurrency(savings)}</span>
+              </div>
+            )}
 
             <div className="flex items-center justify-between text-sm font-medium">
               <span>Envio</span>
               <span className="text-green-600">Gratis</span>
             </div>
 
-            <div className="flex items-center justify-between text-lg font-semibold mt-4 mb-2">
+            <div className="flex items-center justify-between text-lg font-semibold mt-2">
               <span>Total</span>
               <span>{formatCurrency(total)}</span>
             </div>

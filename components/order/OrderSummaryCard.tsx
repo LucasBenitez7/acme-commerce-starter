@@ -5,7 +5,6 @@ import {
   FaUser,
   FaLocationDot,
   FaCreditCard,
-  FaHashtag,
   FaCcVisa,
   FaCcMastercard,
   FaCcAmex,
@@ -92,7 +91,7 @@ export function OrderSummaryCard({
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="grid space-y-6 py-6 px-0 text-sm">
+      <CardContent className="grid space-y-6 py-6 pb-4 px-0 text-sm">
         {/* 1. INFO GENERAL (GRID 2 COLUMNAS) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div className="space-y-1">
@@ -155,7 +154,7 @@ export function OrderSummaryCard({
         </div>
 
         {/* 3. PRODUCTOS */}
-        <div className="border-t pt-2 mb-4">
+        <div className="border-t pt-2 mb-2">
           <h3 className="text-lg my-3 font-semibold">
             Productos <span className="text-base">({items.length})</span>
           </h3>
@@ -192,9 +191,29 @@ export function OrderSummaryCard({
                         {item.subtitle}
                       </p>
                     </div>
-                    <p className="font-medium text-sm tabular-nums text-right">
-                      {formatCurrency(item.price * item.quantity, currency)}
-                    </p>
+                    <div className="flex flex-col items-end gap-0.5">
+                      <div className="flex items-center gap-2">
+                        {item.compareAtPrice &&
+                          item.compareAtPrice > item.price && (
+                            <p className="text-xs text-muted-foreground line-through tabular-nums">
+                              {formatCurrency(
+                                item.compareAtPrice * item.quantity,
+                                currency,
+                              )}
+                            </p>
+                          )}
+                        <p
+                          className={`font-semibold text-sm tabular-nums ${
+                            item.compareAtPrice &&
+                            item.compareAtPrice > item.price
+                              ? "text-red-600"
+                              : "text-foreground"
+                          }`}
+                        >
+                          {formatCurrency(item.price * item.quantity, currency)}
+                        </p>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="text-xs flex flex-wrap gap-2 items-center justify-between pt-1">
@@ -210,14 +229,28 @@ export function OrderSummaryCard({
         </div>
 
         {/* 4. TOTALES */}
-        <div className="border-t border-neutral-200 pt-4 space-y-3">
-          <div className="flex justify-between text-sm text-neutral-600">
+        <div className="border-t border-neutral-200 pt-4 space-y-1 font-medium">
+          <div className="flex justify-between text-sm text-foreground">
             <span>Subtotal</span>
             <span className="font-medium tabular-nums">
-              {formatCurrency(totals.subtotal, currency)}
+              {formatCurrency(
+                (totals.totalDiscount ?? 0) > 0
+                  ? totals.originalSubtotal!
+                  : totals.subtotal,
+                currency,
+              )}
             </span>
           </div>
-          <div className="flex justify-between text-sm text-neutral-600">
+
+          {(totals.totalDiscount ?? 0) > 0 && (
+            <div className="flex justify-between text-sm text-red-600">
+              <span>Descuentos</span>
+              <span className="font-medium tabular-nums">
+                - {formatCurrency(totals.totalDiscount!, currency)}
+              </span>
+            </div>
+          )}
+          <div className="flex justify-between text-sm text-foreground">
             <span>Envío</span>
             <span
               className={`font-medium tabular-nums ${
@@ -245,7 +278,7 @@ export function OrderSummaryCard({
               </span>
             </div>
           )}
-          <div className="flex justify-between text-lg font-bold text-neutral-900 pt-2 mt-2">
+          <div className="flex justify-between text-base font-semibold text-foreground pt-2 mt-2">
             <span>TOTAL</span>
             <span className="tabular-nums">
               {formatCurrency(totals.total, currency)}

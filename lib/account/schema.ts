@@ -38,7 +38,7 @@ export const baseAddressSchema = z.object({
   city: z.string().trim().min(2, "Requerido"),
   province: z.string().trim().min(2, "Requerido"),
 
-  country: z.string().trim().optional(),
+  country: z.string().trim().min(1, "Requerido"),
 });
 
 export const addressFormSchema = baseAddressSchema.extend({

@@ -27,6 +27,9 @@ export function Footer() {
           <Link href="#" className="hover:underline">
             Términos
           </Link>
+          <Link href="/tracking" className="hover:underline">
+            Seguimiento de Pedido
+          </Link>
           <Link href="#" className="hover:underline">
             Contacto
           </Link>

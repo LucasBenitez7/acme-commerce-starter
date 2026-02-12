@@ -132,7 +132,27 @@ export async function createOrder(
 export async function updateOrderAddress(
   orderId: string,
   input: CreateOrderInput,
+  actorUserId?: string,
 ) {
+  // 1. Verificación de Seguridad (IDOR Prevention)
+  const existingOrder = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: { userId: true, paymentStatus: true },
+  });
+
+  if (!existingOrder) {
+    throw new Error("Pedido no encontrado");
+  }
+
+  if (existingOrder.paymentStatus !== "PENDING") {
+    throw new Error("No se puede modificar un pedido que no está pendiente.");
+  }
+
+  // Si el pedido pertenece a un usuario registrado, verificamos que sea él quien lo modifica.
+  if (existingOrder.userId && existingOrder.userId !== actorUserId) {
+    throw new Error("No autorizado.");
+  }
+
   const { shippingType } = input;
 
   const dbShippingType = SHIPPING_TYPE_MAP[shippingType] || ShippingType.HOME;

@@ -37,6 +37,21 @@ export function ShippingAddressForm(props: Props) {
       </h4>
 
       <div className="space-y-4">
+        {/* --- EMAIL (SOLO GUEST) --- */}
+        {props.isGuest && (
+          <div className="space-y-1">
+            <Label>Email de contacto</Label>
+            <Input
+              {...register("email")}
+              placeholder="tu@email.com"
+              type="email"
+            />
+            {errors.email && (
+              <p className="text-red-500 text-xs">{errors.email.message}</p>
+            )}
+          </div>
+        )}
+
         {/* --- GRID NOMBRES --- */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
@@ -158,7 +173,7 @@ export function ShippingAddressForm(props: Props) {
               ? "Procesando..."
               : props.isGuest
                 ? "Usar esta dirección"
-                : "Guardar y Usar"}
+                : "Guardar y  Usar"}
           </Button>
         </div>
       </div>

@@ -13,6 +13,7 @@ type OrderLinkedImage = Pick<ProductImage, "url" | "color">;
 
 type OrderLinkedProduct = Pick<Product, "slug"> & {
   images: OrderLinkedImage[];
+  compareAtPrice: number | null;
 };
 
 export type OrderActionActor = "user" | "admin" | "system";
@@ -52,6 +53,7 @@ export type AdminOrderDetail = Order & {
     currentStock?: number;
     product: {
       images: OrderLinkedImage[];
+      compareAtPrice: number | null;
     } | null;
   })[];
   user: User | null;
@@ -151,6 +153,7 @@ export type GetOrdersParams = {
 // SECCIÓN 5: VISUALIZACIÓN (Order Display)
 export interface OrderDisplayData {
   id: string;
+  userId: string | null;
   email: string;
   createdAt: Date | string;
   paymentStatus: string;
@@ -174,6 +177,7 @@ export interface OrderDisplayData {
     subtitle: string;
     quantity: number;
     price: number;
+    compareAtPrice?: number;
     image: string | null;
   }[];
   totals: {
@@ -182,5 +186,7 @@ export interface OrderDisplayData {
     tax: number;
     total: number;
     refunded?: number;
+    originalSubtotal?: number;
+    totalDiscount?: number;
   };
 }

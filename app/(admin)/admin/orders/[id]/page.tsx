@@ -13,11 +13,11 @@ import { OrderTracker } from "@/components/order/OrderTracker";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { formatCurrency, parseCurrency } from "@/lib/currency";
-import { getShippingLabel } from "@/lib/locations";
+import { parseCurrency } from "@/lib/currency";
 import { FULFILLMENT_STATUS_CONFIG } from "@/lib/orders/constants";
 import { getAdminOrderById } from "@/lib/orders/queries";
 import {
+  calculateDiscounts,
   getOrderCancellationDetails,
   getOrderShippingDetails,
 } from "@/lib/orders/utils";
@@ -38,13 +38,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
   if (!order) notFound();
 
   const currency = parseCurrency(order.currency);
-  const { originalQty, refundedAmountMinor, returnedQty, netTotalMinor } =
-    order.summary;
-
-  const createdDate = new Date(order.createdAt).toLocaleString("es-ES", {
-    dateStyle: "long",
-    timeStyle: "short",
-  });
+  const { refundedAmountMinor, netTotalMinor } = order.summary;
 
   const deliveryDateFormatted = order.deliveredAt
     ? new Date(order.deliveredAt).toLocaleString("es-ES", {
@@ -72,6 +66,9 @@ export default async function AdminOrderDetailPage({ params }: Props) {
   const showHistoryButton = true;
 
   const cancellationData = getOrderCancellationDetails(order);
+
+  const originalSubtotal = calculateDiscounts(order.items);
+  const totalDiscount = originalSubtotal - order.itemsTotalMinor;
 
   return (
     <div className="space-y-4 max-w-5xl mx-auto pb-10">
@@ -201,6 +198,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
                 .join(" / "),
               quantity: item.quantity,
               price: item.priceMinorSnapshot,
+              compareAtPrice: item.product?.compareAtPrice ?? undefined,
               image: matchingImg?.url || null,
               badges: (
                 <>
@@ -224,12 +222,15 @@ export default async function AdminOrderDetailPage({ params }: Props) {
             tax: order.taxMinor,
             refunded: refundedAmountMinor,
             total: netTotalMinor,
+            originalSubtotal: originalSubtotal,
+            totalDiscount: totalDiscount > 0 ? totalDiscount : 0,
           }}
           currency={currency}
           variant="admin"
           adminUserLink={
             order.userId ? `/admin/users/${order.userId}` : undefined
           }
+          userId={order.userId}
         />
       </div>
     </div>

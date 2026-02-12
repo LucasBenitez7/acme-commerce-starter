@@ -104,10 +104,34 @@ export const OrderSuccessEmail = ({ order }: OrderSuccessEmailProps) => {
                           </Column>
                           <Column style={{ textAlign: "right" }}>
                             <Text style={itemPrice}>
-                              {formatCurrency(
-                                item.price * item.quantity,
-                                currency,
+                              {(item.compareAtPrice ?? 0) > item.price && (
+                                <span
+                                  style={{
+                                    textDecoration: "line-through",
+                                    color: "#737373",
+                                    fontSize: "12px",
+                                    marginRight: "6px",
+                                  }}
+                                >
+                                  {formatCurrency(
+                                    item.compareAtPrice! * item.quantity,
+                                    currency,
+                                  )}
+                                </span>
                               )}
+                              <span
+                                style={{
+                                  color:
+                                    (item.compareAtPrice ?? 0) > item.price
+                                      ? "#dc2626"
+                                      : "#171717",
+                                }}
+                              >
+                                {formatCurrency(
+                                  item.price * item.quantity,
+                                  currency,
+                                )}
+                              </span>
                             </Text>
                           </Column>
                         </Row>
@@ -129,10 +153,30 @@ export const OrderSuccessEmail = ({ order }: OrderSuccessEmailProps) => {
                   </Column>
                   <Column style={{ textAlign: "right" }}>
                     <Text style={totalValue}>
-                      {formatCurrency(order.totals.subtotal, currency)}
+                      {formatCurrency(
+                        (order.totals.totalDiscount ?? 0) > 0
+                          ? order.totals.originalSubtotal!
+                          : order.totals.subtotal,
+                        currency,
+                      )}
                     </Text>
                   </Column>
                 </Row>
+                {(order.totals.totalDiscount ?? 0) > 0 && (
+                  <Row>
+                    <Column>
+                      <Text style={{ ...totalLabel, color: "#dc2626" }}>
+                        Descuentos
+                      </Text>
+                    </Column>
+                    <Column style={{ textAlign: "right" }}>
+                      <Text style={{ ...totalValue, color: "#dc2626" }}>
+                        -{" "}
+                        {formatCurrency(order.totals.totalDiscount!, currency)}
+                      </Text>
+                    </Column>
+                  </Row>
+                )}
                 <Row>
                   <Column>
                     <Text style={totalLabel}>Envío</Text>
@@ -142,7 +186,7 @@ export const OrderSuccessEmail = ({ order }: OrderSuccessEmailProps) => {
                       style={{
                         ...totalValue,
                         color:
-                          order.totals.shipping === 0 ? "#16a34a" : "#737373",
+                          order.totals.shipping === 0 ? "#16a34a" : "#171717",
                       }}
                     >
                       {order.totals.shipping === 0
@@ -178,9 +222,21 @@ export const OrderSuccessEmail = ({ order }: OrderSuccessEmailProps) => {
           </Section>
 
           <Section style={btnContainer}>
-            <Link href={`${baseUrl}/account/orders/${order.id}`} style={button}>
-              Ver pedido en la web
-            </Link>
+            {order.userId ? (
+              <Link
+                href={`${baseUrl}/account/orders/${order.id}`}
+                style={button}
+              >
+                Ver pedido en la web
+              </Link>
+            ) : (
+              <Link
+                href={`${baseUrl}/tracking?orderId=${order.id}`}
+                style={button}
+              >
+                Ver pedido en la web
+              </Link>
+            )}
           </Section>
 
           <Container style={footer}>
@@ -243,12 +299,12 @@ const cardContainer = {
   borderRadius: "4px",
   overflow: "hidden",
   boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)",
-  marginTop: "24px",
+  marginTop: "20px",
   backgroundColor: "#ffffff",
 };
 
 const cardContent = {
-  padding: "18px",
+  padding: "8px 14px",
 };
 
 const labelStyle = {
@@ -308,8 +364,7 @@ const itemTitle = {
   fontSize: "14px",
   fontWeight: "500",
   color: "#171717",
-  margin: "0 0 4px 0",
-  lineHeight: "20px",
+  margin: "0 0 2px 0",
 };
 
 const itemSubtitle = {
@@ -330,6 +385,7 @@ const itemPrice = {
 const itemQty = {
   fontSize: "12px",
   color: "#171717",
+  fontWeight: "500",
   margin: "0",
 };
 
@@ -341,27 +397,27 @@ const totalsSection = {
 
 const totalLabel = {
   fontSize: "14px",
-  color: "#525252",
+  color: "#171717",
   fontWeight: "500",
-  margin: "0 0 8px 0",
+  margin: "0 0 4px 0",
 };
 
 const totalValue = {
   fontSize: "14px",
   fontWeight: "500",
-  color: "#525252",
-  margin: "0 0 8px 0",
+  color: "#171717",
+  margin: "0 0 4px 0",
 };
 
 const grandTotalLabel = {
-  fontSize: "18px",
+  fontSize: "16px",
   fontWeight: "700",
   color: "#171717",
-  marginTop: "6px",
+  marginTop: "4px",
 };
 
 const grandTotalValue = {
-  fontSize: "18px",
+  fontSize: "16px",
   fontWeight: "700",
   color: "#171717",
   margin: "0",
