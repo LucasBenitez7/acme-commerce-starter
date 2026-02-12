@@ -47,11 +47,11 @@ export function ProductClient({
           <h1 className="text-xl font-semibold tracking-tight text-foreground">
             {product.name}
           </h1>
-          <p className="text-base font-medium flex items-center gap-3">
+          <p className="text-base font-medium flex items-center gap-2">
             {product.compareAtPrice &&
               product.compareAtPrice > product.priceCents && (
                 <>
-                  <span className="text-muted-foreground line-through text-sm">
+                  <span className="text-muted-foreground line-through text-xs font-normal">
                     {formatCurrency(product.compareAtPrice, product.currency)}
                   </span>
                 </>
@@ -60,12 +60,24 @@ export function ProductClient({
               className={
                 product.compareAtPrice &&
                 product.compareAtPrice > product.priceCents
-                  ? "text-red-600 text-lg"
-                  : "text-lg"
+                  ? "text-red-600 text-base font-semibold"
+                  : "text-base font-semibold"
               }
             >
               {formatCurrency(product.priceCents, product.currency)}
             </span>
+            {product.compareAtPrice &&
+              product.compareAtPrice > product.priceCents && (
+                <span className="ml-1 text-xs font-semibold text-background bg-red-600 px-1.5 py-0.5">
+                  -
+                  {Math.round(
+                    ((product.compareAtPrice - product.priceCents) /
+                      product.compareAtPrice) *
+                      100,
+                  )}
+                  %
+                </span>
+              )}
           </p>
         </div>
 

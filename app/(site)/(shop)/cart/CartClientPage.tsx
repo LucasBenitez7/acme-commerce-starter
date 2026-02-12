@@ -10,6 +10,7 @@ import { Image } from "@/components/ui/image";
 import { formatCurrency, DEFAULT_CURRENCY } from "@/lib/currency";
 
 import { useCartLogic } from "@/hooks/cart/use-cart-logic";
+import { useCartStore } from "@/store/cart";
 
 export default function CartClientPage({
   favoriteIds = new Set(),
@@ -28,6 +29,9 @@ export default function CartClientPage({
     handleRemoveItem,
     handleCheckout,
   } = useCartLogic();
+
+  const originalTotal = useCartStore((state) => state.getOriginalTotalPrice());
+  const savings = useCartStore((state) => state.getSavings());
 
   const [localFavorites, setLocalFavorites] =
     useState<Set<string>>(favoriteIds);
@@ -69,7 +73,7 @@ export default function CartClientPage({
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_450px]">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_450px]">
           {/* LISTA DE ITEMS */}
           <div className="space-y-4">
             {stockError && (
@@ -171,12 +175,30 @@ export default function CartClientPage({
                               +
                             </button>
                           </div>
-                          <p className="font-medium text-sm">
-                            {formatCurrency(
-                              item.price * item.quantity,
-                              DEFAULT_CURRENCY,
-                            )}
-                          </p>
+                          <div className="flex flex-col items-end">
+                            <div className="flex items-center gap-2">
+                              {(item.compareAtPrice ?? 0) > item.price && (
+                                <p className="text-xs text-muted-foreground line-through tabular-nums">
+                                  {formatCurrency(
+                                    (item.compareAtPrice ?? 0) * item.quantity,
+                                    DEFAULT_CURRENCY,
+                                  )}
+                                </p>
+                              )}
+                              <p
+                                className={`font-semibold text-sm tabular-nums ${
+                                  (item.compareAtPrice ?? 0) > item.price
+                                    ? "text-red-600"
+                                    : "text-foreground"
+                                }`}
+                              >
+                                {formatCurrency(
+                                  item.price * item.quantity,
+                                  DEFAULT_CURRENCY,
+                                )}
+                              </p>
+                            </div>
+                          </div>
                         </div>
 
                         <RemoveButton
@@ -192,7 +214,7 @@ export default function CartClientPage({
           </div>
 
           {/* RESUMEN */}
-          <div className="h-fit space-y-4 sticky top-32">
+          <div className="h-fit space-y-4 sticky top-32 bg-background">
             <div className="rounded-xs border p-4 space-y-2">
               <h2 className="text-xl font-semibold border-b pb-2 mb-4">
                 Resumen
@@ -200,8 +222,15 @@ export default function CartClientPage({
 
               <div className="flex items-center justify-between text-sm font-medium mb-2">
                 <span>Subtotal</span>
-                <span>{formatCurrency(totalPrice, DEFAULT_CURRENCY)}</span>
+                <span>{formatCurrency(originalTotal, DEFAULT_CURRENCY)}</span>
               </div>
+
+              {savings > 0 && (
+                <div className="flex items-center justify-between text-sm font-medium mb-2 text-red-600">
+                  <span>Descuentos</span>
+                  <span>-{formatCurrency(savings, DEFAULT_CURRENCY)}</span>
+                </div>
+              )}
 
               <div className="flex items-center justify-between text-sm font-medium mb-4">
                 <span>Envio</span>

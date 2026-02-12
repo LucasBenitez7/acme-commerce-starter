@@ -137,9 +137,22 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
         </a>
       </div>
 
+      <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+        <span className="h-px flex-1 bg-border" />
+        <span>¿No tienes cuenta?</span>
+        <span className="h-px flex-1 bg-border" />
+      </div>
+
+      <Link
+        href={`/auth/register?redirectTo=${encodeURIComponent(redirectToParam)}`}
+        className="border border-border rounded-xs text-center flex items-center justify-center w-full h-10 font-medium hover:cursor-pointer text-sm hover:bg-neutral-50 text-foreground active:bg-neutral-50"
+      >
+        Crear cuenta
+      </Link>
+
       {/* Lógica: Si venimos de un intento de compra, ofrecemos continuar como invitado */}
       {redirectToParam.includes("checkout") && (
-        <div className="flex flex-col gap-4 mb-6">
+        <div className="flex flex-col gap-4 mt-2">
           <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
             <span className="h-px flex-1 bg-border" />
             <span>o</span>
@@ -158,19 +171,6 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
           </Button>
         </div>
       )}
-
-      <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-        <span className="h-px flex-1 bg-border" />
-        <span>¿No tienes cuenta?</span>
-        <span className="h-px flex-1 bg-border" />
-      </div>
-
-      <Link
-        href={`/auth/register?redirectTo=${encodeURIComponent(redirectToParam)}`}
-        className="border border-border rounded-xs text-center flex items-center justify-center w-full h-10 font-medium hover:cursor-pointer text-sm hover:bg-neutral-50 text-foreground active:bg-neutral-50"
-      >
-        Crear cuenta
-      </Link>
     </form>
   );
 }
