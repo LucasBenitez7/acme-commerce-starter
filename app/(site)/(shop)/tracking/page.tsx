@@ -3,6 +3,8 @@ import { Suspense } from "react";
 import { GuestAccessForm } from "@/components/tracking/GuestAccessForm";
 import { Container } from "@/components/ui";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Seguimiento de Pedido",
   description: "Consulta el estado de tu pedido o tramita una devolución.",
