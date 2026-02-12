@@ -281,6 +281,10 @@ model Order {
   returnReason     String? @db.Text
   rejectionReason  String? @db.Text
 
+  // --- Seguridad Invitados (OTP) ---
+  guestAccessCode       String?
+  guestAccessCodeExpiry DateTime?
+
   // --- Relaciones ---
   userId String?
   user   User?   @relation(fields: [userId], references: [id])
