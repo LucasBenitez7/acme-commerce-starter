@@ -1,4 +1,5 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function Error({
@@ -12,6 +13,8 @@ export default function Error({
     console.error(error);
   }, [error]);
 
+  const router = useRouter();
+
   return (
     <section className="mx-auto max-w-5xl px-6 py-16 text-center">
       <h1 className="text-2xl font-semibold">Algo salió mal</h1>
@@ -22,7 +25,10 @@ export default function Error({
       <div className="mt-6">
         <button
           type="button"
-          onClick={() => reset()}
+          onClick={() => {
+            reset();
+            router.refresh();
+          }}
           className="hover:cursor-pointer py-2 px-4 font-medium rounded-xs border border-slate-300 bg-background hover:bg-neutral-100"
         >
           Reintentar

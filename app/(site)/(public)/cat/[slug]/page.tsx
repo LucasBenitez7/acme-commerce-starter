@@ -4,6 +4,7 @@ import {
   PaginationNav,
   ProductGrid,
   SectionHeader,
+  EmptyState,
 } from "@/components/catalog";
 
 import { getCategoryBySlug } from "@/lib/categories/queries";
@@ -36,12 +37,21 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   return (
     <section>
       <SectionHeader title={cat.name} />
-      <ProductGrid items={rows} favoriteIds={favoriteIds} />
-      <PaginationNav
-        page={page}
-        totalPages={totalPages}
-        base={`/cat/${slug}`}
-      />
+      {rows.length > 0 ? (
+        <>
+          <ProductGrid items={rows} favoriteIds={favoriteIds} />
+          <PaginationNav
+            page={page}
+            totalPages={totalPages}
+            base={`/cat/${slug}`}
+          />
+        </>
+      ) : (
+        <EmptyState
+          title={`No hay productos en ${cat.name}`}
+          description="Lo sentimos, actualmente no tenemos stock en esta categoría."
+        />
+      )}
     </section>
   );
 }
