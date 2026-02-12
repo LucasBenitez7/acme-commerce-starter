@@ -228,6 +228,9 @@ export async function getOrderSuccessDetails(orderId: string) {
           },
         },
       },
+      history: {
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
 

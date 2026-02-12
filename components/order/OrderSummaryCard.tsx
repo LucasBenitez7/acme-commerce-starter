@@ -271,9 +271,9 @@ export function OrderSummaryCard({
             </div>
           )}
           {totals.refunded !== undefined && totals.refunded > 0 && (
-            <div className="flex justify-between text-sm text-red-600 bg-red-50 px-3 py-1 -mx-3 rounded-md">
+            <div className="flex justify-between text-sm text-red-600">
               <span className="font-medium">Reembolsado</span>
-              <span className="font-bold tabular-nums">
+              <span className="font-medium tabular-nums">
                 - {formatCurrency(totals.refunded, currency)}
               </span>
             </div>

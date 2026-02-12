@@ -1,10 +1,15 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { Resend } from "resend";
 
 import { prisma } from "@/lib/db";
 import { GuestAccessEmail } from "@/lib/email/templates/GuestAccessEmail";
+import {
+  requestOrderReturn,
+  type ReturnRequestItem,
+} from "@/lib/orders/service";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -50,7 +55,7 @@ export async function requestGuestAccess(orderId: string, email: string) {
     const { error } = await resend.emails.send({
       from: process.env.EMAIL_FROM || "onboarding@resend.dev",
       to: [cleanEmail],
-      subject: `Código de verificación: ${otp}`,
+      subject: `Código de verificación`,
       react: GuestAccessEmail({ orderId: cleanOrderId, otp }),
     });
 
@@ -124,5 +129,41 @@ export async function verifyGuestAccess(
   } catch (error) {
     console.error("Guest Verify Error:", error);
     return { error: "Error al verificar el código." };
+  }
+}
+
+// 3. SOLICITAR DEVOLUCIÓN (INVITADO)
+export async function requestReturnGuestAction(
+  orderId: string,
+  reason: string,
+  items: ReturnRequestItem[],
+) {
+  // 1. Verificar Cookie de Acceso
+  const cookieStore = await cookies();
+  const hasAccess = cookieStore.get(`guest_access_${orderId}`);
+
+  if (!hasAccess) {
+    return { error: "Tu sesión de invitado ha expirado. Vuelve a ingresar." };
+  }
+
+  // 2. Validaciones
+  if (!reason || reason.trim().length < 5) {
+    return {
+      error: "Por favor, indica un motivo detallado (mínimo 5 caracteres).",
+    };
+  }
+  if (!items || items.length === 0) {
+    return { error: "Selecciona al menos un producto para devolver." };
+  }
+
+  try {
+    // 3. Llamar al servicio (userId = null)
+    await requestOrderReturn(orderId, null, reason, items);
+
+    revalidatePath(`/tracking/${orderId}`);
+    return { success: true };
+  } catch (error: any) {
+    console.error(error);
+    return { error: error.message || "Error al solicitar la devolución" };
   }
 }

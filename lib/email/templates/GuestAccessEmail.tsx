@@ -7,7 +7,6 @@ import {
   Preview,
   Section,
   Text,
-  Link,
 } from "@react-email/components";
 import * as React from "react";
 
@@ -15,8 +14,6 @@ interface GuestAccessEmailProps {
   orderId: string;
   otp: string;
 }
-
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://lsbstack.com";
 
 export const GuestAccessEmail = ({ orderId, otp }: GuestAccessEmailProps) => {
   return (

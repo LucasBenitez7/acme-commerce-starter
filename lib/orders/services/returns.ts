@@ -214,7 +214,7 @@ export async function rejectOrderReturnRequest(
 // 3. USER: Solicitar Devolución
 export async function requestOrderReturn(
   orderId: string,
-  userId: string,
+  userId: string | null,
   reason: string,
   items: ReturnRequestItem[],
 ) {
@@ -225,7 +225,8 @@ export async function requestOrderReturn(
     });
 
     if (!order) throw new Error("Pedido no encontrado");
-    if (order.userId !== userId)
+
+    if (userId && order.userId !== userId)
       throw new Error("No tienes permiso para gestionar este pedido");
 
     if (order.isCancelled) {
