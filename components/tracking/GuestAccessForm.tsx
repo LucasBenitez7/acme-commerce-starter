@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaArrowLeft } from "react-icons/fa6";
 import { toast } from "sonner";
-import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -35,17 +34,12 @@ import {
   requestGuestAccess,
   verifyGuestAccess,
 } from "@/lib/guest-access/actions";
-
-// Schema for Step 1
-const step1Schema = z.object({
-  orderId: z.string().min(1, "El número de pedido es obligatorio"),
-  email: z.string().email("Introduce un email válido"),
-});
-
-// Schema for Step 2
-const step2Schema = z.object({
-  otp: z.string().length(6, "El código debe tener 6 dígitos"),
-});
+import {
+  guestAccessStep1Schema,
+  guestAccessStep2Schema,
+  type GuestAccessStep1Values,
+  type GuestAccessStep2Values,
+} from "@/lib/guest-access/schemas";
 
 export function GuestAccessForm() {
   const router = useRouter();
@@ -62,13 +56,13 @@ export function GuestAccessForm() {
   // DEBUG: otp state
   const [debugOtp, setDebugOtp] = useState("");
 
-  const form1 = useForm<z.infer<typeof step1Schema>>({
-    resolver: zodResolver(step1Schema),
+  const form1 = useForm<GuestAccessStep1Values>({
+    resolver: zodResolver(guestAccessStep1Schema),
     defaultValues: { orderId: defaultOrderId, email: "" },
   });
 
-  const form2 = useForm<z.infer<typeof step2Schema>>({
-    resolver: zodResolver(step2Schema),
+  const form2 = useForm<GuestAccessStep2Values>({
+    resolver: zodResolver(guestAccessStep2Schema),
     defaultValues: { otp: "" },
   });
 
@@ -80,7 +74,7 @@ export function GuestAccessForm() {
     });
   }, [debugOtp, form2]);
 
-  const onStep1Submit = async (values: z.infer<typeof step1Schema>) => {
+  const onStep1Submit = async (values: GuestAccessStep1Values) => {
     setLoading(true);
     try {
       const res = await requestGuestAccess(values.orderId, values.email);
@@ -98,7 +92,7 @@ export function GuestAccessForm() {
     }
   };
 
-  const onStep2Submit = async (values: z.infer<typeof step2Schema>) => {
+  const onStep2Submit = async (values: GuestAccessStep2Values) => {
     if (!orderDetails) return;
 
     setLoading(true);
@@ -123,7 +117,7 @@ export function GuestAccessForm() {
 
   if (step === 2) {
     return (
-      <Card className="w-full max-w-md mx-auto px-4 py-4 space-y-4">
+      <Card className="w-full max-w-md mx-auto px-4 py-6 space-y-4">
         <CardHeader className="px-0">
           <CardTitle>Verificación de Seguridad</CardTitle>
           <CardDescription>
