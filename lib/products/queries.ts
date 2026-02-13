@@ -3,7 +3,8 @@ import { type Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
 
-import { type PublicProductListItem } from "./types";
+import { type FilterOptions, type PublicProductListItem } from "./types";
+import { centsToEuros, sortSizes } from "./utils";
 
 const publicListSelect = {
   id: true,
@@ -181,11 +182,19 @@ export async function getPublicProducts({
   categorySlug,
   sort,
   onlyOnSale,
+  sizes,
+  colors,
+  minPrice,
+  maxPrice,
 }: {
   page?: number;
   limit?: number;
   categorySlug?: string;
   onlyOnSale?: boolean;
+  sizes?: string[];
+  colors?: string[];
+  minPrice?: number;
+  maxPrice?: number;
   sort?:
     | Prisma.ProductOrderByWithRelationInput
     | Prisma.ProductOrderByWithRelationInput[];
@@ -195,6 +204,23 @@ export async function getPublicProducts({
     ...(categorySlug && { category: { slug: categorySlug } }),
     ...(onlyOnSale && {
       compareAtPrice: { gt: prisma.product.fields.priceCents },
+    }),
+    ...(minPrice !== undefined || maxPrice !== undefined
+      ? {
+          priceCents: {
+            gte: minPrice,
+            lte: maxPrice,
+          },
+        }
+      : {}),
+    ...((sizes?.length || colors?.length) && {
+      variants: {
+        some: {
+          isActive: true,
+          ...(sizes?.length && { size: { in: sizes } }),
+          ...(colors?.length && { color: { in: colors } }),
+        },
+      },
     }),
   };
 
@@ -289,7 +315,7 @@ export async function getMaxPrice() {
     select: { priceCents: true },
   });
 
-  return product ? product.priceCents / 100 : 0;
+  return product ? centsToEuros(product.priceCents) : 0;
 }
 
 export async function getMaxDiscountPercentage() {
@@ -315,4 +341,65 @@ export async function getMaxDiscountPercentage() {
   }
 
   return maxDiscount;
+}
+
+export async function getFilterOptions(
+  categorySlug?: string,
+): Promise<FilterOptions> {
+  const where = {
+    isArchived: false,
+    ...(categorySlug && { category: { slug: categorySlug } }),
+  };
+
+  // 1. Obtener productos para extraer variantes y precios
+  const products = await prisma.product.findMany({
+    where,
+    select: {
+      priceCents: true,
+      variants: {
+        where: { isActive: true },
+        select: {
+          size: true,
+          color: true,
+          colorHex: true,
+        },
+      },
+    },
+  });
+
+  const uniqueSizes = new Set<string>();
+  const uniqueColorsMap = new Map<string, string>();
+  let minPrice = Infinity;
+  let maxPrice = -Infinity;
+
+  if (products.length === 0) {
+    return { sizes: [], colors: [], minPrice: 0, maxPrice: 0 };
+  }
+
+  for (const p of products) {
+    if (p.priceCents < minPrice) minPrice = p.priceCents;
+    if (p.priceCents > maxPrice) maxPrice = p.priceCents;
+
+    for (const v of p.variants) {
+      if (v.size) uniqueSizes.add(v.size);
+      if (v.color) {
+        if (!uniqueColorsMap.has(v.color)) {
+          uniqueColorsMap.set(v.color, v.colorHex ?? "#000000");
+        }
+      }
+    }
+  }
+
+  const sortedSizes = sortSizes(Array.from(uniqueSizes));
+
+  const sortedColors = Array.from(uniqueColorsMap.entries())
+    .map(([name, hex]) => ({ name, hex }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  return {
+    sizes: sortedSizes,
+    colors: sortedColors,
+    minPrice: minPrice === Infinity ? 0 : minPrice,
+    maxPrice: maxPrice === -Infinity ? 0 : maxPrice,
+  };
 }

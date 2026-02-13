@@ -1,3 +1,6 @@
+import { type Prisma } from "@prisma/client";
+
+import { DEFAULT_CURRENCY, toMajor } from "@/lib/currency";
 import { CLOTHING_SIZES } from "@/lib/products/constants";
 
 import type {
@@ -139,4 +142,84 @@ export function getInitialProductState(
   }
 
   return { initialColor, initialImage };
+}
+
+// --- SORTING ---
+export function parseSort(
+  sort?: string,
+): Prisma.ProductOrderByWithRelationInput[] {
+  switch (sort) {
+    case "price_asc":
+      return [{ priceCents: "asc" }];
+    case "price_desc":
+      return [{ priceCents: "desc" }];
+    case "name_asc":
+      return [{ name: "asc" }];
+    case "name_desc":
+      return [{ name: "desc" }];
+    case "date_desc":
+    default:
+      return [{ createdAt: "desc" }];
+  }
+}
+
+// --- FILTER PARSING ---
+export function parseSearchParamFilters(sp: {
+  [key: string]: string | string[] | undefined;
+}) {
+  const sizes =
+    typeof sp.sizes === "string"
+      ? [sp.sizes]
+      : Array.isArray(sp.sizes)
+        ? sp.sizes
+        : undefined;
+  const colors =
+    typeof sp.colors === "string"
+      ? [sp.colors]
+      : Array.isArray(sp.colors)
+        ? sp.colors
+        : undefined;
+  const minPrice = sp.minPrice ? Number(sp.minPrice) : undefined;
+  const maxPrice = sp.maxPrice ? Number(sp.maxPrice) : undefined;
+  const sort = parseSort(typeof sp.sort === "string" ? sp.sort : undefined);
+
+  return { sizes, colors, minPrice, maxPrice, sort };
+}
+
+// --- URL PARAM HELPERS ---
+export function toggleArrayParam(
+  searchParams: URLSearchParams,
+  name: string,
+  value: string,
+): URLSearchParams {
+  const params = new URLSearchParams(searchParams.toString());
+  const current = params.getAll(name);
+  params.delete(name);
+
+  if (current.includes(value)) {
+    current.filter((v) => v !== value).forEach((v) => params.append(name, v));
+  } else {
+    [...current, value].forEach((v) => params.append(name, v));
+  }
+
+  return params;
+}
+
+export function centsToEuros(cents: number): number {
+  return toMajor(cents, DEFAULT_CURRENCY);
+}
+
+export function eurosToCents(euros: number): number {
+  return Math.round(euros * 100);
+}
+
+// --- QUERY STRING HELPERS ---
+export function setQueryParam(
+  searchParams: URLSearchParams,
+  name: string,
+  value: string,
+): URLSearchParams {
+  const params = new URLSearchParams(searchParams.toString());
+  params.set(name, value);
+  return params;
 }
