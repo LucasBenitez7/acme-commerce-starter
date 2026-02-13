@@ -5,7 +5,10 @@ import { PaginationNav } from "@/components/catalog/PaginationNav";
 import { ProductGrid } from "@/components/catalog/ProductGrid";
 import { SectionHeader } from "@/components/catalog/SectionHeader";
 
-import { getPublicProducts } from "@/lib/products/queries";
+import { getUserFavoriteIds } from "@/lib/favorites/queries";
+import { PER_PAGE, parsePage } from "@/lib/pagination";
+import { getFilterOptions, getPublicProducts } from "@/lib/products/queries";
+import { parseSearchParamFilters } from "@/lib/products/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -17,27 +20,52 @@ export const metadata = {
 export default async function RebajasPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const { page: pageStr } = await searchParams;
-  const page = Number(pageStr) || 1;
-  const { rows: products, total } = await getPublicProducts({
-    page,
-    limit: 12,
-    onlyOnSale: true,
-  });
+  const sp = await searchParams;
+  const page = Math.max(1, parsePage(sp.page, 1));
+
+  const { sizes, colors, minPrice, maxPrice, sort } =
+    parseSearchParamFilters(sp);
+
+  const [{ rows: products, total }, favoriteIds, filterOptions] =
+    await Promise.all([
+      getPublicProducts({
+        page,
+        limit: PER_PAGE,
+        onlyOnSale: true,
+        sizes,
+        colors,
+        minPrice,
+        maxPrice,
+        sort,
+      }),
+      getUserFavoriteIds(),
+      getFilterOptions(),
+    ]);
+
+  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
 
   return (
     <div>
-      <SectionHeader title="Rebajas" className="text-red-600" />
+      <SectionHeader
+        title="Rebajas"
+        className="text-red-600"
+        filterOptions={filterOptions}
+      />
 
       <div className="space-y-8">
         {products.length > 0 ? (
           <>
-            <ProductGrid items={products} />
+            <ProductGrid items={products} favoriteIds={favoriteIds} />
 
             <Suspense>
-              <PaginationNav page={page} totalPages={Math.ceil(total / 12)} />
+              <PaginationNav
+                page={page}
+                totalPages={totalPages}
+                base="/rebajas"
+                className="pr-4"
+              />
             </Suspense>
           </>
         ) : (
