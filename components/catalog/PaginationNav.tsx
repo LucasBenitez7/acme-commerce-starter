@@ -35,7 +35,7 @@ export function PaginationNav({ totalPages, page, base, className }: Props) {
   return (
     <nav
       aria-label="Paginación"
-      className={cn("flex items-center justify-end gap-2", className)}
+      className={cn("flex items-center justify-end gap-2 mt-4", className)}
     >
       <Button
         variant="outline"

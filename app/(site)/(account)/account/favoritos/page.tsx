@@ -24,7 +24,7 @@ export default async function FavoritesPage() {
   const favoriteIds = new Set(favorites.map((f) => f.id));
 
   return (
-    <section className="space-y-0">
+    <section className="space-y-6">
       <div>
         <h2 className="text-2xl text-center sm:text-left font-semibold pb-2 border-b border-neutral-300">
           Mis Favoritos

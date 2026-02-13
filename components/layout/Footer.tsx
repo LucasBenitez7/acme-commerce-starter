@@ -15,7 +15,7 @@ export function Footer() {
   }
 
   return (
-    <footer className="border-t px-4 bg-background">
+    <footer className="border-t px-4 mt-8 bg-background">
       <Container className="py-8 text-sm text-neutral-600 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <p>
           © {new Date().getFullYear()} lsbstack. Todos los derechos reservados.

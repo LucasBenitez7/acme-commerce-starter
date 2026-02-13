@@ -20,7 +20,7 @@ export function ProductGrid({
   return (
     <div
       className={cn(
-        "py-6 grid gap-x-1 gap-y-6 sm:grid-cols-3 lg:grid-cols-4 px-1",
+        "py-0 grid gap-x-1 gap-y-6 sm:grid-cols-3 lg:grid-cols-4 px-1",
         className,
       )}
     >
