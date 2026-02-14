@@ -63,7 +63,6 @@ type GetAdminProductsParams = {
   query?: string;
   sort?: string;
   categories?: string[];
-  // ...
   status?: string;
   minPrice?: number;
   maxPrice?: number;
@@ -90,12 +89,6 @@ export async function getAdminProducts({
     priceCents: { gte: minPrice, lte: maxPrice },
     ...(onSale && {
       compareAtPrice: { gt: prisma.product.fields.priceCents },
-    }),
-    ...(query && {
-      OR: [
-        { name: { contains: query, mode: "insensitive" } },
-        { description: { contains: query, mode: "insensitive" } },
-      ],
     }),
   };
 
@@ -127,6 +120,10 @@ export async function getAdminProducts({
     }
   }
 
+  // Si hay query, traer más resultados para filtrar en memoria
+  const fetchLimit = query ? 200 : limit;
+  const fetchSkip = query ? 0 : skip;
+
   const [productsRaw, totalCount, allCategories] = await Promise.all([
     prisma.product.findMany({
       where,
@@ -136,27 +133,44 @@ export async function getAdminProducts({
         variants: true,
         images: { orderBy: { sort: "asc" }, take: 1 },
       },
-      take: limit,
-      skip,
+      take: fetchLimit,
+      skip: fetchSkip,
     }),
     prisma.product.count({ where }),
     prisma.category.findMany({ orderBy: { name: "asc" } }),
   ]);
 
-  const products = productsRaw.map((p) => ({
+  let productsWithStock = productsRaw.map((p) => ({
     ...p,
     _totalStock: p.variants.reduce((acc, v) => acc + v.stock, 0),
   }));
 
+  // Filtrar por query en memoria si existe
+  if (query) {
+    const { filterByWordMatch } = await import("@/lib/products/utils");
+    productsWithStock = filterByWordMatch(
+      productsWithStock,
+      query,
+      (product) => [product.name, product.description, product.category?.name],
+    );
+  }
+
+  // Ordenar por stock si corresponde
   if (sort === "stock_asc")
-    products.sort((a, b) => a._totalStock - b._totalStock);
+    productsWithStock.sort((a, b) => a._totalStock - b._totalStock);
   if (sort === "stock_desc")
-    products.sort((a, b) => b._totalStock - a._totalStock);
+    productsWithStock.sort((a, b) => b._totalStock - a._totalStock);
+
+  // Paginar resultados filtrados
+  const totalFiltered = productsWithStock.length;
+  const products = query
+    ? productsWithStock.slice((page - 1) * limit, page * limit)
+    : productsWithStock;
 
   return {
     products,
-    totalCount,
-    totalPages: Math.ceil(totalCount / limit),
+    totalCount: query ? totalFiltered : totalCount,
+    totalPages: Math.ceil((query ? totalFiltered : totalCount) / limit),
     allCategories,
     grandTotalStock: products.reduce((acc, p) => acc + p._totalStock, 0),
   };
@@ -186,6 +200,7 @@ export async function getPublicProducts({
   colors,
   minPrice,
   maxPrice,
+  query,
 }: {
   page?: number;
   limit?: number;
@@ -195,6 +210,7 @@ export async function getPublicProducts({
   colors?: string[];
   minPrice?: number;
   maxPrice?: number;
+  query?: string;
   sort?:
     | Prisma.ProductOrderByWithRelationInput
     | Prisma.ProductOrderByWithRelationInput[];
@@ -226,18 +242,62 @@ export async function getPublicProducts({
 
   const orderBy = sort || [{ sortOrder: "asc" }, { createdAt: "desc" }];
 
-  const [rows, total] = await Promise.all([
+  // Si hay query, traemos más resultados para filtrar por palabras
+  const fetchLimit = query ? 200 : limit;
+  const fetchSkip = query ? 0 : (page - 1) * limit;
+
+  const [allRows, total] = await Promise.all([
     prisma.product.findMany({
       where,
       orderBy,
-      take: limit,
-      skip: (page - 1) * limit,
+      take: fetchLimit,
+      skip: fetchSkip,
       select: publicListSelect,
     }),
     prisma.product.count({ where }),
   ]);
 
-  return { rows: rows.map(toPublicListItem), total };
+  let filteredRows = allRows;
+  if (query) {
+    const queryWords = query.toLowerCase().trim().split(/\s+/);
+
+    filteredRows = allRows.filter((product) => {
+      const nameWords = product.name.toLowerCase().split(/\s+/);
+      const categoryWords =
+        product.category?.name.toLowerCase().split(/\s+/) || [];
+      const allProductWords = [...nameWords, ...categoryWords];
+
+      const matches = queryWords.every((queryWord) => {
+        const variants = [queryWord];
+        if (queryWord.endsWith("s") && queryWord.length > 2) {
+          variants.push(queryWord.slice(0, -1));
+        } else if (!queryWord.endsWith("s")) {
+          variants.push(queryWord + "s");
+        }
+
+        const hasMatch = variants.some((variant) =>
+          allProductWords.some((productWord) =>
+            productWord.startsWith(variant),
+          ),
+        );
+
+        return hasMatch;
+      });
+
+      return matches;
+    });
+  }
+
+  // Paginar resultados filtrados
+  const totalFiltered = filteredRows.length;
+  const paginatedRows = query
+    ? filteredRows.slice((page - 1) * limit, page * limit)
+    : filteredRows;
+
+  return {
+    rows: paginatedRows.map(toPublicListItem),
+    total: query ? totalFiltered : total,
+  };
 }
 
 // Ficha de Producto (Slug)

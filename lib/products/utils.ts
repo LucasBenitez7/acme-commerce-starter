@@ -223,3 +223,35 @@ export function setQueryParam(
   params.set(name, value);
   return params;
 }
+
+// --- BÚSQUEDA OPTIMIZADA ---
+export function filterByWordMatch<T>(
+  items: T[],
+  query: string,
+  getSearchableFields: (item: T) => (string | null | undefined)[],
+): T[] {
+  if (!query || !query.trim()) return items;
+
+  const queryWords = query.toLowerCase().trim().split(/\s+/);
+
+  return items.filter((item) => {
+    const searchableText = getSearchableFields(item)
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    const words = searchableText.split(/\s+/);
+
+    return queryWords.every((queryWord) => {
+      const variants = [queryWord];
+      if (queryWord.endsWith("s") && queryWord.length > 2) {
+        variants.push(queryWord.slice(0, -1));
+      } else if (!queryWord.endsWith("s")) {
+        variants.push(queryWord + "s");
+      }
+
+      return variants.some((variant) =>
+        words.some((word) => word.startsWith(variant)),
+      );
+    });
+  });
+}
