@@ -43,17 +43,20 @@ export function useProductCard(item: PublicProductListItem) {
   }, [sortedVariants]);
 
   // --- ESTADOS ---
-  const defaultColor = colors.length > 0 ? colors[0] : null;
-
-  const [selectedColor, setSelectedColor] = useState<string | null>(
-    defaultColor,
-  );
-
-  useEffect(() => {
+  // Calcular color inicial: priorizar savedColor, luego primer color disponible
+  const defaultColor = useMemo(() => {
     if (isMounted && savedColor && colors.includes(savedColor)) {
-      setSelectedColor(savedColor);
+      return savedColor;
     }
+    return colors.length > 0 ? colors[0] : null;
   }, [isMounted, savedColor, colors]);
+
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+
+  // Sincronizar con defaultColor calculado
+  useEffect(() => {
+    setSelectedColor(defaultColor);
+  }, [defaultColor]);
 
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
@@ -103,6 +106,18 @@ export function useProductCard(item: PublicProductListItem) {
     );
 
     if (!variantToAdd) return;
+
+    // Validar si ya se alcanzó el stock máximo en el carrito
+    const currentQty =
+      cartItems.find((i) => i.variantId === variantToAdd.id)?.quantity ?? 0;
+
+    if (currentQty >= variantToAdd.stock) {
+      toast.error("Stock máximo alcanzado", {
+        description: `Solo hay ${variantToAdd.stock} disponibles`,
+        duration: 2000,
+      });
+      return;
+    }
 
     addItem({
       productId: item.id,

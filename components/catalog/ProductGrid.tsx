@@ -9,6 +9,7 @@ interface ProductGridProps {
   favoriteIds?: Set<string>;
   className?: string;
   shortenTitle?: boolean;
+  onProductClick?: () => void;
 }
 
 export function ProductGrid({
@@ -16,6 +17,7 @@ export function ProductGrid({
   favoriteIds,
   className,
   shortenTitle,
+  onProductClick,
 }: ProductGridProps) {
   return (
     <div
@@ -30,6 +32,7 @@ export function ProductGrid({
           item={p}
           initialIsFavorite={favoriteIds ? favoriteIds.has(p.id) : false}
           shortenTitle={shortenTitle}
+          onProductClick={onProductClick}
         />
       ))}
     </div>
