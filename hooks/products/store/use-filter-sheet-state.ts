@@ -71,20 +71,20 @@ export function useFilterSheetState(options: FilterOptions) {
 
   // Aplicar filtros a la URL y navegar
   const applyFilters = () => {
-    const params = new URLSearchParams();
+    const params = new URLSearchParams(searchParams.toString());
 
-    // Sort
+    params.delete("sort");
+    params.delete("sizes");
+    params.delete("colors");
+    params.delete("minPrice");
+    params.delete("maxPrice");
+
     if (localSort !== DEFAULT_SORT) {
       params.set("sort", localSort);
     }
-
-    // Sizes
     localSizes.forEach((size) => params.append("sizes", size));
-
-    // Colors
     localColors.forEach((color) => params.append("colors", color));
 
-    // Price
     if (
       localPriceRange[0] !== optionsMinEuros ||
       localPriceRange[1] !== optionsMaxEuros
@@ -102,7 +102,17 @@ export function useFilterSheetState(options: FilterOptions) {
     setLocalColors([]);
     setLocalSort(DEFAULT_SORT);
     setLocalPriceRange([optionsMinEuros, optionsMaxEuros]);
-    router.replace(pathname, { scroll: false });
+
+    const params = new URLSearchParams();
+    const currentQuery = searchParams.get("q");
+    if (currentQuery) {
+      params.set("q", currentQuery);
+    }
+
+    const newUrl = params.toString()
+      ? `${pathname}?${params.toString()}`
+      : pathname;
+    router.replace(newUrl, { scroll: false });
   };
 
   const hasActiveFilters =

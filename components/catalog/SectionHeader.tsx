@@ -1,10 +1,11 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { VscSettings } from "react-icons/vsc";
 
 import { Button, Sheet, SheetContent } from "@/components/ui";
+
+import { useActiveFilters } from "@/hooks/common/use-active-filters";
 
 import { FilterSheet } from "./FilterSheet";
 
@@ -15,35 +16,28 @@ export function SectionHeader({
   rightSlot,
   filterOptions,
   className,
+  subTitle,
 }: {
   title: string;
   rightSlot?: ReactNode;
   filterOptions?: FilterOptions;
   className?: string;
+  subTitle?: string;
 }) {
   const [showFilters, setShowFilters] = useState(false);
-  const searchParams = useSearchParams();
-
-  // Calcular filtros activos desde URL
-  const activeFiltersCount = () => {
-    let count = 0;
-    if (searchParams.getAll("sizes").length > 0)
-      count += searchParams.getAll("sizes").length;
-    if (searchParams.getAll("colors").length > 0)
-      count += searchParams.getAll("colors").length;
-    if (searchParams.get("sort")) count++;
-    if (searchParams.get("minPrice") || searchParams.get("maxPrice")) count++;
-    return count;
-  };
-
-  const filtersCount = activeFiltersCount();
+  const { count: filtersCount } = useActiveFilters();
 
   return (
     <>
       <header
         className={`${className} py-3 flex sticky top-14 z-30 w-full items-center justify-between px-5 bg-background`}
       >
-        <h1 className="text-xl font-medium capitalize">{title}</h1>
+        <div className="flex items-center gap-1">
+          <h1 className="text-xl font-medium capitalize">{title}</h1>
+          {subTitle && (
+            <p className="text-sm text-muted-foreground">({subTitle})</p>
+          )}
+        </div>
         {rightSlot !== false &&
           ((rightSlot ?? filterOptions) ? (
             <Button
