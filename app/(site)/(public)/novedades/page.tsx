@@ -1,12 +1,9 @@
-import { Suspense } from "react";
-
 import { EmptyState } from "@/components/catalog/EmptyState";
-import { PaginationNav } from "@/components/catalog/PaginationNav";
-import { ProductGrid } from "@/components/catalog/ProductGrid";
+import { ProductGridWithLoadMore } from "@/components/catalog/ProductGridWithLoadMore";
 import { SectionHeader } from "@/components/catalog/SectionHeader";
 
 import { getUserFavoriteIds } from "@/lib/favorites/queries";
-import { PER_PAGE, parsePage } from "@/lib/pagination";
+import { PER_PAGE } from "@/lib/pagination";
 import { getFilterOptions, getPublicProducts } from "@/lib/products/queries";
 import { parseSearchParamFilters } from "@/lib/products/utils";
 
@@ -23,7 +20,6 @@ export default async function NovedadesPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const sp = await searchParams;
-  const page = Math.max(1, parsePage(sp.page, 1));
 
   const { sizes, colors, minPrice, maxPrice, sort } =
     parseSearchParamFilters(sp);
@@ -31,7 +27,7 @@ export default async function NovedadesPage({
   const [{ rows: products, total }, favoriteIds, filterOptions] =
     await Promise.all([
       getPublicProducts({
-        page,
+        page: 1,
         limit: PER_PAGE,
         sort: sort || { createdAt: "desc" },
         sizes,
@@ -43,26 +39,17 @@ export default async function NovedadesPage({
       getFilterOptions(),
     ]);
 
-  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
-
   return (
     <div>
       <SectionHeader title="Novedades" filterOptions={filterOptions} />
 
       <div className="space-y-8">
         {products.length > 0 ? (
-          <>
-            <ProductGrid items={products} favoriteIds={favoriteIds} />
-
-            <Suspense>
-              <PaginationNav
-                page={page}
-                totalPages={totalPages}
-                base="/novedades"
-                className="pr-4"
-              />
-            </Suspense>
-          </>
+          <ProductGridWithLoadMore
+            initialProducts={products}
+            initialTotal={total}
+            favoriteIds={favoriteIds}
+          />
         ) : (
           <EmptyState
             title="Sin novedades por ahora"

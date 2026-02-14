@@ -1,12 +1,8 @@
-import {
-  EmptyState,
-  PaginationNav,
-  ProductGrid,
-  SectionHeader,
-} from "@/components/catalog";
+import { EmptyState, SectionHeader } from "@/components/catalog";
+import { ProductGridWithLoadMore } from "@/components/catalog/ProductGridWithLoadMore";
 
 import { getUserFavoriteIds } from "@/lib/favorites/queries";
-import { PER_PAGE, parsePage } from "@/lib/pagination";
+import { PER_PAGE } from "@/lib/pagination";
 import { getFilterOptions, getPublicProducts } from "@/lib/products/queries";
 import { parseSearchParamFilters } from "@/lib/products/utils";
 
@@ -19,14 +15,13 @@ type Props = {
 
 export default async function CatalogPage({ params, searchParams }: Props) {
   const sp = await searchParams;
-  const page = Math.max(1, parsePage(sp.page, 1));
 
   const { sizes, colors, minPrice, maxPrice, sort } =
     parseSearchParamFilters(sp);
 
   const [{ rows, total }, favoriteIds, filterOptions] = await Promise.all([
     getPublicProducts({
-      page,
+      page: 1,
       limit: PER_PAGE,
       sizes,
       colors,
@@ -38,21 +33,15 @@ export default async function CatalogPage({ params, searchParams }: Props) {
     getFilterOptions(),
   ]);
 
-  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
-
   return (
     <section>
       <SectionHeader title="Todas las prendas" filterOptions={filterOptions} />
       {rows.length > 0 ? (
-        <>
-          <ProductGrid items={rows} favoriteIds={favoriteIds} />
-          <PaginationNav
-            page={page}
-            totalPages={totalPages}
-            base="/catalogo"
-            className="pr-4"
-          />
-        </>
+        <ProductGridWithLoadMore
+          initialProducts={rows}
+          initialTotal={total}
+          favoriteIds={favoriteIds}
+        />
       ) : (
         <EmptyState title="Catálogo vacío" />
       )}
