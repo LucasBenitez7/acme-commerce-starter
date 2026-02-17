@@ -18,7 +18,7 @@ export function slugify(text: string) {
 export const categorySchema = z.object({
   name: z.string().min(3, "Mínimo 3 caracteres").max(50),
   slug: z.string().optional(),
-  sort: z.coerce.number().default(0),
+  sort: z.coerce.number().min(0, "El orden no puede ser negativo").default(0),
   isFeatured: z.boolean().optional().default(false),
   image: z.string().optional().nullable(),
   mobileImage: z.string().optional().nullable(),
