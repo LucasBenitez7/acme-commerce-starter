@@ -26,7 +26,7 @@ export default async function SiteLayout({
 
   return (
     <Providers>
-      <div className="flex min-h-dvh flex-col bg-neutral-50 text-neutral-900 font-sans">
+      <div className="flex min-h-dvh flex-col bg-background text-foreground font-sans">
         <Header categories={categories} maxDiscount={maxDiscount} />
 
         <div className="flex-1 flex flex-col">{children}</div>

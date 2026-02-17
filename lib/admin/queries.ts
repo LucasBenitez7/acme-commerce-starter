@@ -102,13 +102,6 @@ export async function getAdminUsers({
   const skip = (page - 1) * limit;
 
   const where: Prisma.UserWhereInput = {
-    ...(query && {
-      OR: [
-        { name: { contains: query, mode: "insensitive" } },
-        { email: { contains: query, mode: "insensitive" } },
-        { id: { equals: query } },
-      ],
-    }),
     ...(role && {
       role: role,
     }),
@@ -125,12 +118,16 @@ export async function getAdminUsers({
     }
   }
 
-  const [users, totalCount] = await Promise.all([
+  // Si hay query, traer más resultados para filtrar en memoria
+  const fetchLimit = query ? 100 : limit;
+  const fetchSkip = query ? 0 : skip;
+
+  const [usersRaw, totalCount] = await Promise.all([
     prisma.user.findMany({
       where,
       orderBy,
-      skip,
-      take: limit,
+      skip: fetchSkip,
+      take: fetchLimit,
       include: {
         _count: {
           select: { orders: true },
@@ -140,10 +137,29 @@ export async function getAdminUsers({
     prisma.user.count({ where }),
   ]);
 
+  let usersFiltered = usersRaw;
+  if (query) {
+    const { filterByWordMatch } = await import("@/lib/products/utils");
+    const matchesId = usersRaw.filter((u) => u.id === query);
+    if (matchesId.length > 0) {
+      usersFiltered = matchesId;
+    } else {
+      usersFiltered = filterByWordMatch(usersRaw, query, (user) => [
+        user.name,
+        user.email,
+      ]);
+    }
+  }
+
+  const totalFiltered = usersFiltered.length;
+  const users = query
+    ? usersFiltered.slice((page - 1) * limit, page * limit)
+    : usersFiltered;
+
   return {
     users,
-    totalCount,
-    totalPages: Math.ceil(totalCount / limit),
+    totalCount: query ? totalFiltered : totalCount,
+    totalPages: Math.ceil((query ? totalFiltered : totalCount) / limit),
   };
 }
 

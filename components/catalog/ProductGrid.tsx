@@ -9,6 +9,7 @@ interface ProductGridProps {
   favoriteIds?: Set<string>;
   className?: string;
   shortenTitle?: boolean;
+  onProductClick?: () => void;
 }
 
 export function ProductGrid({
@@ -16,11 +17,12 @@ export function ProductGrid({
   favoriteIds,
   className,
   shortenTitle,
+  onProductClick,
 }: ProductGridProps) {
   return (
     <div
       className={cn(
-        "py-6 grid gap-x-1 gap-y-6 sm:grid-cols-3 lg:grid-cols-4 px-1",
+        "py-0 grid gap-x-1 gap-y-6 sm:grid-cols-3 lg:grid-cols-4 px-1",
         className,
       )}
     >
@@ -30,6 +32,7 @@ export function ProductGrid({
           item={p}
           initialIsFavorite={favoriteIds ? favoriteIds.has(p.id) : false}
           shortenTitle={shortenTitle}
+          onProductClick={onProductClick}
         />
       ))}
     </div>

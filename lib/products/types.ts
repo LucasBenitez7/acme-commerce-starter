@@ -75,3 +75,11 @@ export type FavoriteProductItem = PublicProductListItem & {
   favoriteId: string;
   addedAt: Date;
 };
+
+// --- TIPOS PARA FILTROS ---
+export type FilterOptions = {
+  sizes: string[];
+  colors: { name: string; hex: string }[];
+  minPrice: number;
+  maxPrice: number;
+};

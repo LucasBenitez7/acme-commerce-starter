@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { FaBagShopping } from "react-icons/fa6";
 
 import { Button } from "@/components/ui/button";
 
@@ -17,10 +16,7 @@ export function EmptyState({
   actionHref = "/catalogo",
 }: Props) {
   return (
-    <div className="flex flex-col items-center justify-center text-center py-16 px-4 bg-neutral-50 rounded-xs border border-neutral-200 border-dashed">
-      <div className="bg-white p-4 rounded-full shadow-sm mb-4 border">
-        <FaBagShopping className="size-8 text-foreground" />
-      </div>
+    <div className="flex flex-col items-center justify-center text-center py-16 px-4">
       <h3 className="text-lg font-semibold text-neutral-900">{title}</h3>
       <p className="text-neutral-500 max-w-sm mt-2 mb-6 text-sm">
         {description}

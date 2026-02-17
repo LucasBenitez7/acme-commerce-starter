@@ -1,13 +1,10 @@
-import {
-  PaginationNav,
-  ProductGrid,
-  SectionHeader,
-  EmptyState,
-} from "@/components/catalog";
+import { EmptyState, SectionHeader } from "@/components/catalog";
+import { ProductGridWithLoadMore } from "@/components/catalog/ProductGridWithLoadMore";
 
 import { getUserFavoriteIds } from "@/lib/favorites/queries";
-import { PER_PAGE, parsePage } from "@/lib/pagination";
-import { getPublicProducts } from "@/lib/products/queries";
+import { PER_PAGE } from "@/lib/pagination";
+import { getFilterOptions, getPublicProducts } from "@/lib/products/queries";
+import { parseSearchParamFilters } from "@/lib/products/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -18,30 +15,33 @@ type Props = {
 
 export default async function CatalogPage({ params, searchParams }: Props) {
   const sp = await searchParams;
-  const page = Math.max(1, parsePage(sp.page, 1));
 
-  const { rows, total } = await getPublicProducts({
-    page,
-    limit: PER_PAGE,
-  });
+  const { sizes, colors, minPrice, maxPrice, sort } =
+    parseSearchParamFilters(sp);
 
-  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
-
-  const favoriteIds = await getUserFavoriteIds();
+  const [{ rows, total }, favoriteIds, filterOptions] = await Promise.all([
+    getPublicProducts({
+      page: 1,
+      limit: PER_PAGE,
+      sizes,
+      colors,
+      minPrice,
+      maxPrice,
+      sort,
+    }),
+    getUserFavoriteIds(),
+    getFilterOptions(),
+  ]);
 
   return (
-    <section className="pb-4">
-      <SectionHeader title="Todas las prendas" />
+    <section>
+      <SectionHeader title="Todas las prendas" filterOptions={filterOptions} />
       {rows.length > 0 ? (
-        <>
-          <ProductGrid items={rows} favoriteIds={favoriteIds} />
-          <PaginationNav
-            page={page}
-            totalPages={totalPages}
-            base="/catalogo"
-            className="pr-4"
-          />
-        </>
+        <ProductGridWithLoadMore
+          initialProducts={rows}
+          initialTotal={total}
+          favoriteIds={favoriteIds}
+        />
       ) : (
         <EmptyState title="Catálogo vacío" />
       )}

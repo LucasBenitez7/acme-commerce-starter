@@ -1,11 +1,11 @@
-import { Suspense } from "react";
-
 import { EmptyState } from "@/components/catalog/EmptyState";
-import { PaginationNav } from "@/components/catalog/PaginationNav";
-import { ProductGrid } from "@/components/catalog/ProductGrid";
+import { ProductGridWithLoadMore } from "@/components/catalog/ProductGridWithLoadMore";
 import { SectionHeader } from "@/components/catalog/SectionHeader";
 
-import { getPublicProducts } from "@/lib/products/queries";
+import { getUserFavoriteIds } from "@/lib/favorites/queries";
+import { PER_PAGE } from "@/lib/pagination";
+import { getFilterOptions, getPublicProducts } from "@/lib/products/queries";
+import { parseSearchParamFilters } from "@/lib/products/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -17,30 +17,39 @@ export const metadata = {
 export default async function NovedadesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const { page: pageStr } = await searchParams;
-  const page = Number(pageStr) || 1;
+  const sp = await searchParams;
 
-  const { rows: products, total } = await getPublicProducts({
-    page,
-    limit: 12,
-    sort: { createdAt: "desc" },
-  });
+  const { sizes, colors, minPrice, maxPrice, sort } =
+    parseSearchParamFilters(sp);
+
+  const [{ rows: products, total }, favoriteIds, filterOptions] =
+    await Promise.all([
+      getPublicProducts({
+        page: 1,
+        limit: PER_PAGE,
+        sort: sort || { createdAt: "desc" },
+        sizes,
+        colors,
+        minPrice,
+        maxPrice,
+      }),
+      getUserFavoriteIds(),
+      getFilterOptions(),
+    ]);
 
   return (
     <div>
-      <SectionHeader title="Novedades" rightSlot={false} />
+      <SectionHeader title="Novedades" filterOptions={filterOptions} />
 
       <div className="space-y-8">
         {products.length > 0 ? (
-          <>
-            <ProductGrid items={products} />
-
-            <Suspense>
-              <PaginationNav page={page} totalPages={Math.ceil(total / 12)} />
-            </Suspense>
-          </>
+          <ProductGridWithLoadMore
+            initialProducts={products}
+            initialTotal={total}
+            favoriteIds={favoriteIds}
+          />
         ) : (
           <EmptyState
             title="Sin novedades por ahora"

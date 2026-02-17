@@ -39,12 +39,7 @@ export async function getAdminCategories({
 }: AdminCategoryFilters) {
   const skip = (page - 1) * limit;
 
-  // 1. Construir WHERE
   const where: Prisma.CategoryWhereInput = {};
-
-  if (query) {
-    where.name = { contains: query, mode: "insensitive" };
-  }
 
   if (filter === "with_products") {
     where.products = { some: {} };
@@ -62,23 +57,42 @@ export async function getAdminCategories({
     orderBy = { [sortBy]: sortOrder };
   }
 
-  const [categories, totalCount] = await Promise.all([
+  // Si hay query, traer más resultados para filtrar en memoria
+  const fetchLimit = query ? 100 : limit;
+  const fetchSkip = query ? 0 : skip;
+
+  const [categoriesRaw, totalCount] = await Promise.all([
     prisma.category.findMany({
       where,
       orderBy,
       include: {
         _count: { select: { products: true } },
       },
-      take: limit,
-      skip,
+      take: fetchLimit,
+      skip: fetchSkip,
     }),
     prisma.category.count({ where }),
   ]);
 
+  // Filtrar por query en memoria si existe
+  let categoriesFiltered = categoriesRaw;
+  if (query) {
+    const { filterByWordMatch } = await import("@/lib/products/utils");
+    categoriesFiltered = filterByWordMatch(categoriesRaw, query, (category) => [
+      category.name,
+    ]);
+  }
+
+  // Paginar resultados filtrados
+  const totalFiltered = categoriesFiltered.length;
+  const categories = query
+    ? categoriesFiltered.slice((page - 1) * limit, page * limit)
+    : categoriesFiltered;
+
   return {
     categories,
-    totalCount,
-    totalPages: Math.ceil(totalCount / limit),
+    totalCount: query ? totalFiltered : totalCount,
+    totalPages: Math.ceil((query ? totalFiltered : totalCount) / limit),
   };
 }
 

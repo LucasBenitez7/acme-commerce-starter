@@ -16,10 +16,12 @@ export function ProductCard({
   item,
   initialIsFavorite = false,
   shortenTitle = false,
+  onProductClick,
 }: {
   item: PublicProductListItem;
   initialIsFavorite?: boolean;
   shortenTitle?: boolean;
+  onProductClick?: () => void;
 }) {
   const {
     imageContainerRef,
@@ -49,7 +51,11 @@ export function ProductCard({
         className="group/image relative aspect-[3/4] bg-neutral-100 overflow-hidden shrink-0"
       >
         {/* Link to product detail */}
-        <Link href={productUrl} className="block h-full w-full">
+        <Link
+          href={productUrl}
+          className="block h-full w-full"
+          onClick={onProductClick}
+        >
           <Image
             src={displayImage}
             alt={item.name}
@@ -136,8 +142,8 @@ export function ProductCard({
       <div className="flex flex-col gap-2 px-2 pt-3 pb-2 flex-1 space-y-2 bg-background z-10 relative">
         <div className="flex items-start justify-between gap-2">
           <div className="space-y-1 w-full">
-            <Link href={productUrl} className="flex">
-              <h3 className="text-sm font-medium leading-tight text-foreground line-clamp-1 hover:underline active:underline underline-offset-3">
+            <Link href={productUrl} className="flex" onClick={onProductClick}>
+              <h3 className="text-sm font-medium leading-tight text-foreground line-clamp-1 hover:underline active:underline underline-offset-2">
                 {displayName}
               </h3>
             </Link>

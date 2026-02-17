@@ -58,8 +58,14 @@ export const INITIAL_CATEGORIES = [
   { slug: "camisetas", name: "Camisetas" },
 ] as const;
 
-// --- SORTING ---
-export const PRODUCT_SORT_OPTIONS = [
+// --- SORTING (PÚBLICO) ---
+export const PUBLIC_SORT_OPTIONS = [
+  { label: "Precio (menor a mayor)", value: "price_asc" },
+  { label: "Precio (mayor a menor)", value: "price_desc" },
+] as const;
+
+// --- SORTING (ADMIN) — incluye opciones que solo el dashboard soporta ---
+export const ADMIN_SORT_OPTIONS = [
   { label: "Más recientes", value: "date_desc" },
   { label: "Más antiguos", value: "date_asc" },
   { label: "Orden numérico", value: "order_asc" },
@@ -70,3 +76,8 @@ export const PRODUCT_SORT_OPTIONS = [
   { label: "Stock (mayor a menor)", value: "stock_desc" },
   { label: "Stock (menor a mayor)", value: "stock_asc" },
 ] as const;
+
+/** @deprecated Usar PUBLIC_SORT_OPTIONS o ADMIN_SORT_OPTIONS */
+export const PRODUCT_SORT_OPTIONS = ADMIN_SORT_OPTIONS;
+
+export const DEFAULT_SORT = "date_desc";
