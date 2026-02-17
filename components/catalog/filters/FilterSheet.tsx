@@ -1,7 +1,7 @@
 "use client";
 
 import { CgClose } from "react-icons/cg";
-import { FaCheck, FaChevronRight } from "react-icons/fa";
+import { FaChevronRight } from "react-icons/fa";
 import { VscSettings } from "react-icons/vsc";
 
 import { Button } from "@/components/ui/button";
@@ -33,7 +33,6 @@ export function FilterSheet({ options, onClose }: Props) {
     maxPrice,
     optionsMinEuros,
     optionsMaxEuros,
-    hasActiveFilters,
     toggleSection,
     handleSortChange,
     handleSizeToggle,
@@ -45,6 +44,11 @@ export function FilterSheet({ options, onClose }: Props) {
 
   const handleShowResults = () => {
     applyFilters();
+    onClose?.();
+  };
+
+  const handleClearFilters = () => {
+    clearFilters();
     onClose?.();
   };
 
@@ -67,7 +71,7 @@ export function FilterSheet({ options, onClose }: Props) {
       </SheetHeader>
 
       {/* CONTENIDO SCROLLABLE */}
-      <div className="flex-1 overflow-y-auto pl-5 pr-2 [scrollbar-gutter:stable]">
+      <div className="flex-1 overflow-y-auto pl-5 pr-6 sm:pr-2 [scrollbar-gutter:stable]">
         <div className="space-y-4 py-1">
           {/* Ordenar */}
           <Collapsible
@@ -76,7 +80,7 @@ export function FilterSheet({ options, onClose }: Props) {
             className="space-y-0"
           >
             <div
-              className="flex items-center justify-between group cursor-pointer active:bg-neutral-100 hover:bg-neutral-100 p-2 rounded-xs"
+              className="flex items-center justify-between group cursor-pointer active:bg-neutral-100 hover:bg-neutral-100 h-9 p-2 rounded-xs"
               onClick={() => toggleSection("sort")}
             >
               <h3 className="font-semibold text-xs text-foreground uppercase tracking-wider select-none">
@@ -90,23 +94,26 @@ export function FilterSheet({ options, onClose }: Props) {
               />
             </div>
 
-            <CollapsibleContent className="space-y-0">
-              {PUBLIC_SORT_OPTIONS.map((opt) => (
-                <div
-                  key={opt.value}
-                  onClick={() => handleSortChange(opt.value)}
-                  className="flex items-center gap-2 cursor-pointer hover:bg-neutral-100 rounded-xs p-2 transition-colors"
-                >
-                  <div className="size-4 flex items-center justify-center">
-                    {activeSort === opt.value && (
-                      <FaCheck className="size-3 text-primary" />
-                    )}
-                  </div>
-                  <span className="text-sm font-normal select-none">
-                    {opt.label}
-                  </span>
-                </div>
-              ))}
+            <CollapsibleContent>
+              <div className="flex gap-3 justify-between items-center mt-1">
+                {PUBLIC_SORT_OPTIONS.map((opt) => {
+                  const isSelected = activeSort === opt.value;
+                  return (
+                    <div
+                      key={opt.value}
+                      onClick={() => handleSortChange(opt.value)}
+                      className={cn(
+                        "flex items-center justify-center px-3 py-1.5 text-sm border rounded-xs transition-all select-none cursor-pointer w-full",
+                        !isSelected && "bg-background hover:border-slate-800",
+                        isSelected &&
+                          "bg-slate-900 text-white border-slate-900",
+                      )}
+                    >
+                      {opt.label}
+                    </div>
+                  );
+                })}
+              </div>
             </CollapsibleContent>
           </Collapsible>
 
@@ -117,7 +124,7 @@ export function FilterSheet({ options, onClose }: Props) {
             className="space-y-1"
           >
             <div
-              className="flex items-center justify-between group cursor-pointer active:bg-neutral-100 hover:bg-neutral-100 p-2 rounded-xs"
+              className="flex items-center justify-between group cursor-pointer active:bg-neutral-100 hover:bg-neutral-100 p-2 rounded-xs h-9 "
               onClick={() => toggleSection("size")}
             >
               <h3 className="font-semibold text-xs text-foreground uppercase tracking-wider select-none">
@@ -131,26 +138,28 @@ export function FilterSheet({ options, onClose }: Props) {
               />
             </div>
 
-            <CollapsibleContent className="px-3 pb-2">
+            <CollapsibleContent className="px-3 pb-1">
               {options.sizes.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No hay opciones</p>
               ) : (
-                <div className="grid grid-cols-4 gap-2">
-                  {options.sizes.map((size) => (
-                    <div key={size} className="flex items-center gap-2">
-                      <Checkbox
-                        id={`size-${size}`}
-                        checked={activeSizes.includes(size)}
-                        onCheckedChange={() => handleSizeToggle(size)}
-                      />
-                      <Label
-                        htmlFor={`size-${size}`}
-                        className="cursor-pointer font-normal"
+                <div className="flex flex-wrap gap-2">
+                  {options.sizes.map((size) => {
+                    const isSelected = activeSizes.includes(size);
+                    return (
+                      <div
+                        key={size}
+                        onClick={() => handleSizeToggle(size)}
+                        className={cn(
+                          "flex items-center justify-center px-3 py-1.5 text-sm border rounded-xs transition-all select-none cursor-pointer",
+                          !isSelected && "bg-background hover:border-slate-800",
+                          isSelected &&
+                            "bg-slate-900 text-white border-slate-900",
+                        )}
                       >
                         {size}
-                      </Label>
-                    </div>
-                  ))}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </CollapsibleContent>
@@ -163,7 +172,7 @@ export function FilterSheet({ options, onClose }: Props) {
             className="space-y-1"
           >
             <div
-              className="flex items-center justify-between group cursor-pointer active:bg-neutral-100 hover:bg-neutral-100 p-2 rounded-xs"
+              className="flex items-center justify-between group cursor-pointer active:bg-neutral-100 hover:bg-neutral-100 p-2 rounded-xs h-9"
               onClick={() => toggleSection("color")}
             >
               <h3 className="font-semibold text-xs text-foreground uppercase tracking-wider select-none">
@@ -177,7 +186,7 @@ export function FilterSheet({ options, onClose }: Props) {
               />
             </div>
 
-            <CollapsibleContent className="px-3  pb-2">
+            <CollapsibleContent className="px-3 pb-1">
               {options.colors.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No hay opciones</p>
               ) : (
@@ -213,7 +222,7 @@ export function FilterSheet({ options, onClose }: Props) {
             className="space-y-1"
           >
             <div
-              className="flex items-center justify-between group cursor-pointer active:bg-neutral-100 hover:bg-neutral-100 p-2 rounded-xs"
+              className="flex items-center justify-between group cursor-pointer active:bg-neutral-100 hover:bg-neutral-100 p-2 rounded-xs h-9"
               onClick={() => toggleSection("price")}
             >
               <h3 className="font-semibold text-xs text-foreground uppercase tracking-wider select-none">
@@ -227,7 +236,7 @@ export function FilterSheet({ options, onClose }: Props) {
               />
             </div>
 
-            <CollapsibleContent className="px-3  pb-2">
+            <CollapsibleContent className="px-3 pb-1">
               <div className="">
                 <Slider
                   value={[minPrice, maxPrice]}
@@ -259,7 +268,7 @@ export function FilterSheet({ options, onClose }: Props) {
 
         <Button
           variant="outline"
-          onClick={clearFilters}
+          onClick={handleClearFilters}
           className="w-full font-medium select-none"
         >
           Borrar filtros

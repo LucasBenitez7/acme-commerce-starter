@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
-import { FavoriteButton } from "@/components/ui";
+import { Button, FavoriteButton } from "@/components/ui";
 import { Image } from "@/components/ui/image";
 
 import { formatCurrency, DEFAULT_CURRENCY } from "@/lib/currency";
@@ -37,6 +38,10 @@ export function ProductCard({
     isOutOfStock,
     handleQuickAdd,
     cartItems,
+    allImages,
+    currentImageIndex,
+    nextImage,
+    prevImage,
   } = useProductCard(item);
 
   const displayName =
@@ -44,17 +49,41 @@ export function ProductCard({
       ? item.name.slice(0, 40) + "..."
       : item.name;
 
+  const handleTouchStart = (e: React.TouchEvent<HTMLAnchorElement>) => {
+    const touch = e.touches[0];
+    (e.currentTarget as HTMLElement).dataset.startX = touch.clientX.toString();
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent<HTMLAnchorElement>) => {
+    const startX = parseFloat(
+      (e.currentTarget as HTMLElement).dataset.startX || "0",
+    );
+    const endX = e.changedTouches[0].clientX;
+    const diff = startX - endX;
+
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) {
+        nextImage();
+      } else {
+        prevImage();
+      }
+    }
+    (e.currentTarget as HTMLElement).dataset.startX = "";
+  };
+
   return (
     <div className="flex flex-col overflow-hidden bg-background transition-all h-full">
       <div
         ref={imageContainerRef}
         className="group/image relative aspect-[3/4] bg-neutral-100 overflow-hidden shrink-0"
       >
-        {/* Link to product detail */}
+        {/* Imagen simple sin efectos */}
         <Link
           href={productUrl}
-          className="block h-full w-full"
+          className="block h-full w-full relative"
           onClick={onProductClick}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
         >
           <Image
             src={displayImage}
@@ -64,6 +93,36 @@ export function ProductCard({
             className="object-cover"
           />
         </Link>
+
+        {/* Image carousel navigation */}
+        {allImages.length > 1 && (
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute left-1 top-1/2 -translate-y-1/2 z-10 flex lg:hidden group-hover/image:flex bg-transparent hover:bg-transparent active:bg-transparent rounded-full size-7 p-0"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                prevImage();
+              }}
+            >
+              <FaChevronLeft className="size-3" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-1 top-1/2 -translate-y-1/2 z-10 flex lg:hidden group-hover/image:flex bg-transparent hover:bg-transparent active:bg-transparent rounded-full size-7 p-0"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                nextImage();
+              }}
+            >
+              <FaChevronRight className="size-3" />
+            </Button>
+          </>
+        )}
 
         {/* Badge Agotado */}
         {isOutOfStock && (

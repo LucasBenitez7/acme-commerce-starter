@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
 import { type PublicProductListItem } from "@/lib/products/types";
@@ -43,7 +43,6 @@ export function useProductCard(item: PublicProductListItem) {
   }, [sortedVariants]);
 
   // --- ESTADOS ---
-  // Calcular color inicial: priorizar savedColor, luego primer color disponible
   const defaultColor = useMemo(() => {
     if (isMounted && savedColor && colors.includes(savedColor)) {
       return savedColor;
@@ -59,18 +58,68 @@ export function useProductCard(item: PublicProductListItem) {
   }, [defaultColor]);
 
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // --- HANDLERS ---
   const handleColorSelect = (color: string) => {
     setSelectedColor(color);
     setProductColor(item.slug, color);
+    setCurrentImageIndex(0);
   };
+
+  // Image carousel handlers - FILTRADO POR COLOR
+  const allImages = useMemo(() => {
+    if (!item.images || item.images.length === 0) {
+      if (item.thumbnail) {
+        return [{ url: item.thumbnail, color: null, sort: 0 }];
+      }
+      return [];
+    }
+
+    // Filtrar imágenes por color seleccionado
+    const colorImages = item.images.filter(
+      (img) => !img.color || img.color === selectedColor,
+    );
+
+    // Si hay imágenes del color seleccionado, usarlas
+    if (colorImages.length > 0) {
+      return colorImages;
+    }
+
+    // Fallback: si no hay imágenes para ese color, usar thumbnail
+    if (item.thumbnail) {
+      return [{ url: item.thumbnail, color: null, sort: 0 }];
+    }
+
+    return [];
+  }, [item.images, item.thumbnail, selectedColor]);
+
+  // Reset index cuando cambia el número de imágenes disponibles
+  useEffect(() => {
+    if (currentImageIndex >= allImages.length && allImages.length > 0) {
+      setCurrentImageIndex(0);
+    }
+  }, [allImages.length, currentImageIndex]);
+
+  const nextImage = useCallback(() => {
+    if (allImages.length <= 1) return;
+    setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
+  }, [allImages.length]);
+
+  const prevImage = useCallback(() => {
+    if (allImages.length <= 1) return;
+    setCurrentImageIndex((prev) =>
+      prev === 0 ? allImages.length - 1 : prev - 1,
+    );
+  }, [allImages.length]);
 
   // --- DERIVADOS ---
   const displayImage = useMemo(() => {
-    const allImages = item.images || [{ url: item.thumbnail }];
-    return getImageForColor(allImages, selectedColor);
-  }, [item, selectedColor]);
+    if (allImages.length > 0 && allImages[currentImageIndex]) {
+      return allImages[currentImageIndex].url;
+    }
+    return item.thumbnail || "";
+  }, [allImages, currentImageIndex, item.thumbnail]);
 
   const selectedVariant = useMemo(() => {
     return findVariant(sortedVariants, selectedColor, selectedSize);
@@ -107,7 +156,6 @@ export function useProductCard(item: PublicProductListItem) {
 
     if (!variantToAdd) return;
 
-    // Validar si ya se alcanzó el stock máximo en el carrito
     const currentQty =
       cartItems.find((i) => i.variantId === variantToAdd.id)?.quantity ?? 0;
 
@@ -158,5 +206,9 @@ export function useProductCard(item: PublicProductListItem) {
     cartItems,
     isMounted,
     handleQuickAdd,
+    allImages,
+    currentImageIndex,
+    nextImage,
+    prevImage,
   };
 }

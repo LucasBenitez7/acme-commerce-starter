@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ImSpinner8 } from "react-icons/im";
 
-import { ProductGrid } from "@/components/catalog/ProductGrid";
+import { ProductGrid } from "@/components/catalog/grid/ProductGrid";
 import { Button } from "@/components/ui/button";
 
 import type { PublicProductListItem } from "@/lib/products/types";
@@ -16,6 +16,7 @@ type Props = {
   categorySlug?: string;
   query?: string;
   onlyOnSale?: boolean;
+  gridSize?: { mobile: 1 | 2; desktop: 2 | 4 };
 };
 
 export function ProductGridWithLoadMore({
@@ -25,6 +26,7 @@ export function ProductGridWithLoadMore({
   categorySlug,
   query,
   onlyOnSale,
+  gridSize,
 }: Props) {
   const searchParams = useSearchParams();
   const [products, setProducts] = useState(initialProducts);
@@ -77,7 +79,11 @@ export function ProductGridWithLoadMore({
 
   return (
     <div className="space-y-6">
-      <ProductGrid items={products} favoriteIds={favoriteIds} />
+      <ProductGrid
+        items={products}
+        favoriteIds={favoriteIds}
+        gridSize={gridSize}
+      />
 
       {hasMore && (
         <div className="flex justify-center py-4">
