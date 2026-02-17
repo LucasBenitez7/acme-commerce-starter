@@ -1,9 +1,16 @@
 "use server";
 
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+
+async function assertAdmin() {
+  const session = await auth();
+  if (session?.user?.role !== "admin") throw new Error("No autorizado");
+}
 
 // --- TALLAS ---
 export async function getPresetSizes() {
+  await assertAdmin();
   return prisma.presetSize.findMany({ orderBy: { createdAt: "asc" } });
 }
 
@@ -11,6 +18,8 @@ export async function createPresetSize(
   name: string,
   type: "clothing" | "shoe",
 ) {
+  await assertAdmin();
+
   try {
     const size = await prisma.presetSize.upsert({
       where: { name },
@@ -24,6 +33,8 @@ export async function createPresetSize(
 }
 
 export async function deletePresetSize(id: string, name: string) {
+  await assertAdmin();
+
   const usageCount = await prisma.productVariant.count({
     where: { size: name },
   });
@@ -40,10 +51,13 @@ export async function deletePresetSize(id: string, name: string) {
 
 // --- COLORES ---
 export async function getPresetColors() {
+  await assertAdmin();
   return prisma.presetColor.findMany({ orderBy: { createdAt: "asc" } });
 }
 
 export async function createPresetColor(name: string, hex: string) {
+  await assertAdmin();
+
   try {
     const existing = await prisma.presetColor.findFirst({ where: { name } });
 
@@ -61,6 +75,8 @@ export async function createPresetColor(name: string, hex: string) {
 }
 
 export async function updatePresetColor(id: string, newHex: string) {
+  await assertAdmin();
+
   try {
     const color = await prisma.presetColor.update({
       where: { id },
@@ -73,6 +89,8 @@ export async function updatePresetColor(id: string, newHex: string) {
 }
 
 export async function deletePresetColor(id: string, name: string) {
+  await assertAdmin();
+
   const usageCount = await prisma.productVariant.count({
     where: { color: name },
   });
