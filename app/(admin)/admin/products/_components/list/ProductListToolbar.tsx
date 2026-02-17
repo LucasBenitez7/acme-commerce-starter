@@ -55,13 +55,13 @@ export function ProductListToolbar({ categories, globalMaxPrice }: Props) {
     activeCats.length > 0 || hasPriceFilter || onSale;
 
   return (
-    <div className="flex flex-col lg:flex-row gap-3 justify-between w-full items-end lg:items-center">
-      <div className="flex-1 min-w-[200px] w-full sm:w-auto lg:w-[350px]">
+    <div className="flex flex-col sm:flex-row gap-3 w-full items-end lg:items-center justify-end">
+      <div className="flex-1 w-full sm:max-w-[500px]">
         <SearchInput placeholder="Buscar por nombre o ID..." />
       </div>
 
       {/* FILTROS PRINCIPALES */}
-      <div className="flex flex-wrap gap-3 justify-between w-full lg:w-auto items-center">
+      <div className="flex flex-wrap gap-3 justify-between w-full sm:w-auto items-center">
         <Popover>
           <PopoverTrigger asChild>
             <Button

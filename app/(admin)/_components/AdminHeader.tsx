@@ -55,7 +55,7 @@ export function AdminHeader({ user }: Props) {
 
   return (
     <>
-      <header className="sticky top-0 z-[100] w-full border-b bg-background h-14 grid grid-cols-[1fr_auto_1fr] items-center px-4">
+      <header className="sticky top-0 z-[100] w-full border-b bg-background h-14 grid grid-cols-[1fr_auto_1fr] items-center px-4 gap-4">
         <div className="flex justify-self-start items-center">
           <Sheet open={open} onOpenChange={setOpen} modal={false}>
             <SheetTrigger asChild>

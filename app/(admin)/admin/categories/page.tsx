@@ -46,12 +46,12 @@ export default async function AdminCategoriesPage({ searchParams }: Props) {
       </div>
 
       <Card>
-        <CardHeader className="p-4 border-b flex flex-col sm:flex-row sm:items-center items-start justify-between gap-3 sm:gap-4">
-          <CardTitle className="text-lg font-semibold">
+        <CardHeader className="p-4 border-b flex flex-col md:flex-row md:items-center items-start justify-between gap-2 md:gap-5">
+          <CardTitle className="flex items-center gap-1 text-lg font-semibold w-fit">
             Total <span className="text-base">({totalCount})</span>
           </CardTitle>
 
-          <div className="w-full sm:w-auto">
+          <div className="w-full">
             <CategoryListToolbar />
           </div>
         </CardHeader>
