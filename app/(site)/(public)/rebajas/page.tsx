@@ -1,6 +1,4 @@
-import { EmptyState } from "@/components/catalog/EmptyState";
-import { ProductGridWithLoadMore } from "@/components/catalog/ProductGridWithLoadMore";
-import { SectionHeader } from "@/components/catalog/SectionHeader";
+import { GenericCatalogClient } from "@/components/catalog/sections/GenericCatalogClient";
 
 import { getUserFavoriteIds } from "@/lib/favorites/queries";
 import { PER_PAGE } from "@/lib/pagination";
@@ -42,27 +40,17 @@ export default async function RebajasPage({
 
   return (
     <div>
-      <SectionHeader
+      <GenericCatalogClient
         title="Rebajas"
-        className="text-red-600"
+        titleClassName="text-red-600"
+        initialProducts={products}
+        initialTotal={total}
+        favoriteIds={favoriteIds}
         filterOptions={filterOptions}
+        onlyOnSale={true}
+        emptyTitle="No hay rebajas activas"
+        emptyDescription="Revisa nuestro catálogo general para ver nuestros precios competitivos."
       />
-
-      <div className="space-y-8">
-        {products.length > 0 ? (
-          <ProductGridWithLoadMore
-            initialProducts={products}
-            initialTotal={total}
-            favoriteIds={favoriteIds}
-            onlyOnSale={true}
-          />
-        ) : (
-          <EmptyState
-            title="No hay rebajas activas"
-            description="Revisa nuestro catálogo general para ver nuestros precios competitivos."
-          />
-        )}
-      </div>
     </div>
   );
 }

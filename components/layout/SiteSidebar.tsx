@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 
@@ -9,15 +9,28 @@ import type { CategoryLink } from "@/lib/categories/types";
 export function SiteSidebar({
   categories,
   maxDiscount,
+  onNavigate,
 }: {
   categories: CategoryLink[];
   maxDiscount: number;
+  onNavigate?: () => void;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
 
   const isNovedades = pathname === "/novedades";
   const isRebajas = pathname === "/rebajas";
   const isCatalogo = pathname === "/catalogo";
+
+  const handleLinkClick = (href: string, e: React.MouseEvent) => {
+    if (pathname === href) {
+      e.preventDefault();
+      router.refresh();
+      onNavigate?.();
+    } else {
+      onNavigate?.();
+    }
+  };
 
   return (
     <aside>
@@ -30,6 +43,7 @@ export function SiteSidebar({
             className={cn(
               "fx-underline-anim w-max text-2xl font-semibold pt-1 text-red-600",
             )}
+            onClick={(e) => handleLinkClick("/rebajas", e)}
           >
             Rebajas {maxDiscount > 0 && `-${maxDiscount}%`}
           </Link>
@@ -41,6 +55,7 @@ export function SiteSidebar({
             className={cn(
               "fx-underline-anim w-max text-2xl font-semibold pt-1",
             )}
+            onClick={(e) => handleLinkClick("/novedades", e)}
           >
             Novedades
           </Link>
@@ -54,18 +69,24 @@ export function SiteSidebar({
               prefetch={false}
               aria-current={isCatalogo ? "page" : undefined}
               className={cn("fx-underline-anim")}
+              onClick={(e) => handleLinkClick("/catalogo", e)}
             >
               Todas las prendas
             </Link>
           </li>
 
           {categories.map((c: CategoryLink) => {
+            const categoryPath = `/cat/${c.slug}`;
+            const isActive = pathname === categoryPath;
+
             return (
               <li key={c.slug}>
                 <Link
-                  href={`/cat/${c.slug}`}
+                  href={categoryPath}
                   prefetch={false}
+                  aria-current={isActive ? "page" : undefined}
                   className={cn("fx-underline-anim")}
+                  onClick={(e) => handleLinkClick(categoryPath, e)}
                 >
                   {c.label}
                 </Link>

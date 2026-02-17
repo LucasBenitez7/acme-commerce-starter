@@ -2,7 +2,7 @@ import Link from "next/link";
 import { FaBoxOpen } from "react-icons/fa6";
 
 import { OrderHistoryCard } from "@/components/account/orders/OrderHistoryCard";
-import { PaginationNav } from "@/components/catalog/PaginationNav";
+import { PaginationNav } from "@/components/catalog/grid/PaginationNav";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/SearchInput";
 

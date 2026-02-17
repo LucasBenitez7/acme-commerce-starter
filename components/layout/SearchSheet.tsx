@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { HiOutlineSearch } from "react-icons/hi";
 import { IoClose } from "react-icons/io5";
 
-import { ProductGrid } from "@/components/catalog/ProductGrid";
+import { ProductGrid } from "@/components/catalog/grid/ProductGrid";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { VisuallyHidden } from "@/components/ui/visually-hidden";
@@ -137,7 +137,7 @@ export function SearchSheet() {
                   <button
                     type="button"
                     onClick={clearInput}
-                    className="p-1.5 hover:bg-neutral-100 rounded-xs transition-colors text-sm hover:cursor-pointer"
+                    className="p-1.5 px-3 hover:bg-neutral-100 rounded-xs transition-colors text-sm hover:cursor-pointer"
                     aria-label="Borrar"
                   >
                     Borrar

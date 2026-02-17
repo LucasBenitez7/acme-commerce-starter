@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { FaPlus } from "react-icons/fa6";
 
-import { PaginationNav } from "@/components/catalog/PaginationNav";
+import { PaginationNav } from "@/components/catalog/grid/PaginationNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 
 import { getAdminProducts, getMaxPrice } from "@/lib/products/queries";

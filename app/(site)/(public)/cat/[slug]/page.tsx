@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { EmptyState, SectionHeader } from "@/components/catalog";
-import { ProductGridWithLoadMore } from "@/components/catalog/ProductGridWithLoadMore";
+import { GenericCatalogClient } from "@/components/catalog/sections/GenericCatalogClient";
 
 import { getCategoryBySlug } from "@/lib/categories/queries";
 import { getUserFavoriteIds } from "@/lib/favorites/queries";
@@ -43,20 +42,16 @@ export default async function CategoryPage({ params, searchParams }: Props) {
 
   return (
     <section>
-      <SectionHeader title={cat.name} filterOptions={filterOptions} />
-      {rows.length > 0 ? (
-        <ProductGridWithLoadMore
-          initialProducts={rows}
-          initialTotal={total}
-          favoriteIds={favoriteIds}
-          categorySlug={slug}
-        />
-      ) : (
-        <EmptyState
-          title={`No hay productos en ${cat.name}`}
-          description="Lo sentimos, actualmente no tenemos stock en esta categoría."
-        />
-      )}
+      <GenericCatalogClient
+        title={cat.name}
+        initialProducts={rows}
+        initialTotal={total}
+        favoriteIds={favoriteIds}
+        filterOptions={filterOptions}
+        categorySlug={slug}
+        emptyTitle={`No hay productos en ${cat.name}`}
+        emptyDescription="Lo sentimos, actualmente no tenemos stock en esta categoría."
+      />
     </section>
   );
 }

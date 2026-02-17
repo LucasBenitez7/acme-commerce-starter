@@ -357,7 +357,7 @@
     .tip-left::after,
     .tip-bottom::before,
     .tip-bottom::after {
-      content: none !important; /* los “apaga” por completo */
+      content: none !important;
     }
   }
 }
