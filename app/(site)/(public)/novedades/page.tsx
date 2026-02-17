@@ -1,6 +1,4 @@
-import { EmptyState } from "@/components/catalog/EmptyState";
-import { ProductGridWithLoadMore } from "@/components/catalog/ProductGridWithLoadMore";
-import { SectionHeader } from "@/components/catalog/SectionHeader";
+import { GenericCatalogClient } from "@/components/catalog/sections/GenericCatalogClient";
 
 import { getUserFavoriteIds } from "@/lib/favorites/queries";
 import { PER_PAGE } from "@/lib/pagination";
@@ -41,22 +39,15 @@ export default async function NovedadesPage({
 
   return (
     <div>
-      <SectionHeader title="Novedades" filterOptions={filterOptions} />
-
-      <div className="space-y-8">
-        {products.length > 0 ? (
-          <ProductGridWithLoadMore
-            initialProducts={products}
-            initialTotal={total}
-            favoriteIds={favoriteIds}
-          />
-        ) : (
-          <EmptyState
-            title="Sin novedades por ahora"
-            description="Estamos preparando nuevas colecciones. ¡Vuelve pronto!"
-          />
-        )}
-      </div>
+      <GenericCatalogClient
+        title="Novedades"
+        initialProducts={products}
+        initialTotal={total}
+        favoriteIds={favoriteIds}
+        filterOptions={filterOptions}
+        emptyTitle="Sin novedades por ahora"
+        emptyDescription="Estamos preparando nuevas colecciones. ¡Vuelve pronto!"
+      />
     </div>
   );
 }

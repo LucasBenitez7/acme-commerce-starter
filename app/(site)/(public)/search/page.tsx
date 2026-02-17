@@ -1,5 +1,5 @@
-import { EmptyState, SectionHeader } from "@/components/catalog";
-import { ProductGridWithLoadMore } from "@/components/catalog/ProductGridWithLoadMore";
+import { EmptyState } from "@/components/catalog";
+import { GenericCatalogClient } from "@/components/catalog/sections/GenericCatalogClient";
 
 import { getUserFavoriteIds } from "@/lib/favorites/queries";
 import { PER_PAGE } from "@/lib/pagination";
@@ -59,27 +59,17 @@ export default async function SearchPage({ searchParams }: Props) {
 
   return (
     <section>
-      <SectionHeader
-        title={`${query}`}
+      <GenericCatalogClient
+        title={query}
         subTitle={`${total} ${total === 1 ? "resultado" : "resultados"}`}
+        initialProducts={rows}
+        initialTotal={total}
+        favoriteIds={favoriteIds}
         filterOptions={filterOptions}
+        query={query}
+        emptyTitle={`No se encontraron resultados para "${query}"`}
+        emptyDescription="Intenta buscar con otros términos o explora nuestro catálogo"
       />
-
-      {rows.length > 0 ? (
-        <>
-          <ProductGridWithLoadMore
-            initialProducts={rows}
-            initialTotal={total}
-            favoriteIds={favoriteIds}
-            query={query}
-          />
-        </>
-      ) : (
-        <EmptyState
-          title={`No se encontraron resultados para "${query}"`}
-          description="Intenta buscar con otros términos o explora nuestro catálogo"
-        />
-      )}
     </section>
   );
 }

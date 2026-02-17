@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { FaHeartBroken } from "react-icons/fa";
 
-import { ProductGrid } from "@/components/catalog/ProductGrid";
+import { ProductGrid } from "@/components/catalog/grid/ProductGrid";
 import { Button } from "@/components/ui/button";
 
 import { auth } from "@/lib/auth";

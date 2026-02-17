@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { PaginationNav } from "@/components/catalog/PaginationNav";
+import { PaginationNav } from "@/components/catalog/grid/PaginationNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { ORDER_TABS } from "@/lib/orders/constants";

@@ -148,6 +148,7 @@ export function Header({
                 <SiteSidebar
                   categories={categories}
                   maxDiscount={maxDiscount}
+                  onNavigate={closeMenu}
                 />
               </div>
             </SheetContent>
