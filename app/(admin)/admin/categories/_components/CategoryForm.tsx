@@ -113,7 +113,11 @@ export function CategoryForm({ category, existingCategories = [] }: Props) {
               id="sort"
               name="sort"
               type="number"
+              min={0}
               defaultValue={category?.sort ?? 0}
+              onKeyDown={(e) => {
+                if (e.key === "-" || e.key === "e") e.preventDefault();
+              }}
               className="max-w-[120px]"
             />
             <p className="text-xs text-muted-foreground">

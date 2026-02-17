@@ -57,7 +57,7 @@ export function ProductListToolbar({ categories, globalMaxPrice }: Props) {
   return (
     <div className="flex flex-col lg:flex-row gap-3 justify-between w-full items-end lg:items-center">
       <div className="flex-1 min-w-[200px] w-full sm:w-auto lg:w-[350px]">
-        <SearchInput placeholder="Buscar por ID..." />
+        <SearchInput placeholder="Buscar por nombre o ID..." />
       </div>
 
       {/* FILTROS PRINCIPALES */}

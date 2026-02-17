@@ -145,8 +145,12 @@ export function GeneralSection({ categories: initialCats }: Props) {
         <Label>Orden del producto en la lista</Label>
         <Input
           type="number"
+          min={0}
           placeholder="Ej: 1"
           {...register("sortOrder")}
+          onKeyDown={(e) => {
+            if (e.key === "-" || e.key === "e") e.preventDefault();
+          }}
           className="max-w-[70px] flex"
         />
         <p className="text-[10px] text-muted-foreground">
@@ -156,7 +160,7 @@ export function GeneralSection({ categories: initialCats }: Props) {
 
       {/* CATEGORÍA */}
       <div className="space-y-2 col-span-2">
-        <div className="flexitems-center">
+        <div className="flex items-center">
           <Label>Categoría</Label>
         </div>
 

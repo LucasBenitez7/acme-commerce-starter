@@ -48,7 +48,7 @@ export function OrderListToolbar() {
   return (
     <div className="flex flex-col lg:flex-row gap-3 w-full justify-between items-end lg:items-center">
       <div className="flex-1 min-w-[200px] w-full sm:w-auto lg:w-[350px]">
-        <SearchInput placeholder="Buscar por ID..." paramName="query" />
+        <SearchInput placeholder="Buscar por ID o email..." paramName="query" />
       </div>
 
       <div className="flex flex-wrap gap-3 justify-between w-full lg:w-auto items-center">
