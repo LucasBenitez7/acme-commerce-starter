@@ -50,6 +50,7 @@ export function ProductTable({ products }: ProductTableProps) {
         <TableHeader className="bg-neutral-50">
           <TableRow>
             <TableHead className="w-[80px] text-center">Orden</TableHead>
+            <TableHead>ID</TableHead>
             <TableHead className="w-[80px]">Imagen</TableHead>
             <TableHead>Nombre</TableHead>
             <TableHead>Categoría</TableHead>
@@ -76,6 +77,12 @@ export function ProductTable({ products }: ProductTableProps) {
                   ) : (
                     <span className="text-muted-foreground text-xs">-</span>
                   )}
+                </TableCell>
+
+                <TableCell className="text-left">
+                  <span className="font-mono text-xs font-medium">
+                    {product.id}
+                  </span>
                 </TableCell>
 
                 {/* 1. IMAGEN */}

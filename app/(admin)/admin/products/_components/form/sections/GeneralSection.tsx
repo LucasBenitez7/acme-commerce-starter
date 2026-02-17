@@ -102,10 +102,10 @@ export function GeneralSection({ categories: initialCats }: Props) {
 
             {/* INPUT 2: PRECIO OFERTA (OPCIONAL) */}
             <div className="space-y-2 flex-1">
-              <Label className="text-foreground flex items-center gap-2">
+              <Label className="text-foreground flex items-center gap-2 relative w-51">
                 Precio Oferta (Opcional)
                 {discountPercent > 0 && (
-                  <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full animate-in zoom-in font-bold">
+                  <span className="text-xs font-semibold text-background bg-red-600 px-1.5 py-0.5 absolute right-0">
                     -{discountPercent}%
                   </span>
                 )}
@@ -120,12 +120,7 @@ export function GeneralSection({ categories: initialCats }: Props) {
                   placeholder="Solo si hay descuento"
                   value={salePriceInput}
                   onChange={(e) => handleSaleChange(e.target.value)}
-                  className={cn(
-                    "pl-8 transition-colors",
-                    salePriceInput && discountPercent > 0
-                      ? "border-red-500 text-red-700 bg-red-50"
-                      : "bg-white",
-                  )}
+                  className={cn("pl-8 ")}
                 />
               </div>
               <p className="text-[10px] text-muted-foreground">
