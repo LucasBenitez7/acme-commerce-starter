@@ -94,7 +94,7 @@ export function AdminHeader({ user }: Props) {
           LSB SHOP
         </Link>
 
-        <div className="flex items-center gap-3 shrink-0 justify-self-end pr-2">
+        <div className="hidden sm:flex items-center shrink-0 justify-self-end md:pr-2">
           <h1 className="flex items-center gap-2 text-lg font-semibold">
             <FaUserShield className="size-5" />
             {getAdminName()}
