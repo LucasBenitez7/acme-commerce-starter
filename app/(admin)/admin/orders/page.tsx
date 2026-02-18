@@ -3,6 +3,7 @@ import Link from "next/link";
 import { PaginationNav } from "@/components/catalog/grid/PaginationNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+import { getPendingReturnsCount } from "@/lib/admin/queries";
 import { ORDER_TABS } from "@/lib/orders/constants";
 import { getAdminOrders } from "@/lib/orders/queries";
 import { cn } from "@/lib/utils";
@@ -37,15 +38,19 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
     ?.split(",")
     .filter(Boolean) as FulfillmentStatus[];
 
-  const { orders, total, totalPages } = await getAdminOrders({
-    page,
-    statusTab: sp.status,
-    paymentFilter,
-    fulfillmentFilter,
-    sort: sp.sort,
-    query: sp.query,
-  });
+  const [ordersResult, pendingReturnsCount] = await Promise.all([
+    getAdminOrders({
+      page,
+      statusTab: sp.status,
+      paymentFilter,
+      fulfillmentFilter,
+      sort: sp.sort,
+      query: sp.query,
+    }),
+    getPendingReturnsCount(),
+  ]);
 
+  const { orders, total, totalPages } = ordersResult;
   const isReturnsTab = sp.status === "RETURNS";
 
   return (
@@ -61,6 +66,11 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
         {ORDER_TABS.map((tab) => {
           const isActive =
             sp.status === tab.value || (!sp.status && !tab.value);
+          const isReturnsTabItem = tab.value === "RETURNS";
+          const label =
+            isReturnsTabItem && pendingReturnsCount > 0
+              ? `${tab.label} (${pendingReturnsCount})`
+              : tab.label;
           return (
             <Link
               key={tab.label}
@@ -76,7 +86,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
                   : "border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300",
               )}
             >
-              {tab.label}
+              {label}
             </Link>
           );
         })}
