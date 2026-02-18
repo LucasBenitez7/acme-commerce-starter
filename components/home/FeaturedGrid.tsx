@@ -42,7 +42,7 @@ export default function FeaturedGrid({ categories }: Props) {
                       fill
                       priority={index < 2}
                       className="object-cover object-top"
-                      sizes="100vw"
+                      sizes="(max-width: 767px) 100vw, 1px"
                     />
                   </div>
 
@@ -53,7 +53,7 @@ export default function FeaturedGrid({ categories }: Props) {
                       fill
                       priority={index < 2}
                       className="object-cover"
-                      sizes="50vw"
+                      sizes="(min-width: 768px) 50vw, 1px"
                     />
                   </div>
                   <div className="absolute inset-0" />

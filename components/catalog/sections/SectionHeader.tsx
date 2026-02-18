@@ -110,7 +110,7 @@ export function SectionHeader({
         <Sheet open={showFilters} onOpenChange={setShowFilters}>
           <SheetContent
             side="right"
-            className="z-[190] w-full sm:w-[min(100vw,400px)] p-0 flex flex-col"
+            className="z-[190] w-full sm:w-[min(100vw,450px)] p-0 flex flex-col"
             overlayClassName="z-[180] bg-black/60"
           >
             <FilterSheet

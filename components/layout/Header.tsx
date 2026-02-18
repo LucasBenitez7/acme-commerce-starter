@@ -91,7 +91,7 @@ export function Header({
   return (
     <>
       <header
-        className="sticky top-0 z-[100] w-screen h-[var(--header-h)] grid grid-cols-[1fr_auto_1fr] items-center bg-background border-b pl-4"
+        className="sticky top-0 z-[100] w-screen h-[var(--header-h)] grid grid-cols-[1fr_auto_1fr] items-center bg-background border-b pl-2 sm:pl-4"
         style={{ paddingRight: "calc(1rem + var(--sw, 0px))" }}
       >
         <div className="flex justify-self-start items-center h-full">

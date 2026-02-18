@@ -38,7 +38,7 @@ export default function HeroSection({ config }: Props) {
             fill
             priority
             className="object-cover"
-            sizes="100vw"
+            sizes="(max-width: 767px) 100vw, 1px"
           />
         </div>
 
@@ -50,7 +50,7 @@ export default function HeroSection({ config }: Props) {
             fill
             priority
             className="object-cover"
-            sizes="100vw"
+            sizes="(min-width: 768px) 100vw, 1px"
           />
         </div>
 
