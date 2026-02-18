@@ -2,6 +2,33 @@ import "server-only";
 import { type Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
+import { SYSTEM_MSGS } from "@/lib/orders/constants";
+
+/** Pedidos con solicitud de devolución aún sin aceptar/rechazar */
+export async function getPendingReturnsCount(): Promise<number> {
+  const resolvedStatuses = [
+    SYSTEM_MSGS.RETURN_ACCEPTED,
+    SYSTEM_MSGS.RETURN_REJECTED,
+    SYSTEM_MSGS.RETURN_PARTIAL_ACCEPTED,
+    SYSTEM_MSGS.RETURN_PARTIAL_REJECTED,
+  ];
+
+  const count = await prisma.order.count({
+    where: {
+      isCancelled: false,
+      history: {
+        some: { snapshotStatus: SYSTEM_MSGS.RETURN_REQUESTED },
+      },
+      NOT: {
+        history: {
+          some: { snapshotStatus: { in: resolvedStatuses } },
+        },
+      },
+    },
+  });
+
+  return count;
+}
 
 export async function getDashboardStats() {
   const [
@@ -13,6 +40,7 @@ export async function getDashboardStats() {
     totalVariants,
     stockAgg,
     outOfStockCount,
+    pendingReturnsCount,
   ] = await Promise.all([
     prisma.order.count(),
     prisma.product.count(),
@@ -34,6 +62,8 @@ export async function getDashboardStats() {
     prisma.productVariant.count({
       where: { stock: 0, product: { isArchived: false } },
     }),
+
+    getPendingReturnsCount(),
   ]);
 
   const financialOrders = await prisma.order.findMany({
@@ -73,6 +103,7 @@ export async function getDashboardStats() {
 
     totalOrders,
     pendingOrders,
+    pendingReturnsCount,
     totalUsers,
     returnedItemsCount,
 
