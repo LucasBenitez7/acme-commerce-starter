@@ -69,6 +69,8 @@ export const ADMIN_SORT_OPTIONS = [
   { label: "Más recientes", value: "date_desc" },
   { label: "Más antiguos", value: "date_asc" },
   { label: "Orden numérico", value: "order_asc" },
+  { label: "Más vendidos", value: "sales_desc" },
+  { label: "Menos vendidos", value: "sales_asc" },
   { label: "Nombre ascendente", value: "name_asc" },
   { label: "Nombre descendente", value: "name_desc" },
   { label: "Precio (menor a mayor)", value: "price_asc" },

@@ -25,6 +25,7 @@ export type AdminProductItem = Product & {
   images: ProductImage[];
   variants: ProductVariant[];
   _totalStock: number;
+  _totalSold?: number;
 };
 
 // --- DTO: PUBLIC LIST ---
