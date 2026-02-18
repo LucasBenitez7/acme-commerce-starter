@@ -60,6 +60,7 @@ function SheetContent({
       <SheetOverlay className={overlayClassName} />
       <SheetPrimitive.Content
         data-slot="sheet-content"
+        aria-describedby={undefined}
         className={cn(
           "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out fixed z-[90] flex flex-col gap-4 shadow-lg transition ease-in-out data-[state=closed]:duration-200 data-[state=open]:duration-400",
           side === "right" &&
