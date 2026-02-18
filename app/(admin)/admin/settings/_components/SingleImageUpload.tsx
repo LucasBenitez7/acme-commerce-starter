@@ -15,6 +15,7 @@ type Props = {
   onChange: (url: string | null) => void;
   label?: string;
   className?: string;
+  uploadPreset?: string;
 };
 
 export function SingleImageUpload({
@@ -22,9 +23,11 @@ export function SingleImageUpload({
   onChange,
   label,
   className,
+  uploadPreset,
 }: Props) {
   const [isOpening, setIsOpening] = useState(false);
-  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+  const preset =
+    uploadPreset || process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
   const fixScrollLock = () => {
     document.body.style.overflow = "auto";
@@ -50,12 +53,13 @@ export function SingleImageUpload({
               alt="Uploaded image"
               fill
               className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           </div>
           <div className="flex flex-col gap-2">
             {/* EDITAR (REEMPLAZAR) */}
             <CldUploadWidget
-              uploadPreset={uploadPreset}
+              uploadPreset={preset}
               signatureEndpoint="/api/sign-cloudinary-params"
               options={{
                 maxFiles: 1,
@@ -112,7 +116,7 @@ export function SingleImageUpload({
         </div>
       ) : (
         <CldUploadWidget
-          uploadPreset={uploadPreset}
+          uploadPreset={preset}
           signatureEndpoint="/api/sign-cloudinary-params"
           options={{
             maxFiles: 1,

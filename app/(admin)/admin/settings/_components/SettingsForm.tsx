@@ -3,7 +3,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTransition } from "react";
 import { useForm } from "react-hook-form";
-import { FaSave, FaSpinner } from "react-icons/fa";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -118,6 +117,7 @@ export function SettingsForm({ initialData }: Props) {
                         onChange={field.onChange}
                         label="Subir Imagen Desktop"
                         className="aspect-[2/1] w-full"
+                        uploadPreset="acme_shop_banners"
                       />
                     </FormControl>
                     <FormMessage />
@@ -138,6 +138,7 @@ export function SettingsForm({ initialData }: Props) {
                           onChange={field.onChange}
                           label="Subir Imagen Mobile"
                           className="aspect-[4/5] w-full h-[350px]"
+                          uploadPreset="acme_shop_banners"
                         />
                       </FormControl>
                       <FormMessage />
@@ -188,6 +189,7 @@ export function SettingsForm({ initialData }: Props) {
                         onChange={field.onChange}
                         label="Subir Imagen Desktop"
                         className="aspect-[2/1] w-full"
+                        uploadPreset="acme_shop_banners"
                       />
                     </FormControl>
                     <FormMessage />
@@ -208,6 +210,7 @@ export function SettingsForm({ initialData }: Props) {
                           onChange={field.onChange}
                           label="Subir Imagen Mobile"
                           className="aspect-[4/5] w-full h-[350px]"
+                          uploadPreset="acme_shop_banners"
                         />
                       </FormControl>
                       <FormMessage />
