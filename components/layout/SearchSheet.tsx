@@ -15,9 +15,23 @@ import { useDebounce } from "@/hooks/common/use-debounce";
 
 import type { PublicProductListItem } from "@/lib/products/types";
 
-export function SearchSheet() {
+interface SearchSheetProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export function SearchSheet({
+  open: controlledOpen,
+  onOpenChange,
+}: SearchSheetProps = {}) {
   const [query, setQuery] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+
+  const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setIsOpen = (val: boolean) => {
+    setInternalOpen(val);
+    onOpenChange?.(val);
+  };
   const [results, setResults] = useState<PublicProductListItem[]>([]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [total, setTotal] = useState(0);
@@ -87,8 +101,10 @@ export function SearchSheet() {
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="p-2 hover:bg-neutral-100 rounded-xs transition-colors hover:cursor-pointer"
+        className="p-2 hover:bg-neutral-100 rounded-xs transition-colors hover:cursor-pointer tip-bottom"
+        data-tip="Buscar"
         aria-label="Buscar"
+        title="Buscar"
       >
         <HiOutlineSearch className="size-6" />
       </button>

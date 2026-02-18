@@ -145,6 +145,12 @@ export function getInitialProductState(
 }
 
 // --- SORTING ---
+// Orden por defecto: sortOrder (asc), desempate por fecha de subida (más recientes primero)
+const DEFAULT_ORDER: Prisma.ProductOrderByWithRelationInput[] = [
+  { sortOrder: "asc" },
+  { createdAt: "desc" },
+];
+
 export function parseSort(
   sort?: string,
 ): Prisma.ProductOrderByWithRelationInput[] {
@@ -158,8 +164,9 @@ export function parseSort(
     case "name_desc":
       return [{ name: "desc" }];
     case "date_desc":
-    default:
       return [{ createdAt: "desc" }];
+    default:
+      return DEFAULT_ORDER;
   }
 }
 

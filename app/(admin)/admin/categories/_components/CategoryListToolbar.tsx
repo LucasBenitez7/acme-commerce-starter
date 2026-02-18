@@ -52,8 +52,8 @@ export function CategoryListToolbar() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-3 w-full justify-between items-end lg:items-center">
-      <div className="flex-1 min-w-[200px] w-full sm:w-auto lg:w-[350px]">
+    <div className="flex flex-col sm:flex-row gap-3 w-full items-end lg:items-center justify-end">
+      <div className="flex-1 w-full sm:max-w-[500px]">
         <SearchInput placeholder="Buscar categorias" />
       </div>
 

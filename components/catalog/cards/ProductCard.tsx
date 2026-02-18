@@ -72,7 +72,7 @@ export function ProductCard({
   };
 
   return (
-    <div className="flex flex-col overflow-hidden bg-background transition-all h-full">
+    <div className="flex flex-col overflow-hidden bg-background h-full">
       <div
         ref={imageContainerRef}
         className="group/image relative aspect-[3/4] bg-neutral-100 overflow-hidden shrink-0"

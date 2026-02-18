@@ -2,10 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 
+import { auth } from "@/lib/auth";
 import { storeConfigSchema } from "@/lib/settings/schema";
 import { updateStoreConfig } from "@/lib/settings/service";
 
-export async function updateSettingsAction(rawData: any) {
+export async function updateSettingsAction(rawData: unknown) {
+  const session = await auth();
+  if (session?.user?.role !== "admin") return { error: "No autorizado" };
+
   const parseResult = storeConfigSchema.safeParse(rawData);
 
   if (!parseResult.success) {
@@ -13,7 +17,7 @@ export async function updateSettingsAction(rawData: any) {
   }
 
   try {
-    const cleanData: any = { ...parseResult.data };
+    const cleanData: Record<string, unknown> = { ...parseResult.data };
     Object.keys(cleanData).forEach((key) => {
       if (cleanData[key] === null) cleanData[key] = undefined;
     });

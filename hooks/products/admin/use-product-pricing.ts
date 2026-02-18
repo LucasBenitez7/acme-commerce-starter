@@ -82,13 +82,15 @@ export function useProductPricing() {
   );
 
   const handleBaseChange = (val: string) => {
-    setBasePriceInput(val);
-    updateFormValues(val, salePriceInput);
+    const sanitized = val.replace(/[^0-9.,]/g, "");
+    setBasePriceInput(sanitized);
+    updateFormValues(sanitized, salePriceInput);
   };
 
   const handleSaleChange = (val: string) => {
-    setSalePriceInput(val);
-    updateFormValues(basePriceInput, val);
+    const sanitized = val.replace(/[^0-9.,]/g, "");
+    setSalePriceInput(sanitized);
+    updateFormValues(basePriceInput, sanitized);
   };
 
   // Discount Badge Calc

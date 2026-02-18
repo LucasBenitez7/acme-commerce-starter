@@ -42,7 +42,7 @@ export default function SaleBanner({ config, maxDiscount = 0 }: Props) {
               alt="Sale Background Mobile"
               fill
               className="object-cover opacity-80"
-              sizes="100vw"
+              sizes="(max-width: 767px) 100vw, 1px"
             />
           </div>
 
@@ -53,7 +53,7 @@ export default function SaleBanner({ config, maxDiscount = 0 }: Props) {
               alt="Sale Background Desktop"
               fill
               className="object-cover opacity-80"
-              sizes="100vw"
+              sizes="(min-width: 768px) 100vw, 1px"
             />
           </div>
           <div className="absolute inset-0 bg-black/10" />

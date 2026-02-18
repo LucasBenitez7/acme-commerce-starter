@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { CgClose } from "react-icons/cg";
 import { FaUserShield } from "react-icons/fa6";
 import { RiMenu2Line } from "react-icons/ri";
@@ -45,17 +45,21 @@ export function AdminHeader({ user }: Props) {
   };
 
   // Bloquear scroll cuando el menú está abierto
-  if (typeof document !== "undefined") {
+  useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
     }
-  }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
 
   return (
     <>
-      <header className="sticky top-0 z-[100] w-full border-b bg-background h-14 grid grid-cols-[1fr_auto_1fr] items-center px-4">
+      <header className="sticky top-0 z-[100] w-full border-b bg-background h-14 grid grid-cols-[1fr_auto_1fr] items-center px-4 pl-2 sm:pl-4 gap-4">
         <div className="flex justify-self-start items-center">
           <Sheet open={open} onOpenChange={setOpen} modal={false}>
             <SheetTrigger asChild>
@@ -94,7 +98,7 @@ export function AdminHeader({ user }: Props) {
           LSB SHOP
         </Link>
 
-        <div className="flex items-center gap-3 shrink-0 justify-self-end pr-2">
+        <div className="hidden sm:flex items-center shrink-0 justify-self-end md:pr-2">
           <h1 className="flex items-center gap-2 text-lg font-semibold">
             <FaUserShield className="size-5" />
             {getAdminName()}

@@ -5,9 +5,17 @@ export const productVariantSchema = z.object({
   size: z.string().min(1, "Falta Talla"),
   color: z.string().min(1, "Falta Color"),
   colorHex: z.string().optional().nullable(),
-  colorOrder: z.coerce.number().int().default(0),
+  colorOrder: z.coerce
+    .number()
+    .int()
+    .min(0, "El orden no puede ser negativo")
+    .default(0),
   stock: z.coerce.number().int().min(0, "Mínimo 0"),
-  priceCents: z.coerce.number().optional().nullable(),
+  priceCents: z.coerce
+    .number()
+    .min(0, "El precio no puede ser negativo")
+    .optional()
+    .nullable(),
 });
 
 export const productImageSchema = z.object({
@@ -25,12 +33,21 @@ export const productSchema = z
     slug: z.string().optional().or(z.literal("")),
     description: z.string().min(3, "La descripción es requerida"),
     priceCents: z.coerce.number().min(1, "El precio es requerido"),
-    compareAtPrice: z.coerce.number().optional().nullable(),
+    compareAtPrice: z.coerce
+      .number()
+      .min(0, "El precio no puede ser negativo")
+      .optional()
+      .nullable(),
     categoryId: z.string().min(1, "Selecciona una categoría"),
     isArchived: z.boolean().default(false),
     sortOrder: z.preprocess(
       (val) => (val === "" ? null : val),
-      z.coerce.number().int().optional().nullable(),
+      z.coerce
+        .number()
+        .int()
+        .min(0, "El orden no puede ser negativo")
+        .optional()
+        .nullable(),
     ),
     images: z.array(productImageSchema).default([]),
     variants: z

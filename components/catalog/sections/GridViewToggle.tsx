@@ -30,7 +30,9 @@ export function GridViewToggle({
         aria-label="Vista 1 columna"
         className={cn(
           "size-7 cursor-pointer transition-colors md:hidden",
-          currentMobileView === 1 ? "stroke-foreground" : "stroke-neutral-300",
+          currentMobileView === 1
+            ? "stroke-foreground"
+            : "stroke-neutral-300 hover:stroke-neutral-500",
         )}
       >
         <rect x="4" y="4" width="16" height="16" strokeWidth="1" />
@@ -44,7 +46,9 @@ export function GridViewToggle({
         aria-label="Vista 2 columnas (mobile)"
         className={cn(
           "size-7 cursor-pointer transition-colors md:hidden",
-          currentMobileView === 2 ? "stroke-foreground" : "stroke-neutral-300",
+          currentMobileView === 2
+            ? "stroke-foreground"
+            : "stroke-neutral-300 hover:stroke-neutral-500",
         )}
       >
         <rect x="4" y="4" width="16" height="16" strokeWidth="1" />
@@ -59,7 +63,9 @@ export function GridViewToggle({
         aria-label="Vista 2 columnas (desktop)"
         className={cn(
           "size-7 cursor-pointer transition-colors hidden md:block",
-          currentView === 2 ? "stroke-foreground" : "stroke-neutral-300",
+          currentView === 2
+            ? "stroke-foreground"
+            : "stroke-neutral-300 hover:stroke-neutral-500",
         )}
       >
         <rect x="4" y="4" width="16" height="16" strokeWidth="1" />
@@ -74,7 +80,9 @@ export function GridViewToggle({
         aria-label="Vista 4 columnas"
         className={cn(
           "size-7 cursor-pointer transition-colors hidden md:block",
-          currentView === 4 ? "stroke-foreground" : "stroke-neutral-300",
+          currentView === 4
+            ? "stroke-foreground"
+            : "stroke-neutral-300 hover:stroke-neutral-500",
         )}
       >
         <rect x="4" y="4" width="16" height="16" strokeWidth="1" />

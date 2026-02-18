@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { useRef, useState, useCallback } from "react";
 import { CgClose } from "react-icons/cg";
 import { FaSignOutAlt } from "react-icons/fa";
 import {
@@ -19,8 +18,8 @@ import { CartButtonWithSheet } from "@/components/cart/CartButtonWithSheet";
 import { SearchSheet } from "@/components/layout/SearchSheet";
 import { Sheet, SheetContent, SheetTitle, Button } from "@/components/ui";
 
-import { useCloseOnNav } from "@/hooks/common/use-close-on-nav";
 import { useMounted } from "@/hooks/common/use-mounted";
+import { useHeaderSheets } from "@/hooks/ui/use-header-sheets";
 import { useCartStore } from "@/store/cart";
 
 import { SiteSidebar } from "./SiteSidebar";
@@ -28,6 +27,7 @@ import { SiteSidebar } from "./SiteSidebar";
 import type { CategoryLink } from "@/lib/categories/types";
 
 const SHEET_ID = "site-sidebar";
+const HIDE_HEADER_ON = ["/checkout"];
 
 export function Header({
   categories,
@@ -36,37 +36,27 @@ export function Header({
   categories: CategoryLink[];
   maxDiscount: number;
 }) {
-  const [open, setOpen] = useState(false);
-  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
-
-  const safeRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
   const mounted = useMounted();
+
+  const {
+    open,
+    setOpen,
+    searchOpen,
+    setSearchOpen,
+    accountMenuOpen,
+    setAccountMenuOpen,
+    closeMenu,
+  } = useHeaderSheets(pathname);
 
   const { data: session, status: sessionStatus } = useSession();
   const user = session?.user ?? null;
   const isSessionLoading = sessionStatus === "loading";
 
-  const HIDE_HEADER_ON: string[] = ["/checkout"];
   const hideHeader = HIDE_HEADER_ON.includes(pathname);
   const isCartPage = pathname === "/cart" || pathname === "/checkout/success";
   const isAdmin = user?.role === "admin";
-
-  const closeMenu = useCallback(() => {
-    setOpen(false);
-  }, []);
-
-  useCloseOnNav(closeMenu);
-
-  // Bloquear scroll cuando el menú está abierto
-  if (typeof document !== "undefined") {
-    if (open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-  }
 
   if (hideHeader) return null;
 
@@ -98,22 +88,13 @@ export function Header({
     await signOut({ callbackUrl: "/" });
   }
 
-  const logo = (
-    <Link
-      href="/"
-      className="mx-2 flex justify-self-center px-2 text-3xl font-semibold focus:outline-none"
-    >
-      Logo lsb
-    </Link>
-  );
-
   return (
     <>
       <header
-        ref={safeRef}
-        className="mx-auto w-full z-[100] sticky top-0 h-[var(--header-h)] grid grid-cols-[1fr_auto_1fr] items-center bg-background border-b px-4"
+        className="sticky top-0 z-[100] w-screen h-[var(--header-h)] grid grid-cols-[1fr_auto_1fr] items-center bg-background border-b pl-2 sm:pl-4"
+        style={{ paddingRight: "calc(1rem + var(--sw, 0px))" }}
       >
-        <div className="flex justify-self-start items-center h-full content-center">
+        <div className="flex justify-self-start items-center h-full">
           {/* MENU TRIGGER */}
           <Button
             variant="ghost"
@@ -156,19 +137,22 @@ export function Header({
         </div>
 
         {/*------------- LOGO ------------- */}
-        {logo}
+        <Link
+          href="/"
+          className="mx-2 flex justify-self-center px-2 text-3xl font-semibold focus:outline-none"
+        >
+          Logo lsb
+        </Link>
 
         {/*------------- NAV ------------- */}
         <nav className="justify-self-end h-full flex items-center gap-1 text-sm">
-          <div className={hideHeader ? "hidden" : "flex items-center"}>
-            <SearchSheet />
+          <div className="flex items-center">
+            <SearchSheet open={searchOpen} onOpenChange={setSearchOpen} />
           </div>
 
           {/* WRAPPER para Hover en Desktop */}
           <div
-            className={
-              hideHeader ? "hidden" : "relative flex items-center h-full"
-            }
+            className="relative flex items-center h-full"
             onMouseEnter={() => {
               if (user) setAccountMenuOpen(true);
             }}
@@ -196,7 +180,7 @@ export function Header({
 
             {/* MENÚ FLOTANTE */}
             {user && accountMenuOpen && (
-              <div className="hidden sm:block absolute -translate-x-1/2 top-[calc(100%-4px)] w-72 z-[100] animate-in fade-in zoom-in-95 duration-200">
+              <div className="hidden sm:block absolute -right-20 top-[calc(100%-4px)] w-72 z-[100] animate-in fade-in zoom-in-95 duration-200">
                 <div className="rounded-xs border bg-popover shadow-xl overflow-hidden px-2">
                   {/* Cabecera del menú */}
                   <div className="p-4 border-b flex items-center gap-3">

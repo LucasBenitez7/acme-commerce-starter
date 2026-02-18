@@ -411,7 +411,12 @@ export function VariantGeneratorDialog({ onGenerate }: Props) {
                   type="number"
                   min="0"
                   value={genStock}
-                  onChange={(e) => setGenStock(Number(e.target.value))}
+                  onChange={(e) =>
+                    setGenStock(Math.max(0, Number(e.target.value)))
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "-" || e.key === "e") e.preventDefault();
+                  }}
                 />
               </div>
             </div>

@@ -48,11 +48,11 @@ export default async function AdminUsersPage({ searchParams }: Props) {
       </div>
 
       <Card>
-        <CardHeader className="p-4 border-b flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <CardTitle className="text-lg font-semibold text-left flex items-center justify-start w-full md:w-fit">
+        <CardHeader className="p-4 border-b flex flex-col md:flex-row md:items-center items-start justify-between gap-2 md:gap-5">
+          <CardTitle className="flex items-center gap-1 text-lg font-semibold w-fit">
             Total <span className="text-base">({totalCount})</span>
           </CardTitle>
-          <div className="w-full md:w-auto">
+          <div className="w-full">
             <UserListToolbar />
           </div>
         </CardHeader>
