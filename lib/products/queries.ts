@@ -240,7 +240,12 @@ export async function getPublicProducts({
     }),
   };
 
-  const orderBy = sort || [{ sortOrder: "asc" }, { createdAt: "desc" }];
+  // Orden por defecto: sortOrder asc, desempate por fecha de subida (más recientes primero)
+  const defaultOrderBy: Prisma.ProductOrderByWithRelationInput[] = [
+    { sortOrder: "asc" },
+    { createdAt: "desc" },
+  ];
+  const orderBy = sort || defaultOrderBy;
 
   // Si hay query, traemos más resultados para filtrar por palabras
   const fetchLimit = query ? 200 : limit;
