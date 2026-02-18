@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   FaBox,
   FaClipboardList,
@@ -10,6 +11,7 @@ import {
   FaLayerGroup,
   FaTriangleExclamation,
   FaBoxesStacked,
+  FaCircleExclamation,
 } from "react-icons/fa6";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -196,7 +198,7 @@ export default async function AdminPage() {
         <h3 className="text-base font-semibold text-foreground uppercase tracking-wider mb-2">
           Actividad
         </h3>
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-4">
           <Card className="py-4 px-0">
             <CardHeader className="px-4 flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-base font-medium">
@@ -231,7 +233,7 @@ export default async function AdminPage() {
           <Card className="py-4 px-0">
             <CardHeader className="px-4 flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-base font-medium">
-                Logística Inversa
+                Devoluciones realizadas
               </CardTitle>
               <FaBoxesStacked className="size-4 text-slate-500" />
             </CardHeader>
@@ -240,6 +242,62 @@ export default async function AdminPage() {
                 {stats.returnedItemsCount}
               </div>
               <p className="text-xs text-foreground">Productos devueltos</p>
+            </CardContent>
+          </Card>
+
+          {/* Devoluciones pendientes de respuesta */}
+          <Card
+            className={
+              stats.pendingReturnsCount > 0
+                ? "border-amber-200 bg-amber-50/50 py-4"
+                : "py-4 px-0"
+            }
+          >
+            <CardHeader className="px-4 flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle
+                className={
+                  stats.pendingReturnsCount > 0
+                    ? "text-base font-semibold text-amber-800"
+                    : "text-base font-medium"
+                }
+              >
+                Devoluciones pendientes
+              </CardTitle>
+              <FaCircleExclamation
+                className={
+                  stats.pendingReturnsCount > 0
+                    ? "size-4 text-amber-600"
+                    : "size-4 text-slate-500"
+                }
+              />
+            </CardHeader>
+            <CardContent className="px-4">
+              <div
+                className={
+                  stats.pendingReturnsCount > 0
+                    ? "text-2xl font-bold text-amber-700"
+                    : "text-2xl font-bold"
+                }
+              >
+                {stats.pendingReturnsCount}
+              </div>
+              <p
+                className={
+                  stats.pendingReturnsCount > 0
+                    ? "text-xs text-amber-600/90 font-medium"
+                    : "text-xs text-foreground"
+                }
+              >
+                Solicitudes sin aceptar/rechazar
+              </p>
+              {stats.pendingReturnsCount > 0 && (
+                <Link
+                  href="/admin/orders?status=RETURNS"
+                  className="inline-block mt-2 text-xs font-semibold text-amber-700 hover:text-amber-800 underline underline-offset-2"
+                >
+                  Ver en Pedidos →
+                </Link>
+              )}
             </CardContent>
           </Card>
         </div>

@@ -1,5 +1,5 @@
 import "server-only";
-import { type Prisma } from "@prisma/client";
+import { type PaymentStatus, type Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
 
@@ -57,6 +57,52 @@ function toPublicListItem(row: any): PublicProductListItem {
 }
 
 // 1. QUERIES PARA EL ADMIN (Dashboard)
+
+/** Filtro de pedidos que cuentan como "vendidos" (pagados; cancelados no cuentan; devueltos sí cuentan) */
+const SOLD_PAYMENT_STATUSES: PaymentStatus[] = [
+  "PAID",
+  "PARTIALLY_REFUNDED",
+  "REFUNDED",
+];
+const SOLD_ORDER_WHERE = {
+  paymentStatus: { in: SOLD_PAYMENT_STATUSES },
+  isCancelled: false,
+};
+
+/** Unidades vendidas por producto (pedidos pagados/reembolsados, no cancelados) */
+export async function getProductSalesMap(): Promise<Record<string, number>> {
+  const rows = await prisma.orderItem.groupBy({
+    by: ["productId"],
+    _sum: { quantity: true },
+    where: { order: SOLD_ORDER_WHERE },
+  });
+
+  const map: Record<string, number> = {};
+  for (const row of rows) {
+    map[row.productId] = row._sum?.quantity ?? 0;
+  }
+  return map;
+}
+
+/** Ventas y reembolsos (unidades) de un producto para la ficha individual */
+export async function getProductSalesAndReturns(productId: string): Promise<{
+  totalSold: number;
+  totalReturned: number;
+}> {
+  const agg = await prisma.orderItem.aggregate({
+    where: {
+      productId,
+      order: SOLD_ORDER_WHERE,
+    },
+    _sum: { quantity: true, quantityReturned: true },
+  });
+
+  return {
+    totalSold: agg._sum?.quantity ?? 0,
+    totalReturned: agg._sum?.quantityReturned ?? 0,
+  };
+}
+
 type GetAdminProductsParams = {
   page?: number;
   limit?: number;
@@ -96,8 +142,9 @@ export async function getAdminProducts({
     | Prisma.ProductOrderByWithRelationInput
     | Prisma.ProductOrderByWithRelationInput[] = { createdAt: "desc" };
   const isStockSort = sort === "stock_asc" || sort === "stock_desc";
+  const isSalesSort = sort === "sales_asc" || sort === "sales_desc";
 
-  if (!isStockSort && sort) {
+  if (!isStockSort && !isSalesSort && sort) {
     switch (sort) {
       case "order_asc":
         orderBy = [{ sortOrder: "asc" }, { createdAt: "desc" }];
@@ -120,11 +167,11 @@ export async function getAdminProducts({
     }
   }
 
-  // Si hay query, traer más resultados para filtrar en memoria
-  const fetchLimit = query ? 200 : limit;
-  const fetchSkip = query ? 0 : skip;
+  // Para orden por ventas necesitamos traer más resultados y ordenar en memoria
+  const fetchLimit = query ? 200 : isSalesSort ? 2000 : limit;
+  const fetchSkip = query ? 0 : isSalesSort ? 0 : skip;
 
-  const [productsRaw, totalCount, allCategories] = await Promise.all([
+  const [productsRaw, totalCount, allCategories, salesMap] = await Promise.all([
     prisma.product.findMany({
       where,
       orderBy,
@@ -138,11 +185,13 @@ export async function getAdminProducts({
     }),
     prisma.product.count({ where }),
     prisma.category.findMany({ orderBy: { name: "asc" } }),
+    getProductSalesMap(),
   ]);
 
   let productsWithStock = productsRaw.map((p) => ({
     ...p,
     _totalStock: p.variants.reduce((acc, v) => acc + v.stock, 0),
+    _totalSold: salesMap[p.id] ?? 0,
   }));
 
   // Filtrar por query en memoria si existe
@@ -160,6 +209,12 @@ export async function getAdminProducts({
     productsWithStock.sort((a, b) => a._totalStock - b._totalStock);
   if (sort === "stock_desc")
     productsWithStock.sort((a, b) => b._totalStock - a._totalStock);
+
+  // Ordenar por ventas
+  if (sort === "sales_asc")
+    productsWithStock.sort((a, b) => a._totalSold - b._totalSold);
+  if (sort === "sales_desc")
+    productsWithStock.sort((a, b) => b._totalSold - a._totalSold);
 
   // Paginar resultados filtrados
   const totalFiltered = productsWithStock.length;
@@ -184,7 +239,6 @@ export async function getProductForEdit(id: string) {
       category: true,
       images: { orderBy: { sort: "asc" } },
       variants: { orderBy: { size: "asc" } },
-      _count: { select: { orderItems: true } },
     },
   });
 }

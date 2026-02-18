@@ -56,6 +56,7 @@ export function ProductTable({ products }: ProductTableProps) {
             <TableHead>Categoría</TableHead>
             <TableHead>Precio</TableHead>
             <TableHead className="text-center">Stock</TableHead>
+            <TableHead className="text-center">Ventas</TableHead>
             <TableHead className="text-center">Acciones</TableHead>
           </TableRow>
         </TableHeader>
@@ -65,6 +66,7 @@ export function ProductTable({ products }: ProductTableProps) {
             const img = product.images[0]?.url ?? "/og/default-product.jpg";
             const currency = parseCurrency(product.currency);
             const totalStock = product._totalStock;
+            const totalSold = product._totalSold ?? 0;
             const isOutOfStock = totalStock === 0;
 
             return (
@@ -152,6 +154,12 @@ export function ProductTable({ products }: ProductTableProps) {
                   >
                     {totalStock}
                   </Badge>
+                </TableCell>
+
+                <TableCell className="text-center">
+                  <span className="font-mono text-xs font-medium text-foreground">
+                    {totalSold}
+                  </span>
                 </TableCell>
 
                 <TableCell className="text-center">
