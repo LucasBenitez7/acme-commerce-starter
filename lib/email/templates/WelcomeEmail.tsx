@@ -11,6 +11,8 @@ import {
 } from "@react-email/components";
 import * as React from "react";
 
+import { EmailFooter } from "./EmailFooter";
+
 interface WelcomeEmailProps {
   firstName?: string;
   lastName?: string;
@@ -58,22 +60,7 @@ export const WelcomeEmail = ({
             </Text>
           </Section>
 
-          <Container style={footer}>
-            <Text style={footerText}>
-              © 2026 lsbstack. Todos los derechos reservados.
-            </Text>
-            <div style={footerLinks}>
-              <Link href="#" style={link}>
-                Privacidad
-              </Link>
-              <Link href="#" style={link}>
-                Términos
-              </Link>
-              <Link href="#" style={link}>
-                Contacto
-              </Link>
-            </div>
-          </Container>
+          <EmailFooter />
         </Container>
       </Body>
     </Html>
@@ -134,37 +121,6 @@ const button = {
   textAlign: "center" as const,
   display: "inline-block",
   padding: "12px 100px",
-};
-
-const footer = {
-  borderTop: "1px solid #e6e6e6",
-  marginTop: "20px",
-  paddingTop: "20px",
-  textAlign: "center" as const,
-  width: "100%",
-  maxWidth: "560px",
-  margin: "0 auto",
-};
-
-const footerText = {
-  fontSize: "12px",
-  color: "#666",
-  fontWeight: 500,
-  margin: "0 0 10px",
-};
-
-const footerLinks = {
-  display: "flex",
-  justifyContent: "center",
-  gap: "15px",
-};
-
-const link = {
-  color: "#666",
-  textDecoration: "underline",
-  fontSize: "12px",
-  fontWeight: 600,
-  margin: "0 10px",
 };
 
 const cardContainer = {

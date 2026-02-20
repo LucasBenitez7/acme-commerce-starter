@@ -10,6 +10,8 @@ import {
 } from "@react-email/components";
 import * as React from "react";
 
+import { EmailFooter } from "./EmailFooter";
+
 interface ResetPasswordEmailProps {
   resetLink: string;
 }
@@ -45,22 +47,7 @@ export const ResetPasswordEmail = ({
           </Section>
         </Container>
 
-        <Container style={footer}>
-          <Text style={footerText}>
-            © 2026 lsbstack. Todos los derechos reservados.
-          </Text>
-          <div style={footerLinks}>
-            <Link href="#" style={link}>
-              Privacidad
-            </Link>
-            <Link href="#" style={link}>
-              Términos
-            </Link>
-            <Link href="#" style={link}>
-              Contacto
-            </Link>
-          </div>
-        </Container>
+        <EmailFooter />
       </Body>
     </Html>
   );
@@ -112,40 +99,6 @@ const button = {
   textAlign: "center" as const,
   display: "inline-block",
   padding: "12px 60px",
-};
-
-const footer = {
-  borderTop: "1px solid #e6e6e6",
-  marginTop: "20px",
-  paddingTop: "20px",
-  textAlign: "center" as const,
-  width: "100%",
-  maxWidth: "560px",
-  margin: "0 auto",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-};
-
-const footerText = {
-  fontSize: "12px",
-  color: "#666",
-  fontWeight: 500,
-  margin: "0 0 10px",
-};
-
-const footerLinks = {
-  display: "flex",
-  justifyContent: "center",
-  gap: "15px",
-};
-
-const link = {
-  color: "#666",
-  textDecoration: "underline",
-  fontSize: "12px",
-  fontWeight: 600,
-  margin: "0 10px",
 };
 
 const cardContainer = {
