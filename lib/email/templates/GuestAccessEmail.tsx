@@ -10,6 +10,8 @@ import {
 } from "@react-email/components";
 import * as React from "react";
 
+import { EmailFooter } from "./EmailFooter";
+
 interface GuestAccessEmailProps {
   orderId: string;
   otp: string;
@@ -37,9 +39,7 @@ export const GuestAccessEmail = ({ orderId, otp }: GuestAccessEmailProps) => {
           <Text style={text}>
             Si no has solicitado este código, puedes ignorar este correo.
           </Text>
-          <Text style={footer}>
-            © 2026 LSB Shop. Todos los derechos reservados.
-          </Text>
+          <EmailFooter />
         </Container>
       </Body>
     </Html>
@@ -94,11 +94,4 @@ const code = {
   color: "#000",
   letterSpacing: "4px",
   margin: "0",
-};
-
-const footer = {
-  fontSize: "12px",
-  color: "#898989",
-  marginTop: "20px",
-  textAlign: "center" as const,
 };
