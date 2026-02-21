@@ -12,6 +12,11 @@ type Props = {
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+export const metadata = {
+  title: "Crear cuenta",
+  robots: { index: false, follow: false },
+};
+
 export default async function RegisterPage({ searchParams }: Props) {
   const session = await auth();
   const sp = await searchParams;

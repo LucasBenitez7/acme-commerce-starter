@@ -5,11 +5,15 @@ import { PER_PAGE } from "@/lib/pagination";
 import { getFilterOptions, getPublicProducts } from "@/lib/products/queries";
 import { parseSearchParamFilters } from "@/lib/products/utils";
 
+import type { Metadata } from "next";
+
 export const dynamic = "force-dynamic";
 
-export const metadata = {
-  title: "Rebajas | Acme Store",
-  description: "Aprovecha nuestras ofertas y descuentos especiales.",
+export const metadata: Metadata = {
+  title: "Rebajas",
+  description:
+    "Las mejores ofertas y descuentos de LSB Shop. Ropa de calidad a precios rebajados — no te lo pierdas.",
+  alternates: { canonical: "/rebajas" },
 };
 
 export default async function RebajasPage({

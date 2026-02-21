@@ -6,17 +6,22 @@ import { PER_PAGE } from "@/lib/pagination";
 import { getFilterOptions, getPublicProducts } from "@/lib/products/queries";
 import { parseSearchParamFilters } from "@/lib/products/utils";
 
+import type { Metadata } from "next";
+
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata({ searchParams }: Props) {
+export async function generateMetadata({
+  searchParams,
+}: Props): Promise<Metadata> {
   const sp = await searchParams;
   const query = typeof sp.q === "string" ? sp.q.trim() : "";
 
   return {
-    title: query ? `Búsqueda: ${query} | Acme Store` : "Búsqueda | Acme Store",
+    title: query ? `Búsqueda: "${query}"` : "Búsqueda",
     description: query
-      ? `Resultados de búsqueda para: ${query}`
-      : "Busca productos en nuestra tienda",
+      ? `Resultados de búsqueda para "${query}" en LSB Shop.`
+      : "Busca prendas en LSB Shop por nombre, categoría o color.",
+    robots: { index: false },
   };
 }
 

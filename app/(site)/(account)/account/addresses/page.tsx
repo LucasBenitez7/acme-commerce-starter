@@ -9,6 +9,11 @@ import { auth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "Mis direcciones",
+  robots: { index: false, follow: false },
+};
+
 export default async function AccountAddressesPage() {
   const session = await auth();
   if (!session?.user?.id) return null;

@@ -3,11 +3,15 @@ import { Suspense } from "react";
 import { GuestAccessForm } from "@/components/tracking/GuestAccessForm";
 import { Container } from "@/components/ui";
 
+import type { Metadata } from "next";
+
 export const dynamic = "force-dynamic";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Seguimiento de Pedido",
-  description: "Consulta el estado de tu pedido o tramita una devolución.",
+  description:
+    "Consulta el estado de tu pedido en LSB Shop o tramita una devolución como invitado.",
+  alternates: { canonical: "/tracking" },
 };
 
 export default function TrackingPage() {

@@ -6,6 +6,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
+export const metadata = {
+  title: "Mi cuenta",
+  robots: { index: false, follow: false },
+};
+
 export default async function AccountProfilePage() {
   const session = await auth();
 
