@@ -6,7 +6,16 @@ import { PER_PAGE } from "@/lib/pagination";
 import { getFilterOptions, getPublicProducts } from "@/lib/products/queries";
 import { parseSearchParamFilters } from "@/lib/products/utils";
 
+import type { Metadata } from "next";
+
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Catálogo",
+  description:
+    "Explora toda nuestra colección de ropa. Filtra por talla, color y precio y encuentra tu prenda perfecta.",
+  alternates: { canonical: "/catalogo" },
+};
 
 type Props = {
   params: Promise<{ slug: string }>;

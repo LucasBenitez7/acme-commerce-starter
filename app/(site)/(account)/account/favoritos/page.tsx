@@ -9,7 +9,8 @@ import { auth } from "@/lib/auth";
 import { getUserFavorites } from "@/lib/favorites/queries";
 
 export const metadata = {
-  title: "Mis Favoritos | Acme Commerce",
+  title: "Mis favoritos",
+  robots: { index: false, follow: false },
 };
 
 export default async function FavoritesPage() {

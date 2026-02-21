@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -64,12 +65,15 @@ export function Footer() {
       {/* ── Cuerpo principal ── */}
       <Container className="py-10 px-4 grid grid-cols-2 gap-y-10 gap-x-4 md:flex md:flex-row md:justify-between md:items-start md:gap-8">
         {/* Columna 1 – Marca */}
-        <div className="col-span-2 flex flex-col gap-4">
-          <Link
-            href="/"
-            className="text-2xl font-bold tracking-tight text-foreground"
-          >
-            LSB SHOP
+        <div className="col-span-2 flex flex-col gap-3">
+          <Link href="/" aria-label="LSB Shop — Inicio">
+            <Image
+              src="/images/logo.png"
+              alt="LSB Shop"
+              width={180}
+              height={60}
+              className="h-5 w-auto object-contain dark:invert"
+            />
           </Link>
           <p className="text-sm text-foreground leading-relaxed max-w-[220px]">
             Moda moderna con estilo propio. Prendas cuidadosamente seleccionadas

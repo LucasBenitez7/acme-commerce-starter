@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FaArrowLeft } from "react-icons/fa6";
@@ -48,12 +49,19 @@ export function CheckoutHeader() {
               <FaArrowLeft className="size-4" />
             </Button>
           </div>
+
           <button
-            type="button"
             onClick={() => handleNavigation("/catalogo", "Ir a la tienda")}
-            className="flex items-center gap-2 text-xl font-bold hover:opacity-80 transition-opacity hover:cursor-pointer"
+            className="mx-2 flex justify-self-center px-2 focus:outline-none hover:cursor-pointer"
           >
-            <span className="text-black">LSB</span>
+            <Image
+              src="/images/logo.png"
+              alt="LSB Shop"
+              width={260}
+              height={88}
+              priority
+              className="h-7 w-auto object-contain dark:invert"
+            />
           </button>
 
           <div />

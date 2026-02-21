@@ -9,7 +9,14 @@ import { formatOrderForDisplay } from "@/lib/orders/utils";
 
 import { SuccessClient } from "./SuccessClient";
 
+import type { Metadata } from "next";
+
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Pedido confirmado",
+  robots: { index: false, follow: false },
+};
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-12-15.clover",

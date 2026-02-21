@@ -9,11 +9,6 @@ import Providers from "@/app/providers";
 
 import type { ReactNode } from "react";
 
-export const metadata = {
-  title: "LSB Shop",
-  description: "Tu tienda de confianza",
-};
-
 export default async function SiteLayout({
   children,
 }: {

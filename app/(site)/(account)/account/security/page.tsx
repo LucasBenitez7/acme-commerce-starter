@@ -7,8 +7,9 @@ import ChangePasswordForm from "./ChangePasswordForm";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Seguridad - Mi Cuenta",
+  title: "Seguridad",
   description: "Gestiona la seguridad de tu cuenta y cambia tu contraseña.",
+  robots: { index: false, follow: false },
 };
 
 export default async function SecurityPage() {

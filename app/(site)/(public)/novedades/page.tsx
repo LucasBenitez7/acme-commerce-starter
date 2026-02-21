@@ -5,11 +5,15 @@ import { PER_PAGE } from "@/lib/pagination";
 import { getFilterOptions, getPublicProducts } from "@/lib/products/queries";
 import { parseSearchParamFilters } from "@/lib/products/utils";
 
+import type { Metadata } from "next";
+
 export const dynamic = "force-dynamic";
 
-export const metadata = {
-  title: "Novedades | Acme Store",
-  description: "Descubre los últimos productos añadidos a nuestra colección.",
+export const metadata: Metadata = {
+  title: "Novedades",
+  description:
+    "Descubre las últimas incorporaciones a nuestra colección. Nuevas prendas cada semana en LSB Shop.",
+  alternates: { canonical: "/novedades" },
 };
 
 export default async function NovedadesPage({

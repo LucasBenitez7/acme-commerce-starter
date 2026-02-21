@@ -7,7 +7,22 @@ import { prisma } from "@/lib/db";
 import { getMaxDiscountPercentage } from "@/lib/products/queries";
 import { getStoreConfig } from "@/lib/settings/service";
 
+import type { Metadata } from "next";
+
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Inicio",
+  description:
+    "Bienvenido a LSB Shop — moda moderna con estilo propio. Descubre novedades, rebajas y las mejores prendas seleccionadas para ti.",
+  alternates: { canonical: "/" },
+  openGraph: {
+    url: "/",
+    title: "LSB Shop — Moda moderna con estilo propio",
+    description:
+      "Ropa de calidad, novedades constantes y los mejores precios. Envío rápido a toda España.",
+  },
+};
 
 export default async function HomePage() {
   const [config, maxDiscount] = await Promise.all([
