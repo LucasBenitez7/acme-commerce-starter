@@ -25,6 +25,7 @@ export function SectionHeader({
   subTitle,
   onGridChange,
   gridResetKey,
+  hasProducts,
 }: {
   title: string;
   rightSlot?: ReactNode;
@@ -33,6 +34,7 @@ export function SectionHeader({
   subTitle?: string;
   onGridChange?: (gridSize: { mobile: 1 | 2; desktop: 2 | 4 }) => void;
   gridResetKey?: string;
+  hasProducts?: boolean;
 }) {
   const [showFilters, setShowFilters] = useState(false);
   const { count: filtersCount } = useActiveFilters();
@@ -41,6 +43,8 @@ export function SectionHeader({
   const scrollDirection = useScrollDirection();
 
   const isHidden = scrollDirection === "down";
+
+  const showControls = hasProducts !== false || filtersCount > 0;
 
   return (
     <>
@@ -59,8 +63,8 @@ export function SectionHeader({
         </div>
 
         <div className="flex items-center justify-between w-full sm:w-auto">
-          {/* Grid View Control - Siempre visible */}
-          {isMounted && (
+          {/* Grid View Control */}
+          {showControls && isMounted && (
             <GridViewToggle
               currentView={gridView.desktop as 2 | 4}
               currentMobileView={gridView.mobile as 1 | 2}
@@ -86,7 +90,8 @@ export function SectionHeader({
           )}
 
           {/* Filter Button */}
-          {rightSlot !== false &&
+          {showControls &&
+            rightSlot !== false &&
             ((rightSlot ?? filterOptions) ? (
               <Button
                 type="button"

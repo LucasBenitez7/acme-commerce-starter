@@ -1,6 +1,8 @@
 import "./globals.css";
 import { Toaster } from "sonner";
 
+import { ScrollToTop } from "@/components/layout/ScrollToTop";
+
 import { fontMono, fontSans } from "./fonts";
 
 import type { Metadata, Viewport } from "next";
@@ -69,6 +71,7 @@ export default function RootLayout({
       className={`h-full ${fontSans.variable} ${fontMono.variable}`}
     >
       <body className="min-h-dvh text-foreground font-sans">
+        <ScrollToTop />
         {children}
         <Toaster position="bottom-center" richColors />
       </body>

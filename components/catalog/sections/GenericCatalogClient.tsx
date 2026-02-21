@@ -64,6 +64,7 @@ export function GenericCatalogClient({
         filterOptions={filterOptions}
         onGridChange={setGridSize}
         gridResetKey={gridResetKey}
+        hasProducts={initialTotal > 0}
       />
 
       {initialProducts.length > 0 ? (
