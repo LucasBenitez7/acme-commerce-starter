@@ -18,7 +18,7 @@ interface WelcomeEmailProps {
   lastName?: string;
 }
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://lsbstack.com";
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://shop.lsbstack.com";
 
 export const WelcomeEmail = ({
   firstName = "Usuario",

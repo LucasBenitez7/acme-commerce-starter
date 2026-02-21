@@ -5,12 +5,9 @@ const nextConfig: NextConfig = {
     loaderFile: "./lib/image-loader.ts",
 
     remotePatterns: [
-      { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "res.cloudinary.com" },
-      { protocol: "https", hostname: "plus.unsplash.com" },
-      { protocol: "https", hostname: "placehold.co" },
       { protocol: "https", hostname: "raw.githubusercontent.com" },
-      { protocol: "https", hostname: "cdn.lsbstack.com" },
+      { protocol: "https", hostname: "cdn.shop.lsbstack.com" },
     ],
   },
   eslint: {

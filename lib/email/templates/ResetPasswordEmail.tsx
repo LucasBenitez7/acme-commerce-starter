@@ -17,7 +17,7 @@ interface ResetPasswordEmailProps {
 }
 
 export const ResetPasswordEmail = ({
-  resetLink = "https://lsbstack.com/reset-password?token=XXX",
+  resetLink = "https://shop.lsbstack.com/reset-password?token=XXX",
 }: ResetPasswordEmailProps) => {
   return (
     <Html>

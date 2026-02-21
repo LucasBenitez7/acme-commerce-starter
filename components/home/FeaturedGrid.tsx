@@ -18,7 +18,7 @@ export default function FeaturedGrid({ categories }: Props) {
         {categories.slice(0, 4).map((cat, index) => {
           const productFallback =
             (cat as any).products?.[0]?.images?.[0]?.url ||
-            "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80";
+            "/og/default-products.jpg";
 
           const desktopImageSrc = (cat as any).image || productFallback;
 
