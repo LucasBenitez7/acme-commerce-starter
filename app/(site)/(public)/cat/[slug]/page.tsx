@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { RelatedProducts } from "@/components/catalog/RelatedProducts";
 import { GenericCatalogClient } from "@/components/catalog/sections/GenericCatalogClient";
 
 import { getCategoryBySlug } from "@/lib/categories/queries";
@@ -65,6 +66,11 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         emptyTitle={`No hay productos en ${cat.name}`}
         emptyDescription="Lo sentimos, actualmente no tenemos stock en esta categoría."
       />
+      {total === 0 && (
+        <div>
+          <RelatedProducts title="Te podría interesar" />
+        </div>
+      )}
     </section>
   );
 }

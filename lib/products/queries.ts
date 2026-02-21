@@ -522,3 +522,41 @@ export async function getFilterOptions(
     maxPrice: maxPrice === -Infinity ? 0 : maxPrice,
   };
 }
+
+/** Productos relacionados: misma categoría, excluye el producto actual */
+export async function getRelatedProducts({
+  categoryId,
+  excludeId,
+  limit = 8,
+}: {
+  categoryId: string;
+  excludeId: string;
+  limit?: number;
+}): Promise<PublicProductListItem[]> {
+  const rows = await prisma.product.findMany({
+    where: {
+      isArchived: false,
+      categoryId,
+      id: { not: excludeId },
+    },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+    take: limit,
+    select: publicListSelect,
+  });
+
+  return rows.map(toPublicListItem);
+}
+
+/** Productos recientes del catálogo (para sugerencias genéricas) */
+export async function getRecentProducts(
+  limit = 8,
+): Promise<PublicProductListItem[]> {
+  const rows = await prisma.product.findMany({
+    where: { isArchived: false },
+    orderBy: [{ createdAt: "desc" }],
+    take: limit,
+    select: publicListSelect,
+  });
+
+  return rows.map(toPublicListItem);
+}
