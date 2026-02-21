@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
@@ -139,9 +140,17 @@ export function Header({
         {/*------------- LOGO ------------- */}
         <Link
           href="/"
-          className="mx-2 flex justify-self-center px-2 text-3xl font-semibold focus:outline-none"
+          className="mx-2 flex justify-self-center px-2 focus:outline-none"
+          aria-label="LSB Shop — Inicio"
         >
-          Logo lsb
+          <Image
+            src="/images/logo.png"
+            alt="LSB Shop"
+            width={260}
+            height={88}
+            priority
+            className="h-7 w-auto object-contain dark:invert"
+          />
         </Link>
 
         {/*------------- NAV ------------- */}

@@ -1,4 +1,4 @@
-import { Container, Link, Text } from "@react-email/components";
+import { Container, Img, Link, Text } from "@react-email/components";
 import * as React from "react";
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://lsbshop.com";
@@ -6,6 +6,13 @@ const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://lsbshop.com";
 export function EmailFooter() {
   return (
     <Container style={footer}>
+      <Img
+        src={`${baseUrl}/images/logo.png`}
+        alt="LSB Shop"
+        width="110"
+        height="37"
+        style={logoStyle}
+      />
       <Text style={footerText}>
         © {new Date().getFullYear()} lsbshop. Todos los derechos reservados.
       </Text>
@@ -32,6 +39,11 @@ const footer = {
   width: "100%",
   maxWidth: "560px",
   margin: "0 auto",
+};
+
+const logoStyle = {
+  margin: "0 auto 12px",
+  display: "block",
 };
 
 const footerText = {

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState, useCallback, useEffect } from "react";
 import { CgClose } from "react-icons/cg";
@@ -93,9 +94,16 @@ export function AdminHeader({ user }: Props) {
 
         <Link
           href="/"
-          className="text-2xl font-bold tracking-tight flex items-center gap-2 justify-self-center"
+          className="mx-2 flex justify-self-center px-2 focus:outline-none hover:cursor-pointer"
         >
-          LSB SHOP
+          <Image
+            src="/images/logo.png"
+            alt="LSB Shop"
+            width={260}
+            height={88}
+            priority
+            className="h-7 w-auto object-contain dark:invert"
+          />
         </Link>
 
         <div className="hidden sm:flex items-center shrink-0 justify-self-end md:pr-2">

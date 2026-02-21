@@ -6,8 +6,9 @@ import { fontMono, fontSans } from "./fonts";
 import type { Metadata, Viewport } from "next";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-const siteName = "LSB Store";
-const description = "E-commerce de prueba (starter) con Next.js";
+const siteName = "LSB Shop";
+const description =
+  "Descubre moda moderna con estilo propio. Ropa de calidad, novedades constantes y los mejores precios — envío rápido a toda España.";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -20,6 +21,19 @@ export const metadata: Metadata = {
   title: { default: siteName, template: `%s · ${siteName}` },
   description,
   alternates: { canonical: "/" },
+  icons: {
+    icon: [
+      {
+        url: "/images/favicon-light.png",
+        media: "(prefers-color-scheme: light)",
+      },
+      {
+        url: "/images/favicon-dark.png",
+        media: "(prefers-color-scheme: dark)",
+      },
+    ],
+    apple: "/images/favicon-light.png",
+  },
   openGraph: {
     type: "website",
     url: "/",
@@ -29,7 +43,7 @@ export const metadata: Metadata = {
     locale: "es_ES",
     images: [
       {
-        url: "/og/default.jpg",
+        url: "/og/default.png",
         width: 1200,
         height: 630,
         alt: `${siteName} — portada`,
@@ -40,7 +54,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: siteName,
     description,
-    images: ["/og/default.jpg"],
+    images: ["/og/default.png"],
   },
 };
 
