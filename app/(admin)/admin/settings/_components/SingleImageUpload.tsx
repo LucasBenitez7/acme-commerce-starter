@@ -41,7 +41,7 @@ export function SingleImageUpload({
   return (
     <div className="space-y-4">
       {value ? (
-        <div className="flex gap-4 items-start">
+        <div className="flex flex-col sm:flex-row gap-4 items-start mb-6 sm:mb-0">
           <div
             className={cn(
               "relative rounded-xs overflow-hidden border bg-neutral-100",
@@ -56,7 +56,7 @@ export function SingleImageUpload({
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-row sm:flex-col gap-2">
             {/* EDITAR (REEMPLAZAR) */}
             <CldUploadWidget
               uploadPreset={preset}

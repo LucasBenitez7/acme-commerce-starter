@@ -17,11 +17,8 @@ export async function updateSettingsAction(rawData: unknown) {
   }
 
   try {
-    const cleanData: Record<string, unknown> = { ...parseResult.data };
-    Object.keys(cleanData).forEach((key) => {
-      if (cleanData[key] === null) cleanData[key] = undefined;
-    });
-    await updateStoreConfig(cleanData);
+    const cleanData = { ...parseResult.data };
+    await updateStoreConfig(cleanData as any);
     revalidatePath("/");
     revalidatePath("/novedades");
     revalidatePath("/rebajas");
