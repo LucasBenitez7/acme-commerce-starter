@@ -28,7 +28,12 @@ export function RelatedProductsSection({
       <h2 className="text-xl text-center sm:text-left font-medium mb-6 px-6">
         {title}
       </h2>
-      <ProductGrid items={products} favoriteIds={favoriteIds} shortenTitle />
+      <ProductGrid
+        items={products}
+        favoriteIds={favoriteIds}
+        shortenTitle
+        gridSize={{ mobile: 1, desktop: 4 }}
+      />
     </motion.section>
   );
 }

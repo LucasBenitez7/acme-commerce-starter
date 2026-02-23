@@ -63,9 +63,9 @@ export function Footer() {
   return (
     <footer className="border-t bg-background mt-10">
       {/* ── Cuerpo principal ── */}
-      <Container className="py-10 px-4 grid grid-cols-2 gap-y-10 gap-x-4 md:flex md:flex-row md:justify-between md:items-start md:gap-8">
+      <Container className="py-10 px-6 grid grid-cols-1 md:grid-cols-2 gap-y-10 gap-x-4 md:flex md:flex-row md:justify-between md:items-start md:gap-8">
         {/* Columna 1 – Marca */}
-        <div className="col-span-2 flex flex-col gap-3">
+        <div className="col-span-1 md:col-span-2 flex flex-col gap-3 items-start">
           <Link href="/" aria-label="LSB Shop — Inicio">
             <Image
               src="/images/logo.png"
@@ -81,11 +81,14 @@ export function Footer() {
           </p>
         </div>
 
-        {/* Columna 2 – Tienda */}
+        {/* Columna 2 – Ayuda */}
+        <FooterColumn title="Ayuda" links={HELP_LINKS} />
+
+        {/* Columna 3 – Tienda */}
         <FooterColumn title="Tienda" links={SHOP_LINKS} />
 
-        {/* Columna 3 – Redes sociales */}
-        <div className="flex flex-col gap-3">
+        {/* Columna 4 – Redes sociales */}
+        <div className="flex flex-col gap-3 items-start">
           <p className="text-sm font-semibold text-foreground">Síguenos</p>
           <ul className="flex flex-col gap-2">
             {SOCIAL_LINKS.map(({ label, href, icon: Icon }) => (
@@ -106,13 +109,10 @@ export function Footer() {
             ))}
           </ul>
         </div>
-
-        {/* Columna 4 – Ayuda */}
-        <FooterColumn title="Ayuda" links={HELP_LINKS} />
       </Container>
 
       {/* ── Barra inferior ── */}
-      <Container className="py-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-sm border-t px-4">
+      <Container className="py-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm border-t px-4">
         <p>
           © {new Date().getFullYear()} lsbshop. Todos los derechos reservados.
         </p>
@@ -145,7 +145,7 @@ function FooterColumn({
   links: { label: string; href: string }[];
 }) {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 items-start">
       <p className="text-sm font-semibold text-foreground">{title}</p>
       <ul className="flex flex-col gap-2">
         {links.map(({ label, href }) => (

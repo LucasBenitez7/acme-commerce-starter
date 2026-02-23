@@ -11,6 +11,7 @@ interface ProductGridProps {
   shortenTitle?: boolean;
   onProductClick?: () => void;
   gridSize?: { mobile: 1 | 2; desktop: 2 | 4 };
+  imgSizes?: string;
 }
 
 export function ProductGrid({
@@ -20,14 +21,22 @@ export function ProductGrid({
   shortenTitle,
   onProductClick,
   gridSize = { mobile: 2, desktop: 4 },
+  imgSizes,
 }: ProductGridProps) {
   const mobileColsClass = gridSize.mobile === 1 ? "grid-cols-1" : "grid-cols-2";
 
   const desktopColsClass =
-    gridSize.desktop === 2 ? "md:grid-cols-2" : "md:grid-cols-4";
+    gridSize.desktop === 2 ? "md:grid-cols-2" : "md:grid-cols-3 lg:grid-cols-4";
 
   const is2ColView = gridSize.desktop === 2;
   const is1ColMobile = gridSize.mobile === 1;
+
+  // Auto-compute correct image sizes based on column count to avoid blurry images
+  const resolvedSizes =
+    imgSizes ??
+    (is1ColMobile
+      ? "(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 25vw"
+      : "(max-width: 1280px) 50vw, 25vw");
 
   return (
     <div
@@ -53,6 +62,7 @@ export function ProductGrid({
             initialIsFavorite={favoriteIds ? favoriteIds.has(p.id) : false}
             shortenTitle={shortenTitle}
             onProductClick={onProductClick}
+            imgSizes={resolvedSizes}
           />
         ))}
       </div>

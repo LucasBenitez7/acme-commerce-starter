@@ -121,7 +121,7 @@ export function SearchSheet({
           </VisuallyHidden>
 
           {/* Header: Logo + Close */}
-          <div className="grid grid-cols-[auto_1fr] sm:grid-cols-[auto_1fr_auto] items-center gap-0 sm:gap-6 px-6 h-[var(--header-h)] bg-white sticky top-0 z-10">
+          <div className="grid grid-cols-[auto_1fr] sm:grid-cols-[auto_1fr_auto] items-center gap-0 sm:gap-6 px-4 sm:px-6 h-[var(--header-h)] bg-white sticky top-0 z-10">
             <div className="flex">
               <Link
                 href="/"
@@ -175,7 +175,7 @@ export function SearchSheet({
 
           <form
             onSubmit={handleSubmit}
-            className="block sm:hidden justify-self-center w-full px-6"
+            className="block sm:hidden justify-self-center w-full px-4"
           >
             <div className="flex w-full md:w-[calc(100%-10rem)] lg:w-[calc(100%-16rem)] mx-auto border-b border-foreground items-center gap-3 px-1">
               <HiOutlineSearch className="size-5 text-foreground pointer-events-none" />
