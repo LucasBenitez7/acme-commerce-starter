@@ -95,6 +95,7 @@ export async function getDashboardStats() {
     totalRefunds += orderRefundValue;
   }
 
+  const paidOrders = financialOrders.length;
   const netRevenue = grossRevenue - totalRefunds;
   return {
     grossRevenue,
@@ -102,6 +103,7 @@ export async function getDashboardStats() {
     netRevenue,
 
     totalOrders,
+    paidOrders,
     pendingOrders,
     pendingReturnsCount,
     totalUsers,
@@ -161,7 +163,16 @@ export async function getAdminUsers({
       take: fetchLimit,
       include: {
         _count: {
-          select: { orders: true },
+          select: {
+            orders: {
+              where: {
+                paymentStatus: {
+                  in: ["PAID", "PARTIALLY_REFUNDED", "REFUNDED"],
+                },
+                isCancelled: false,
+              },
+            },
+          },
         },
       },
     }),
@@ -204,12 +215,23 @@ export async function getAdminUserDetails(userId: string) {
       orders: {
         take: 10,
         orderBy: { createdAt: "desc" },
+        where: {
+          paymentStatus: { in: ["PAID", "PARTIALLY_REFUNDED", "REFUNDED"] },
+          isCancelled: false,
+        },
         include: {
           items: true,
         },
       },
       _count: {
-        select: { orders: true },
+        select: {
+          orders: {
+            where: {
+              paymentStatus: { in: ["PAID", "PARTIALLY_REFUNDED", "REFUNDED"] },
+              isCancelled: false,
+            },
+          },
+        },
       },
     },
   });
