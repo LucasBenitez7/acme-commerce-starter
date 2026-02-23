@@ -58,7 +58,11 @@ export async function createOrderAction(
     let order;
 
     if (existingOrderId) {
-      order = await updateOrderAddress(existingOrderId, validation.data);
+      order = await updateOrderAddress(
+        existingOrderId,
+        validation.data,
+        session?.user?.id ?? undefined,
+      );
     } else {
       order = await createOrder(validation.data, session?.user?.id);
     }

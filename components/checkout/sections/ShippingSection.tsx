@@ -230,7 +230,7 @@ export function ShippingSection(props: Props) {
                               {!props.isGuest &&
                                 !props.isAddressConfirmed &&
                                 isSelected && (
-                                  <div className="flex gap-4 pt-4 pb-2">
+                                  <div className="flex flex-col sm:flex-row gap-4 pt-4 pb-2">
                                     <Button
                                       type="button"
                                       onClick={handleAddNewClick}

@@ -158,19 +158,24 @@ export function ShippingAddressForm(props: Props) {
         )}
 
         {/* --- BOTONES --- */}
-        <div className="flex gap-4 pt-2">
+        <div className="flex gap-4 pt-2 flex-col sm:flex-row">
           <Button
             type="button"
             variant="outline"
             onClick={props.onCancel}
-            className="px-4"
+            className="px-4 w-full sm:w-auto"
             disabled={isPending}
           >
             Cancelar
           </Button>
-          <Button type="button" onClick={handleSaveAndUse} disabled={isPending}>
+          <Button
+            type="button"
+            onClick={handleSaveAndUse}
+            disabled={isPending}
+            className="px-4 w-full sm:w-auto"
+          >
             {isPending
-              ? "Procesando..."
+              ? "Guardando..."
               : props.isGuest
                 ? "Usar esta dirección"
                 : "Guardar y  Usar"}
