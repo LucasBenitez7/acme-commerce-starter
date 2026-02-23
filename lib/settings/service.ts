@@ -8,13 +8,13 @@ export async function getStoreConfig(): Promise<StoreConfig | null> {
 }
 
 export type UpdateStoreConfigData = {
-  heroImage?: string;
-  heroMobileImage?: string;
+  heroImage?: string | null;
+  heroMobileImage?: string | null;
   heroTitle?: string;
   heroSubtitle?: string;
   heroLink?: string;
-  saleImage?: string;
-  saleMobileImage?: string;
+  saleImage?: string | null;
+  saleMobileImage?: string | null;
   saleTitle?: string;
   saleSubtitle?: string;
   saleLink?: string;
@@ -24,11 +24,9 @@ export type UpdateStoreConfigData = {
 export async function updateStoreConfig(data: UpdateStoreConfigData) {
   const config = await prisma.storeConfig.findFirst();
 
-  // Detectar imágenes que se van a reemplazar
   const imagesToDelete: string[] = [];
 
   if (config) {
-    // Hero Desktop - si cambió y la anterior existe
     if (
       data.heroImage &&
       config.heroImage &&
@@ -37,7 +35,6 @@ export async function updateStoreConfig(data: UpdateStoreConfigData) {
       imagesToDelete.push(config.heroImage);
     }
 
-    // Hero Mobile - si cambió y la anterior existe
     if (
       data.heroMobileImage &&
       config.heroMobileImage &&
@@ -46,7 +43,6 @@ export async function updateStoreConfig(data: UpdateStoreConfigData) {
       imagesToDelete.push(config.heroMobileImage);
     }
 
-    // Sale Desktop - si cambió y la anterior existe
     if (
       data.saleImage &&
       config.saleImage &&
@@ -55,7 +51,6 @@ export async function updateStoreConfig(data: UpdateStoreConfigData) {
       imagesToDelete.push(config.saleImage);
     }
 
-    // Sale Mobile - si cambió y la anterior existe
     if (
       data.saleMobileImage &&
       config.saleMobileImage &&

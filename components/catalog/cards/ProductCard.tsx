@@ -18,11 +18,13 @@ export function ProductCard({
   initialIsFavorite = false,
   shortenTitle = false,
   onProductClick,
+  imgSizes = "(max-width: 1280px) 50vw, 25vw",
 }: {
   item: PublicProductListItem;
   initialIsFavorite?: boolean;
   shortenTitle?: boolean;
   onProductClick?: () => void;
+  imgSizes?: string;
 }) {
   const {
     imageContainerRef,
@@ -89,7 +91,7 @@ export function ProductCard({
             src={displayImage}
             alt={item.name}
             fill
-            sizes="(max-width: 1280px) 50vw, 25vw"
+            sizes={imgSizes}
             className="object-cover"
           />
         </Link>

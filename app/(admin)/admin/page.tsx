@@ -102,9 +102,9 @@ export default async function AdminPage() {
             </CardHeader>
             <CardContent className="px-4">
               <div className="text-2xl font-bold">
-                {stats.totalOrders > 0
+                {stats.paidOrders > 0
                   ? formatCurrency(
-                      Math.round(stats.grossRevenue / stats.totalOrders),
+                      Math.round(stats.grossRevenue / stats.paidOrders),
                       DEFAULT_CURRENCY,
                     )
                   : formatCurrency(0, DEFAULT_CURRENCY)}
@@ -207,7 +207,7 @@ export default async function AdminPage() {
               <FaClipboardList className="size-4 text-slate-500" />
             </CardHeader>
             <CardContent className="px-4">
-              <div className="text-2xl font-bold">{stats.totalOrders}</div>
+              <div className="text-2xl font-bold">{stats.paidOrders}</div>
               <p className="text-xs text-foreground">
                 {stats.pendingOrders > 0 && (
                   <span className="text-amber-600 font-medium">

@@ -1,5 +1,8 @@
 import "./globals.css";
+import { Suspense } from "react";
 import { Toaster } from "sonner";
+
+import { ScrollToTop } from "@/components/layout/ScrollToTop";
 
 import { fontMono, fontSans } from "./fonts";
 
@@ -69,6 +72,9 @@ export default function RootLayout({
       className={`h-full ${fontSans.variable} ${fontMono.variable}`}
     >
       <body className="min-h-dvh text-foreground font-sans">
+        <Suspense fallback={null}>
+          <ScrollToTop />
+        </Suspense>
         {children}
         <Toaster position="bottom-center" richColors />
       </body>

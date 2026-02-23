@@ -1,3 +1,5 @@
+import { RelatedProducts } from "@/components/catalog/RelatedProducts";
+
 import { getUserFavoriteIds } from "@/lib/favorites/queries";
 
 import CartClientPage from "./CartClientPage";
@@ -17,6 +19,7 @@ export default async function CartPage() {
   return (
     <>
       <CartClientPage favoriteIds={favoriteIds} />
+      <RelatedProducts title="Te podría interesar" />
     </>
   );
 }

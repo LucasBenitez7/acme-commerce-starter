@@ -86,8 +86,9 @@ export function OrderSummaryCard({
   return (
     <Card className="overflow-hidden border-neutral-200 shadow-sm px-4">
       <CardHeader className="pb-2 pt-4 border-b">
-        <CardTitle className="text-lg font-bold flex items-center justify-center gap-2 text-neutral-800">
-          Detalles del Pedido Nº <span className="uppercase">{id}</span>
+        <CardTitle className="text-lg font-bold flex flex-col sm:flex-row items-center justify-center gap-2 text-neutral-800">
+          <span>Detalles del Pedido Nº </span>
+          <span className="uppercase">{id}</span>
         </CardTitle>
       </CardHeader>
 

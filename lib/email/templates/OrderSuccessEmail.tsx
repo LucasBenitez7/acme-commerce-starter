@@ -24,7 +24,7 @@ interface OrderSuccessEmailProps {
   order: DisplayOrder;
 }
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://lsbstack.com";
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://shop.lsbstack.com";
 
 export const OrderSuccessEmail = ({ order }: OrderSuccessEmailProps) => {
   const currency = order.currency || "EUR";

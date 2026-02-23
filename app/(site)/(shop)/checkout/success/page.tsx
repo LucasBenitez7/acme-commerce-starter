@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Stripe from "stripe";
 
+import { RelatedProducts } from "@/components/catalog/RelatedProducts";
 import { Container } from "@/components/ui";
 
 import { getOrderSuccessDetails } from "@/lib/account/queries";
@@ -74,8 +75,11 @@ export default async function SuccessPage({ searchParams }: Props) {
   }
 
   return (
-    <Container className="py-6 px-4 lg:py-10">
-      <SuccessClient order={clientOrder} />
-    </Container>
+    <>
+      <Container className="py-6 px-4 lg:py-10">
+        <SuccessClient order={clientOrder} />
+      </Container>
+      <RelatedProducts title="Te podría interesar" />
+    </>
   );
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ProductClient } from "@/components/catalog/product-detail/ProductClient";
+import { RelatedProducts } from "@/components/catalog/RelatedProducts";
 
 import { checkIsFavorite } from "@/lib/favorites/queries";
 import {
@@ -125,6 +126,15 @@ export default async function ProductPage({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </section>
+
+      {/* Prendas similares */}
+      <div>
+        <RelatedProducts
+          categoryId={p.category.id}
+          excludeId={p.id}
+          title="Prendas similares"
+        />
+      </div>
     </div>
   );
 }

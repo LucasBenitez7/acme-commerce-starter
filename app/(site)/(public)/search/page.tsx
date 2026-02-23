@@ -1,4 +1,5 @@
 import { EmptyState } from "@/components/catalog";
+import { RelatedProducts } from "@/components/catalog/RelatedProducts";
 import { GenericCatalogClient } from "@/components/catalog/sections/GenericCatalogClient";
 
 import { getUserFavoriteIds } from "@/lib/favorites/queries";
@@ -40,6 +41,9 @@ export default async function SearchPage({ searchParams }: Props) {
           title="Introduce un término de búsqueda"
           description="Usa el buscador del header para encontrar productos"
         />
+        <div>
+          <RelatedProducts title="Te podría interesar" />
+        </div>
       </section>
     );
   }
@@ -75,6 +79,11 @@ export default async function SearchPage({ searchParams }: Props) {
         emptyTitle={`No se encontraron resultados para "${query}"`}
         emptyDescription="Intenta buscar con otros términos o explora nuestro catálogo"
       />
+      {total === 0 && (
+        <div>
+          <RelatedProducts title="Te podría interesar" />
+        </div>
+      )}
     </section>
   );
 }

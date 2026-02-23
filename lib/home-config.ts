@@ -1,6 +1,6 @@
 export const homeConfig = {
   hero: {
-    src: "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2070&auto=format&fit=crop",
+    src: "/og/default-products.jpg",
     overlayOpacity: 0.2,
   },
   featuredCollections: [
@@ -13,14 +13,14 @@ export const homeConfig = {
     },
     {
       title: "",
-      src: "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2070&auto=format&fit=crop",
+      src: "/og/default-products.jpg",
       link: "/",
       size: "small",
       objectPosition: "center",
     },
     {
       title: "",
-      src: "https://images.unsplash.com/photo-1722625957003-4f1f1f6942e3?w=1080&auto=format&fit=crop&q=80&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OTB8fGRlbmltfGVufDB8fDB8fHww",
+      src: "/og/default-products.jpg",
       link: "/",
       size: "small",
       objectPosition: "center",
@@ -35,7 +35,6 @@ export const homeConfig = {
   ],
   saleBanner: {
     backgroundColor: "#171717",
-    backgroundImage:
-      "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop",
+    backgroundImage: "/og/default-products.jpg",
   },
 };
