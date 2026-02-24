@@ -53,6 +53,7 @@ export async function createCategoryAction(
   }
 
   revalidatePath("/admin/categories");
+  revalidatePath("/", "layout");
   redirect("/admin/categories");
 }
 
@@ -87,6 +88,7 @@ export async function updateCategoryAction(
   }
 
   revalidatePath("/admin/categories");
+  revalidatePath("/", "layout");
   redirect("/admin/categories");
 }
 
@@ -96,6 +98,7 @@ export async function deleteCategoryAction(id: string) {
     await assertAdmin();
     await deleteCategory(id);
     revalidatePath("/admin/categories");
+    revalidatePath("/", "layout");
     return { success: true };
   } catch (error: any) {
     return { error: error.message || "Error al eliminar." };
@@ -107,6 +110,7 @@ export async function quickCreateCategory(name: string) {
   try {
     await assertAdmin();
     const newCat = await createQuickCategory(name);
+    revalidatePath("/", "layout");
     return { success: true, category: newCat };
   } catch (error: any) {
     return { error: error.message };

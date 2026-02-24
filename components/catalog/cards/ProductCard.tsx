@@ -109,7 +109,7 @@ export function ProductCard({
                 prevImage();
               }}
             >
-              <FaChevronLeft className="size-3" />
+              <FaChevronLeft className="size-5 md:size-4" />
             </Button>
             <Button
               variant="ghost"
@@ -121,7 +121,7 @@ export function ProductCard({
                 nextImage();
               }}
             >
-              <FaChevronRight className="size-3" />
+              <FaChevronRight className="size-5 md:size-4" />
             </Button>
           </>
         )}
