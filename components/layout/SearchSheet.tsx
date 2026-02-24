@@ -113,7 +113,7 @@ export function SearchSheet({
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetContent
           side="top"
-          className="h-full w-full p-0 overflow-hidden z-[200] gap-2"
+          className="h-full max-h-[100dvh] w-full p-0 overflow-hidden z-[200] gap-2"
         >
           {/* Hidden title for accessibility */}
           <VisuallyHidden>
@@ -144,7 +144,7 @@ export function SearchSheet({
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Buscar productos"
-                  className="w-full flex-1 text-sm font-medium h-9 outline-none ring-none"
+                  className="w-full flex-1 text-base sm:text-sm font-medium h-9 outline-none ring-none"
                   autoFocus
                 />
 
@@ -185,7 +185,7 @@ export function SearchSheet({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Buscar productos"
-                className="w-full flex-1 text-sm font-medium h-9 outline-none ring-none"
+                className="w-full flex-1 text-base sm:text-sm font-medium h-9 outline-none ring-none"
                 autoFocus
               />
 
