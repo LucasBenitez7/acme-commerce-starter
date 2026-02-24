@@ -28,7 +28,7 @@ export default async function RegisterPage({ searchParams }: Props) {
   }
 
   return (
-    <div className="flex items-center justify-center bg-neutral-50 w-full mt-5">
+    <div className="flex flex-1 min-h-0 items-center justify-center w-full bg-neutral-50">
       <div className="w-full sm:w-lg border p-6 bg-background rounded-xs shadow-sm">
         <div className="flex flex-col space-y-2 text-center mb-6">
           <h1 className="text-2xl font-semibold tracking-tight">
