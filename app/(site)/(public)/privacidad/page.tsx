@@ -2,8 +2,6 @@ import { Container } from "@/components/ui";
 
 import type { Metadata } from "next";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Política de Privacidad y Cookies | LSB Shop",
   description:
