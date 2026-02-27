@@ -6,8 +6,6 @@ import { Container } from "@/components/ui";
 
 import type { Metadata } from "next";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Contacto | LSB Shop",
   description:

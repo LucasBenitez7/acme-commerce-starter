@@ -4,14 +4,18 @@ import { auth } from "@/lib/auth";
 
 import { LoginForm } from "./LoginForm";
 
+import type { Metadata } from "next";
+
 type Props = {
   searchParams: Promise<{ redirectTo?: string }>;
 };
 
 export const dynamic = "force-dynamic";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Iniciar sesión",
+  description:
+    "Accede a tu cuenta de LSB Shop para gestionar tus pedidos, direcciones y favoritos.",
   robots: { index: false, follow: false },
 };
 

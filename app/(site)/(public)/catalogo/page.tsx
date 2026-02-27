@@ -15,6 +15,17 @@ export const metadata: Metadata = {
   description:
     "Explora toda nuestra colección de ropa. Filtra por talla, color y precio y encuentra tu prenda perfecta.",
   alternates: { canonical: "/catalogo" },
+  openGraph: {
+    title: "Catálogo · LSB Shop",
+    description:
+      "Explora toda nuestra colección. Filtra por talla, color y precio.",
+    url: "/catalogo",
+  },
+  twitter: {
+    card: "summary",
+    title: "Catálogo · LSB Shop",
+    description: "Explora toda nuestra colección de ropa.",
+  },
 };
 
 type Props = {

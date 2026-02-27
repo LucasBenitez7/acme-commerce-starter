@@ -8,8 +8,12 @@ import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/auth";
 import { getUserFavorites } from "@/lib/favorites/queries";
 
-export const metadata = {
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
   title: "Mis favoritos",
+  description:
+    "Consulta y gestiona los productos que has guardado como favoritos en LSB Shop.",
   robots: { index: false, follow: false },
 };
 

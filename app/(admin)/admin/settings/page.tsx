@@ -2,8 +2,11 @@ import { getStoreConfig } from "@/lib/settings/service";
 
 import { SettingsForm } from "./_components/SettingsForm";
 
-export const metadata = {
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
   title: "Configuración de la Tienda | Admin",
+  robots: { index: false, follow: false },
 };
 
 export default async function SettingsPage() {

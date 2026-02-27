@@ -78,6 +78,10 @@ export async function upsertProductAction(
 
   revalidatePath("/admin/products");
   revalidatePath("/catalogo");
+  revalidatePath("/cat", "layout");
+  revalidatePath("/product", "layout");
+  revalidatePath("/novedades");
+  revalidatePath("/rebajas");
   redirect("/admin/products");
 }
 
@@ -95,6 +99,10 @@ export async function toggleProductArchive(
 
     revalidatePath("/admin/products");
     revalidatePath("/catalogo");
+    revalidatePath("/cat", "layout");
+    revalidatePath("/product", "layout");
+    revalidatePath("/novedades");
+    revalidatePath("/rebajas");
 
     return { success: true };
   } catch (error) {
@@ -160,6 +168,10 @@ export async function deleteProductAction(productId: string) {
 
     revalidatePath("/admin/products");
     revalidatePath("/catalogo");
+    revalidatePath("/cat", "layout");
+    revalidatePath("/product", "layout");
+    revalidatePath("/novedades");
+    revalidatePath("/rebajas");
 
     return { success: true };
   } catch (error: any) {

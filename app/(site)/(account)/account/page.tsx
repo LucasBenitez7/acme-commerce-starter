@@ -6,8 +6,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
-export const metadata = {
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
   title: "Mi cuenta",
+  description:
+    "Gestiona tu perfil, dirécciones, pedidos y ajustes de seguridad en LSB Shop.",
   robots: { index: false, follow: false },
 };
 

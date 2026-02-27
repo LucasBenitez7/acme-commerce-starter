@@ -5,47 +5,14 @@ import { ProductClient } from "@/components/catalog/product-detail/ProductClient
 import { RelatedProducts } from "@/components/catalog/RelatedProducts";
 
 import { checkIsFavorite } from "@/lib/favorites/queries";
-import {
-  getProductMetaBySlug,
-  getProductFullBySlug,
-  getProductSlugs,
-} from "@/lib/products/queries";
+import { getProductFullBySlug, getProductSlugs } from "@/lib/products/queries";
 import { getInitialProductState } from "@/lib/products/utils";
 
-import type { Metadata } from "next";
+import { generateMetadata, generateProductJsonLd } from "./seo";
 
 export const dynamic = "force-dynamic";
 
-// --- METADATA (SEO) ---
-export async function generateMetadata({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ slug: string }>;
-  searchParams: Promise<{ color?: string }>;
-}): Promise<Metadata> {
-  const { slug } = await params;
-  const { color } = await searchParams;
-
-  const product = await getProductMetaBySlug(slug);
-
-  if (!product) return { title: "Producto no encontrado" };
-
-  let ogImage = product.images[0]?.url;
-  if (color) {
-    const match = product.images.find((img) => img.color === color);
-    if (match) ogImage = match.url;
-  }
-  const finalOg = ogImage ?? "/og/product-fallback.jpg";
-
-  return {
-    title: product.name,
-    description: product.description?.slice(0, 140) || "Detalle del producto",
-    openGraph: {
-      images: [{ url: finalOg, width: 1200, height: 630, alt: product.name }],
-    },
-  };
-}
+export { generateMetadata };
 
 // --- PÁGINA PRINCIPAL ---
 export default async function ProductPage({
@@ -66,23 +33,7 @@ export default async function ProductPage({
 
   const { initialColor, initialImage } = getInitialProductState(p, colorParam);
 
-  // JSON-LD para Google (Schema.org)
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name: p.name,
-    description: p.description,
-    image: p.images.map((i) => i.url),
-    sku: p.id,
-    offers: {
-      "@type": "Offer",
-      price: (p.priceCents / 100).toFixed(2),
-      priceCurrency: p.currency,
-      availability: p.variants.some((v) => v.stock > 0)
-        ? "https://schema.org/InStock"
-        : "https://schema.org/OutOfStock",
-    },
-  };
+  const jsonLd = generateProductJsonLd(p);
 
   return (
     <div className="bg-background w-full justify-center">
