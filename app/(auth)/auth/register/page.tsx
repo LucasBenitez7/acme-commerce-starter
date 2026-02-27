@@ -5,15 +5,16 @@ import { auth } from "@/lib/auth";
 import { registerAction } from "./actions";
 import { RegisterForm } from "./RegisterForm";
 
+import type { Metadata } from "next";
+
 type Props = {
   searchParams: Promise<{ redirectTo?: string }>;
 };
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-
-export const metadata = {
+export const metadata: Metadata = {
   title: "Crear cuenta",
+  description:
+    "Regístrate en LSB Shop para acceder a tu historial de pedidos, guardar direcciones y más.",
   robots: { index: false, follow: false },
 };
 

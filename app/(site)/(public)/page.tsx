@@ -9,7 +9,7 @@ import { getStoreConfig } from "@/lib/settings/service";
 
 import type { Metadata } from "next";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Inicio",
@@ -25,23 +25,22 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const [config, maxDiscount] = await Promise.all([
+  const [config, maxDiscount, featuredCategories] = await Promise.all([
     getStoreConfig(),
     getMaxDiscountPercentage(),
-  ]);
-
-  const featuredCategories = await prisma.category.findMany({
-    where: { isFeatured: true },
-    take: 4,
-    orderBy: { featuredAt: "desc" },
-    include: {
-      products: {
-        take: 1,
-        orderBy: { createdAt: "desc" },
-        include: { images: { take: 1 } },
+    prisma.category.findMany({
+      where: { isFeatured: true },
+      take: 4,
+      orderBy: { featuredAt: "desc" },
+      include: {
+        products: {
+          take: 1,
+          orderBy: { createdAt: "desc" },
+          include: { images: { take: 1 } },
+        },
       },
-    },
-  });
+    }),
+  ]);
 
   return (
     <main className="flex min-h-screen flex-col">

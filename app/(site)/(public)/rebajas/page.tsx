@@ -14,6 +14,17 @@ export const metadata: Metadata = {
   description:
     "Las mejores ofertas y descuentos de LSB Shop. Ropa de calidad a precios rebajados — no te lo pierdas.",
   alternates: { canonical: "/rebajas" },
+  openGraph: {
+    title: "Rebajas · LSB Shop",
+    description:
+      "Las mejores ofertas y descuentos. Ropa de calidad a precios rebajados.",
+    url: "/rebajas",
+  },
+  twitter: {
+    card: "summary",
+    title: "Rebajas · LSB Shop",
+    description: "Las mejores ofertas y descuentos de LSB Shop.",
+  },
 };
 
 export default async function RebajasPage({

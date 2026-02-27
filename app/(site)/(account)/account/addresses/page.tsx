@@ -7,10 +7,13 @@ import { Button } from "@/components/ui/button";
 import { getUserAddresses } from "@/lib/account/queries";
 import { auth } from "@/lib/auth";
 
+import type { Metadata } from "next";
+
 export const dynamic = "force-dynamic";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Mis direcciones",
+  description: "Gestiona tus direcciones de envío guardadas en LSB Shop.",
   robots: { index: false, follow: false },
 };
 

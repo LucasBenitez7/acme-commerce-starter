@@ -11,11 +11,11 @@ import { auth } from "@/lib/auth";
 import { ORDER_TABS } from "@/lib/orders/constants";
 import { cn } from "@/lib/utils";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+import type { Metadata } from "next";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Mis pedidos",
+  description: "Consulta y gestiona todos tus pedidos realizados en LSB Shop.",
   robots: { index: false, follow: false },
 };
 

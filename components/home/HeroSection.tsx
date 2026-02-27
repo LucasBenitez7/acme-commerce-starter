@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
@@ -11,12 +11,32 @@ import { homeConfig } from "@/lib/home-config";
 
 import type { StoreConfig } from "@prisma/client";
 
+const MOBILE_BREAKPOINT = 768;
+
 interface Props {
   config: StoreConfig | null;
 }
 
 export default function HeroSection({ config }: Props) {
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+    setIsMobileViewport(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobileViewport(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  useEffect(() => {
+    setImageLoaded(false);
+  }, [config?.heroImage, config?.heroMobileImage]);
+
+  useEffect(() => {
+    const fallback = setTimeout(() => setImageLoaded(true), 2000);
+    return () => clearTimeout(fallback);
+  }, []);
 
   const hero = {
     desktopSrc: config?.heroImage || homeConfig.hero.src,
@@ -24,12 +44,9 @@ export default function HeroSection({ config }: Props) {
       config?.heroMobileImage || config?.heroImage || homeConfig.hero.src,
     title: config?.heroTitle || "",
     subtitle: config?.heroSubtitle || "",
-    ctaText: "VER NOVEDADES",
     ctaLink: config?.heroLink || "/novedades",
     overlayOpacity: homeConfig.hero.overlayOpacity,
   };
-
-  const handleImageLoad = () => setIsLoaded(true);
 
   return (
     <section className="relative h-[95vh] w-full overflow-hidden mb-[-1px]">
@@ -44,8 +61,8 @@ export default function HeroSection({ config }: Props) {
             priority
             quality={90}
             className="object-cover"
-            sizes="(max-width: 767px) 100vw, 1px"
-            onLoad={handleImageLoad}
+            sizes="100vw"
+            onLoad={() => isMobileViewport && setImageLoaded(true)}
           />
         </div>
 
@@ -58,22 +75,22 @@ export default function HeroSection({ config }: Props) {
             priority
             quality={90}
             className="object-cover"
-            sizes="(min-width: 1200px) 1920px, (min-width: 768px) 100vw, 1px"
-            onLoad={handleImageLoad}
+            sizes="(min-width: 1920px) 2560px, (min-width: 1200px) 1920px, 100vw"
+            onLoad={() => !isMobileViewport && setImageLoaded(true)}
           />
         </div>
 
-        {/* OVERLAY */}
+        {/* OVERLAY — opacidad solo sobre el color, no el elemento entero */}
         <div
-          className="absolute inset-0 bg-black/20"
-          style={{ opacity: isLoaded ? hero.overlayOpacity : 0 }}
+          className="absolute inset-0"
+          style={{ opacity: imageLoaded ? hero.overlayOpacity : 0 }}
         />
       </div>
 
       {/* CONTENT */}
       <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center text-white sm:px-6 lg:px-8">
         <AnimatePresence>
-          {isLoaded && (
+          {imageLoaded && (
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}

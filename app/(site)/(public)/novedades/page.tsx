@@ -14,6 +14,17 @@ export const metadata: Metadata = {
   description:
     "Descubre las últimas incorporaciones a nuestra colección. Nuevas prendas cada semana en LSB Shop.",
   alternates: { canonical: "/novedades" },
+  openGraph: {
+    title: "Novedades · LSB Shop",
+    description:
+      "Descubre las últimas incorporaciones a nuestra colección. Nuevas prendas cada semana.",
+    url: "/novedades",
+  },
+  twitter: {
+    card: "summary",
+    title: "Novedades · LSB Shop",
+    description: "Descubre las últimas incorporaciones a nuestra colección.",
+  },
 };
 
 export default async function NovedadesPage({

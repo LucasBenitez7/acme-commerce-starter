@@ -59,8 +59,8 @@ export default function FeaturedGrid({ categories }: Props) {
                   <div className="absolute inset-0" />
                 </div>
 
-                <div className="absolute bottom-0 left-0 flex justify-between items-center w-full p-3 space-y-1 text-center text-black z-20">
-                  <h3 className="text-xl md:text-2xl font-bold uppercase tracking-wider">
+                <div className="absolute bottom-0 left-0 flex justify-between items-center w-full p-3 space-y-1 text-center text-white z-20">
+                  <h3 className="text-xl md:text-2xl font-bold uppercase tracking-wider text-shadow-black">
                     {cat.name}
                   </h3>
                   <span className="underline underline-offset-2 md:opacity-0 md:group-hover:opacity-100 md:group-hover:underline-offset-2 transition-all duration-300 font-medium text-left text-xs md:text-sm">
