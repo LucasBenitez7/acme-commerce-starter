@@ -3,6 +3,35 @@ import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/db";
 
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const token = searchParams.get("token");
+
+    if (!token || typeof token !== "string") {
+      return NextResponse.json({ valid: false }, { status: 400 });
+    }
+
+    const resetToken = await prisma.passwordResetToken.findUnique({
+      where: { token },
+    });
+
+    if (!resetToken) {
+      return NextResponse.json({ valid: false }, { status: 200 });
+    }
+
+    if (new Date() > resetToken.expires) {
+      await prisma.passwordResetToken.delete({ where: { token } });
+      return NextResponse.json({ valid: false }, { status: 200 });
+    }
+
+    return NextResponse.json({ valid: true }, { status: 200 });
+  } catch (error) {
+    console.error("Reset Password Token Validation Error:", error);
+    return NextResponse.json({ valid: false }, { status: 500 });
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const { token, password } = await req.json();

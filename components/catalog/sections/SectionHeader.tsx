@@ -50,7 +50,7 @@ export function SectionHeader({
     <>
       <header
         className={cn(
-          "py-3 flex-col sm:flex-row space-y-4 sm:space-y-0 flex sticky top-14 z-30 w-full items-center justify-between px-5 bg-background transition-transform duration-300",
+          "pt-5 sm:pt-3 pb-3 flex-col sm:flex-row space-y-4 sm:space-y-0 flex sticky top-14 z-30 w-full items-center justify-between px-5 bg-background transition-transform duration-300",
           isHidden && "-translate-y-full",
           className,
         )}

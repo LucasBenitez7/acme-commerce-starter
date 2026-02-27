@@ -37,6 +37,7 @@ const formSchema = z.object({
 export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [emailNotFound, setEmailNotFound] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -54,15 +55,24 @@ export default function ForgotPasswordPage() {
         body: JSON.stringify(values),
       });
 
+      const data = await res.json().catch(() => ({}));
+
       if (!res.ok) {
-        const error = await res.text();
+        const error =
+          data?.message ||
+          (typeof data === "string" ? data : "Error al enviar la solicitud");
         throw new Error(error);
+      }
+
+      if (data.success === false && data.reason === "email_not_found") {
+        setEmailNotFound(true);
+        return;
       }
 
       setSuccess(true);
       toast.success("Correo enviado correctamente");
     } catch (error: any) {
-      toast.error("Error al enviar la solicitud");
+      toast.error(error.message || "Error al enviar la solicitud");
       console.error(error);
     } finally {
       setLoading(false);
@@ -70,9 +80,9 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center mt-20">
-      <Card className="w-full max-w-md py-4">
-        {!success && (
+    <div className="flex flex-1 min-h-0 items-center justify-center w-full overflow-y-auto py-4">
+      <Card className="w-full max-w-md py-4 my-auto">
+        {!success && !emailNotFound && (
           <CardHeader className="mb-4">
             <CardTitle className="text-2xl font-bold text-center">
               Recuperar Contraseña
@@ -84,21 +94,53 @@ export default function ForgotPasswordPage() {
           </CardHeader>
         )}
         <CardContent>
-          {success ? (
+          {emailNotFound ? (
+            <div className="flex flex-col items-center gap-4 text-center animate-in fade-in-50">
+              <div className="rounded-full bg-amber-100 p-3 text-amber-600">
+                <FaEnvelope className="size-6" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-lg font-medium text-amber-700">
+                  Correo no registrado
+                </h3>
+                <p className="text-sm text-foreground">
+                  No existe ninguna cuenta asociada a{" "}
+                  <span className="font-medium text-foreground">
+                    {form.getValues("email")}
+                  </span>
+                  . Verifica que el correo sea correcto o{" "}
+                  <Link
+                    href="/auth/register"
+                    className="font-medium text-primary underline underline-offset-2"
+                  >
+                    crea una cuenta
+                  </Link>
+                  .
+                </p>
+              </div>
+              <Button
+                asChild
+                className="w-full h-10 mb-3 mt-2"
+                variant="default"
+              >
+                <Link href="/auth/login">Volver a Iniciar Sesión</Link>
+              </Button>
+            </div>
+          ) : success ? (
             <div className="flex flex-col items-center gap-4 text-center animate-in fade-in-50">
               <div className="rounded-full bg-green-100 p-3 text-green-600">
                 <FaEnvelope className="size-6" />
               </div>
               <div className="space-y-2">
                 <h3 className="text-lg font-medium">¡Correo enviado!</h3>
-                <p className="text-sm text-muted-foreground">
-                  Si existe una cuenta con el email{" "}
+                <p className="text-sm text-foreground">
+                  Hemos enviado un enlace a{" "}
                   <span className="font-medium text-foreground">
                     {form.getValues("email")}
-                  </span>
-                  , recibirás un enlace para restablecer tu contraseña.
+                  </span>{" "}
+                  para restablecer tu contraseña.
                 </p>
-                <p className="text-xs text-muted-foreground mt-2">
+                <p className="text-xs text-foreground mt-2">
                   Revisa tu bandeja de spam si no lo ves en unos minutos.
                 </p>
               </div>
@@ -146,7 +188,7 @@ export default function ForgotPasswordPage() {
             </Form>
           )}
         </CardContent>
-        {!success && (
+        {!success && !emailNotFound && (
           <CardFooter className="flex justify-center mt-4">
             <Link
               href="/auth/login"

@@ -2,7 +2,6 @@ import {
   Body,
   Container,
   Head,
-  Heading,
   Html,
   Link,
   Section,
@@ -11,6 +10,7 @@ import {
 import * as React from "react";
 
 import { EmailFooter } from "./EmailFooter";
+import { EmailHeader } from "./EmailHeader";
 
 interface ResetPasswordEmailProps {
   resetLink: string;
@@ -28,7 +28,7 @@ export const ResetPasswordEmail = ({
       </Head>
       <Body style={main}>
         <Container style={container}>
-          <Heading style={header}>LSB SHOP</Heading>
+          <EmailHeader />
 
           <Section style={cardContainer}>
             <Text style={text}>
@@ -65,15 +65,6 @@ const container = {
   margin: "0 auto",
   padding: "20px 0 20px",
   maxWidth: "560px",
-};
-
-const header = {
-  fontSize: "24px",
-  fontWeight: "bold",
-  textAlign: "center" as const,
-  margin: "0px 0px 30px",
-  padding: "0",
-  color: "#1a1a1a",
 };
 
 const text = {

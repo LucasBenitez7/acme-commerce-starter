@@ -52,7 +52,7 @@ export function SearchSheet({
       setLoading(true);
       try {
         const res = await fetch(
-          `/api/search?q=${encodeURIComponent(debouncedQuery)}&limit=8`,
+          `/api/search?q=${encodeURIComponent(debouncedQuery)}&limit=6`,
         );
         const data = await res.json();
         setResults(data.products || []);
@@ -136,29 +136,42 @@ export function SearchSheet({
               onSubmit={handleSubmit}
               className="hidden sm:block justify-self-center w-full"
             >
-              <div className="flex w-full md:w-[calc(100%-10rem)] lg:w-[calc(100%-16rem)] mx-auto border-b border-foreground items-center gap-3 px-1">
-                <HiOutlineSearch className="size-5 text-foreground pointer-events-none" />
+              <div className="flex w-full md:w-[calc(100%-10rem)] lg:w-[calc(100%-16rem)] mx-auto border-b border-foreground items-center gap-0">
+                <HiOutlineSearch className="size-5 text-foreground pointer-events-none mr-3" />
                 <input
                   ref={inputRef}
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Buscar productos"
-                  className="w-full flex-1 text-base sm:text-sm font-medium h-9 outline-none ring-none"
+                  className="w-full flex-1 text-base sm:text-sm font-medium h-11 outline-none ring-none mr-3"
                   autoFocus
                 />
 
                 {/* Clear button */}
                 {query && (
-                  <button
+                  <Button
                     type="button"
                     onClick={clearInput}
-                    className="p-1.5 px-3 hover:bg-neutral-100 rounded-xs transition-colors text-sm hover:cursor-pointer"
+                    variant="ghost"
+                    className="text-sm py-2"
                     aria-label="Borrar"
                   >
                     Borrar
-                  </button>
+                  </Button>
                 )}
+
+                <div className="flex items-center">
+                  {total > results.length && (
+                    <Button
+                      onClick={handleViewAll}
+                      className="text-sm py-2 ml-3"
+                      variant="default"
+                    >
+                      Ver todos ({total})
+                    </Button>
+                  )}
+                </div>
               </div>
             </form>
 
@@ -175,31 +188,44 @@ export function SearchSheet({
 
           <form
             onSubmit={handleSubmit}
-            className="block sm:hidden justify-self-center w-full px-4"
+            className="block sm:hidden justify-self-center w-full px-4 pr-7"
           >
-            <div className="flex w-full md:w-[calc(100%-10rem)] lg:w-[calc(100%-16rem)] mx-auto border-b border-foreground items-center gap-3 px-1">
-              <HiOutlineSearch className="size-5 text-foreground pointer-events-none" />
+            <div className="flex w-full mx-auto border-b border-foreground items-center gap-0">
+              <HiOutlineSearch className="size-5 text-foreground pointer-events-none mr-3" />
               <input
                 ref={inputRef}
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Buscar productos"
-                className="w-full flex-1 text-base sm:text-sm font-medium h-9 outline-none ring-none"
+                className="w-full flex-1 text-base sm:text-sm font-medium h-11 outline-none ring-none mr-3"
                 autoFocus
               />
 
               {/* Clear button */}
               {query && (
-                <button
+                <Button
                   type="button"
                   onClick={clearInput}
-                  className="p-1.5 hover:bg-neutral-100 rounded-xs transition-colors text-sm hover:cursor-pointer"
+                  variant="ghost"
+                  className="text-sm py-2"
                   aria-label="Borrar"
                 >
                   Borrar
-                </button>
+                </Button>
               )}
+
+              <div className="flex items-center">
+                {total > results.length && (
+                  <Button
+                    onClick={handleViewAll}
+                    className="text-sm py-2 ml-3"
+                    variant="default"
+                  >
+                    Ver todos ({total})
+                  </Button>
+                )}
+              </div>
             </div>
           </form>
 
@@ -230,18 +256,6 @@ export function SearchSheet({
                         ))}
                       </div>
                     )}
-
-                    <div className="flex items-center">
-                      {total > results.length && (
-                        <Button
-                          onClick={handleViewAll}
-                          className="text-sm"
-                          variant="default"
-                        >
-                          Ver todos ({total})
-                        </Button>
-                      )}
-                    </div>
                   </div>
                 )}
 

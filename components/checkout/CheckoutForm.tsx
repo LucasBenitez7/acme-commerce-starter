@@ -47,7 +47,7 @@ export function CheckoutForm({ savedAddresses = [], userId }: Props) {
       </form>
 
       <div
-        className={`transition-all duration-700 ease-in-out mt-6 ${
+        className={`transition-all duration-700 ease-in-out mt-4 ${
           isAddressConfirmed
             ? "opacity-100 translate-y-0"
             : "pointer-events-none"

@@ -61,7 +61,7 @@ export function Footer() {
   if (isCheckoutFlow.includes(pathname)) return null;
 
   return (
-    <footer className="border-t bg-background mt-10">
+    <footer className="bg-background mt-10">
       {/* ── Cuerpo principal ── */}
       <Container className="py-10 px-6 grid grid-cols-1 md:grid-cols-2 gap-y-10 gap-x-4 md:flex md:flex-row md:justify-between md:items-start md:gap-8">
         {/* Columna 1 – Marca */}
@@ -112,7 +112,7 @@ export function Footer() {
       </Container>
 
       {/* ── Barra inferior ── */}
-      <Container className="py-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm border-t px-4">
+      <Container className="py-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm px-4">
         <p>
           © {new Date().getFullYear()} lsbshop. Todos los derechos reservados.
         </p>

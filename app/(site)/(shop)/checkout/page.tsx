@@ -57,8 +57,8 @@ export default async function CheckoutPage() {
               <div className="flex-1">
                 <CheckoutHeader />
 
-                <div className="max-w-7xl mx-auto px-4 lg:px-6 pb-6">
-                  <div className="flex gap-2 items-center border-b border-neutral-300 my-4 mb-5 pb-1 pr-1">
+                <div className="max-w-7xl mx-auto px-4 lg:px-6">
+                  <div className="hidden lg:flex gap-2 items-center mt-5 mb-6 border-b border-neutral-300 pb-1">
                     <FaLock />
                     <h1 className="text-xl font-semibold text-left">
                       Proceso de compra segura
@@ -72,12 +72,12 @@ export default async function CheckoutPage() {
                 </div>
               </div>
 
-              <div className="hidden lg:block mt-auto">
+              <div className="hidden lg:block mt-6">
                 <CheckoutLocalFooter />
               </div>
             </div>
 
-            <div className="lg:sticky lg:top-0 lg:h-screen px-4 lg:px-0">
+            <div className="lg:sticky lg:top-0 lg:h-screen px-4 lg:px-0 mt-4 lg:mt-0">
               <CheckoutSummary />
             </div>
 

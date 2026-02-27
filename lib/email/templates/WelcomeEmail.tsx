@@ -12,6 +12,7 @@ import {
 import * as React from "react";
 
 import { EmailFooter } from "./EmailFooter";
+import { EmailHeader } from "./EmailHeader";
 
 interface WelcomeEmailProps {
   firstName?: string;
@@ -36,7 +37,7 @@ export const WelcomeEmail = ({
           ¡Hola, {firstName} {lastName}!
         </Preview>
         <Container style={container}>
-          <Heading style={header}>LSB SHOP</Heading>
+          <EmailHeader />
 
           <Section style={cardContainer}>
             <Heading style={subHeader}>

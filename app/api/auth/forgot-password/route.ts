@@ -21,7 +21,10 @@ export async function POST(req: Request) {
     });
 
     if (!existingUser) {
-      return NextResponse.json({ success: true });
+      return NextResponse.json(
+        { success: false, reason: "email_not_found" },
+        { status: 200 },
+      );
     }
 
     // 2. Generar Token

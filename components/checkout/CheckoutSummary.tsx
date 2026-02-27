@@ -29,7 +29,7 @@ export function CheckoutSummary() {
   if (items.length === 0) return null;
 
   return (
-    <Card className="h-full flex flex-col">
+    <Card className="h-full flex flex-col lg:shadow-none">
       <CardHeader className="border-b px-4 pb-2 pt-4 shrink-0">
         <CardTitle className="text-xl p-0">
           Resumen del pedido{" "}

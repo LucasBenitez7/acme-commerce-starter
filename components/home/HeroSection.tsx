@@ -42,6 +42,7 @@ export default function HeroSection({ config }: Props) {
             alt="Hero Background Mobile"
             fill
             priority
+            quality={90}
             className="object-cover"
             sizes="(max-width: 767px) 100vw, 1px"
             onLoad={handleImageLoad}
@@ -55,8 +56,9 @@ export default function HeroSection({ config }: Props) {
             alt="Hero Background Desktop"
             fill
             priority
+            quality={90}
             className="object-cover"
-            sizes="(min-width: 768px) 100vw, 1px"
+            sizes="(min-width: 1200px) 1920px, (min-width: 768px) 100vw, 1px"
             onLoad={handleImageLoad}
           />
         </div>

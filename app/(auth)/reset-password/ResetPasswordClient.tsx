@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { ImSpinner8 } from "react-icons/im";
 import { toast } from "sonner";
@@ -46,6 +46,18 @@ function ResetPasswordForm() {
 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [tokenValid, setTokenValid] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (!token) {
+      setTokenValid(false);
+      return;
+    }
+    fetch(`/api/auth/reset-password?token=${encodeURIComponent(token)}`)
+      .then((res) => res.json())
+      .then((data) => setTokenValid(data.valid === true))
+      .catch(() => setTokenValid(false));
+  }, [token]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -86,31 +98,44 @@ function ResetPasswordForm() {
     }
   }
 
-  if (!token) {
+  const centerWrapper =
+    "flex flex-1 min-h-0 items-center justify-center w-full overflow-y-auto py-4";
+
+  if (tokenValid === null) {
     return (
-      <Card className="w-full max-w-md mx-auto mt-20 py-6 space-y-6">
-        <CardHeader>
-          <CardTitle className="text-red-600 text-center">
-            Enlace inválido
-          </CardTitle>
-          <CardDescription>
-            No se ha encontrado un token de restablecimiento. Asegúrate de haber
-            copiado el enlace completo.
-          </CardDescription>
-        </CardHeader>
-        <CardFooter className="flex justify-center">
-          <Button asChild variant="default">
-            <Link href="/forgot-password">Solicitar nuevo enlace</Link>
-          </Button>
-        </CardFooter>
-      </Card>
+      <div className={centerWrapper}>
+        <ImSpinner8 className="size-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!token || tokenValid === false) {
+    return (
+      <div className={centerWrapper}>
+        <Card className="w-full max-w-md py-6 space-y-6 my-auto">
+          <CardHeader>
+            <CardTitle className="text-red-600 text-center">
+              Enlace inválido o expirado
+            </CardTitle>
+            <CardDescription>
+              Este enlace de restablecimiento no es válido o ha caducado.
+              Solicita uno nuevo para continuar.
+            </CardDescription>
+          </CardHeader>
+          <CardFooter className="flex justify-center">
+            <Button asChild variant="default">
+              <Link href="/forgot-password">Solicitar nuevo enlace</Link>
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
     );
   }
 
   if (success) {
     return (
-      <div className="flex items-center justify-center w-full mt-20">
-        <Card className="w-full max-w-md border space-y-6 p-6 bg-background rounded-xs shadow-sm">
+      <div className={centerWrapper}>
+        <Card className="w-full max-w-md border space-y-6 p-6 bg-background rounded-xs shadow-sm my-auto">
           <CardHeader className="px-0">
             <CardTitle className="text-green-600 text-center">
               ¡Contraseña Actualizada!
@@ -130,8 +155,8 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="flex items-center justify-center w-full mt-20">
-      <Card className="w-full max-w-md border space-y-6 p-6 bg-background rounded-xs shadow-sm">
+    <div className={centerWrapper}>
+      <Card className="w-full max-w-md border space-y-6 p-6 bg-background rounded-xs shadow-sm my-auto">
         <CardHeader className="px-0">
           <CardTitle className="text-2xl font-bold text-center">
             Nueva Contraseña
@@ -191,8 +216,16 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<div>Cargando...</div>}>
-      <ResetPasswordForm />
-    </Suspense>
+    <div className="flex flex-1 min-h-0 flex-col">
+      <Suspense
+        fallback={
+          <div className="flex flex-1 min-h-0 items-center justify-center">
+            <ImSpinner8 className="size-8 animate-spin text-muted-foreground" />
+          </div>
+        }
+      >
+        <ResetPasswordForm />
+      </Suspense>
+    </div>
   );
 }

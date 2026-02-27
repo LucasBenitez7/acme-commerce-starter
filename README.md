@@ -1,231 +1,241 @@
-# acme-commerce-starter
+# Acme Commerce
 
-Monorepo de e‑commerce (Next.js 15 + Tailwind v4 + Prisma + PostgreSQL) con PNPM + Turborepo, CI en GitHub Actions y despliegue en Vercel.
+<p align="center">
+  <strong>Tienda online moderna con Next.js, React, Stripe y Prisma</strong>
+</p>
 
-> **Stack principal**: Next.js (App Router), TypeScript, Tailwind CSS v4, Prisma ORM, PostgreSQL, PNPM Workspaces, Turborepo, ESLint (flat), Prettier, Husky + lint‑staged.
-
----
-
-## 🚀 Características
-
-- **Monorepo PNPM + Turborepo**: apps y paquetes escalables (`apps/web`, `packages/*`).
-- **Next.js 15 (App Router)** con React 19.
-- **Tailwind v4** + utilidades de UI.
-- **Prisma ORM** con **PostgreSQL** (Docker Compose) y migraciones versionadas.
-- **Calidad de código**: ESLint (flat), Prettier, Husky + lint‑staged (pre‑commit).
-- **CI**: flujo de checks en GitHub Actions.
-- **Vercel**: producción en `main` y previsualizaciones en `development` (ajustable).
+<p align="center">
+  E-commerce completo con catálogo, carrito, checkout, pagos con Stripe, panel de administración y gestión de pedidos.
+</p>
 
 ---
 
-## 📦 Requisitos
+## Tabla de contenidos
 
-- **Node.js 22.x**
-- **PNPM 10.x**
-- **Docker Desktop** + **Docker Compose**
-- **Git**
-
----
-
-## 📁 Estructura
-
-```
-.
-├─ apps/
-│  └─ web/
-│     ├─ app/
-│     ├─ components/
-│     ├─ lib/
-│     ├─ prisma/
-│     │  ├─ migrations/
-│     │  ├─ schema.prisma
-│     │  └─ .env          # (local, NO se comitea)
-│     ├─ public/
-│     ├─ eslint.config.mjs
-│     ├─ next.config.ts
-│     ├─ package.json
-│     └─ tsconfig.json
-├─ packages/               # (futuro @acme/*)
-├─ .github/workflows/ci.yml
-├─ docker-compose.yml
-├─ pnpm-workspace.yaml
-├─ tsconfig.base.json
-└─ package.json
-```
+- [Características](#-características)
+- [Stack tecnológico](#-stack-tecnológico)
+- [Requisitos previos](#-requisitos-previos)
+- [Instalación](#-instalación)
+- [Variables de entorno](#-variables-de-entorno)
+- [Base de datos](#-base-de-datos)
+- [Scripts disponibles](#-scripts-disponibles)
+- [Estructura del proyecto](#-estructura-del-proyecto)
+- [Despliegue](#-despliegue)
 
 ---
 
-## ⚙️ Configuración de entorno
+## Características
 
-### 1) Variables de entorno (local)
+| Área         | Funcionalidades                                                                      |
+| ------------ | ------------------------------------------------------------------------------------ |
+| **Tienda**   | Catálogo con categorías, filtros, búsqueda, carrito, checkout (invitados y usuarios) |
+| **Pagos**    | Stripe (tarjetas), webhooks para confirmación automática                             |
+| **Usuarios** | Registro, login, recuperar contraseña, verificación de email                         |
+| **Cuenta**   | Perfil, direcciones, historial de pedidos, favoritos, seguridad                      |
+| **Pedidos**  | Seguimiento, devoluciones, acceso para invitados (OTP por email)                     |
+| **Admin**    | Productos, categorías, pedidos, usuarios, configuración de tienda (hero, rebajas)    |
+| **Emails**   | Verificación, bienvenida, reset password, confirmación de pedido                     |
 
-**Fuente de verdad local**: `apps/web/.env.local`
-**Plantilla**: `apps/web/.env.example`
+---
 
-Ejemplo mínimo:
+## Stack tecnológico
 
-```ini
-# apps/web/.env.local
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
-APP_ENV=development
+| Categoría         | Tecnología               |
+| ----------------- | ------------------------ |
+| **Framework**     | Next.js 15 (App Router)  |
+| **UI**            | React 19, TypeScript     |
+| **Estilos**       | Tailwind CSS 4, Radix UI |
+| **Base de datos** | PostgreSQL + Prisma      |
+| **Auth**          | NextAuth.js v5           |
+| **Pagos**         | Stripe                   |
+| **Imágenes**      | Cloudinary               |
+| **Emails**        | Resend                   |
+| **Estado**        | Zustand                  |
+| **Formularios**   | React Hook Form + Zod    |
 
-# DB (coincide con docker-compose: 5433)
-DATABASE_URL=postgresql://postgres:postgres@localhost:5433/lsbstack
+---
 
-# Opcional
-NEXT_PUBLIC_ADMIN_URL=http://localhost:3000/admin
-```
+## Requisitos previos
 
-> **Producción/CI**: variables definidas en el proveedor (Vercel/GitHub Actions). **No** se suben `.env` al repo.
+- **Node.js** 18+ (recomendado 20+)
+- **pnpm** (gestor de paquetes)
+- **PostgreSQL** (local o servicio como Neon, Supabase, etc.)
 
-### 2) Servicios de desarrollo
-
-Arranca Postgres:
+### Instalar pnpm
 
 ```bash
-# solo DB
-docker compose up -d db
-# o todo
-docker compose up -d
-```
-
-Comprueba estado:
-
-```bash
-docker compose ps
+npm install -g pnpm
 ```
 
 ---
 
-## 🗄️ Prisma + Base de datos
+## Instalación
 
-Usamos `dotenv-cli` para que Prisma cargue **.env.local**. Scripts disponibles en `apps/web/package.json`:
-
-```jsonc
-{
-  "scripts": {
-    "db:migrate": "dotenv -e .env.local -- prisma migrate dev",
-    "db:deploy": "dotenv -e .env.local -- prisma migrate deploy",
-    "db:generate": "dotenv -e .env.local -- prisma generate",
-    "db:studio": "dotenv -e .env.local -- prisma studio",
-    "db:reset": "dotenv -e .env.local -- prisma migrate reset",
-  },
-}
-```
-
-Comandos típicos:
+### 1. Clonar el repositorio
 
 ```bash
-# aplicar cambios del schema en dev
-pnpm -C apps/web run db:migrate --name <nombre>
-
-# ver tablas y datos
-pnpm -C apps/web run db:studio
-
-# regenerar cliente tras cambios de schema
-pnpm -C apps/web run db:generate
-
-# reset de DB (cuidado: borra datos)
-pnpm -C apps/web run db:reset
+git clone https://github.com/tu-usuario/acme-commerce-starter.git
+cd acme-commerce-starter
 ```
 
-> Las migraciones se versionan en `apps/web/prisma/migrations/` y **sí** se comitean.
-
----
-
-## ▶️ Ejecutar en local
-
-Desde la raíz del repo:
+### 2. Instalar dependencias
 
 ```bash
-# instalar dependencias del monorepo
 pnpm install
+```
 
-# levantar servicios (DB al menos)
-docker compose up -d db
+### 3. Configurar variables de entorno
 
-# dev solo para web
-pnpm dev --filter web
-# o todo (si hubiera más apps)
+Copia el archivo de ejemplo y edítalo con tus valores:
+
+```bash
+cp .env.example .env.local
+```
+
+Edita `.env.local` con tus credenciales (ver sección [Variables de entorno](#-variables-de-entorno)).
+
+### 4. Configurar la base de datos
+
+```bash
+# Generar cliente Prisma
+pnpm db:generate
+
+# Ejecutar migraciones
+pnpm db:migrate
+
+# (Opcional) Poblar con datos iniciales (categorías, tallas, colores, config)
+pnpm db:seed
+```
+
+### 5. Ejecutar en desarrollo
+
+```bash
 pnpm dev
 ```
 
-Abrir: [http://localhost:3000](http://localhost:3000)
+La app estará en **http://localhost:3000**.
 
 ---
 
-## 🧹 Calidad de código
+## Variables de entorno
 
-- **Lint** (root): `pnpm -w lint`
-- **Typecheck** (root): `pnpm -w typecheck`
-- **Prettier** (root): `pnpm format`
+| Variable                                       | Descripción                                                   | Requerido               |
+| ---------------------------------------------- | ------------------------------------------------------------- | ----------------------- |
+| `NEXT_PUBLIC_SITE_URL`                         | URL pública del sitio (ej: `http://localhost:3000`)           | Sí                      |
+| `DATABASE_URL`                                 | Connection string de PostgreSQL                               | Sí                      |
+| `AUTH_SECRET`                                  | Secreto para NextAuth (generar con `openssl rand -base64 32`) | Sí                      |
+| `ADMIN_EMAILS`                                 | Emails con acceso admin, separados por coma                   | Recomendado             |
+| `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET`        | Para login con GitHub                                         | Opcional                |
+| `STRIPE_SECRET_KEY`                            | Clave secreta de Stripe                                       | Sí (checkout)           |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`           | Clave pública de Stripe                                       | Sí (checkout)           |
+| `STRIPE_WEBHOOK_SECRET`                        | Secreto del webhook de Stripe                                 | Sí (confirmación pagos) |
+| `RESEND_API_KEY`                               | API key de Resend                                             | Sí (emails)             |
+| `EMAIL_FROM`                                   | Remitente de emails (ej: `Tienda <noreply@tudominio.com>`)    | Sí                      |
+| `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`            | Cloud name de Cloudinary                                      | Sí (imágenes)           |
+| `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET`         | Upload preset de Cloudinary                                   | Sí                      |
+| `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | Credenciales Cloudinary (server-side)                         | Sí                      |
+| `CRON_SECRET`                                  | Secreto para autorizar cron jobs (ej: expirar pedidos)        | Sí (Vercel Cron)        |
 
-### Husky + lint‑staged
+Consulta `.env.example` para ver todas las variables disponibles.
 
-Hook recomendado en `.husky/pre-commit`:
+---
 
-```sh
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+## Base de datos
 
-pnpm exec lint-staged
+### Comandos útiles
+
+```bash
+# Crear nueva migración
+pnpm db:migrate
+
+# Abrir Prisma Studio (interfaz visual)
+pnpm db:studio
+
+# Resetear BD y volver a ejecutar seed
+pnpm db:reset
+
+# Desplegar migraciones en producción
+pnpm db:deploy
 ```
 
-`lint-staged` está configurado en `package.json` (raíz) para ejecutar ESLint/Prettier solo sobre archivos staged.
+### Servicios recomendados
+
+- [Neon](https://neon.tech) — PostgreSQL serverless
+- [Supabase](https://supabase.com) — PostgreSQL + extras
+- [Vercel Postgres](https://vercel.com/storage/postgres)
 
 ---
 
-## 🤖 CI/CD
+## Scripts disponibles
 
-- **GitHub Actions**: workflow `ci.yml` ejecuta checks en PRs y pushes.
-- **Vercel**: producción en `main` y previsualizaciones (preview) configurables (p. ej. `development`).
-
----
-
-## Cesta (Fase 4)
-
-- **Estado mínimo**: `CartItemMini[]` con `{ slug: string; qty: number }`.
-- **Persistencia**
-  - **SSR**: hidratación desde cookie `cart.v1` (JSON `{v:1,items:[{s,q}]}`) en `(site)/layout.tsx`.
-  - **CSR**: sincronización continua en `localStorage` bajo `cart.v1`.
-  - Cookie: `SameSite=Lax; Path=/; Max-Age=2592000` (30 días) y `Secure` en producción/HTTPS.
-- **Moneda única por sitio**
-  - `NEXT_PUBLIC_DEFAULT_CURRENCY = EUR | PYG`.
-  - Minor units: `EUR=2`, `PYG=0` (ver `lib/currency.ts`).
-- **Límites**
-  - Cookies ≈4KB totales → guardamos **solo** `{slug, qty}`.
-  - Los detalles para UI (nombre, precio, imagen) van en **localStorage** (`cart.details.v1`).
+| Script             | Descripción                        |
+| ------------------ | ---------------------------------- |
+| `pnpm dev`         | Servidor de desarrollo (Turbopack) |
+| `pnpm build`       | Build de producción                |
+| `pnpm start`       | Servidor de producción             |
+| `pnpm lint`        | Ejecutar ESLint                    |
+| `pnpm typecheck`   | Verificar tipos TypeScript         |
+| `pnpm format`      | Formatear con Prettier             |
+| `pnpm db:generate` | Generar cliente Prisma             |
+| `pnpm db:migrate`  | Ejecutar migraciones               |
+| `pnpm db:seed`     | Poblar datos iniciales             |
+| `pnpm db:studio`   | Abrir Prisma Studio                |
+| `pnpm db:reset`    | Resetear BD + seed                 |
 
 ---
 
-## 🔧 Troubleshooting
+## Estructura del proyecto
 
-- **`Could not resolve @prisma/client`**: instala y genera **en el paquete que contiene el schema**:
-
-  ```bash
-  pnpm -C apps/web add @prisma/client prisma -D
-  pnpm -C apps/web exec prisma generate
-  ```
-
-- **`P1012 Environment variable not found: DATABASE_URL`**: asegúrate de tener `apps/web/.env.local` y usa scripts con `dotenv-cli` (o crea `apps/web/prisma/.env` local).
-- **VS Code: SchemaStore `ECONNRESET`**: añade `$schema` en `tsconfig.json` y `tsconfig.base.json`:
-
-  ```json
-  { "$schema": "https://json.schemastore.org/tsconfig", ... }
-  ```
-
----
-
-## 🗺️ Roadmap corto
-
-- [ ] Autenticación (login/registro) y roles (admin/usuario).
-- [ ] Rutas protegidas + panel admin.
-- [ ] Favoritos, pedidos/ordenes del usuario.
-- [ ] Seed inicial (categorías/productos demo).
-- [ ] Integración pagos / impuestos por región.
+```
+acme-commerce-starter/
+├── app/
+│   ├── (admin)/          # Panel de administración
+│   │   └── admin/        # Productos, categorías, pedidos, usuarios, settings
+│   ├── (auth)/           # Login, registro, forgot/reset password
+│   ├── (site)/           # Sitio público
+│   │   ├── (public)/     # Home, catálogo, producto, páginas estáticas
+│   │   ├── (shop)/       # Carrito, checkout, tracking
+│   │   └── (account)/    # Cuenta de usuario
+│   └── api/              # API routes (webhooks, cron, auth)
+├── components/           # Componentes React
+├── lib/                  # Utilidades, servicios, schemas
+├── hooks/                # Custom hooks
+├── prisma/
+│   ├── schema.prisma     # Modelos de datos
+│   └── seed.ts           # Datos iniciales
+└── store/                # Estado global (Zustand)
+```
 
 ---
 
-## 📜 Licencia
+## Despliegue
 
-ISC © Lucas
+### Vercel (recomendado)
+
+1. Conecta el repo en [Vercel](https://vercel.com).
+2. Configura las variables de entorno en el dashboard.
+3. El script `vercel-build` ejecuta migraciones y build automáticamente.
+
+### Webhook de Stripe
+
+En producción, configura el webhook de Stripe apuntando a:
+
+```
+https://tu-dominio.com/api/webhooks/stripe
+```
+
+Eventos necesarios: `payment_intent.succeeded`, `payment_intent.payment_failed`.
+
+### Cron (expirar pedidos)
+
+Si usas Vercel Cron, configura el endpoint `/api/cron/expire-orders` con el header:
+
+```
+Authorization: Bearer <CRON_SECRET>
+```
+
+---
+
+## Licencia
+
+MIT

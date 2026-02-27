@@ -11,6 +11,7 @@ import {
 import * as React from "react";
 
 import { EmailFooter } from "./EmailFooter";
+import { EmailHeader } from "./EmailHeader";
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://shop.lsbstack.com";
 
@@ -30,7 +31,7 @@ export const VerificationEmail = ({
       </Head>
       <Body style={main}>
         <Container style={container}>
-          <Heading style={header}>LSB SHOP</Heading>
+          <EmailHeader />
 
           <Section style={cardContainer}>
             <Heading style={subHeader}>Verifica tu correo electrónico</Heading>

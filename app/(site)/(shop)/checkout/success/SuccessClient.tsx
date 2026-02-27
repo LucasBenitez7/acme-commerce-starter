@@ -7,6 +7,8 @@ import { FaCheckCircle } from "react-icons/fa";
 import { OrderSummaryCard } from "@/components/order/OrderSummaryCard";
 import { Button } from "@/components/ui/button";
 
+import { clearGuestAddress } from "@/lib/checkout/guest-address-storage";
+
 import { useCartStore } from "@/store/cart";
 
 import type { DisplayOrder } from "@/lib/orders/utils";
@@ -18,6 +20,7 @@ export function SuccessClient({ order }: { order: DisplayOrder }) {
     clearCart();
 
     localStorage.removeItem("checkout_session");
+    clearGuestAddress();
   }, [clearCart]);
 
   return (

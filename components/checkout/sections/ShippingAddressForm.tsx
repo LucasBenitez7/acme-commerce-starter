@@ -29,7 +29,7 @@ export function ShippingAddressForm(props: Props) {
   const isDefault = watch("isDefault");
 
   return (
-    <div className="border rounded-xs p-4 bg-neutral-50/50 animate-in fade-in slide-in-from-top-2">
+    <div className="border rounded-xs p-4 animate-in fade-in slide-in-from-top-2 shadow">
       <h4 className="font-semibold text-base mb-4 border-b pb-2">
         {props.initialData?.id
           ? "Editar Dirección"

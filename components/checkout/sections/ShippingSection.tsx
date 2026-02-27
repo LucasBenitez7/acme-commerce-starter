@@ -51,6 +51,7 @@ export function ShippingSection(props: Props) {
     props.isAddressConfirmed,
     props.onConfirmAddress,
     props.onChangeAddress,
+    props.isGuest,
   );
 
   const activeMethod = SHIPPING_METHODS.find((m) => m.id === shippingType);
@@ -61,11 +62,11 @@ export function ShippingSection(props: Props) {
   const hasSavedAddresses = effectiveAddresses.length > 0;
 
   return (
-    <Card className="p-4">
-      <CardHeader className="px-0">
+    <div>
+      <CardHeader className="px-0 mt-6 lg:mt-0">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
-            <FaTruck className="text-muted-foreground" />
+            <FaTruck className="text-foreground" />
             Método de entrega
           </CardTitle>
         </div>
@@ -75,7 +76,7 @@ export function ShippingSection(props: Props) {
         {/* 2. CONTENIDO DEL MÉTODO SELECCIONADO (SIEMPRE HOME) */}
         {activeMethod && (
           <div>
-            <div className="mb-4 border rounded-xs p-4 py-6 flex items-center justify-start font-medium text-sm gap-5">
+            <div className="mb-6 border rounded-xs p-4 py-6 flex items-center justify-start font-medium text-sm gap-5 shadow-sm">
               <FaCircleCheck className="text-foreground size-5" />
               <div className="flex items-center gap-2">
                 <activeMethod.icon />
@@ -94,11 +95,11 @@ export function ShippingSection(props: Props) {
                     isGuest={props.isGuest}
                   />
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {hasSavedAddresses && (
                       <div className="flex items-center justify-between">
                         <Label className="text-base font-semibold flex items-center gap-2">
-                          <FaMapLocationDot className="text-muted-foreground" />
+                          <FaMapLocationDot className="text-foreground" />
                           {props.isAddressConfirmed
                             ? "Dirección confirmada"
                             : "Selecciona una dirección"}
@@ -120,7 +121,7 @@ export function ShippingSection(props: Props) {
 
                     {/* --- CASO 1: NO HAY DIRECCIONES GUARDADAS --- */}
                     {!hasSavedAddresses && (
-                      <div className="flex flex-col items-center justify-center py-8 px-4 text-center border rounded-xs bg-neutral-50/50">
+                      <div className="flex flex-col items-center justify-center py-8 px-4 text-center border rounded-xs shadow-sm">
                         <div className="bg-white p-3 rounded-full shadow-sm mb-3 border">
                           <FaLocationDot className="text-foreground size-5" />
                         </div>
@@ -143,7 +144,7 @@ export function ShippingSection(props: Props) {
                     {/* --- CASO 2: HAY DIRECCIONES (LISTADO) --- */}
                     {/* Si es GUEST y ya tiene dirección, NO mostramos botón de añadir nueva, solo la card para editar */}
                     {hasSavedAddresses && (
-                      <div className="grid grid-cols-1 gap-3">
+                      <div className="grid grid-cols-1 gap-3 shadow-sm">
                         {(props.isAddressConfirmed
                           ? effectiveAddresses.filter(
                               (a) => a.id === props.selectedAddressId,
@@ -156,7 +157,7 @@ export function ShippingSection(props: Props) {
                             <div
                               onClick={() => handleSelectAddress(addr.id)}
                               key={addr.id}
-                              className={`relative flex flex-col border rounded-xs transition-all duration-200  px-4 py-3 ${
+                              className={`relative flex flex-col border rounded-xs transition-all duration-200 px-4 py-3 ${
                                 props.isAddressConfirmed
                                   ? "cursor-default"
                                   : isSelected
@@ -281,6 +282,6 @@ export function ShippingSection(props: Props) {
           </div>
         )}
       </CardContent>
-    </Card>
+    </div>
   );
 }

@@ -4,19 +4,20 @@ import {
   Head,
   Heading,
   Html,
+  Img,
   Link,
   Preview,
   Text,
   Section,
   Row,
   Column,
-  Img,
 } from "@react-email/components";
 import * as React from "react";
 
 import { formatCurrency } from "@/lib/currency";
 
 import { EmailFooter } from "./EmailFooter";
+import { EmailHeader } from "./EmailHeader";
 
 import type { DisplayOrder } from "@/lib/orders/utils";
 
@@ -39,7 +40,7 @@ export const OrderSuccessEmail = ({ order }: OrderSuccessEmailProps) => {
       <Preview> </Preview>
       <Body style={main}>
         <Container style={container}>
-          <Heading style={h1}>LSB SHOP</Heading>
+          <EmailHeader />
           <Heading style={subHeader}>
             Detalles del Pedido Nº{" "}
             <span style={{ textTransform: "uppercase" }}>{order.id}</span>

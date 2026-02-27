@@ -102,7 +102,7 @@ export function ProductCard({
             <Button
               variant="ghost"
               size="icon"
-              className="absolute left-1 top-1/2 -translate-y-1/2 z-10 flex lg:hidden group-hover/image:flex bg-transparent hover:bg-transparent active:bg-transparent rounded-full size-7 p-0"
+              className="absolute left-1 top-1/2 -translate-y-1/2 z-10 flex lg:hidden group-hover/image:flex bg-transparent hover:bg-transparent active:bg-transparent rounded-full size-12 sm:size-8 p-0"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -114,7 +114,7 @@ export function ProductCard({
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-1 top-1/2 -translate-y-1/2 z-10 flex lg:hidden group-hover/image:flex bg-transparent hover:bg-transparent active:bg-transparent rounded-full size-7 p-0"
+              className="absolute right-1 top-1/2 -translate-y-1/2 z-10 flex lg:hidden group-hover/image:flex bg-transparent hover:bg-transparent active:bg-transparent rounded-full size-12 sm:size-8 p-0"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();

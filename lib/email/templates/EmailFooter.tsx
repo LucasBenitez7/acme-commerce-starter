@@ -6,19 +6,12 @@ const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://lsbshop.com";
 export function EmailFooter() {
   return (
     <Container style={footer}>
-      <Img
-        src={`${baseUrl}/images/logo.png`}
-        alt="LSB Shop"
-        width="110"
-        height="37"
-        style={logoStyle}
-      />
       <Text style={footerText}>
         © {new Date().getFullYear()} lsbshop. Todos los derechos reservados.
       </Text>
       <div style={footerLinks}>
         <Link href={`${baseUrl}/privacidad`} style={link}>
-          Política de Privacidad
+          Política de Privacidad y Cookies
         </Link>
         <Link href={`${baseUrl}/terminos`} style={link}>
           Términos y Condiciones
