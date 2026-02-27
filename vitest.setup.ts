@@ -3,13 +3,13 @@ import { vi } from "vitest";
 
 // ─── Mock Next.js navigation ───────────────────────────────────────────────
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({
+  useRouter: vi.fn(() => ({
     push: vi.fn(),
     replace: vi.fn(),
     refresh: vi.fn(),
     back: vi.fn(),
     prefetch: vi.fn(),
-  }),
+  })),
   usePathname: () => "/",
   useSearchParams: () => new URLSearchParams(),
   redirect: vi.fn(),
@@ -32,50 +32,152 @@ vi.mock("@/lib/auth/index", () => ({
   signOut: vi.fn(),
 }));
 
-// ─── Mock Prisma client ─────────────────────────────────────────────────────
+// ─── Mock Prisma client (todos los modelos del schema) ──────────────────────
 vi.mock("@/lib/db", () => ({
-  db: {
-    product: {
-      findMany: vi.fn(),
-      findUnique: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      count: vi.fn(),
-    },
-    category: {
-      findMany: vi.fn(),
-      findUnique: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-    },
-    order: {
-      findMany: vi.fn(),
-      findUnique: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      count: vi.fn(),
-    },
+  prisma: {
+    // Usuarios y auth
     user: {
       findMany: vi.fn(),
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn(),
     },
-    address: {
+    account: {
       findMany: vi.fn(),
       findUnique: vi.fn(),
       create: vi.fn(),
-      update: vi.fn(),
+      delete: vi.fn(),
+    },
+    session: {
+      findUnique: vi.fn(),
+      create: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
+    },
+    verificationToken: {
+      findFirst: vi.fn(),
+      findUnique: vi.fn(),
+      create: vi.fn(),
       delete: vi.fn(),
     },
     passwordResetToken: {
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
       create: vi.fn(),
       delete: vi.fn(),
     },
+    userAddress: {
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+      findFirst: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      updateMany: vi.fn(),
+    },
+
+    // Catálogo
+    category: {
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+      findFirst: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn(),
+    },
+    product: {
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+      findFirst: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn(),
+    },
+    productVariant: {
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+      findFirst: vi.fn(),
+      create: vi.fn(),
+      createMany: vi.fn(),
+      update: vi.fn(),
+      updateMany: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
+      count: vi.fn(),
+    },
+    productImage: {
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+      create: vi.fn(),
+      createMany: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
+    },
+    presetSize: {
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+      create: vi.fn(),
+      delete: vi.fn(),
+    },
+    presetColor: {
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+      create: vi.fn(),
+      delete: vi.fn(),
+    },
+
+    // Tienda
+    storeConfig: {
+      findFirst: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      upsert: vi.fn(),
+    },
+
+    // Pedidos
+    order: {
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+      findFirst: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn(),
+    },
+    orderItem: {
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+      create: vi.fn(),
+      createMany: vi.fn(),
+      update: vi.fn(),
+      updateMany: vi.fn(),
+      delete: vi.fn(),
+    },
+    orderHistory: {
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+      create: vi.fn(),
+    },
+
+    // Favoritos
+    favorite: {
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+      findFirst: vi.fn(),
+      create: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn(),
+    },
+
+    // Transacciones
     $transaction: vi.fn((fn: (tx: unknown) => unknown) => fn({})),
+    $queryRaw: vi.fn(),
   },
 }));
 
@@ -105,23 +207,13 @@ vi.mock("stripe", () => ({
     paymentIntents: {
       create: vi.fn(),
       retrieve: vi.fn(),
+      update: vi.fn(),
     },
-    checkout: {
-      sessions: {
-        create: vi.fn(),
-      },
+    refunds: {
+      create: vi.fn(),
+    },
+    webhooks: {
+      constructEvent: vi.fn(),
     },
   })),
 }));
-
-// ─── Suppress console.error in tests (opcional, descomenta si hay ruido) ───
-// const originalConsoleError = console.error;
-// beforeAll(() => {
-//   console.error = (...args) => {
-//     if (typeof args[0] === "string" && args[0].includes("Warning:")) return;
-//     originalConsoleError(...args);
-//   };
-// });
-// afterAll(() => {
-//   console.error = originalConsoleError;
-// });
