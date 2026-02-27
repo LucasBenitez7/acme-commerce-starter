@@ -28,6 +28,8 @@ pnpm-debug.log*
 coverage/
 playwright-report/
 test-results/
+e2e/.auth/
+.env.test
 
 # --- Database / Docker Data ---
 *.db
