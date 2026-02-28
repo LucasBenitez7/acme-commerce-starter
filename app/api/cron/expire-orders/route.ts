@@ -63,7 +63,7 @@ export async function GET(request: Request) {
             data: {
               orderId: order.id,
               type: "STATUS_CHANGE",
-              snapshotStatus: "Expirado Automatically",
+              snapshotStatus: "Expirado Automáticamente",
               actor: "system",
               reason: "Tiempo de pago agotado (1h). Stock liberado.",
             },
