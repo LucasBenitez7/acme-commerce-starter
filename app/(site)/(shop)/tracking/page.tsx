@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 export default function TrackingPage() {
   return (
-    <Container className="py-6 px-4 max-w-xl mx-auto">
+    <Container className="pt-10 pb-8 px-4 max-w-xl mx-auto">
       <div className="text-center mb-6 space-y-3">
         <h1 className="text-3xl font-semibold">Seguimiento de Pedido</h1>
         <p className="text-muted-foreground">

@@ -11,7 +11,7 @@ vi.mock("next/navigation", () => ({
     prefetch: vi.fn(),
   })),
   usePathname: () => "/",
-  useSearchParams: () => new URLSearchParams(),
+  useSearchParams: vi.fn(() => new URLSearchParams()),
   redirect: vi.fn(),
 }));
 
@@ -68,6 +68,7 @@ vi.mock("@/lib/db", () => ({
       findFirst: vi.fn(),
       create: vi.fn(),
       delete: vi.fn(),
+      deleteMany: vi.fn(),
     },
     userAddress: {
       findMany: vi.fn(),

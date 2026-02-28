@@ -30,12 +30,12 @@ export async function requestGuestAccess(orderId: string, email: string) {
     });
 
     if (!order) {
-      return { error: "No encontramos un pedido con esos datos." };
+      return { error: "No encontramos ningún pedido con esos datos." };
     }
 
     // 3. Validar Email
     if (order.email.toLowerCase() !== cleanEmail) {
-      return { error: "No encontramos un pedido con esos datos." };
+      return { error: "No encontramos ningún pedido con esos datos." };
     }
 
     // 4. Generar OTP
