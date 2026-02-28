@@ -403,8 +403,10 @@ export function getReturnStatusBadge(order: {
   );
   const isClosed = history.some(
     (h) =>
-      h.snapshotStatus === SYSTEM_MSGS.RETURN_ACCEPTED ||
-      h.snapshotStatus === SYSTEM_MSGS.RETURN_REJECTED,
+      h.snapshotStatus === "Devolución Completada" ||
+      h.snapshotStatus === "Devolución Aceptada" ||
+      h.snapshotStatus === "Solicitud Rechazada" ||
+      h.snapshotStatus === "Solicitud Rechazada (Parcial)",
   );
 
   if (hasRequest && !isClosed) {

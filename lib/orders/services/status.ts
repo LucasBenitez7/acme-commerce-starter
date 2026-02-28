@@ -126,7 +126,7 @@ export async function cancelOrder(
       data: {
         isCancelled: true,
         paymentStatus: newPaymentStatus,
-        fulfillmentStatus: "RETURNED",
+        fulfillmentStatus: order.fulfillmentStatus,
       },
     });
 

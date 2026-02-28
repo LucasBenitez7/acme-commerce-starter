@@ -356,6 +356,30 @@ describe("getReturnStatusBadge", () => {
     expect(result?.label).toBe("Solicitud Pendiente");
   });
 
+  it("no muestra Solicitud Pendiente si la devolución ya fue aceptada", () => {
+    const result = getReturnStatusBadge({
+      paymentStatus: "PAID",
+      fulfillmentStatus: "DELIVERED",
+      history: [
+        { snapshotStatus: SYSTEM_MSGS.RETURN_REQUESTED },
+        { snapshotStatus: "Devolución Aceptada" },
+      ],
+    });
+    expect(result?.label).not.toBe("Solicitud Pendiente");
+  });
+
+  it("no muestra Solicitud Pendiente si la devolución fue rechazada", () => {
+    const result = getReturnStatusBadge({
+      paymentStatus: "PAID",
+      fulfillmentStatus: "DELIVERED",
+      history: [
+        { snapshotStatus: SYSTEM_MSGS.RETURN_REQUESTED },
+        { snapshotStatus: "Solicitud Rechazada" },
+      ],
+    });
+    expect(result?.label).not.toBe("Solicitud Pendiente");
+  });
+
   it("devuelve null para pedido normal", () => {
     expect(
       getReturnStatusBadge({
