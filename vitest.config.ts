@@ -11,6 +11,10 @@ export default defineConfig({
     setupFiles: ["./vitest.setup.ts"],
     include: ["**/__tests__/**/*.{ts,tsx}", "**/*.{test,spec}.{ts,tsx}"],
     exclude: ["node_modules", ".next", "e2e"],
+
+    pool: "forks",
+    maxWorkers: 1,
+
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
