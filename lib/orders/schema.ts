@@ -49,7 +49,9 @@ const shippingSchema = z.discriminatedUnion("shippingType", [
     city: baseAddressSchema.shape.city,
     province: baseAddressSchema.shape.province,
     country: baseAddressSchema.shape.country,
-    details: baseAddressSchema.shape.details,
+    details: baseAddressSchema.shape.details
+      .nullish()
+      .transform((v) => v ?? null),
 
     isDefault: z.boolean().optional(),
 
