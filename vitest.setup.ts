@@ -98,6 +98,10 @@ vi.mock("@/lib/db", () => ({
       update: vi.fn(),
       delete: vi.fn(),
       count: vi.fn(),
+      fields: {
+        priceCents: { name: "priceCents" },
+        compareAtPrice: { name: "compareAtPrice" },
+      },
     },
     productVariant: {
       findMany: vi.fn(),
@@ -129,7 +133,9 @@ vi.mock("@/lib/db", () => ({
     presetColor: {
       findMany: vi.fn(),
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
       create: vi.fn(),
+      update: vi.fn(),
       delete: vi.fn(),
     },
 
@@ -159,6 +165,7 @@ vi.mock("@/lib/db", () => ({
       update: vi.fn(),
       updateMany: vi.fn(),
       delete: vi.fn(),
+      count: vi.fn(),
     },
     orderHistory: {
       findMany: vi.fn(),
