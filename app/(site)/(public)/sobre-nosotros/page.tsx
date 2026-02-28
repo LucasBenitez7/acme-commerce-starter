@@ -33,7 +33,7 @@ const VALUES = [
 
 export default function SobreNosotrosPage() {
   return (
-    <main className="space-y-14 py-12	">
+    <main className="space-y-14 py-10">
       {/* ── HERO ── */}
       <section>
         <Container className="px-4 max-w-3xl mx-auto text-center space-y-4">
