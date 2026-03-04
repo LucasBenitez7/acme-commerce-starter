@@ -196,6 +196,9 @@ jobs:
           pnpm prisma migrate deploy
           pnpm db:e2e:seed
 
+      - name: Expose env for build
+        run: cp .env.e2e .env.local
+
       - name: Build Next.js
         run: pnpm build
 
