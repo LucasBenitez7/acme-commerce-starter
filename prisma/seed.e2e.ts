@@ -64,7 +64,7 @@ async function main() {
     },
   });
 
-  const admin = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: adminEmail },
     update: {
       passwordHash: adminPasswordHash,
@@ -108,7 +108,7 @@ async function main() {
   // Producto 1 — Camiseta (para añadir al carrito y hacer checkout)
   const camiseta = await prisma.product.upsert({
     where: { slug: "camiseta-test-e2e" },
-    update: {},
+    update: { isArchived: false },
     create: {
       slug: "camiseta-test-e2e",
       name: "Camiseta Test E2E",
@@ -159,10 +159,10 @@ async function main() {
     },
   });
 
-  // Producto 2 — Pantalón (para tener catálogo)
+  // Producto 2 — Pantalón (para tests de admin: archivar/desarchivar)
   await prisma.product.upsert({
     where: { slug: "pantalon-test-e2e" },
-    update: {},
+    update: { isArchived: false },
     create: {
       slug: "pantalon-test-e2e",
       name: "Pantalón Test E2E",
@@ -204,10 +204,10 @@ async function main() {
     },
   });
 
-  // Producto 3 — Para test de devolución (necesita estar con pedido DELIVERED)
+  // Producto 3 — Zapatillas (para test de devolución)
   await prisma.product.upsert({
     where: { slug: "zapatillas-test-e2e" },
-    update: {},
+    update: { isArchived: false },
     create: {
       slug: "zapatillas-test-e2e",
       name: "Zapatillas Test E2E",
@@ -242,7 +242,6 @@ async function main() {
   });
 
   // ── 5. PEDIDO PRE-CREADO PARA TEST DE DEVOLUCIÓN ───────────────────────────
-  // El test de "solicitar devolución" necesita un pedido ya PAID + DELIVERED
   console.log("📦 Creando pedido de prueba para devolución...");
 
   const zapatillas = await prisma.product.findUnique({
