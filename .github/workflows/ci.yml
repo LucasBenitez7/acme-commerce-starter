@@ -65,23 +65,23 @@ jobs:
           --health-retries 20
 
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5434/acme_test
-      AUTH_SECRET: test-secret-ci
-      AUTH_GITHUB_ID: mock
-      AUTH_GITHUB_SECRET: mock
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5434/acme_e2e
+      AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+      NEXTAUTH_URL: http://localhost:3000
       NEXT_PUBLIC_SITE_URL: http://localhost:3000
-      APP_ENV: test
       NEXT_PUBLIC_DEFAULT_CURRENCY: EUR
+      APP_ENV: test
       CRON_SECRET: test-cron-secret
-      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_mock
-      STRIPE_SECRET_KEY: sk_test_mock
-      STRIPE_WEBHOOK_SECRET: whsec_mock
-      NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: mock
-      NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: mock
-      NEXT_PUBLIC_CLOUDINARY_API_KEY: mock
-      CLOUDINARY_API_KEY: mock
-      CLOUDINARY_API_SECRET: mock
-      RESEND_API_KEY: re_mock
+      ADMIN_EMAILS: ${{ secrets.ADMIN_EMAILS }}
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+      STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+      NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${{ secrets.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME }}
+      NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: ${{ secrets.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET }}
+      NEXT_PUBLIC_CLOUDINARY_API_KEY: ${{ secrets.NEXT_PUBLIC_CLOUDINARY_API_KEY }}
+      CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+      CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       EMAIL_FROM: test@test.com
 
     steps:
