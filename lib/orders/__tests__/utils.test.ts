@@ -47,6 +47,7 @@ vi.mock("react-icons/fa6", () => ({
 }));
 
 // ─── Importamos las constantes REALES para que los valores string sean exactos
+import { findStoreLocation, findPickupLocation } from "@/lib/locations";
 import { SYSTEM_MSGS, SPECIAL_STATUS_CONFIG } from "@/lib/orders/constants";
 import {
   formatHistoryReason,
@@ -57,6 +58,10 @@ import {
   getReturnStatusBadge,
   getOrderCancellationDetails,
   getOrderCancellationDetailsUser,
+  getOrderTotals,
+  getOrderShippingDetails,
+  formatOrderForDisplay,
+  getEventVisuals,
 } from "@/lib/orders/utils";
 
 // ─── formatHistoryReason ──────────────────────────────────────────────────────
@@ -468,5 +473,476 @@ describe("getOrderCancellationDetailsUser", () => {
       ],
     });
     expect(result?.bannerTitle).toBe("Pedido cancelado por el administrador");
+  });
+});
+
+// ─── getOrderTotals ───────────────────────────────────────────────────────────
+describe("getOrderTotals", () => {
+  const makeOrder = (overrides: Record<string, any> = {}) => ({
+    id: "order_1",
+    userId: "user_1",
+    email: "test@test.com",
+    createdAt: new Date(),
+    paymentStatus: "PAID",
+    fulfillmentStatus: "DELIVERED",
+    isCancelled: false,
+    currency: "EUR",
+    paymentMethod: "card",
+    itemsTotalMinor: 2000,
+    shippingCostMinor: 500,
+    taxMinor: 0,
+    totalMinor: 2500,
+    street: null,
+    addressExtra: null,
+    postalCode: null,
+    city: null,
+    province: null,
+    country: null,
+    phone: null,
+    firstName: null,
+    lastName: null,
+    shippingType: "HOME",
+    storeLocationId: null,
+    pickupLocationId: null,
+    pickupSearch: null,
+    returnReason: null,
+    history: [],
+    items: [
+      {
+        id: "item_1",
+        priceMinorSnapshot: 1000,
+        quantity: 2,
+        quantityReturned: 0,
+        quantityReturnRequested: 0,
+        nameSnapshot: "Camiseta",
+        sizeSnapshot: "M",
+        colorSnapshot: "Rojo",
+        product: {
+          slug: "camiseta",
+          compareAtPrice: null,
+          images: [],
+        },
+      },
+    ],
+    ...overrides,
+  });
+
+  it("calcula originalSubtotal y totalDiscount correctamente sin compareAtPrice", () => {
+    const order = makeOrder();
+    const result = getOrderTotals(order as any);
+
+    expect(result.originalSubtotal).toBe(2000); // 1000 * 2
+    expect(result.totalDiscount).toBe(0); // 2000 - 2000
+  });
+
+  it("calcula totalDiscount cuando compareAtPrice es mayor", () => {
+    const order = makeOrder({
+      itemsTotalMinor: 2000,
+      items: [
+        {
+          id: "item_1",
+          priceMinorSnapshot: 1000,
+          quantity: 2,
+          quantityReturned: 0,
+          product: { slug: "camiseta", compareAtPrice: 1500, images: [] },
+        },
+      ],
+    });
+    const result = getOrderTotals(order as any);
+
+    expect(result.originalSubtotal).toBe(3000); // 1500 * 2
+    expect(result.totalDiscount).toBe(1000); // 3000 - 2000
+  });
+
+  it("calcula refundedAmountMinor sumando items devueltos", () => {
+    const order = makeOrder({
+      items: [
+        {
+          id: "item_1",
+          priceMinorSnapshot: 1000,
+          quantity: 2,
+          quantityReturned: 1,
+          product: { slug: "camiseta", compareAtPrice: null, images: [] },
+        },
+      ],
+    });
+    const result = getOrderTotals(order as any);
+
+    expect(result.refundedAmountMinor).toBe(1000); // 1000 * 1
+  });
+
+  it("usa totalMinor como refundedAmount si status es REFUNDED y quantityReturned es 0", () => {
+    const order = makeOrder({ paymentStatus: "REFUNDED", totalMinor: 2500 });
+    const result = getOrderTotals(order as any);
+
+    expect(result.refundedAmountMinor).toBe(2500);
+  });
+
+  it("calcula netTotalMinor restando el reembolso", () => {
+    const order = makeOrder({
+      totalMinor: 2500,
+      items: [
+        {
+          id: "item_1",
+          priceMinorSnapshot: 1000,
+          quantity: 2,
+          quantityReturned: 1,
+          product: { slug: "camiseta", compareAtPrice: null, images: [] },
+        },
+      ],
+    });
+    const result = getOrderTotals(order as any);
+
+    expect(result.netTotalMinor).toBe(1500); // 2500 - 1000
+  });
+});
+
+// ─── getOrderShippingDetails ──────────────────────────────────────────────────
+describe("getOrderShippingDetails", () => {
+  it("HOME: construye líneas de dirección completas", () => {
+    const order = {
+      shippingType: "HOME",
+      street: "Calle Mayor 1",
+      addressExtra: "2ºA",
+      postalCode: "28001",
+      city: "Madrid",
+      province: "Madrid",
+      country: "España",
+      storeLocationId: null,
+      pickupLocationId: null,
+      pickupSearch: null,
+    };
+
+    const result = getOrderShippingDetails(order as any);
+
+    expect(result.label).toBeTruthy();
+    expect(result.addressLines[0]).toContain("Calle Mayor 1");
+    expect(result.addressLines[0]).toContain("2ºA");
+    expect(result.addressLines[1]).toContain("28001");
+    expect(result.addressLines[1]).toContain("Madrid");
+  });
+
+  it("HOME: omite addressExtra si es null", () => {
+    const order = {
+      shippingType: "HOME",
+      street: "Calle Mayor 1",
+      addressExtra: null,
+      postalCode: "28001",
+      city: "Madrid",
+      province: "Madrid",
+      country: "España",
+      storeLocationId: null,
+      pickupLocationId: null,
+      pickupSearch: null,
+    };
+
+    const result = getOrderShippingDetails(order as any);
+
+    expect(result.addressLines[0]).toBe("Calle Mayor 1");
+    expect(result.addressLines[0]).not.toContain(",");
+  });
+
+  it("STORE: muestra 'Ubicación desconocida' si findStoreLocation devuelve undefined", () => {
+    vi.mocked(findStoreLocation).mockReturnValue(undefined);
+
+    const order = {
+      shippingType: "STORE",
+      storeLocationId: "store_unknown",
+      street: null,
+      addressExtra: null,
+      postalCode: null,
+      city: null,
+      province: null,
+      country: null,
+      pickupLocationId: null,
+      pickupSearch: null,
+    };
+
+    const result = getOrderShippingDetails(order as any);
+    expect(result.addressLines.join(" ")).toContain("store_unknown");
+  });
+
+  it("STORE: muestra nombre y dirección de la tienda si findStoreLocation la encuentra", () => {
+    vi.mocked(findStoreLocation).mockReturnValue({
+      name: "Tienda Centro",
+      addressLine1: "Gran Vía 10",
+    } as any);
+
+    const order = {
+      shippingType: "STORE",
+      storeLocationId: "store_1",
+      street: null,
+      addressExtra: null,
+      postalCode: null,
+      city: null,
+      province: null,
+      country: null,
+      pickupLocationId: null,
+      pickupSearch: null,
+    };
+
+    const result = getOrderShippingDetails(order as any);
+    expect(result.addressLines).toContain("Tienda Centro");
+    expect(result.addressLines).toContain("Gran Vía 10");
+  });
+
+  it("PICKUP: muestra nombre del punto si findPickupLocation lo encuentra", () => {
+    vi.mocked(findPickupLocation).mockReturnValue({
+      name: "Punto Correos A",
+    } as any);
+
+    const order = {
+      shippingType: "PICKUP",
+      pickupLocationId: "pickup_1",
+      pickupSearch: null,
+      street: null,
+      addressExtra: null,
+      postalCode: null,
+      city: null,
+      province: null,
+      country: null,
+      storeLocationId: null,
+    };
+
+    const result = getOrderShippingDetails(order as any);
+    expect(result.addressLines).toContain("Punto Correos A");
+  });
+
+  it("PICKUP: muestra pickupSearch si no encuentra la ubicación", () => {
+    vi.mocked(findPickupLocation).mockReturnValue(undefined);
+
+    const order = {
+      shippingType: "PICKUP",
+      pickupLocationId: null,
+      pickupSearch: "Correos Madrid Centro",
+      street: null,
+      addressExtra: null,
+      postalCode: null,
+      city: null,
+      province: null,
+      country: null,
+      storeLocationId: null,
+    };
+
+    const result = getOrderShippingDetails(order as any);
+    expect(result.addressLines.join(" ")).toContain("Correos Madrid Centro");
+  });
+});
+
+// ─── formatOrderForDisplay ────────────────────────────────────────────────────
+describe("formatOrderForDisplay", () => {
+  const makeFullOrder = (overrides: Record<string, any> = {}) => ({
+    id: "order_1",
+    userId: "user_1",
+    email: "cliente@test.com",
+    createdAt: new Date("2024-06-01"),
+    paymentStatus: "PAID",
+    fulfillmentStatus: "DELIVERED",
+    isCancelled: false,
+    currency: "EUR",
+    paymentMethod: "card",
+    itemsTotalMinor: 1999,
+    shippingCostMinor: 399,
+    taxMinor: 0,
+    totalMinor: 2398,
+    firstName: "Juan",
+    lastName: "García",
+    phone: "600000000",
+    street: "Calle Test 1",
+    addressExtra: null,
+    postalCode: "28001",
+    city: "Madrid",
+    province: "Madrid",
+    country: "España",
+    shippingType: "HOME",
+    storeLocationId: null,
+    pickupLocationId: null,
+    pickupSearch: null,
+    returnReason: null,
+    history: [],
+    items: [
+      {
+        id: "item_1",
+        nameSnapshot: "Camiseta Roja",
+        sizeSnapshot: "M",
+        colorSnapshot: "Rojo",
+        quantity: 1,
+        priceMinorSnapshot: 1999,
+        quantityReturned: 0,
+        quantityReturnRequested: 0,
+        product: {
+          slug: "camiseta-roja",
+          compareAtPrice: null,
+          images: [{ url: "img.jpg", color: "Rojo" }],
+        },
+      },
+    ],
+    ...overrides,
+  });
+
+  it("mapea los campos básicos del pedido correctamente", () => {
+    const result = formatOrderForDisplay(makeFullOrder() as any);
+
+    expect(result.id).toBe("order_1");
+    expect(result.email).toBe("cliente@test.com");
+    expect(result.paymentStatus).toBe("PAID");
+    expect(result.isCancelled).toBe(false);
+  });
+
+  it("construye totals con subtotal, shipping, tax y total", () => {
+    const result = formatOrderForDisplay(makeFullOrder() as any);
+
+    expect(result.totals.subtotal).toBe(1999);
+    expect(result.totals.shipping).toBe(399);
+    expect(result.totals.total).toBe(2398);
+    expect(result.totals.tax).toBe(0);
+  });
+
+  it("totalDiscount es 0 cuando no hay compareAtPrice", () => {
+    const result = formatOrderForDisplay(makeFullOrder() as any);
+    expect(result.totals.totalDiscount).toBe(0);
+  });
+
+  it("totalDiscount refleja el descuento cuando compareAtPrice es mayor", () => {
+    const order = makeFullOrder({
+      itemsTotalMinor: 1999,
+      items: [
+        {
+          id: "item_1",
+          nameSnapshot: "Camiseta",
+          sizeSnapshot: "M",
+          colorSnapshot: "Rojo",
+          quantity: 1,
+          priceMinorSnapshot: 1999,
+          quantityReturned: 0,
+          product: {
+            slug: "camiseta-roja",
+            compareAtPrice: 2999,
+            images: [],
+          },
+        },
+      ],
+    });
+    const result = formatOrderForDisplay(order as any);
+
+    expect(result.totals.originalSubtotal).toBe(2999);
+    expect(result.totals.totalDiscount).toBe(1000);
+  });
+
+  it("construye contact con nombre completo, teléfono y email", () => {
+    const result = formatOrderForDisplay(makeFullOrder() as any);
+
+    expect(result.contact.name).toBe("Juan García");
+    expect(result.contact.phone).toBe("600000000");
+    expect(result.contact.email).toBe("cliente@test.com");
+  });
+
+  it("contact.name es string vacío si firstName y lastName son null", () => {
+    const order = makeFullOrder({ firstName: null, lastName: null });
+    const result = formatOrderForDisplay(order as any);
+    expect(result.contact.name).toBe("");
+  });
+
+  it("mapea items con slug, cantidad, precio e imagen correcta por color", () => {
+    const result = formatOrderForDisplay(makeFullOrder() as any);
+
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].name).toBe("Camiseta Roja");
+    expect(result.items[0].slug).toBe("camiseta-roja");
+    expect(result.items[0].quantity).toBe(1);
+    expect(result.items[0].price).toBe(1999);
+    expect(result.items[0].image).toBe("img.jpg");
+  });
+
+  it("item.subtitle combina talla y color con ' / '", () => {
+    const result = formatOrderForDisplay(makeFullOrder() as any);
+    expect(result.items[0].subtitle).toBe("M / Rojo");
+  });
+
+  it("item.image usa primera imagen si no hay match por color", () => {
+    const order = makeFullOrder({
+      items: [
+        {
+          id: "item_1",
+          nameSnapshot: "Camiseta",
+          sizeSnapshot: "M",
+          colorSnapshot: "Verde",
+          quantity: 1,
+          priceMinorSnapshot: 1999,
+          quantityReturned: 0,
+          product: {
+            slug: "camiseta",
+            compareAtPrice: null,
+            images: [{ url: "fallback.jpg", color: "Rojo" }],
+          },
+        },
+      ],
+    });
+    const result = formatOrderForDisplay(order as any);
+    expect(result.items[0].image).toBe("fallback.jpg");
+  });
+
+  it("item.image es null si no hay imágenes", () => {
+    const order = makeFullOrder({
+      items: [
+        {
+          id: "item_1",
+          nameSnapshot: "Camiseta",
+          sizeSnapshot: "M",
+          colorSnapshot: "Rojo",
+          quantity: 1,
+          priceMinorSnapshot: 1999,
+          quantityReturned: 0,
+          product: { slug: "camiseta", compareAtPrice: null, images: [] },
+        },
+      ],
+    });
+    const result = formatOrderForDisplay(order as any);
+    expect(result.items[0].image).toBeNull();
+  });
+});
+
+// ─── getEventVisuals ──────────────────────────────────────────────────────────
+describe("getEventVisuals", () => {
+  it("actor admin/sistema usa config naranja", () => {
+    const result = getEventVisuals("admin", "STATUS", "Enviado");
+    expect(result.isAdmin).toBe(true);
+    expect(result.actorConfig.bg).toContain("orange");
+    expect(result.actorConfig.label).toBe("Soporte / Sistema");
+  });
+
+  it("actor system usa config naranja", () => {
+    const result = getEventVisuals("system", "STATUS", "Creado");
+    expect(result.isAdmin).toBe(true);
+  });
+
+  it("actor usuario usa config azul", () => {
+    const result = getEventVisuals("user", "STATUS", "Pedido realizado");
+    expect(result.isAdmin).toBe(false);
+    expect(result.actorConfig.bg).toContain("blue");
+    expect(result.actorConfig.label).toBe("Cliente");
+  });
+
+  it("tipo INCIDENT activa statusIcon de alerta", () => {
+    const result = getEventVisuals("admin", "INCIDENT", "Incidencia");
+    expect(result.isIncident).toBe(true);
+    expect(result.statusIcon).not.toBeNull();
+    expect(result.statusColor).toContain("red");
+  });
+
+  it("INCIDENT con 'Aceptada' usa icono check verde", () => {
+    const result = getEventVisuals("admin", "INCIDENT", "Devolución Aceptada");
+    expect(result.statusColor).toContain("green");
+  });
+
+  it("INCIDENT con 'Rechazada' usa icono ban rojo", () => {
+    const result = getEventVisuals("admin", "INCIDENT", "Solicitud Rechazada");
+    expect(result.statusColor).toContain("red");
+  });
+
+  it("tipo STATUS sin INCIDENT devuelve statusIcon null", () => {
+    const result = getEventVisuals("user", "STATUS", "Pedido realizado");
+    expect(result.isIncident).toBe(false);
+    expect(result.statusIcon).toBeNull();
   });
 });

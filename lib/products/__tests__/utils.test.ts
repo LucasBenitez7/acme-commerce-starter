@@ -21,6 +21,7 @@ import {
   centsToEuros,
   eurosToCents,
   filterByWordMatch,
+  getInitialProductState,
 } from "@/lib/products/utils";
 
 // ─── capitalize ───────────────────────────────────────────────────────────────
@@ -475,5 +476,134 @@ describe("filterByWordMatch", () => {
 
   it("maneja plural/singular (camiseta → camisetas)", () => {
     expect(filterByWordMatch(items, "camisetas", getFields)).toHaveLength(1);
+  });
+});
+
+// ─── getInitialProductState ───────────────────────────────────────────────────
+describe("getInitialProductState", () => {
+  const makeProduct = (variants: any[], images: any[] = []) => ({
+    images,
+    variants,
+  });
+
+  it("usa el colorParam si existe en las variantes", () => {
+    const product = makeProduct([
+      {
+        color: "Rojo",
+        size: "M",
+        stock: 5,
+        colorOrder: 0,
+        isActive: true,
+        colorHex: null,
+      },
+      {
+        color: "Azul",
+        size: "M",
+        stock: 3,
+        colorOrder: 1,
+        isActive: true,
+        colorHex: null,
+      },
+    ]);
+
+    const { initialColor } = getInitialProductState(product as any, "Azul");
+    expect(initialColor).toBe("Azul");
+  });
+
+  it("ignora colorParam si no existe en las variantes y usa el primer color con stock", () => {
+    const product = makeProduct([
+      {
+        color: "Rojo",
+        size: "M",
+        stock: 5,
+        colorOrder: 0,
+        isActive: true,
+        colorHex: null,
+      },
+    ]);
+
+    const { initialColor } = getInitialProductState(product as any, "Verde");
+    expect(initialColor).toBe("Rojo");
+  });
+
+  it("initialColor es null si no hay variantes con stock", () => {
+    const product = makeProduct([
+      {
+        color: "Rojo",
+        size: "M",
+        stock: 0,
+        colorOrder: 0,
+        isActive: true,
+        colorHex: null,
+      },
+    ]);
+
+    const { initialColor } = getInitialProductState(product as any);
+    expect(initialColor).toBeNull();
+  });
+
+  it("initialImage usa la imagen que coincide con initialColor", () => {
+    const product = makeProduct(
+      [
+        {
+          color: "Azul",
+          size: "M",
+          stock: 3,
+          colorOrder: 0,
+          isActive: true,
+          colorHex: null,
+        },
+      ],
+      [
+        { url: "rojo.jpg", color: "Rojo", alt: null, sort: 0 },
+        { url: "azul.jpg", color: "Azul", alt: null, sort: 1 },
+      ],
+    );
+
+    const { initialImage } = getInitialProductState(product as any, "Azul");
+    expect(initialImage).toBe("azul.jpg");
+  });
+
+  it("initialImage usa la primera imagen si no hay match por color", () => {
+    const product = makeProduct(
+      [
+        {
+          color: "Verde",
+          size: "M",
+          stock: 3,
+          colorOrder: 0,
+          isActive: true,
+          colorHex: null,
+        },
+      ],
+      [{ url: "primera.jpg", color: "Rojo", alt: null, sort: 0 }],
+    );
+
+    const { initialImage } = getInitialProductState(product as any, "Verde");
+    expect(initialImage).toBe("primera.jpg");
+  });
+
+  it("sin colorParam elige el primer color con stock ordenado por colorOrder", () => {
+    const product = makeProduct([
+      {
+        color: "Azul",
+        size: "M",
+        stock: 2,
+        colorOrder: 1,
+        isActive: true,
+        colorHex: null,
+      },
+      {
+        color: "Rojo",
+        size: "M",
+        stock: 5,
+        colorOrder: 0,
+        isActive: true,
+        colorHex: null,
+      },
+    ]);
+
+    const { initialColor } = getInitialProductState(product as any);
+    expect(initialColor).toBe("Rojo"); // colorOrder 0 va primero
   });
 });
