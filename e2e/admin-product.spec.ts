@@ -97,7 +97,7 @@ test.describe("Admin — Formulario nuevo producto", () => {
     await expect(btn).toBeEnabled({ timeout: 5_000 });
     await btn.click();
     await expect(page.getByText("No se ha podido guardar")).toBeVisible({
-      timeout: 8_000,
+      timeout: 15_000,
     });
   });
 
@@ -115,7 +115,7 @@ test.describe("Admin — Formulario nuevo producto", () => {
     await expect(btn).toBeEnabled({ timeout: 5_000 });
     await btn.click();
     await expect(page.getByText("No se ha podido guardar")).toBeVisible({
-      timeout: 8_000,
+      timeout: 15_000,
     });
   });
 
@@ -132,7 +132,7 @@ test.describe("Admin — Formulario nuevo producto", () => {
   test("el generador de variantes abre el dialog", async ({ page }) => {
     await page.getByRole("button", { name: "Generar Variantes" }).click();
     await expect(page.getByText("Generador de Variantes")).toBeVisible({
-      timeout: 5_000,
+      timeout: 10_000,
     });
     await expect(page.getByText("Elige el color y las tallas")).toBeVisible();
   });

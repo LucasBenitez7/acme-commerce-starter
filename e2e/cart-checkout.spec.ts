@@ -143,6 +143,8 @@ test.describe("Checkout", () => {
   test("flujo completo de checkout con tarjeta de test Stripe", async ({
     page,
   }) => {
+    test.skip(!!process.env.CI, "Requiere Stripe CLI webhook listener");
+
     await setupCartAndGoToCheckout(page);
 
     await expect(page.getByText("Dirección confirmada")).toBeVisible({
@@ -160,6 +162,8 @@ test.describe("Checkout", () => {
   });
 
   test("página de éxito muestra el resumen del pedido", async ({ page }) => {
+    test.skip(!!process.env.CI, "Requiere Stripe CLI webhook listener");
+
     await setupCartAndGoToCheckout(page);
 
     await expect(page.getByText("Dirección confirmada")).toBeVisible({
