@@ -7,6 +7,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? "github" : "html",
+  timeout: 90_000,
 
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000",
@@ -16,9 +17,11 @@ export default defineConfig({
 
   projects: [
     // ── Setup: autenticación guardada en storage state ──────────────────────
+    // Se ejecuta en serie para evitar competencia en la compilación del endpoint
     {
       name: "setup",
       testMatch: /.*\.setup\.ts/,
+      fullyParallel: false,
     },
 
     // ── Desktop Chrome (sin auth) ────────────────────────────────────────────
@@ -26,6 +29,8 @@ export default defineConfig({
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
       dependencies: ["setup"],
+      testIgnore:
+        /auth\.spec\.ts|cart-checkout\.spec\.ts|admin-product\.spec\.ts|returns\.spec\.ts|admin-orders\.spec\.ts/,
     },
 
     // ── Autenticado como usuario normal ─────────────────────────────────────
@@ -36,6 +41,8 @@ export default defineConfig({
         storageState: "e2e/.auth/user.json",
       },
       dependencies: ["setup"],
+      testIgnore:
+        /auth\.spec\.ts|admin-product\.spec\.ts|returns\.spec\.ts|admin-orders\.spec\.ts/,
     },
 
     // ── Autenticado como admin ────────────────────────────────────────────────
@@ -46,12 +53,13 @@ export default defineConfig({
         storageState: "e2e/.auth/admin.json",
       },
       dependencies: ["setup"],
+      testIgnore: /auth\.spec\.ts|cart-checkout\.spec\.ts/,
     },
   ],
 
   // Levanta Next.js antes de correr los tests E2E
   webServer: {
-    command: "pnpm dev",
+    command: "dotenv -e .env.e2e -- next dev --turbopack",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

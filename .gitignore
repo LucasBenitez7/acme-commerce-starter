@@ -29,7 +29,7 @@ coverage/
 playwright-report/
 test-results/
 e2e/.auth/
-.env.test
+.env.e2e
 
 # --- Database / Docker Data ---
 *.db
