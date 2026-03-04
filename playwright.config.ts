@@ -51,7 +51,7 @@ export default defineConfig({
 
   // Levanta Next.js antes de correr los tests E2E
   webServer: {
-    command: "pnpm dev",
+    command: "dotenv -e .env.e2e -- next dev",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
