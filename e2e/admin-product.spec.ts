@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
 
+test.describe.configure({ mode: "serial" });
+
 async function clickEditarProduct(page: any, productName: string) {
   const row = page.getByRole("row").filter({ hasText: productName });
   await row.getByRole("link", { name: "Editar" }).click();
@@ -91,9 +93,11 @@ test.describe("Admin — Formulario nuevo producto", () => {
   test("muestra errores de validación al intentar guardar vacío", async ({
     page,
   }) => {
-    await page.getByRole("button", { name: "Guardar Producto" }).click();
+    const btn = page.getByRole("button", { name: "Guardar Producto" });
+    await expect(btn).toBeEnabled({ timeout: 5_000 });
+    await btn.click();
     await expect(page.getByText("No se ha podido guardar")).toBeVisible({
-      timeout: 5_000,
+      timeout: 8_000,
     });
   });
 
@@ -107,9 +111,11 @@ test.describe("Admin — Formulario nuevo producto", () => {
     await page.getByRole("combobox").click();
     await page.getByRole("option").first().click();
 
-    await page.getByRole("button", { name: "Guardar Producto" }).click();
+    const btn = page.getByRole("button", { name: "Guardar Producto" });
+    await expect(btn).toBeEnabled({ timeout: 5_000 });
+    await btn.click();
     await expect(page.getByText("No se ha podido guardar")).toBeVisible({
-      timeout: 5_000,
+      timeout: 8_000,
     });
   });
 

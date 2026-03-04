@@ -159,10 +159,15 @@ async function main() {
     },
   });
 
+  await prisma.productVariant.updateMany({
+    where: { productId: camiseta.id },
+    data: { stock: 10 },
+  });
+
   // Producto 2 — Pantalón (para tests de admin: archivar/desarchivar)
   await prisma.product.upsert({
     where: { slug: "pantalon-test-e2e" },
-    update: { isArchived: false },
+    update: { isArchived: false, name: "Pantalón Test E2E" },
     create: {
       slug: "pantalon-test-e2e",
       name: "Pantalón Test E2E",
@@ -241,22 +246,37 @@ async function main() {
     },
   });
 
-  // ── 5. PEDIDO PRE-CREADO PARA TEST DE DEVOLUCIÓN ───────────────────────────
-  console.log("📦 Creando pedido de prueba para devolución...");
+  // ── 5. PEDIDOS PRE-CREADOS PARA TESTS E2E ──────────────────────────────────
+  // Se borran y recrean siempre para garantizar estado limpio en cada ejecución
+  console.log("📦 Limpiando y recreando pedidos de prueba E2E...");
+
+  await prisma.order.deleteMany({
+    where: {
+      stripePaymentIntentId: {
+        in: ["pi_e2e_test_return", "pi_e2e_test_fulfillment"],
+      },
+    },
+  });
 
   const zapatillas = await prisma.product.findUnique({
     where: { slug: "zapatillas-test-e2e" },
     include: { variants: true },
   });
 
-  const existingReturnOrder = await prisma.order.findFirst({
-    where: { email: userEmail, stripePaymentIntentId: "pi_e2e_test_return" },
+  const pantalon = await prisma.product.findUnique({
+    where: { slug: "pantalon-test-e2e" },
+    include: { variants: true },
   });
 
-  if (!existingReturnOrder && zapatillas) {
-    const variant = zapatillas.variants[0];
+  if (zapatillas && pantalon) {
+    const zapatillasVariant = zapatillas.variants[0];
+    const pantalonVariant = pantalon.variants[0];
+
+    // Pedido 1: PAID + DELIVERED — para returns.spec.ts
+    // ID fijo para poder navegar directo en el test sin buscar por la lista
     await prisma.order.create({
       data: {
+        id: "e2e-order-return",
         stripePaymentIntentId: "pi_e2e_test_return",
         paymentStatus: "PAID",
         fulfillmentStatus: "DELIVERED",
@@ -269,7 +289,7 @@ async function main() {
         paymentMethod: "card",
         email: userEmail,
         firstName: "Test",
-        lastName: "User",
+        lastName: "Return",
         phone: "600000000",
         shippingType: "HOME",
         street: "Calle Test 1",
@@ -282,12 +302,64 @@ async function main() {
           create: [
             {
               productId: zapatillas.id,
-              variantId: variant.id,
+              variantId: zapatillasVariant.id,
               nameSnapshot: "Zapatillas Test E2E",
               priceMinorSnapshot: 5999,
-              sizeSnapshot: variant.size,
-              colorSnapshot: variant.color,
+              sizeSnapshot: zapatillasVariant.size,
+              colorSnapshot: zapatillasVariant.color,
               subtotalMinor: 5999,
+              quantity: 1,
+            },
+          ],
+        },
+        history: {
+          create: [
+            {
+              type: "STATUS_CHANGE",
+              snapshotStatus: "Pedido realizado",
+              actor: "system",
+              reason: "order_created",
+            },
+          ],
+        },
+      },
+    });
+
+    // Pedido 2: PAID + UNFULFILLED — para admin-orders.spec.ts (ciclo logístico)
+    // El apellido "Fulfillment" permite localizarlo en la tabla admin
+    await prisma.order.create({
+      data: {
+        stripePaymentIntentId: "pi_e2e_test_fulfillment",
+        paymentStatus: "PAID",
+        fulfillmentStatus: "UNFULFILLED",
+        isCancelled: false,
+        currency: "EUR",
+        itemsTotalMinor: 3999,
+        shippingCostMinor: 0,
+        taxMinor: 0,
+        totalMinor: 3999,
+        paymentMethod: "card",
+        email: userEmail,
+        firstName: "Test",
+        lastName: "Fulfillment",
+        phone: "600000000",
+        shippingType: "HOME",
+        street: "Calle Test 1",
+        postalCode: "28001",
+        city: "Madrid",
+        province: "Madrid",
+        country: "España",
+        userId: user.id,
+        items: {
+          create: [
+            {
+              productId: pantalon.id,
+              variantId: pantalonVariant.id,
+              nameSnapshot: "Pantalón Test E2E",
+              priceMinorSnapshot: 3999,
+              sizeSnapshot: pantalonVariant.size,
+              colorSnapshot: pantalonVariant.color,
+              subtotalMinor: 3999,
               quantity: 1,
             },
           ],
@@ -310,7 +382,12 @@ async function main() {
   console.log(`   - Usuario: ${userEmail}`);
   console.log(`   - Admin:   ${adminEmail}`);
   console.log(`   - 3 productos creados`);
-  console.log(`   - 1 pedido DELIVERED listo para test de devolución`);
+  console.log(
+    `   - Pedido "pi_e2e_test_return"      → PAID + DELIVERED (returns.spec.ts)`,
+  );
+  console.log(
+    `   - Pedido "pi_e2e_test_fulfillment" → PAID + UNFULFILLED (admin-orders.spec.ts)`,
+  );
 }
 
 main()

@@ -30,7 +30,7 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
       dependencies: ["setup"],
       testIgnore:
-        /auth\.spec\.ts|cart-checkout\.spec\.ts|admin-product\.spec\.ts/,
+        /auth\.spec\.ts|cart-checkout\.spec\.ts|admin-product\.spec\.ts|returns\.spec\.ts|admin-orders\.spec\.ts/,
     },
 
     // ── Autenticado como usuario normal ─────────────────────────────────────
@@ -41,7 +41,8 @@ export default defineConfig({
         storageState: "e2e/.auth/user.json",
       },
       dependencies: ["setup"],
-      testIgnore: /auth\.spec\.ts|admin-product\.spec\.ts/,
+      testIgnore:
+        /auth\.spec\.ts|admin-product\.spec\.ts|returns\.spec\.ts|admin-orders\.spec\.ts/,
     },
 
     // ── Autenticado como admin ────────────────────────────────────────────────
