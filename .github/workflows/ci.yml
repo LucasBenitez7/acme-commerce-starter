@@ -123,6 +123,9 @@ jobs:
     needs: test
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development'
 
+  env:
+    DATABASE_URL: postgresql://postgres:postgres@localhost:5434/acme_e2e
+
     services:
       postgres:
         image: postgres:16-alpine
