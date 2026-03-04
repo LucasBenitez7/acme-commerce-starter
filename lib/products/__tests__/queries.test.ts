@@ -13,15 +13,20 @@ import {
   getRelatedProducts,
   getRecentProducts,
   getProductSlugs,
+  getPublicProducts,
+  getAdminProducts,
+  getProductForEdit,
+  getProductMetaBySlug,
 } from "@/lib/products/queries";
 
 const mockProductFindMany = vi.mocked(prisma.product.findMany);
 const mockProductFindUnique = vi.mocked(prisma.product.findUnique);
 const mockProductFindFirst = vi.mocked(prisma.product.findFirst);
+const mockProductCount = vi.mocked(prisma.product.count);
+const mockCategoryFindMany = vi.mocked(prisma.category.findMany);
 
 beforeEach(() => {
   vi.clearAllMocks();
-  // groupBy y aggregate no están en el mock global del setup
   (prisma.orderItem as any).groupBy = vi.fn();
   (prisma.orderItem as any).aggregate = vi.fn();
 });
@@ -49,6 +54,23 @@ const makePublicProduct = (overrides: Record<string, any> = {}) => ({
       isActive: true,
     },
   ],
+  ...overrides,
+});
+
+const makeAdminProduct = (overrides: Record<string, any> = {}) => ({
+  id: "prod_1",
+  slug: "camiseta-roja",
+  name: "Camiseta Roja",
+  description: "Descripción",
+  priceCents: 1999,
+  compareAtPrice: null,
+  currency: "EUR",
+  isArchived: false,
+  sortOrder: 0,
+  createdAt: new Date("2024-01-01"),
+  category: { id: "cat_1", name: "Camisetas", slug: "camisetas" },
+  images: [{ url: "img.jpg", sort: 0 }],
+  variants: [{ id: "v1", size: "M", color: "Rojo", stock: 5, isActive: true }],
   ...overrides,
 });
 
@@ -166,6 +188,71 @@ describe("getProductFullBySlug", () => {
   });
 });
 
+// ─── getProductMetaBySlug ─────────────────────────────────────────────────────
+describe("getProductMetaBySlug", () => {
+  it("devuelve name, description e images del producto", async () => {
+    mockProductFindUnique.mockResolvedValue({
+      name: "Camiseta Roja",
+      description: "Una camiseta",
+      images: [{ url: "img.jpg", color: "Rojo" }],
+    } as any);
+
+    const result = await getProductMetaBySlug("camiseta-roja");
+    expect(result?.name).toBe("Camiseta Roja");
+    expect(result?.description).toBe("Una camiseta");
+    expect(result?.images).toHaveLength(1);
+  });
+
+  it("devuelve null si el slug no existe", async () => {
+    mockProductFindUnique.mockResolvedValue(null);
+    expect(await getProductMetaBySlug("no-existe")).toBeNull();
+  });
+
+  it("llama a findUnique con el slug correcto", async () => {
+    mockProductFindUnique.mockResolvedValue(null);
+    await getProductMetaBySlug("mi-producto");
+    expect(mockProductFindUnique).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { slug: "mi-producto" } }),
+    );
+  });
+});
+
+// ─── getProductForEdit ────────────────────────────────────────────────────────
+describe("getProductForEdit", () => {
+  const mockEditProduct = {
+    id: "prod_1",
+    name: "Camiseta Roja",
+    slug: "camiseta-roja",
+    priceCents: 1999,
+    category: { id: "cat_1", name: "Camisetas", slug: "camisetas" },
+    images: [{ id: "img_1", url: "img.jpg", alt: null, sort: 0, color: null }],
+    variants: [{ id: "v1", size: "M", color: "Rojo", stock: 5 }],
+  };
+
+  it("devuelve el producto con category, images y variants incluidas", async () => {
+    mockProductFindUnique.mockResolvedValue(mockEditProduct as any);
+
+    const result = await getProductForEdit("prod_1");
+    expect(result).not.toBeNull();
+    expect(result?.category).toBeDefined();
+    expect(result?.images).toHaveLength(1);
+    expect(result?.variants).toHaveLength(1);
+  });
+
+  it("devuelve null si el producto no existe", async () => {
+    mockProductFindUnique.mockResolvedValue(null);
+    expect(await getProductForEdit("no-existe")).toBeNull();
+  });
+
+  it("llama a findUnique con el id correcto", async () => {
+    mockProductFindUnique.mockResolvedValue(mockEditProduct as any);
+    await getProductForEdit("prod_abc");
+    expect(mockProductFindUnique).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: "prod_abc" } }),
+    );
+  });
+});
+
 // ─── getMaxPrice ──────────────────────────────────────────────────────────────
 describe("getMaxPrice", () => {
   it("convierte el precio máximo de céntimos a euros", async () => {
@@ -253,7 +340,7 @@ describe("getFilterOptions", () => {
         priceCents: 1000,
         variants: [
           { size: "M", color: "Rojo", colorHex: "#ff0000" },
-          { size: "M", color: "Rojo", colorHex: "#ff0000" }, // duplicado
+          { size: "M", color: "Rojo", colorHex: "#ff0000" },
         ],
       },
     ] as any);
@@ -366,5 +453,333 @@ describe("getProductSlugs", () => {
     expect(mockProductFindMany).toHaveBeenCalledWith(
       expect.objectContaining({ take: 1000 }),
     );
+  });
+});
+
+// ─── getPublicProducts ────────────────────────────────────────────────────────
+describe("getPublicProducts", () => {
+  beforeEach(() => {
+    mockProductCount.mockResolvedValue(1);
+    mockProductFindMany.mockResolvedValue([makePublicProduct()] as any);
+  });
+
+  it("devuelve rows transformados y total con valores por defecto", async () => {
+    const result = await getPublicProducts({});
+    expect(result.rows).toHaveLength(1);
+    expect(result.total).toBe(1);
+    expect(result.rows[0].slug).toBe("camiseta-roja");
+    expect(result.rows[0].thumbnail).toBe("img.jpg");
+    expect(result.rows[0].totalStock).toBe(5);
+  });
+
+  it("aplica filtro por categorySlug", async () => {
+    mockProductFindMany.mockResolvedValue([]);
+    mockProductCount.mockResolvedValue(0);
+
+    await getPublicProducts({ categorySlug: "camisetas" });
+
+    expect(mockProductFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          category: { slug: "camisetas" },
+        }),
+      }),
+    );
+  });
+
+  it("pagina correctamente con page y limit", async () => {
+    mockProductFindMany.mockResolvedValue([]);
+    mockProductCount.mockResolvedValue(0);
+
+    await getPublicProducts({ page: 2, limit: 6 });
+
+    expect(mockProductFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({ skip: 6, take: 6 }),
+    );
+  });
+
+  it("filtra por query en memoria y pagina los resultados filtrados", async () => {
+    mockProductFindMany.mockResolvedValue([
+      makePublicProduct({ name: "Camiseta Roja" }),
+      makePublicProduct({
+        id: "prod_2",
+        slug: "pantalon-azul",
+        name: "Pantalón Azul",
+        category: { name: "Pantalones", slug: "pantalones" },
+      }),
+    ] as any);
+    mockProductCount.mockResolvedValue(2);
+
+    const result = await getPublicProducts({
+      query: "camiseta",
+      page: 1,
+      limit: 12,
+    });
+
+    expect(result.rows).toHaveLength(1);
+    expect(result.rows[0].slug).toBe("camiseta-roja");
+    expect(result.total).toBe(1);
+  });
+
+  it("filtra por rango de precio", async () => {
+    mockProductFindMany.mockResolvedValue([]);
+    mockProductCount.mockResolvedValue(0);
+
+    await getPublicProducts({ minPrice: 1000, maxPrice: 5000 });
+
+    expect(mockProductFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          priceCents: { gte: 1000, lte: 5000 },
+        }),
+      }),
+    );
+  });
+
+  it("filtra por tallas y colores via variants", async () => {
+    mockProductFindMany.mockResolvedValue([]);
+    mockProductCount.mockResolvedValue(0);
+
+    await getPublicProducts({ sizes: ["M", "L"], colors: ["Rojo"] });
+
+    expect(mockProductFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          variants: {
+            some: expect.objectContaining({
+              size: { in: ["M", "L"] },
+              color: { in: ["Rojo"] },
+            }),
+          },
+        }),
+      }),
+    );
+  });
+
+  it("aplica sort personalizado cuando se pasa", async () => {
+    mockProductFindMany.mockResolvedValue([]);
+    mockProductCount.mockResolvedValue(0);
+
+    const customSort = [{ priceCents: "asc" as const }];
+    await getPublicProducts({ sort: customSort });
+
+    expect(mockProductFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({ orderBy: customSort }),
+    );
+  });
+
+  it("usa sortOrder asc + createdAt desc como orden por defecto", async () => {
+    mockProductFindMany.mockResolvedValue([]);
+    mockProductCount.mockResolvedValue(0);
+
+    await getPublicProducts({});
+
+    expect(mockProductFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+      }),
+    );
+  });
+
+  it("devuelve array vacío si no hay resultados", async () => {
+    mockProductFindMany.mockResolvedValue([]);
+    mockProductCount.mockResolvedValue(0);
+
+    const result = await getPublicProducts({});
+    expect(result.rows).toHaveLength(0);
+    expect(result.total).toBe(0);
+  });
+});
+
+// ─── getAdminProducts ─────────────────────────────────────────────────────────
+describe("getAdminProducts", () => {
+  beforeEach(() => {
+    mockProductFindMany.mockResolvedValue([makeAdminProduct()] as any);
+    mockProductCount.mockResolvedValue(1);
+    mockCategoryFindMany.mockResolvedValue([
+      { id: "cat_1", name: "Camisetas" },
+    ] as any);
+    (prisma.orderItem as any).groupBy.mockResolvedValue([]);
+  });
+
+  it("devuelve productos, totalCount, totalPages, allCategories y grandTotalStock", async () => {
+    const result = await getAdminProducts({});
+
+    expect(result.products).toHaveLength(1);
+    expect(result.totalCount).toBe(1);
+    expect(result.totalPages).toBe(1);
+    expect(result.allCategories).toHaveLength(1);
+    expect(result.grandTotalStock).toBe(5);
+  });
+
+  it("calcula _totalStock sumando variantes del producto", async () => {
+    mockProductFindMany.mockResolvedValue([
+      makeAdminProduct({
+        variants: [
+          { id: "v1", size: "M", color: "Rojo", stock: 3, isActive: true },
+          { id: "v2", size: "L", color: "Azul", stock: 7, isActive: true },
+        ],
+      }),
+    ] as any);
+
+    const result = await getAdminProducts({});
+    expect(result.products[0]._totalStock).toBe(10);
+  });
+
+  it("calcula _totalSold desde el salesMap", async () => {
+    (prisma.orderItem as any).groupBy.mockResolvedValue([
+      { productId: "prod_1", _sum: { quantity: 42 } },
+    ]);
+
+    const result = await getAdminProducts({});
+    expect(result.products[0]._totalSold).toBe(42);
+  });
+
+  it("filtra productos archivados cuando status es 'archived'", async () => {
+    mockProductFindMany.mockResolvedValue([]);
+    mockProductCount.mockResolvedValue(0);
+
+    await getAdminProducts({ status: "archived" });
+
+    expect(mockProductFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ isArchived: true }),
+      }),
+    );
+  });
+
+  it("filtra por categorías cuando se pasan", async () => {
+    mockProductFindMany.mockResolvedValue([]);
+    mockProductCount.mockResolvedValue(0);
+
+    await getAdminProducts({ categories: ["cat_1", "cat_2"] });
+
+    expect(mockProductFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          categoryId: { in: ["cat_1", "cat_2"] },
+        }),
+      }),
+    );
+  });
+
+  it("ordena por stock_asc en memoria", async () => {
+    mockProductFindMany.mockResolvedValue([
+      makeAdminProduct({
+        id: "prod_1",
+        variants: [{ id: "v1", stock: 10, isActive: true }],
+      }),
+      makeAdminProduct({
+        id: "prod_2",
+        slug: "prod-2",
+        variants: [{ id: "v2", stock: 2, isActive: true }],
+      }),
+    ] as any);
+    mockProductCount.mockResolvedValue(2);
+
+    const result = await getAdminProducts({ sort: "stock_asc" });
+    expect(result.products[0]._totalStock).toBe(2);
+    expect(result.products[1]._totalStock).toBe(10);
+  });
+
+  it("ordena por stock_desc en memoria", async () => {
+    mockProductFindMany.mockResolvedValue([
+      makeAdminProduct({
+        id: "prod_1",
+        variants: [{ id: "v1", stock: 3, isActive: true }],
+      }),
+      makeAdminProduct({
+        id: "prod_2",
+        slug: "prod-2",
+        variants: [{ id: "v2", stock: 8, isActive: true }],
+      }),
+    ] as any);
+    mockProductCount.mockResolvedValue(2);
+
+    const result = await getAdminProducts({ sort: "stock_desc" });
+    expect(result.products[0]._totalStock).toBe(8);
+  });
+
+  it("ordena por sales_desc en memoria", async () => {
+    (prisma.orderItem as any).groupBy.mockResolvedValue([
+      { productId: "prod_1", _sum: { quantity: 5 } },
+      { productId: "prod_2", _sum: { quantity: 20 } },
+    ]);
+    mockProductFindMany.mockResolvedValue([
+      makeAdminProduct({ id: "prod_1" }),
+      makeAdminProduct({ id: "prod_2", slug: "prod-2" }),
+    ] as any);
+    mockProductCount.mockResolvedValue(2);
+
+    const result = await getAdminProducts({ sort: "sales_desc" });
+    expect(result.products[0]._totalSold).toBe(20);
+  });
+
+  it("ordena por sales_asc en memoria", async () => {
+    (prisma.orderItem as any).groupBy.mockResolvedValue([
+      { productId: "prod_1", _sum: { quantity: 15 } },
+      { productId: "prod_2", _sum: { quantity: 3 } },
+    ]);
+    mockProductFindMany.mockResolvedValue([
+      makeAdminProduct({ id: "prod_1" }),
+      makeAdminProduct({ id: "prod_2", slug: "prod-2" }),
+    ] as any);
+    mockProductCount.mockResolvedValue(2);
+
+    const result = await getAdminProducts({ sort: "sales_asc" });
+    expect(result.products[0]._totalSold).toBe(3);
+  });
+
+  it("ordena por price_asc usando Prisma orderBy", async () => {
+    mockProductFindMany.mockResolvedValue([makeAdminProduct()] as any);
+    mockProductCount.mockResolvedValue(1);
+
+    await getAdminProducts({ sort: "price_asc" });
+
+    expect(mockProductFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({ orderBy: { priceCents: "asc" } }),
+    );
+  });
+
+  it("ordena por name_asc usando Prisma orderBy", async () => {
+    mockProductFindMany.mockResolvedValue([makeAdminProduct()] as any);
+    mockProductCount.mockResolvedValue(1);
+
+    await getAdminProducts({ sort: "name_asc" });
+
+    expect(mockProductFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({ orderBy: { name: "asc" } }),
+    );
+  });
+
+  it("pagina con page y limit correctamente", async () => {
+    mockProductFindMany.mockResolvedValue([]);
+    mockProductCount.mockResolvedValue(30);
+
+    const result = await getAdminProducts({ page: 2, limit: 10 });
+
+    expect(mockProductFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({ skip: 10, take: 10 }),
+    );
+    expect(result.totalPages).toBe(3);
+  });
+
+  it("filtra por query en memoria y ajusta totalCount", async () => {
+    mockProductFindMany.mockResolvedValue([
+      makeAdminProduct({ name: "Camiseta Roja" }),
+      makeAdminProduct({
+        id: "prod_2",
+        slug: "pantalon",
+        name: "Pantalón Azul",
+        category: { id: "cat_2", name: "Pantalones", slug: "pantalones" },
+      }),
+    ] as any);
+    mockProductCount.mockResolvedValue(2);
+
+    const result = await getAdminProducts({ query: "camiseta" });
+
+    expect(result.products).toHaveLength(1);
+    expect(result.products[0].name).toBe("Camiseta Roja");
+    expect(result.totalCount).toBe(1);
   });
 });
