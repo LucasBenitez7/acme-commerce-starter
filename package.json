@@ -24,7 +24,7 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "test:run": "cross-env NODE_OPTIONS=--max-old-space-size=4096 vitest run",
-    "test:e2e": "playwright test",
+    "test:e2e": "dotenv -e .env.e2e -- playwright test",
     "test:e2e:prepare": "pnpm db:e2e:up && pnpm db:e2e:migrate && pnpm db:e2e:seed",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",

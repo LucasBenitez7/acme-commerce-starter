@@ -37,14 +37,25 @@ async function main() {
   // ── 3. USUARIOS DE PRUEBA ──────────────────────────────────────────────────
   console.log("👤 Creando usuarios de prueba...");
 
-  const passwordHash = await bcrypt.hash("Test1234!", 10);
-  const adminPasswordHash = await bcrypt.hash("Admin1234!", 10);
+  const userEmail = process.env.E2E_USER_EMAIL;
+  const userPassword = process.env.E2E_USER_PASSWORD;
+  const adminEmail = process.env.E2E_ADMIN_EMAIL;
+  const adminPassword = process.env.E2E_ADMIN_PASSWORD;
+
+  if (!userEmail || !userPassword || !adminEmail || !adminPassword) {
+    throw new Error(
+      "❌ Faltan variables de entorno: E2E_USER_EMAIL, E2E_USER_PASSWORD, E2E_ADMIN_EMAIL, E2E_ADMIN_PASSWORD",
+    );
+  }
+
+  const passwordHash = await bcrypt.hash(userPassword, 10);
+  const adminPasswordHash = await bcrypt.hash(adminPassword, 10);
 
   const user = await prisma.user.upsert({
-    where: { email: "user@test.com" },
+    where: { email: userEmail },
     update: { passwordHash, emailVerified: new Date() },
     create: {
-      email: "user@test.com",
+      email: userEmail,
       name: "Test User",
       firstName: "Test",
       lastName: "User",
@@ -54,15 +65,20 @@ async function main() {
   });
 
   const admin = await prisma.user.upsert({
-    where: { email: "admin@test.com" },
-    update: { passwordHash: adminPasswordHash, emailVerified: new Date() },
+    where: { email: adminEmail },
+    update: {
+      passwordHash: adminPasswordHash,
+      emailVerified: new Date(),
+      role: "admin",
+    },
     create: {
-      email: "admin@test.com",
+      email: adminEmail,
       name: "Admin User",
       firstName: "Admin",
       lastName: "User",
       passwordHash: adminPasswordHash,
       emailVerified: new Date(),
+      role: "admin",
     },
   });
 
@@ -235,10 +251,7 @@ async function main() {
   });
 
   const existingReturnOrder = await prisma.order.findFirst({
-    where: {
-      email: "user@test.com",
-      stripePaymentIntentId: "pi_e2e_test_return",
-    },
+    where: { email: userEmail, stripePaymentIntentId: "pi_e2e_test_return" },
   });
 
   if (!existingReturnOrder && zapatillas) {
@@ -255,7 +268,7 @@ async function main() {
         taxMinor: 0,
         totalMinor: 5999,
         paymentMethod: "card",
-        email: "user@test.com",
+        email: userEmail,
         firstName: "Test",
         lastName: "User",
         phone: "600000000",
@@ -295,8 +308,8 @@ async function main() {
   }
 
   console.log(`✅ SEED E2E COMPLETO:`);
-  console.log(`   - Usuario: user@test.com / Test1234!`);
-  console.log(`   - Admin:   admin@test.com / Admin1234!`);
+  console.log(`   - Usuario: ${userEmail}`);
+  console.log(`   - Admin:   ${adminEmail}`);
   console.log(`   - 3 productos creados`);
   console.log(`   - 1 pedido DELIVERED listo para test de devolución`);
 }
