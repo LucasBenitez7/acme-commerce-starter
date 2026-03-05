@@ -93,11 +93,14 @@ test.describe("Admin — Formulario nuevo producto", () => {
   test("muestra errores de validación al intentar guardar vacío", async ({
     page,
   }) => {
+    // RHF valida en cliente y muestra errores inline — el toast solo aparece
+    // si el server action falla, no cuando RHF bloquea el submit
     const btn = page.getByRole("button", { name: "Guardar Producto" });
     await expect(btn).toBeEnabled({ timeout: 5_000 });
     await btn.click();
-    await expect(page.getByText("No se ha podido guardar")).toBeVisible({
-      timeout: 15_000,
+    // Verificamos errores inline de RHF en lugar del toast
+    await expect(page.locator(".text-red-500").first()).toBeVisible({
+      timeout: 8_000,
     });
   });
 
@@ -130,6 +133,8 @@ test.describe("Admin — Formulario nuevo producto", () => {
   });
 
   test("el generador de variantes abre el dialog", async ({ page }) => {
+    // Esperar a que React haya hidratado los event handlers antes de clicar
+    await page.waitForLoadState("networkidle");
     await page.getByRole("button", { name: "Generar Variantes" }).click();
     await expect(page.getByText("Generador de Variantes")).toBeVisible({
       timeout: 10_000,
@@ -151,7 +156,6 @@ test.describe("Admin — Editar producto", () => {
 
     await page.getByRole("button", { name: "Guardar Producto" }).click();
 
-    // La action hace redirect a /admin/products en caso de éxito
     await page.waitForURL("/admin/products", { timeout: 10_000 });
     await expect(
       page.getByRole("row").filter({ hasText: "Pantalón Test E2E Editado" }),
@@ -170,26 +174,21 @@ test.describe("Admin — Editar producto", () => {
 // ─── ARCHIVAR / DESARCHIVAR ───────────────────────────────────────────────────
 test.describe("Admin — Archivar producto", () => {
   test("puede archivar y desarchivar producto de test", async ({ page }) => {
-    // Ir al producto
     await page.goto("/admin/products");
     await clickEditarProduct(page, "Pantalón Test E2E");
     await page.waitForURL(/\/admin\/products\/.+/);
 
-    // Click "Archivar" → abre AlertDialog
     await page.getByRole("button", { name: "Archivar" }).click();
 
-    // Confirmar en el dialog
     await expect(
       page.getByRole("alertdialog", { name: /archivar/i }),
     ).toBeVisible({ timeout: 3_000 });
     await page.getByRole("button", { name: "Sí, archivar" }).click();
 
-    // Esperar toast de confirmación — indica que la server action completó
     await expect(page.getByText(/archivado correctamente/i)).toBeVisible({
       timeout: 10_000,
     });
 
-    // El botón debe haber cambiado a "Desarchivar"
     const desarchivarBtn = page
       .getByText("Reactivar Producto")
       .locator("../..")
@@ -208,7 +207,6 @@ test.describe("Admin — Archivar producto", () => {
       timeout: 10_000,
     });
 
-    // El botón vuelve a ser "Archivar"
     await expect(page.getByRole("button", { name: "Archivar" })).toBeVisible();
   });
 });
