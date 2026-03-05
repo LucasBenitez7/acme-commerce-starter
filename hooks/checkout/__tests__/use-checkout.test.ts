@@ -199,21 +199,24 @@ describe("useCheckout", () => {
   });
 
   it("onConfirmAddress reutiliza el orderId de stripeData si ya existe", async () => {
-    mockCreateOrderAction
-      .mockResolvedValueOnce(successStripeResponse)
-      .mockResolvedValueOnce(successStripeResponse);
+    mockCreateOrderAction.mockResolvedValue(successStripeResponse);
 
     const { result } = renderHook(() => useCheckout([]));
 
     await act(async () => {
       await result.current.onConfirmAddress();
     });
+
+    await act(async () => {
+      result.current.onChangeAddress();
+    });
+
     await act(async () => {
       await result.current.onConfirmAddress();
     });
 
-    const secondCall = mockCreateOrderAction.mock.calls[1];
-    const secondFormData: FormData = secondCall[1];
+    expect(mockCreateOrderAction).toHaveBeenCalledTimes(2);
+    const secondFormData: FormData = mockCreateOrderAction.mock.calls[1][1];
     expect(secondFormData.get("existingOrderId")).toBe("order-123");
   });
 

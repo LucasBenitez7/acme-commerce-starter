@@ -201,7 +201,9 @@ export function useCheckout(savedAddresses: UserAddress[]) {
 
   const handleChangeAddress = () => {
     setIsAddressConfirmed(false);
+    setStripeData(null);
     isSubmittingRef.current = false;
+    stripeDataRef.current = null;
   };
 
   const autoConfirmAttempted = useRef(false);
