@@ -1,10 +1,14 @@
 "use client";
 
 import { type UserAddress } from "@prisma/client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 
+import {
+  loadGuestAddress,
+  saveGuestAddress,
+} from "@/lib/checkout/guest-address-storage";
 import { type CreateOrderInput } from "@/lib/orders/schema";
 
 export function useShippingSection(
@@ -14,6 +18,7 @@ export function useShippingSection(
   isAddressConfirmed: boolean,
   onConfirmAddress: () => void,
   onChangeAddress: () => void,
+  isGuest: boolean,
 ) {
   const { setValue, watch, resetField, clearErrors } =
     useFormContext<CreateOrderInput>();
@@ -22,8 +27,33 @@ export function useShippingSection(
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [addressToEdit, setAddressToEdit] = useState<UserAddress | null>(null);
+  const [guestAddress, setGuestAddress] = useState<UserAddress | null>(() =>
+    isGuest ? loadGuestAddress() : null,
+  );
 
   const [isSelectingMethod, setIsSelectingMethod] = useState(!shippingType);
+  const hasRestoredGuest = useRef(false);
+
+  useEffect(() => {
+    if (isGuest && !hasRestoredGuest.current) {
+      const stored = loadGuestAddress();
+      if (stored) {
+        hasRestoredGuest.current = true;
+        setGuestAddress(stored);
+        setSelectedAddressId("guest-temp-id");
+        setValue("firstName", stored.firstName);
+        setValue("lastName", stored.lastName);
+        setValue("phone", stored.phone || "");
+        setValue("street", stored.street);
+        setValue("details", stored.details || "");
+        setValue("postalCode", stored.postalCode);
+        setValue("city", stored.city);
+        setValue("province", stored.province);
+        setValue("country", stored.country);
+        onConfirmAddress();
+      }
+    }
+  }, [isGuest, setSelectedAddressId, setValue, onConfirmAddress]);
 
   // --- Handlers ---
   const handleChangeMethod = () => {
@@ -60,7 +90,12 @@ export function useShippingSection(
     toast.success(
       addressToEdit ? "Dirección actualizada" : "Dirección guardada",
     );
+    if (updatedAddress.id === "guest-temp-id") {
+      setGuestAddress(updatedAddress);
+      saveGuestAddress(updatedAddress);
+    }
     setSelectedAddressId(updatedAddress.id);
+    onConfirmAddress();
   };
 
   const handleCancelForm = () => {
@@ -80,5 +115,6 @@ export function useShippingSection(
     handleAddNewClick,
     handleFormSuccess,
     handleCancelForm,
+    guestAddress,
   };
 }

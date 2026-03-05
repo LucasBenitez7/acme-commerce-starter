@@ -1,33 +1,18 @@
-import { Separator, Skeleton } from "@/components/ui";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function LoadingPublic() {
   return (
-    <section className="space-y-6">
-      <div className="flex items-end justify-between">
-        <div className="space-y-2">
-          <Skeleton className="h-7 w-40" />
-          <Skeleton className="h-4 w-24" />
-        </div>
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-9 w-24" />
-          <Skeleton className="h-9 w-24" />
-        </div>
-      </div>
+    <div className="w-full space-y-0">
+      {/* HERO PLACEHOLDER */}
+      <Skeleton className="h-[95vh] w-full rounded-none bg-neutral-200 dark:bg-neutral-800" />
 
-      <Separator />
-
-      <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
-        {Array.from({ length: 8 }).map((_, i: number) => (
-          <div key={i} className="overflow-hidden rounded-xs border">
-            <Skeleton className="aspect-[4/5] w-full" />
-            <div className="p-4 space-y-2">
-              <Skeleton className="h-5 w-3/4" />
-              <Skeleton className="h-4 w-1/3" />
-              <Skeleton className="h-9 w-full" />
-            </div>
-          </div>
-        ))}
+      {/* FEATURED GRID PLACEHOLDER */}
+      <div className="grid w-full grid-cols-1 md:grid-cols-2 gap-px bg-background">
+        <Skeleton className="h-[90vh] w-full rounded-none bg-neutral-100 dark:bg-neutral-900" />
+        <Skeleton className="h-[90vh] w-full rounded-none bg-neutral-100 dark:bg-neutral-900" />
+        <Skeleton className="hidden h-[90vh] w-full rounded-none bg-neutral-100 dark:bg-neutral-900 md:block" />
+        <Skeleton className="hidden h-[90vh] w-full rounded-none bg-neutral-100 dark:bg-neutral-900 md:block" />
       </div>
-    </section>
+    </div>
   );
 }

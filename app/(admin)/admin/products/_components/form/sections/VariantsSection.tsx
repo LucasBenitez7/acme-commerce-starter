@@ -16,7 +16,7 @@ import {
 import { type ProductFormValues } from "@/lib/products/schema";
 import { cn } from "@/lib/utils";
 
-import { useVariantsTable } from "@/hooks/products/use-variants-table";
+import { useVariantsTable } from "@/hooks/products/admin/use-variants-table";
 
 import { VariantGeneratorDialog } from "../dialogs/VariantGeneratorDialog";
 
@@ -117,11 +117,15 @@ export function VariantsSection() {
                                 )}
                                 defaultValue={currentColorOrder}
                                 min={0}
+                                onKeyDown={(e) => {
+                                  if (e.key === "-" || e.key === "e")
+                                    e.preventDefault();
+                                }}
                                 onChange={(e) => {
                                   const val = parseInt(e.target.value);
                                   updateColorOrder(
                                     colorName,
-                                    isNaN(val) ? 0 : val,
+                                    isNaN(val) ? 0 : Math.max(0, val),
                                   );
                                 }}
                                 title={
@@ -177,6 +181,10 @@ export function VariantsSection() {
                         {...register(`variants.${fieldIndex}.stock`, {
                           valueAsNumber: true,
                         })}
+                        onKeyDown={(e) => {
+                          if (e.key === "-" || e.key === "e")
+                            e.preventDefault();
+                        }}
                         className={cn(
                           "h-8",
                           rowError?.stock && "border-red-500 bg-red-50",

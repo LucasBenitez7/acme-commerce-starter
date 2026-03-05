@@ -2,7 +2,7 @@ import Link from "next/link";
 import { FaBoxOpen } from "react-icons/fa6";
 
 import { OrderHistoryCard } from "@/components/account/orders/OrderHistoryCard";
-import { PaginationNav } from "@/components/catalog/PaginationNav";
+import { PaginationNav } from "@/components/catalog/grid/PaginationNav";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/SearchInput";
 
@@ -11,8 +11,13 @@ import { auth } from "@/lib/auth";
 import { ORDER_TABS } from "@/lib/orders/constants";
 import { cn } from "@/lib/utils";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Mis pedidos",
+  description: "Consulta y gestiona todos tus pedidos realizados en LSB Shop.",
+  robots: { index: false, follow: false },
+};
 
 type Props = {
   searchParams: Promise<{

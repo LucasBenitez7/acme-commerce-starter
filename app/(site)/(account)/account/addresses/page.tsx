@@ -7,7 +7,15 @@ import { Button } from "@/components/ui/button";
 import { getUserAddresses } from "@/lib/account/queries";
 import { auth } from "@/lib/auth";
 
+import type { Metadata } from "next";
+
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Mis direcciones",
+  description: "Gestiona tus direcciones de envío guardadas en LSB Shop.",
+  robots: { index: false, follow: false },
+};
 
 export default async function AccountAddressesPage() {
   const session = await auth();
@@ -16,7 +24,7 @@ export default async function AccountAddressesPage() {
   const addresses = await getUserAddresses(session.user.id);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-300 pb-3">
         <div>
           <h2 className="text-2xl font-semibold text-center">

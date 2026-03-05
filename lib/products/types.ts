@@ -25,6 +25,7 @@ export type AdminProductItem = Product & {
   images: ProductImage[];
   variants: ProductVariant[];
   _totalStock: number;
+  _totalSold?: number;
 };
 
 // --- DTO: PUBLIC LIST ---
@@ -33,6 +34,7 @@ export type PublicProductListItem = {
   slug: string;
   name: string;
   priceCents: number;
+  compareAtPrice: number | null;
   currency: SupportedCurrency;
   isArchived: boolean;
   category: { name: string; slug: string };
@@ -49,6 +51,7 @@ export type PublicProductDetail = {
   name: string;
   description: string;
   priceCents: number;
+  compareAtPrice: number | null;
   currency: SupportedCurrency;
   isArchived: boolean;
   category: { id: string; slug: string; name: string };
@@ -72,4 +75,12 @@ export type PresetColor = {
 export type FavoriteProductItem = PublicProductListItem & {
   favoriteId: string;
   addedAt: Date;
+};
+
+// --- TIPOS PARA FILTROS ---
+export type FilterOptions = {
+  sizes: string[];
+  colors: { name: string; hex: string }[];
+  minPrice: number;
+  maxPrice: number;
 };

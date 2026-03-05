@@ -4,7 +4,9 @@ import { auth } from "@/lib/auth";
 
 import { AdminHeader } from "./_components/AdminHeader";
 
-export const metadata = {
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
   title: "Panel de Administración",
   robots: { index: false, follow: false },
 };
@@ -28,7 +30,7 @@ export default async function AdminLayout({
     <div className="flex flex-col min-h-screen bg-neutral-50 font-sans text-foreground">
       <AdminHeader user={session.user} />
 
-      <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+      <main className="flex-1 p-4 pb-10 sm:pt-4 sm:px-6 overflow-y-auto">
         {children}
       </main>
     </div>

@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -82,15 +83,19 @@ export function AddressFormDialog({ address, trigger }: Props) {
           trigger
         ) : (
           <Button>
-            <FaPlus className="mr-2 h-4 w-4" /> Nueva Dirección
+            <FaPlus className="mr-2 size-4" /> Nueva Dirección
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg mt-6">
         <DialogHeader>
           <DialogTitle>
             {isEditing ? "Editar Dirección" : "Nueva Dirección"}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Formulario para {isEditing ? "editar" : "crear"} una dirección de
+            envío
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-2">

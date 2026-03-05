@@ -49,11 +49,14 @@ export function ProductTable({ products }: ProductTableProps) {
       <Table>
         <TableHeader className="bg-neutral-50">
           <TableRow>
+            <TableHead className="w-[80px] text-center">Orden</TableHead>
+            <TableHead>ID</TableHead>
             <TableHead className="w-[80px]">Imagen</TableHead>
             <TableHead>Nombre</TableHead>
             <TableHead>Categoría</TableHead>
             <TableHead>Precio</TableHead>
             <TableHead className="text-center">Stock</TableHead>
+            <TableHead className="text-center">Ventas</TableHead>
             <TableHead className="text-center">Acciones</TableHead>
           </TableRow>
         </TableHeader>
@@ -63,10 +66,27 @@ export function ProductTable({ products }: ProductTableProps) {
             const img = product.images[0]?.url ?? "/og/default-product.jpg";
             const currency = parseCurrency(product.currency);
             const totalStock = product._totalStock;
+            const totalSold = product._totalSold ?? 0;
             const isOutOfStock = totalStock === 0;
 
             return (
               <TableRow key={product.id} className="hover:bg-neutral-50">
+                <TableCell className="text-center">
+                  {product.sortOrder ? (
+                    <span className="font-mono text-xs font-medium">
+                      {product.sortOrder}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground text-xs">-</span>
+                  )}
+                </TableCell>
+
+                <TableCell className="text-left">
+                  <span className="font-mono text-xs font-medium">
+                    {product.id}
+                  </span>
+                </TableCell>
+
                 {/* 1. IMAGEN */}
                 <TableCell className="py-2">
                   <div className="relative h-16 w-12 rounded-xs bg-neutral-100 overflow-hidden">
@@ -86,13 +106,13 @@ export function ProductTable({ products }: ProductTableProps) {
                       <span className="font-medium">{product.name}</span>
 
                       {isArchived && (
-                        <span className="inline-flex items-center rounded-full bg-amber-50 px-1 text-[10px] font-medium text-amber-700 border border-amber-200">
+                        <span className="inline-flex items-center rounded-full bg-amber-50 px-1 text-[10px] mt-0.5 font-medium text-amber-700 border border-amber-200">
                           Archivado
                         </span>
                       )}
 
                       {isOutOfStock && !isArchived && (
-                        <span className="inline-flex items-center rounded-full bg-red-50 px-1 text-[10px] font-medium text-red-700 border border-red-200">
+                        <span className="inline-flex items-center rounded-full bg-red-50 px-1 text-[10px] mt-0.5 font-medium text-red-700 border border-red-200">
                           Agotado
                         </span>
                       )}
@@ -105,7 +125,21 @@ export function ProductTable({ products }: ProductTableProps) {
                 </TableCell>
 
                 <TableCell className="font-medium">
-                  {formatCurrency(product.priceCents, currency)}
+                  <div className="flex flex-col">
+                    {product.compareAtPrice &&
+                    product.compareAtPrice > product.priceCents ? (
+                      <>
+                        <span className="text-xs text-muted-foreground line-through">
+                          {formatCurrency(product.compareAtPrice, currency)}
+                        </span>
+                        <span className="text-red-600 text-sm">
+                          {formatCurrency(product.priceCents, currency)}
+                        </span>
+                      </>
+                    ) : (
+                      formatCurrency(product.priceCents, currency)
+                    )}
+                  </div>
                 </TableCell>
 
                 <TableCell className="text-center">
@@ -120,6 +154,12 @@ export function ProductTable({ products }: ProductTableProps) {
                   >
                     {totalStock}
                   </Badge>
+                </TableCell>
+
+                <TableCell className="text-center">
+                  <span className="font-mono text-xs font-medium text-foreground">
+                    {totalSold}
+                  </span>
                 </TableCell>
 
                 <TableCell className="text-center">

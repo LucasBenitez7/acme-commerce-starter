@@ -1,6 +1,6 @@
 "use client";
 
-import { FaTrash, FaStar, FaRegStar } from "react-icons/fa6";
+import { FaTrash } from "react-icons/fa6";
 
 import { Button } from "@/components/ui/button";
 import { Image } from "@/components/ui/image";

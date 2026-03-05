@@ -1,24 +1,57 @@
 import { FaUser, FaEnvelope, FaPhone } from "react-icons/fa6";
 
+import VerifyEmailButton from "@/components/account/VerifyEmailButton";
 import { Card, CardContent } from "@/components/ui/card";
 
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Mi cuenta",
+  description:
+    "Gestiona tu perfil, dirécciones, pedidos y ajustes de seguridad en LSB Shop.",
+  robots: { index: false, follow: false },
+};
 
 export default async function AccountProfilePage() {
   const session = await auth();
-  const user = session?.user;
+
+  if (!session?.user?.email) return null;
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+  });
 
   if (!user) return null;
 
-  const isVerified = "verified";
+  const isVerified = !!user.emailVerified;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div>
         <h2 className="text-2xl text-center sm:text-left font-semibold pb-2 border-b border-neutral-300">
           Mi Cuenta
         </h2>
       </div>
+
+      {!isVerified && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xs p-4 flex flex-col sm:flex-row items-start justify-between gap-4 shadow w-full mb-2">
+          <div className="flex flex-col sm:flex-row">
+            <div>
+              <h3 className="text-sm font-semibold text-blue-800">
+                Tu correo no está verificado
+              </h3>
+              <p className="text-sm text-blue-700">
+                Verifica tu cuenta para asegurar el acceso y recibir
+                notificaciones importantes.
+              </p>
+            </div>
+          </div>
+          <VerifyEmailButton />
+        </div>
+      )}
 
       <Card className="overflow-hidden pb-0">
         <CardContent className="p-4">
@@ -45,8 +78,8 @@ export default async function AccountProfilePage() {
             <div className="space-y-1">
               <div className="flex items-center gap-2 text-sm font-semibold uppercase">
                 <FaEnvelope className="size-3" /> Correo Electrónico
-                {isVerified === "verified" && (
-                  <div className="flex items-center py-0-5 px-2 rounded-full bg-blue-50 text-blue-600 text-xs font-medium lowercase">
+                {isVerified && (
+                  <div className="flex items-center py-0.5 px-2 rounded-full bg-green-50 text-green-600 text-xs font-medium lowercase">
                     verificado
                   </div>
                 )}

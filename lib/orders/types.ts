@@ -13,6 +13,7 @@ type OrderLinkedImage = Pick<ProductImage, "url" | "color">;
 
 type OrderLinkedProduct = Pick<Product, "slug"> & {
   images: OrderLinkedImage[];
+  compareAtPrice: number | null;
 };
 
 export type OrderActionActor = "user" | "admin" | "system";
@@ -44,6 +45,7 @@ export type AdminOrderListItem = {
   itemsCount: number;
   refundedAmountMinor: number;
   netTotalMinor: number;
+  history?: { snapshotStatus: string }[];
 };
 
 export type AdminOrderDetail = Order & {
@@ -51,6 +53,7 @@ export type AdminOrderDetail = Order & {
     currentStock?: number;
     product: {
       images: OrderLinkedImage[];
+      compareAtPrice: number | null;
     } | null;
   })[];
   user: User | null;
@@ -146,3 +149,44 @@ export type GetOrdersParams = {
   paymentFilter?: PaymentStatus[];
   fulfillmentFilter?: FulfillmentStatus[];
 };
+
+// SECCIÓN 5: VISUALIZACIÓN (Order Display)
+export interface OrderDisplayData {
+  id: string;
+  userId: string | null;
+  email: string;
+  createdAt: Date | string;
+  paymentStatus: string;
+  fulfillmentStatus: string;
+  isCancelled: boolean;
+  currency: string;
+  paymentMethod: string | null;
+  contact: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+  shippingInfo: {
+    label: string;
+    addressLines: string[];
+  };
+  items: {
+    id: string;
+    name: string;
+    slug: string;
+    subtitle: string;
+    quantity: number;
+    price: number;
+    compareAtPrice?: number;
+    image: string | null;
+  }[];
+  totals: {
+    subtotal: number;
+    shipping: number;
+    tax: number;
+    total: number;
+    refunded?: number;
+    originalSubtotal?: number;
+    totalDiscount?: number;
+  };
+}

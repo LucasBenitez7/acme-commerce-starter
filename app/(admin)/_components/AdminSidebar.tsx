@@ -11,7 +11,7 @@ import {
   FaStore,
   FaTags,
   FaUsers,
-  FaUserShield,
+  FaGear,
 } from "react-icons/fa6";
 
 import { Button } from "@/components/ui/button";
@@ -24,42 +24,23 @@ const NAV_ITEMS = [
   { label: "Categorias", href: "/admin/categories", icon: BiSolidCategory },
   { label: "Productos", href: "/admin/products", icon: FaTags },
   { label: "Clientes", href: "/admin/users", icon: FaUsers },
+  {
+    label: "Configuración de portadas y banners",
+    href: "/admin/settings",
+    icon: FaGear,
+  },
 ];
 
-type AdminUser = {
-  name?: string | null;
-  email?: string | null;
-  image?: string | null;
-};
-
-type Props = {
-  user?: AdminUser;
-};
-
-export function AdminSidebar({ user }: Props) {
+export function AdminSidebar() {
   const pathname = usePathname();
 
   async function handleSignOut() {
     await signOut({ callbackUrl: "/" });
   }
 
-  const getAdminName = () => {
-    if (!user?.name) return "Admin";
-    const parts = user.name.trim().split(/\s+/);
-    if (parts.length >= 4) return `${parts[0]} ${parts[2]}`;
-    return `${parts[0]} ${parts[1] || ""}`.trim();
-  };
-
   return (
     <div className="flex flex-col h-full px-3">
-      <div className="flex items-center gap-3 shrink-0">
-        <h1 className="pl-2.5 my-4 w-full flex items-center gap-2 text-xl font-bold">
-          <FaUserShield className="size-5" />
-          {getAdminName()}
-        </h1>
-      </div>
-
-      <nav className="flex flex-col gap-2 flex-1 overflow-y-auto">
+      <nav className="flex flex-col gap-2 flex-1 overflow-y-auto mt-2">
         {NAV_ITEMS.map((item) => {
           const isActive =
             item.href === "/admin"
@@ -90,7 +71,7 @@ export function AdminSidebar({ user }: Props) {
             className="text-left justify-start flex w-full pl-2"
             asChild
           >
-            <Link href="/">
+            <Link href="/catalogo">
               <FaStore className="size-4 mr-2" />
               Volver a la tienda
             </Link>

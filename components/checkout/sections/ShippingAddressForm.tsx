@@ -29,7 +29,7 @@ export function ShippingAddressForm(props: Props) {
   const isDefault = watch("isDefault");
 
   return (
-    <div className="border rounded-xs p-4 bg-neutral-50/50 animate-in fade-in slide-in-from-top-2">
+    <div className="border rounded-xs p-4 animate-in fade-in slide-in-from-top-2 shadow">
       <h4 className="font-semibold text-base mb-4 border-b pb-2">
         {props.initialData?.id
           ? "Editar Dirección"
@@ -37,6 +37,21 @@ export function ShippingAddressForm(props: Props) {
       </h4>
 
       <div className="space-y-4">
+        {/* --- EMAIL (SOLO GUEST) --- */}
+        {props.isGuest && (
+          <div className="space-y-1">
+            <Label>Email de contacto</Label>
+            <Input
+              {...register("email")}
+              placeholder="tu@email.com"
+              type="email"
+            />
+            {errors.email && (
+              <p className="text-red-500 text-xs">{errors.email.message}</p>
+            )}
+          </div>
+        )}
+
         {/* --- GRID NOMBRES --- */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
@@ -143,22 +158,27 @@ export function ShippingAddressForm(props: Props) {
         )}
 
         {/* --- BOTONES --- */}
-        <div className="flex gap-4 pt-2">
+        <div className="flex gap-4 pt-2 flex-col sm:flex-row">
           <Button
             type="button"
             variant="outline"
             onClick={props.onCancel}
-            className="px-4"
+            className="px-4 w-full sm:w-auto"
             disabled={isPending}
           >
             Cancelar
           </Button>
-          <Button type="button" onClick={handleSaveAndUse} disabled={isPending}>
+          <Button
+            type="button"
+            onClick={handleSaveAndUse}
+            disabled={isPending}
+            className="px-4 w-full sm:w-auto"
+          >
             {isPending
-              ? "Procesando..."
+              ? "Guardando..."
               : props.isGuest
                 ? "Usar esta dirección"
-                : "Guardar y Usar"}
+                : "Guardar y  Usar"}
           </Button>
         </div>
       </div>

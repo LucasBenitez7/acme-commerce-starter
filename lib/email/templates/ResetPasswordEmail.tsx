@@ -1,0 +1,103 @@
+import {
+  Body,
+  Container,
+  Head,
+  Html,
+  Link,
+  Section,
+  Text,
+} from "@react-email/components";
+import * as React from "react";
+
+import { EmailFooter } from "./EmailFooter";
+import { EmailHeader } from "./EmailHeader";
+
+interface ResetPasswordEmailProps {
+  resetLink: string;
+}
+
+export const ResetPasswordEmail = ({
+  resetLink = "https://shop.lsbstack.com/reset-password?token=XXX",
+}: ResetPasswordEmailProps) => {
+  return (
+    <Html>
+      <Head>
+        <meta name="color-scheme" content="light" />
+        <meta name="supported-color-schemes" content="light" />
+        <style>{`:root { color-scheme: light; supported-color-schemes: light; }`}</style>
+      </Head>
+      <Body style={main}>
+        <Container style={container}>
+          <EmailHeader />
+
+          <Section style={cardContainer}>
+            <Text style={text}>
+              Hemos recibido una solicitud para cambiar tu contraseña. Haz clic
+              en el siguiente botón para continuar:
+            </Text>
+            <Section style={btnContainer}>
+              <Link href={resetLink} style={button}>
+                RECUPERAR CONTRASEÑA
+              </Link>
+            </Section>
+            <Text style={text}>
+              Si no has solicitado esto, puedes ignorar este correo de forma
+              segura. El enlace caducará en 30 minutos.
+            </Text>
+          </Section>
+        </Container>
+
+        <EmailFooter />
+      </Body>
+    </Html>
+  );
+};
+
+export default ResetPasswordEmail;
+
+const main = {
+  backgroundColor: "#ffffff",
+  fontFamily:
+    '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif',
+};
+
+const container = {
+  margin: "0 auto",
+  padding: "20px 0 20px",
+  maxWidth: "560px",
+};
+
+const text = {
+  fontSize: "16px",
+  lineHeight: "26px",
+  fontWeight: 400,
+  color: "#1a1a1a",
+};
+
+const btnContainer = {
+  textAlign: "center" as const,
+  marginTop: "20px",
+  marginBottom: "20px",
+};
+
+const button = {
+  backgroundColor: "#000000",
+  borderRadius: "2px",
+  color: "#fff",
+  fontSize: "14px",
+  fontWeight: 600,
+  textDecoration: "none",
+  textAlign: "center" as const,
+  display: "inline-block",
+  padding: "12px 60px",
+};
+
+const cardContainer = {
+  border: "1px solid #e5e5e5",
+  borderRadius: "4px",
+  overflow: "hidden",
+  boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)",
+  marginTop: "20px",
+  backgroundColor: "#ffffff",
+  padding: "24px",
+};

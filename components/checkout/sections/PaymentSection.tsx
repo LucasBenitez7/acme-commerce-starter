@@ -1,145 +1,73 @@
 "use client";
 
+import { useEffect } from "react";
 import { useFormContext } from "react-hook-form";
-import { FaCcVisa, FaCcMastercard } from "react-icons/fa";
-import { FaCreditCard, FaBuildingColumns, FaLock } from "react-icons/fa6";
+import { FaCreditCard } from "react-icons/fa6";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 import { type CreateOrderInput } from "@/lib/orders/schema";
 
+import { StripeEmbedForm } from "./StripeEmbedForm";
+
 type Props = {
   isOpen: boolean;
+  stripeData: { clientSecret: string; orderId: string } | null;
 };
 
-export function PaymentSection({ isOpen = false }: Props) {
-  const {
-    setValue,
-    watch,
-    formState: { errors },
-  } = useFormContext<CreateOrderInput>();
+export function PaymentSection({ isOpen = false, stripeData }: Props) {
+  const { setValue, watch } = useFormContext<CreateOrderInput>();
   const paymentMethod = watch("paymentMethod");
 
+  useEffect(() => {
+    if (paymentMethod !== "card") {
+      setValue("paymentMethod", "card");
+    }
+  }, [paymentMethod, setValue]);
+
   return (
-    <Card
-      className={`p-4 transition-all duration-300 ${!isOpen ? "bg-neutral-50/50" : "bg-white"}`}
+    <div
+      className={`transition-all duration-300 ${
+        !isOpen ? "bg-neutral-50/50 opacity-60" : "bg-white opacity-100"
+      }`}
     >
       <CardHeader className="px-0 pt-2">
         <CardTitle
-          className={`text-base flex items-center gap-2 transition-colors ${!isOpen ? "text-muted-foreground" : "text-foreground"}`}
+          className={`text-base flex items-center gap-2 ${
+            !isOpen
+              ? "text-muted-foreground p-4 border shadow-sm"
+              : "text-foreground"
+          }`}
         >
-          <FaCreditCard className="text-muted-foreground" /> Método de pago
+          <FaCreditCard /> Método de pago
         </CardTitle>
       </CardHeader>
 
       <div
-        className={`grid transition-all duration-300 ease-in-out ${isOpen ? "grid-rows-[1fr] opacity-100 mt-2" : "grid-rows-[0fr] opacity-0"}`}
+        className={`grid transition-all duration-300 ease-in-out ${
+          isOpen ? "grid-rows-[1fr] mb-2" : "grid-rows-[0fr]"
+        }`}
       >
-        <div className="overflow-hidden">
+        <div className="overflow-hidden shadow">
           <CardContent className="px-0 space-y-4">
-            <RadioGroup
-              value={paymentMethod}
-              onValueChange={(val) =>
-                setValue("paymentMethod", val as "card" | "transfer", {
-                  shouldValidate: true,
-                })
-              }
-              className="grid grid-cols-1 gap-3"
-            >
-              {/* --- OPCIÓN 1: TARJETA --- */}
-              <div
-                className={`relative flex flex-col border rounded-xs p-4 transition-all duration-200 ${
-                  paymentMethod === "card"
-                    ? "border-foreground"
-                    : "border-border bg-neutral-50 hover:border-foreground"
-                }`}
-              >
-                <div className="flex items-center gap-4 w-full">
-                  <RadioGroupItem value="card" id="pm-card" />
-
-                  <div className="flex-1">
-                    <Label
-                      htmlFor="pm-card"
-                      className="font-semibold cursor-pointer text-sm flex items-center justify-between w-full"
-                    >
-                      <span>Tarjeta de Crédito / Débito</span>
-                      <div className="flex gap-2">
-                        <FaCcVisa className="size-6" />
-                        <FaCcMastercard className="size-6" />
-                      </div>
-                    </Label>
-                    <p className="text-xs text-muted-foreground mt-1 ml-0.5">
-                      Pago seguro inmediato.
-                    </p>
-                  </div>
+            {stripeData ? (
+              <StripeEmbedForm
+                clientSecret={stripeData.clientSecret}
+                orderId={stripeData.orderId}
+              />
+            ) : (
+              <div className="space-y-4 animate-pulse">
+                <div className="h-12 bg-neutral-100 rounded-md w-full" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="h-12 bg-neutral-100 rounded-md w-full" />
+                  <div className="h-12 bg-neutral-100 rounded-md w-full" />
                 </div>
-
-                {paymentMethod === "card" && (
-                  <div className="mt-3 pt-3 border-t flex items-start gap-2 text-xs text-blue-600 animate-in fade-in slide-in-from-top-1">
-                    <FaLock className="mt-0.5 shrink-0" />
-                    <span>
-                      <strong>Entorno seguro.</strong> Modo simulación (no se
-                      cobrará nada).
-                    </span>
-                  </div>
-                )}
-
-                <Label
-                  htmlFor="pm-card"
-                  className="absolute inset-0 cursor-pointer"
-                  aria-hidden="true"
-                />
+                <div className="h-12 bg-neutral-200 rounded-md w-full mt-2" />
               </div>
-
-              {/* --- OPCIÓN 2: TRANSFERENCIA --- */}
-              <div
-                className={`relative flex flex-col border rounded-xs p-4 transition-all duration-200 ${
-                  paymentMethod === "transfer"
-                    ? "border-foreground"
-                    : "border-border bg-neutral-50 hover:border-foreground"
-                }`}
-              >
-                <div className="flex items-center gap-4 w-full">
-                  <RadioGroupItem value="transfer" id="pm-transfer" />
-
-                  <div className="flex-1">
-                    <Label
-                      htmlFor="pm-transfer"
-                      className="font-semibold cursor-pointer text-sm flex items-center gap-2 w-full"
-                    >
-                      Transferencia Bancaria
-                    </Label>
-                    <p className="text-xs text-muted-foreground mt-1 ml-0.5">
-                      Procesamiento tras recibir el pago.
-                    </p>
-                  </div>
-                  <FaBuildingColumns className="size-5" />
-                </div>
-
-                {paymentMethod === "transfer" && (
-                  <div className="mt-3 pt-3 border-t text-xs text-neutral-600 animate-in fade-in slide-in-from-top-1">
-                    <p>Recibirás el IBAN por email al completar el pedido.</p>
-                  </div>
-                )}
-
-                <Label
-                  htmlFor="pm-transfer"
-                  className="absolute inset-0 cursor-pointer"
-                  aria-hidden="true"
-                />
-              </div>
-            </RadioGroup>
-
-            {errors.paymentMethod && (
-              <p className="text-xs text-red-500 font-medium">
-                Selecciona un método de pago.
-              </p>
             )}
           </CardContent>
         </div>
       </div>
-    </Card>
+    </div>
   );
 }

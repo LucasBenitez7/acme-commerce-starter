@@ -2,6 +2,7 @@ import "server-only";
 import { type Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
+import { SYSTEM_MSGS } from "@/lib/orders/constants";
 
 // --- DIRECCIONES ---
 export async function getUserAddresses(userId: string) {
@@ -23,6 +24,9 @@ export async function getUserOrders(
 
   const baseWhere: Prisma.OrderWhereInput = {
     userId,
+    paymentStatus: {
+      not: "PENDING",
+    },
     ...(query && {
       OR: [
         { id: { contains: query, mode: "insensitive" } },
@@ -42,7 +46,7 @@ export async function getUserOrders(
   if (statusTab) {
     switch (statusTab) {
       case "PENDING_PAYMENT":
-        currentTabWhere.paymentStatus = "PENDING";
+        currentTabWhere.paymentStatus = "FAILED";
         currentTabWhere.isCancelled = false;
         break;
 
@@ -61,22 +65,26 @@ export async function getUserOrders(
 
       case "RETURNS":
         currentTabWhere.isCancelled = false;
-        currentTabWhere.OR = [
+
+        const returnsConditions = [
+          { paymentStatus: { in: ["REFUNDED", "PARTIALLY_REFUNDED"] } },
+          { fulfillmentStatus: "RETURNED" },
+          { items: { some: { quantityReturnRequested: { gt: 0 } } } },
           {
-            OR: [
-              { paymentStatus: { in: ["REFUNDED", "PARTIALLY_REFUNDED"] } },
-              { fulfillmentStatus: "RETURNED" },
-              { returnReason: { not: null } },
-              { items: { some: { quantityReturnRequested: { gt: 0 } } } },
-            ],
+            history: {
+              some: { snapshotStatus: SYSTEM_MSGS.RETURN_REQUESTED },
+            },
           },
         ];
+
         if (query) {
           currentTabWhere.AND = [
             { OR: baseWhere.OR },
-            { OR: currentTabWhere.OR },
+            { OR: returnsConditions as any },
           ];
-          delete currentTabWhere.OR;
+          delete (currentTabWhere as any).OR;
+        } else {
+          currentTabWhere.OR = returnsConditions as any;
         }
         break;
 
@@ -118,6 +126,7 @@ export async function getUserOrders(
             product: {
               select: {
                 slug: true,
+                compareAtPrice: true,
                 images: {
                   select: { url: true, color: true },
                   orderBy: { sort: "asc" },
@@ -157,6 +166,7 @@ export async function getUserOrderFullDetails(userId: string, orderId: string) {
           product: {
             select: {
               slug: true,
+              compareAtPrice: true,
               images: {
                 select: { url: true, color: true },
                 orderBy: { sort: "asc" },
@@ -209,6 +219,7 @@ export async function getOrderSuccessDetails(orderId: string) {
           product: {
             select: {
               slug: true,
+              compareAtPrice: true,
               images: {
                 select: { url: true, color: true },
                 orderBy: { sort: "asc" },
@@ -216,6 +227,9 @@ export async function getOrderSuccessDetails(orderId: string) {
             },
           },
         },
+      },
+      history: {
+        orderBy: { createdAt: "desc" },
       },
     },
   });

@@ -20,5 +20,5 @@ export type AdminCategoryFilters = {
   query?: string;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
-  filter?: "all" | "with_products" | "empty";
+  filter?: "all" | "with_products" | "empty" | "featured";
 };

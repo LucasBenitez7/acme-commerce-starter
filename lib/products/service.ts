@@ -24,8 +24,10 @@ export async function createProductInDb(data: ProductFormValues) {
       slug,
       description: data.description || "",
       priceCents: data.priceCents,
+      compareAtPrice: data.compareAtPrice,
       categoryId: data.categoryId,
       isArchived: data.isArchived,
+      sortOrder: data.sortOrder,
       images: {
         create: data.images.map((img, idx) => ({
           url: img.url,
@@ -58,8 +60,10 @@ export async function updateProductInDb(id: string, data: ProductFormValues) {
         name: data.name,
         description: data.description || "",
         priceCents: data.priceCents,
+        compareAtPrice: data.compareAtPrice,
         categoryId: data.categoryId,
         isArchived: data.isArchived,
+        sortOrder: data.sortOrder,
       },
     });
 
@@ -73,6 +77,11 @@ export async function updateProductInDb(id: string, data: ProductFormValues) {
         productId: id,
         id: { notIn: incomingImageIds },
       },
+    });
+
+    await tx.productImage.updateMany({
+      where: { productId: id },
+      data: { sort: { increment: 1000 } },
     });
 
     for (const [idx, img] of data.images.entries()) {

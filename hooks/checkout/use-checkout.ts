@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import { useFormContext, type FieldErrors } from "react-hook-form";
+import { useState, useEffect, useRef } from "react";
+import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 
 import { createOrderAction } from "@/app/(site)/(shop)/checkout/actions";
@@ -13,19 +13,43 @@ import type { UserAddress } from "@prisma/client";
 
 export function useCheckout(savedAddresses: UserAddress[]) {
   const router = useRouter();
-  const { items, clearCart } = useCartStore();
+  const { items } = useCartStore();
 
-  const { handleSubmit, setValue, watch } = useFormContext<CreateOrderInput>();
+  const { handleSubmit, setValue, watch, trigger, getValues } =
+    useFormContext<CreateOrderInput>();
 
   const shippingType = watch("shippingType");
 
   const [selectedAddressId, setSelectedAddressId] = useState<string>(() => {
     const def = savedAddresses.find((a) => a.isDefault);
-    return def ? def.id : savedAddresses[0]?.id || "";
+    return def ? def.id : "";
   });
 
-  const [isAddressConfirmed, setIsAddressConfirmed] = useState(false);
+  const [isAddressConfirmed, setIsAddressConfirmed] = useState(() => {
+    return savedAddresses.some((a) => a.isDefault);
+  });
   const [isPending, setIsPending] = useState(false);
+
+  const [stripeData, setStripeData] = useState<{
+    clientSecret: string;
+    orderId: string;
+  } | null>(null);
+
+  useEffect(() => {
+    const savedSession = localStorage.getItem("checkout_session");
+    if (savedSession) {
+      try {
+        const parsed = JSON.parse(savedSession);
+        const now = new Date().getTime();
+        if (now - parsed.timestamp < 3600000) {
+        } else {
+          localStorage.removeItem("checkout_session");
+        }
+      } catch (e) {
+        localStorage.removeItem("checkout_session");
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const formItems = items.map((item) => ({
@@ -34,13 +58,7 @@ export function useCheckout(savedAddresses: UserAddress[]) {
       quantity: item.quantity,
       priceCents: Math.round(item.price * 100),
     }));
-
     setValue("cartItems", formItems);
-
-    // (Opcional) Si hubiera error previo, forzamos revalidación
-    if (items.length > 0) {
-      // trigger("cartItems");
-    }
   }, [items, setValue]);
 
   useEffect(() => {
@@ -60,69 +78,119 @@ export function useCheckout(savedAddresses: UserAddress[]) {
     }
   }, [selectedAddressId, shippingType, savedAddresses, setValue]);
 
-  // Handler de Éxito
-  const onValidSubmit = async (data: CreateOrderInput) => {
-    if (data.cartItems.length === 0) {
-      toast.error("Tu carrito parece vacío");
-      return;
+  const handleConfirmAddress = async () => {
+    let isValid = false;
+
+    if (shippingType === "home") {
+      isValid = await trigger([
+        "firstName",
+        "lastName",
+        "street",
+        "city",
+        "province",
+        "postalCode",
+        "phone",
+      ]);
+    } else {
+      isValid = await trigger(["storeLocationId", "pickupLocationId"]);
     }
 
-    if (data.shippingType === "home" && !isAddressConfirmed) {
-      toast.error("Por favor, confirma tu dirección de envío.");
-      const element = document.getElementById("checkout-main-form");
-      element?.scrollIntoView({ behavior: "smooth" });
+    if (!isValid) {
+      toast.error("Por favor, completa los datos de envío obligatorios.");
       return;
     }
 
     setIsPending(true);
 
+    const currentData = getValues();
+    currentData.paymentMethod = "card";
+
+    const formData = new FormData();
+    Object.entries(currentData).forEach(([key, val]) => {
+      if (key !== "cartItems" && val !== null && val !== undefined) {
+        formData.append(key, String(val));
+      }
+    });
+    formData.append("cartItems", JSON.stringify(currentData.cartItems));
+
+    let orderIdToRecycle = stripeData?.orderId;
+
+    if (!orderIdToRecycle) {
+      const savedSession = localStorage.getItem("checkout_session");
+      if (savedSession) {
+        try {
+          const parsed = JSON.parse(savedSession);
+          if (items.length > 0) {
+            orderIdToRecycle = parsed.orderId;
+          }
+        } catch (e) {}
+      }
+    }
+
+    if (orderIdToRecycle) {
+      formData.append("existingOrderId", orderIdToRecycle);
+    }
+
     try {
-      const formData = new FormData();
-      Object.entries(data).forEach(([key, val]) => {
-        if (key !== "cartItems" && val !== null && val !== undefined) {
-          formData.append(key, String(val));
-        }
-      });
-
-      formData.append("cartItems", JSON.stringify(data.cartItems));
-
       const res = await createOrderAction({ error: undefined }, formData);
 
       if (res?.error) {
+        localStorage.removeItem("checkout_session");
         toast.error(res.error);
-      } else if (res?.success && res?.orderId) {
-        toast.success("Pedido realizado correctamente");
-        router.push(`/checkout/success?orderId=${res.orderId}`);
+        setIsPending(false);
+        return;
       }
-    } catch (err) {
-      console.error(err);
-      toast.error("Error inesperado al procesar el pedido.");
+
+      if (res?.success && res.isStripe && res.clientSecret && res.orderId) {
+        setStripeData({
+          clientSecret: res.clientSecret,
+          orderId: res.orderId,
+        });
+
+        localStorage.setItem(
+          "checkout_session",
+          JSON.stringify({
+            orderId: res.orderId,
+            timestamp: new Date().getTime(),
+          }),
+        );
+
+        setIsAddressConfirmed(true);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Error al iniciar el pago.");
     } finally {
       setIsPending(false);
     }
   };
 
-  const onInvalidSubmit = (errors: FieldErrors<CreateOrderInput>) => {
-    console.log("Errores de validación:", errors);
-
-    if (errors.cartItems) {
-      toast.error("Error: El carrito está vacío en el formulario.");
-    } else {
-      toast.error("Faltan campos por rellenar.");
-    }
-
-    if (errors.shippingType) toast.error("Selecciona un método de envío.");
-    else if (errors.paymentMethod) toast.error("Selecciona un método de pago.");
-    else if (errors.firstName || errors.street)
-      toast.error("Revisa la dirección.");
+  const handleChangeAddress = () => {
+    setIsAddressConfirmed(false);
   };
+
+  const autoConfirmAttempted = useRef(false);
+
+  useEffect(() => {
+    if (
+      !autoConfirmAttempted.current &&
+      savedAddresses?.some((a) => a.isDefault)
+    ) {
+      autoConfirmAttempted.current = true;
+      handleConfirmAddress();
+    }
+  }, [savedAddresses]);
+
+  const onValidSubmit = async (data: CreateOrderInput) => {};
 
   return {
     isPending,
     selectedAddressId,
     setSelectedAddressId,
     isAddressConfirmed,
-    setIsAddressConfirmed,
-    onCheckoutSubmit: handleSubmit(onValidSubmit, onInvalidSubmit),
+    onConfirmAddress: handleConfirmAddress,
+    onChangeAddress: handleChangeAddress,
+    onCheckoutSubmit: handleSubmit(onValidSubmit),
+    stripeData,
   };
 }

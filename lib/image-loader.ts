@@ -16,9 +16,5 @@ export default function imageLoader({ src, width, quality }: ImageLoaderProps) {
     }
   }
 
-  if (src.includes("images.unsplash.com")) {
-    return `${src}&w=${width}&q=${quality || 75}&auto=format`;
-  }
-
   return src;
 }

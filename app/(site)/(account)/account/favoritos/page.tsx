@@ -2,14 +2,19 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { FaHeartBroken } from "react-icons/fa";
 
-import { ProductGrid } from "@/components/catalog/ProductGrid";
+import { ProductGrid } from "@/components/catalog/grid/ProductGrid";
 import { Button } from "@/components/ui/button";
 
 import { auth } from "@/lib/auth";
 import { getUserFavorites } from "@/lib/favorites/queries";
 
-export const metadata = {
-  title: "Mis Favoritos | Acme Commerce",
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Mis favoritos",
+  description:
+    "Consulta y gestiona los productos que has guardado como favoritos en LSB Shop.",
+  robots: { index: false, follow: false },
 };
 
 export default async function FavoritesPage() {
@@ -24,7 +29,7 @@ export default async function FavoritesPage() {
   const favoriteIds = new Set(favorites.map((f) => f.id));
 
   return (
-    <section className="space-y-0">
+    <section className="space-y-6">
       <div>
         <h2 className="text-2xl text-center sm:text-left font-semibold pb-2 border-b border-neutral-300">
           Mis Favoritos
@@ -45,7 +50,12 @@ export default async function FavoritesPage() {
           </Button>
         </div>
       ) : (
-        <ProductGrid items={favorites} favoriteIds={favoriteIds} />
+        <ProductGrid
+          items={favorites}
+          favoriteIds={favoriteIds}
+          className="lg:grid-cols-3"
+          shortenTitle={false}
+        />
       )}
     </section>
   );

@@ -35,6 +35,11 @@ export async function createCategoryAction(
       name: String(formData.get("name") || ""),
       slug: String(formData.get("slug") || "") || undefined,
       sort: formData.get("sort"),
+      isFeatured: formData.get("isFeatured") === "on",
+      image: formData.get("image") ? String(formData.get("image")) : null,
+      mobileImage: formData.get("mobileImage")
+        ? String(formData.get("mobileImage"))
+        : null,
     };
 
     const validated = categorySchema.safeParse(rawData);
@@ -48,6 +53,7 @@ export async function createCategoryAction(
   }
 
   revalidatePath("/admin/categories");
+  revalidatePath("/", "layout");
   redirect("/admin/categories");
 }
 
@@ -64,6 +70,11 @@ export async function updateCategoryAction(
       name: String(formData.get("name") || ""),
       slug: String(formData.get("slug") || "") || undefined,
       sort: formData.get("sort"),
+      isFeatured: formData.get("isFeatured") === "on",
+      image: formData.get("image") ? String(formData.get("image")) : null,
+      mobileImage: formData.get("mobileImage")
+        ? String(formData.get("mobileImage"))
+        : null,
     };
 
     const validated = categorySchema.safeParse(rawData);
@@ -77,6 +88,7 @@ export async function updateCategoryAction(
   }
 
   revalidatePath("/admin/categories");
+  revalidatePath("/", "layout");
   redirect("/admin/categories");
 }
 
@@ -86,6 +98,7 @@ export async function deleteCategoryAction(id: string) {
     await assertAdmin();
     await deleteCategory(id);
     revalidatePath("/admin/categories");
+    revalidatePath("/", "layout");
     return { success: true };
   } catch (error: any) {
     return { error: error.message || "Error al eliminar." };
@@ -97,6 +110,7 @@ export async function quickCreateCategory(name: string) {
   try {
     await assertAdmin();
     const newCat = await createQuickCategory(name);
+    revalidatePath("/", "layout");
     return { success: true, category: newCat };
   } catch (error: any) {
     return { error: error.message };

@@ -1,20 +1,35 @@
 import { redirect } from "next/navigation";
+import Stripe from "stripe";
 
+import { RelatedProducts } from "@/components/catalog/RelatedProducts";
 import { Container } from "@/components/ui";
 
 import { getOrderSuccessDetails } from "@/lib/account/queries";
+import { auth } from "@/lib/auth";
 import { formatOrderForDisplay } from "@/lib/orders/utils";
 
 import { SuccessClient } from "./SuccessClient";
 
+import type { Metadata } from "next";
+
 export const dynamic = "force-dynamic";
 
+export const metadata: Metadata = {
+  title: "Pedido confirmado",
+  robots: { index: false, follow: false },
+};
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2025-12-15.clover",
+});
+
 type Props = {
-  searchParams: Promise<{ orderId?: string }>;
+  searchParams: Promise<{ orderId?: string; payment_intent?: string }>;
 };
 
 export default async function SuccessPage({ searchParams }: Props) {
-  const { orderId } = await searchParams;
+  const session = await auth();
+  const { orderId, payment_intent } = await searchParams;
 
   if (!orderId) redirect("/");
 
@@ -22,11 +37,49 @@ export default async function SuccessPage({ searchParams }: Props) {
 
   if (!order) redirect("/");
 
+  if (order.userId && session?.user?.id !== order.userId) {
+    redirect("/");
+  }
+
+  if (!order.userId) {
+    if (
+      order.stripePaymentIntentId &&
+      payment_intent !== order.stripePaymentIntentId
+    ) {
+      redirect("/");
+    }
+  }
+
   const clientOrder = formatOrderForDisplay(order);
 
+  if (payment_intent) {
+    try {
+      const intent = await stripe.paymentIntents.retrieve(payment_intent, {
+        expand: ["payment_method"],
+      });
+      const pm = intent.payment_method as Stripe.PaymentMethod;
+      const card = pm?.card;
+
+      if (card) {
+        const brandRaw = card.brand || "Tarjeta";
+        const brand = brandRaw.charAt(0).toUpperCase() + brandRaw.slice(1);
+        clientOrder.paymentMethod = `${brand} •••• ${card.last4}`;
+
+        if (intent.status === "succeeded") {
+          clientOrder.paymentStatus = "PAID";
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching payment intent on success page:", error);
+    }
+  }
+
   return (
-    <Container className="py-6 px-4 lg:py-10">
-      <SuccessClient order={clientOrder} />
-    </Container>
+    <>
+      <Container className="py-6 px-4 lg:py-10">
+        <SuccessClient order={clientOrder} />
+      </Container>
+      <RelatedProducts title="Te podría interesar" />
+    </>
   );
 }

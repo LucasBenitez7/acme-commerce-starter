@@ -1,0 +1,123 @@
+import {
+  Body,
+  Container,
+  Head,
+  Heading,
+  Html,
+  Link,
+  Section,
+  Text,
+} from "@react-email/components";
+import * as React from "react";
+
+import { EmailFooter } from "./EmailFooter";
+import { EmailHeader } from "./EmailHeader";
+
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://shop.lsbstack.com";
+
+interface VerificationEmailProps {
+  verificationLink?: string;
+}
+
+export const VerificationEmail = ({
+  verificationLink = "https://shop.lsbstack.com/verify-email?token=XXX",
+}: VerificationEmailProps) => {
+  return (
+    <Html>
+      <Head>
+        <meta name="color-scheme" content="light" />
+        <meta name="supported-color-schemes" content="light" />
+        <style>{`:root { color-scheme: light; supported-color-schemes: light; }`}</style>
+      </Head>
+      <Body style={main}>
+        <Container style={container}>
+          <EmailHeader />
+
+          <Section style={cardContainer}>
+            <Heading style={subHeader}>Verifica tu correo electrónico</Heading>
+            <Text style={text}>
+              Hola, Gracias por registrarte en LSB Shop. Para asegurar la
+              seguridad de tu cuenta y acceder a todas las funciones, por favor
+              verifica tu dirección de email.
+            </Text>
+
+            <Section style={btnContainer}>
+              <Link href={verificationLink} style={button}>
+                VERIFICAR EMAIL
+              </Link>
+            </Section>
+          </Section>
+        </Container>
+
+        <EmailFooter />
+      </Body>
+    </Html>
+  );
+};
+
+export default VerificationEmail;
+
+const main = {
+  backgroundColor: "#ffffff",
+  fontFamily:
+    '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif',
+};
+
+const container = {
+  margin: "0 auto",
+  padding: "20px 0 20px",
+  maxWidth: "560px",
+};
+
+const header = {
+  fontSize: "24px",
+  fontWeight: "bold",
+  textAlign: "center" as const,
+  margin: "0px 0px 30px",
+  padding: "0",
+  color: "#1a1a1a",
+};
+
+const subHeader = {
+  fontSize: "20px",
+  fontWeight: "bold",
+  textAlign: "left" as const,
+  margin: "0 0 15px",
+  color: "#1a1a1a",
+};
+
+const text = {
+  fontSize: "16px",
+  lineHeight: "26px",
+  fontWeight: 400,
+  color: "#1a1a1a",
+  marginBottom: "16px",
+};
+
+const btnContainer = {
+  textAlign: "center" as const,
+  marginTop: "20px",
+  marginBottom: "20px",
+};
+
+const button = {
+  backgroundColor: "#000000",
+  borderRadius: "2px",
+  color: "#fff",
+  fontSize: "14px",
+  fontWeight: 600,
+  textDecoration: "none",
+  textAlign: "center" as const,
+  display: "inline-block",
+  padding: "12px 60px",
+};
+
+const cardContainer = {
+  border: "1px solid #e5e5e5",
+  borderRadius: "4px",
+  overflow: "hidden",
+  boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)",
+  marginTop: "20px",
+  backgroundColor: "#ffffff",
+  padding: "24px",
+};

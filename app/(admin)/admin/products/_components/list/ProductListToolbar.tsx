@@ -21,7 +21,7 @@ import {
 import { PRODUCT_SORT_OPTIONS } from "@/lib/products/constants";
 import { cn } from "@/lib/utils";
 
-import { useProductFilters } from "@/hooks/products/use-product-filters";
+import { useProductFilters } from "@/hooks/products/admin/use-product-filters";
 
 type Category = { id: string; name: string };
 
@@ -38,9 +38,11 @@ export function ProductListToolbar({ categories, globalMaxPrice }: Props) {
     setMaxPrice,
     activeSort,
     activeCats,
+    onSale,
     hasPriceFilter,
     handleSortChange,
     handleCategoryToggle,
+    handleOnSaleToggle: toggleOnSale,
     applyPriceFilter,
     clearPriceFilter,
   } = useProductFilters({ globalMaxPrice });
@@ -49,16 +51,17 @@ export function ProductListToolbar({ categories, globalMaxPrice }: Props) {
   const [isPriceOpen, setIsPriceOpen] = useState(false);
   const [isCatsOpen, setIsCatsOpen] = useState(false);
 
-  const isPopoverFilterActive = activeCats.length > 0 || hasPriceFilter;
+  const isPopoverFilterActive =
+    activeCats.length > 0 || hasPriceFilter || onSale;
 
   return (
-    <div className="flex flex-col lg:flex-row gap-3 justify-between w-full items-end lg:items-center">
-      <div className="flex-1 min-w-[200px] w-full sm:w-auto lg:w-[350px]">
-        <SearchInput placeholder="Buscar por ID..." />
+    <div className="flex flex-col sm:flex-row gap-3 w-full items-end lg:items-center justify-end">
+      <div className="flex-1 w-full sm:max-w-[500px]">
+        <SearchInput placeholder="Buscar por nombre o ID..." />
       </div>
 
       {/* FILTROS PRINCIPALES */}
-      <div className="flex flex-wrap gap-3 justify-between w-full lg:w-auto items-center">
+      <div className="flex flex-wrap gap-3 justify-between w-full sm:w-auto items-center">
         <Popover>
           <PopoverTrigger asChild>
             <Button
@@ -74,10 +77,20 @@ export function ProductListToolbar({ categories, globalMaxPrice }: Props) {
           </PopoverTrigger>
 
           <PopoverContent
-            className="w-[280px] p-2 translate-x-8 lg:translate-x-0"
+            className="w-[280px] p-0 translate-x-8 lg:translate-x-0"
             align="end"
           >
             <div className="space-y-1">
+              <div
+                onClick={toggleOnSale}
+                className={cn(
+                  "flex items-center justify-between gap-2 py-2 px-3 rounded-xs cursor-pointer font-medium  hover:bg-neutral-100 transition-colors",
+                )}
+              >
+                <span className="text-sm">En Oferta</span>
+                {onSale && <FaCheck className="size-4" />}
+              </div>
+
               <div
                 className={cn(
                   "rounded-xs",
@@ -193,7 +206,7 @@ export function ProductListToolbar({ categories, globalMaxPrice }: Props) {
               {/* --- SECCIÓN CATEGORÍAS (COLLAPSIBLE) --- */}
               <div
                 className={cn(
-                  "rounded-xs transition-all",
+                  "rounded-xs transition-all mb-1",
                   isCatsOpen && "bg-neutral-50",
                 )}
               >

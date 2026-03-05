@@ -1,8 +1,9 @@
 import Link from "next/link";
 
-import { PaginationNav } from "@/components/catalog/PaginationNav";
+import { PaginationNav } from "@/components/catalog/grid/PaginationNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+import { getPendingReturnsCount } from "@/lib/admin/queries";
 import { ORDER_TABS } from "@/lib/orders/constants";
 import { getAdminOrders } from "@/lib/orders/queries";
 import { cn } from "@/lib/utils";
@@ -37,21 +38,27 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
     ?.split(",")
     .filter(Boolean) as FulfillmentStatus[];
 
-  const { orders, total, totalPages } = await getAdminOrders({
-    page,
-    statusTab: sp.status,
-    paymentFilter,
-    fulfillmentFilter,
-    sort: sp.sort,
-    query: sp.query,
-  });
+  const [ordersResult, pendingReturnsCount] = await Promise.all([
+    getAdminOrders({
+      page,
+      statusTab: sp.status,
+      paymentFilter,
+      fulfillmentFilter,
+      sort: sp.sort,
+      query: sp.query,
+    }),
+    getPendingReturnsCount(),
+  ]);
 
+  const { orders, total, totalPages } = ordersResult;
   const isReturnsTab = sp.status === "RETURNS";
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold border-b w-full pb-2">Pedidos</h1>
+        <h1 className="text-2xl lg:text-3xl font-semibold border-b w-full pb-2">
+          Pedidos
+        </h1>
       </div>
 
       {/* TABS DE NAVEGACIÓN RÁPIDA */}
@@ -59,6 +66,11 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
         {ORDER_TABS.map((tab) => {
           const isActive =
             sp.status === tab.value || (!sp.status && !tab.value);
+          const isReturnsTabItem = tab.value === "RETURNS";
+          const label =
+            isReturnsTabItem && pendingReturnsCount > 0
+              ? `${tab.label} (${pendingReturnsCount})`
+              : tab.label;
           return (
             <Link
               key={tab.label}
@@ -74,19 +86,19 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
                   : "border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300",
               )}
             >
-              {tab.label}
+              {label}
             </Link>
           );
         })}
       </div>
 
       <Card>
-        <CardHeader className="p-4 border-b flex flex-col sm:flex-row sm:items-center items-start justify-between gap-3 sm:gap-4">
-          <CardTitle className="text-lg text-left font-semibold">
+        <CardHeader className="p-4 border-b flex flex-col md:flex-row md:items-center items-start justify-between gap-2 md:gap-5">
+          <CardTitle className="flex items-center gap-1 text-lg font-semibold w-fit">
             Total <span className="text-base text-foreground">({total})</span>
           </CardTitle>
 
-          <div className="w-full sm:w-auto">
+          <div className="w-full">
             <OrderListToolbar />
           </div>
         </CardHeader>

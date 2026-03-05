@@ -49,7 +49,7 @@ export function AddressCard({ address }: { address: UserAddress }) {
             onClick={() => setAsDefault(address.id)}
             disabled={loading}
           >
-            Marcar como predeterminada
+            Establecer como predeterminada
           </Button>
         ) : (
           <Button

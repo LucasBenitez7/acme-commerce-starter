@@ -2,6 +2,33 @@ import "server-only";
 import { type Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
+import { SYSTEM_MSGS } from "@/lib/orders/constants";
+
+/** Pedidos con solicitud de devolución aún sin aceptar/rechazar */
+export async function getPendingReturnsCount(): Promise<number> {
+  const resolvedStatuses = [
+    SYSTEM_MSGS.RETURN_ACCEPTED,
+    SYSTEM_MSGS.RETURN_REJECTED,
+    SYSTEM_MSGS.RETURN_PARTIAL_ACCEPTED,
+    SYSTEM_MSGS.RETURN_PARTIAL_REJECTED,
+  ];
+
+  const count = await prisma.order.count({
+    where: {
+      isCancelled: false,
+      history: {
+        some: { snapshotStatus: SYSTEM_MSGS.RETURN_REQUESTED },
+      },
+      NOT: {
+        history: {
+          some: { snapshotStatus: { in: resolvedStatuses } },
+        },
+      },
+    },
+  });
+
+  return count;
+}
 
 export async function getDashboardStats() {
   const [
@@ -13,6 +40,7 @@ export async function getDashboardStats() {
     totalVariants,
     stockAgg,
     outOfStockCount,
+    pendingReturnsCount,
   ] = await Promise.all([
     prisma.order.count(),
     prisma.product.count(),
@@ -34,6 +62,8 @@ export async function getDashboardStats() {
     prisma.productVariant.count({
       where: { stock: 0, product: { isArchived: false } },
     }),
+
+    getPendingReturnsCount(),
   ]);
 
   const financialOrders = await prisma.order.findMany({
@@ -65,6 +95,7 @@ export async function getDashboardStats() {
     totalRefunds += orderRefundValue;
   }
 
+  const paidOrders = financialOrders.length;
   const netRevenue = grossRevenue - totalRefunds;
   return {
     grossRevenue,
@@ -72,7 +103,9 @@ export async function getDashboardStats() {
     netRevenue,
 
     totalOrders,
+    paidOrders,
     pendingOrders,
+    pendingReturnsCount,
     totalUsers,
     returnedItemsCount,
 
@@ -102,13 +135,6 @@ export async function getAdminUsers({
   const skip = (page - 1) * limit;
 
   const where: Prisma.UserWhereInput = {
-    ...(query && {
-      OR: [
-        { name: { contains: query, mode: "insensitive" } },
-        { email: { contains: query, mode: "insensitive" } },
-        { id: { equals: query } },
-      ],
-    }),
     ...(role && {
       role: role,
     }),
@@ -125,25 +151,57 @@ export async function getAdminUsers({
     }
   }
 
-  const [users, totalCount] = await Promise.all([
+  // Si hay query, traer más resultados para filtrar en memoria
+  const fetchLimit = query ? 100 : limit;
+  const fetchSkip = query ? 0 : skip;
+
+  const [usersRaw, totalCount] = await Promise.all([
     prisma.user.findMany({
       where,
       orderBy,
-      skip,
-      take: limit,
+      skip: fetchSkip,
+      take: fetchLimit,
       include: {
         _count: {
-          select: { orders: true },
+          select: {
+            orders: {
+              where: {
+                paymentStatus: {
+                  in: ["PAID", "PARTIALLY_REFUNDED", "REFUNDED"],
+                },
+                isCancelled: false,
+              },
+            },
+          },
         },
       },
     }),
     prisma.user.count({ where }),
   ]);
 
+  let usersFiltered = usersRaw;
+  if (query) {
+    const { filterByWordMatch } = await import("@/lib/products/utils");
+    const matchesId = usersRaw.filter((u) => u.id === query);
+    if (matchesId.length > 0) {
+      usersFiltered = matchesId;
+    } else {
+      usersFiltered = filterByWordMatch(usersRaw, query, (user) => [
+        user.name,
+        user.email,
+      ]);
+    }
+  }
+
+  const totalFiltered = usersFiltered.length;
+  const users = query
+    ? usersFiltered.slice((page - 1) * limit, page * limit)
+    : usersFiltered;
+
   return {
     users,
-    totalCount,
-    totalPages: Math.ceil(totalCount / limit),
+    totalCount: query ? totalFiltered : totalCount,
+    totalPages: Math.ceil((query ? totalFiltered : totalCount) / limit),
   };
 }
 
@@ -157,12 +215,23 @@ export async function getAdminUserDetails(userId: string) {
       orders: {
         take: 10,
         orderBy: { createdAt: "desc" },
+        where: {
+          paymentStatus: { in: ["PAID", "PARTIALLY_REFUNDED", "REFUNDED"] },
+          isCancelled: false,
+        },
         include: {
           items: true,
         },
       },
       _count: {
-        select: { orders: true },
+        select: {
+          orders: {
+            where: {
+              paymentStatus: { in: ["PAID", "PARTIALLY_REFUNDED", "REFUNDED"] },
+              isCancelled: false,
+            },
+          },
+        },
       },
     },
   });

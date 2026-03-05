@@ -9,7 +9,10 @@ import {
   FaLayerGroup,
 } from "react-icons/fa6";
 
-import { getProductForEdit } from "@/lib/products/queries";
+import {
+  getProductForEdit,
+  getProductSalesAndReturns,
+} from "@/lib/products/queries";
 import { getProductFormDependencies } from "@/lib/products/service";
 
 import { StatCard } from "@/app/(admin)/_components/StatCard";
@@ -24,16 +27,17 @@ export default async function EditProductPage({
 }) {
   const { id } = await params;
 
-  const [product, formDeps] = await Promise.all([
+  const [product, formDeps, salesStats] = await Promise.all([
     getProductForEdit(id),
     getProductFormDependencies(),
+    getProductSalesAndReturns(id),
   ]);
   if (!product) notFound();
 
   const totalStock = product.variants.reduce((acc, v) => acc + v.stock, 0);
   const totalVariants = product.variants.length;
-  const totalSales = product._count.orderItems;
-  const totalReturns = product._count.orderItems;
+  const totalSales = salesStats.totalSold;
+  const totalReturns = salesStats.totalReturned;
 
   return (
     <div className="space-y-4 max-w-5xl mx-auto pb-10">

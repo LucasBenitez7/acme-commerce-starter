@@ -4,7 +4,7 @@ import { Gallery, ProductActions } from "@/components/catalog/product-detail";
 
 import { formatCurrency } from "@/lib/currency";
 
-import { useProductDetail } from "@/hooks/products/use-product-detail";
+import { useProductDetail } from "@/hooks/products/store/use-product-detail";
 
 import type { PublicProductDetail } from "@/lib/products/types";
 
@@ -47,8 +47,37 @@ export function ProductClient({
           <h1 className="text-xl font-semibold tracking-tight text-foreground">
             {product.name}
           </h1>
-          <p className="text-base font-medium">
-            {formatCurrency(product.priceCents, product.currency)}
+          <p className="text-base font-medium flex items-center gap-2">
+            {product.compareAtPrice &&
+              product.compareAtPrice > product.priceCents && (
+                <>
+                  <span className="text-muted-foreground line-through text-xs font-normal">
+                    {formatCurrency(product.compareAtPrice, product.currency)}
+                  </span>
+                </>
+              )}
+            <span
+              className={
+                product.compareAtPrice &&
+                product.compareAtPrice > product.priceCents
+                  ? "text-red-600 text-base font-semibold"
+                  : "text-base font-semibold"
+              }
+            >
+              {formatCurrency(product.priceCents, product.currency)}
+            </span>
+            {product.compareAtPrice &&
+              product.compareAtPrice > product.priceCents && (
+                <span className="ml-1 text-xs font-semibold text-background bg-red-600 px-1.5 py-0.5">
+                  -
+                  {Math.round(
+                    ((product.compareAtPrice - product.priceCents) /
+                      product.compareAtPrice) *
+                      100,
+                  )}
+                  %
+                </span>
+              )}
           </p>
         </div>
 
@@ -60,9 +89,9 @@ export function ProductClient({
           initialIsFavorite={initialIsFavorite}
         />
 
-        <div className="pt-6 border-t space-y-1">
-          <h3 className="font-medium text-sm text-foreground">Descripción</h3>
-          <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
+        <div className="pt-6 border-t space-y-2">
+          <h3 className="font-medium text-base text-foreground">Descripción</h3>
+          <p className="text-sm text-foreground whitespace-pre-line leading-relaxed">
             {product.description || "Sin descripción disponible."}
           </p>
         </div>

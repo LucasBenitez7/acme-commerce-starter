@@ -51,9 +51,23 @@ async function main() {
     if (color.name === "Default") continue;
 
     await prisma.presetColor.upsert({
-      where: { name_hex: { name: color.name, hex: color.hex } },
-      update: {},
+      where: { name: color.name },
+      update: { hex: color.hex },
       create: { name: color.name, hex: color.hex },
+    });
+  }
+
+  // 3. CONFIGURACIÓN DE TIENDA DEFAULT
+  console.log("⚙️  Sincronizando Configuración...");
+  const configCount = await prisma.storeConfig.count();
+  if (configCount === 0) {
+    await prisma.storeConfig.create({
+      data: {
+        heroTitle: "NUEVA COLECCIÓN",
+        heroSubtitle: "Descubre las tendencias que definen esta temporada.",
+        saleTitle: "REBAJAS",
+        saleSubtitle: "Hasta 50% Dto.",
+      },
     });
   }
 

@@ -7,14 +7,20 @@ import { FavoriteButton } from "@/components/ui";
 import { sortVariantsHelper } from "@/lib/products/utils";
 import { cn } from "@/lib/utils";
 
-import { useProductActions } from "@/hooks/products/use-product-actions";
+import { useProductActions } from "@/hooks/products/store/use-product-actions";
 
 import type { PublicProductDetail } from "@/lib/products/types";
 
 export type Props = {
   product: Pick<
     PublicProductDetail,
-    "id" | "slug" | "name" | "priceCents" | "variants" | "isArchived"
+    | "id"
+    | "slug"
+    | "name"
+    | "priceCents"
+    | "compareAtPrice"
+    | "variants"
+    | "isArchived"
   >;
   imageUrl?: string;
   selectedColor: string | null;
@@ -182,6 +188,7 @@ export function ProductActions({
             variant={{
               id: selectedVariant?.id ?? "",
               priceCents: selectedVariant?.priceCents ?? priceCents,
+              compareAtPrice: product.compareAtPrice,
               color: selectedColor ?? "",
               size: selectedSize ?? "",
               stock: selectedVariant?.stock ?? 0,

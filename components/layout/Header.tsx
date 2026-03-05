@@ -1,9 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { useRef, useState, useCallback } from "react";
 import { CgClose } from "react-icons/cg";
 import { FaSignOutAlt } from "react-icons/fa";
 import {
@@ -13,20 +13,14 @@ import {
   FaUser,
   FaMapLocationDot,
 } from "react-icons/fa6";
-import { IoSearch } from "react-icons/io5";
 import { RiMenu2Line } from "react-icons/ri";
 
 import { CartButtonWithSheet } from "@/components/cart/CartButtonWithSheet";
-import {
-  Sheet,
-  SheetContent,
-  SheetTitle,
-  Button,
-  SheetTrigger,
-} from "@/components/ui";
+import { SearchSheet } from "@/components/layout/SearchSheet";
+import { Sheet, SheetContent, SheetTitle, Button } from "@/components/ui";
 
-import { useCloseOnNav } from "@/hooks/common/use-close-on-nav";
 import { useMounted } from "@/hooks/common/use-mounted";
+import { useHeaderSheets } from "@/hooks/ui/use-header-sheets";
 import { useCartStore } from "@/store/cart";
 
 import { SiteSidebar } from "./SiteSidebar";
@@ -34,30 +28,36 @@ import { SiteSidebar } from "./SiteSidebar";
 import type { CategoryLink } from "@/lib/categories/types";
 
 const SHEET_ID = "site-sidebar";
+const HIDE_HEADER_ON = ["/checkout"];
 
-export function Header({ categories }: { categories: CategoryLink[] }) {
-  const [open, setOpen] = useState(false);
-  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
-
-  const safeRef = useRef<HTMLDivElement>(null);
+export function Header({
+  categories,
+  maxDiscount,
+}: {
+  categories: CategoryLink[];
+  maxDiscount: number;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const mounted = useMounted();
+
+  const {
+    open,
+    setOpen,
+    searchOpen,
+    setSearchOpen,
+    accountMenuOpen,
+    setAccountMenuOpen,
+    closeMenu,
+  } = useHeaderSheets(pathname);
 
   const { data: session, status: sessionStatus } = useSession();
   const user = session?.user ?? null;
   const isSessionLoading = sessionStatus === "loading";
 
-  const HIDE_HEADER_ON: string[] = ["/checkout"];
   const hideHeader = HIDE_HEADER_ON.includes(pathname);
   const isCartPage = pathname === "/cart" || pathname === "/checkout/success";
   const isAdmin = user?.role === "admin";
-
-  const closeMenu = useCallback(() => {
-    setOpen(false);
-  }, []);
-
-  useCloseOnNav(closeMenu);
 
   if (hideHeader) return null;
 
@@ -66,15 +66,10 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
       ? user.name.trim().charAt(0).toUpperCase()
       : (user?.email?.charAt(0)?.toUpperCase() ?? null);
 
-  const userLastName =
-    typeof user?.lastName === "string" && user.lastName.trim() !== ""
-      ? user.lastName.trim().charAt(0).toUpperCase()
-      : "";
-
   const showTooltip = mounted && !isSessionLoading && !user;
   const accountTooltip = showTooltip ? "Iniciar sesión" : undefined;
 
-  const favoritosUrl = user ? `/account/favorites` : `/auth/login`;
+  const favoritosUrl = user ? `/account/favoritos` : `/auth/login`;
 
   function handleAccountClick() {
     if (isSessionLoading) return;
@@ -94,192 +89,187 @@ export function Header({ categories }: { categories: CategoryLink[] }) {
     await signOut({ callbackUrl: "/" });
   }
 
-  const logo = (
-    <Link
-      href="/"
-      className="mx-2 flex justify-self-center px-2 text-3xl font-semibold focus:outline-none"
-    >
-      Logo lsb
-    </Link>
-  );
-
   return (
     <>
       <header
-        ref={safeRef}
-        className="mx-auto w-full z-[100] sticky top-0 h-[var(--header-h)] grid grid-cols-[1fr_auto_1fr] items-center bg-background border-b px-4"
+        className="sticky top-0 z-[100] w-screen h-[var(--header-h)] grid grid-cols-[1fr_auto_1fr] items-center bg-background border-b pl-2 sm:pl-4"
+        style={{ paddingRight: "calc(1rem + var(--sw, 0px))" }}
       >
-        <div className="flex justify-self-start items-center h-full content-center">
-          <Sheet open={open} onOpenChange={setOpen} modal={false}>
-            <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                className="relative px-2"
-                aria-label="Menu"
-              >
-                <RiMenu2Line
-                  className={`size-6 transition-all duration-300 ease-in-out ${
-                    open ? "scale-0 opacity-0" : "scale-100 opacity-100"
-                  }`}
-                />
-                <CgClose
-                  className={`absolute size-6 transition-all duration-300 ease-in-out ${
-                    open ? "scale-100 opacity-100" : "scale-0 opacity-0"
-                  }`}
-                />
-              </Button>
-            </SheetTrigger>
+        <div className="flex justify-self-start items-center h-full">
+          {/* MENU TRIGGER */}
+          <Button
+            variant="ghost"
+            className="relative px-2"
+            aria-label="Menu"
+            aria-controls={SHEET_ID}
+            aria-expanded={open}
+            onClick={() => setOpen((prev) => !prev)}
+          >
+            <RiMenu2Line
+              className={`size-6 transition-all duration-300 ease-in-out ${
+                open ? "scale-0 opacity-0" : "scale-100 opacity-100"
+              }`}
+            />
+            <CgClose
+              className={`absolute size-6 transition-all duration-300 ease-in-out ${
+                open ? "scale-100 opacity-100" : "scale-0 opacity-0"
+              }`}
+            />
+          </Button>
 
+          <Sheet open={open} onOpenChange={setOpen} modal={false}>
             <SheetContent
               id={SHEET_ID}
               side="left"
-              className="w-[min(360px,92vw)] sm:w-[360px] lg:w-[400px] outline-none"
+              className="w-full sm:w-[360px] lg:w-[400px] outline-none"
               onEscapeKeyDown={() => setOpen(false)}
+              onInteractOutside={(e) => e.preventDefault()}
             >
               <div className="overflow-y-auto h-full focus:outline-none">
                 <SheetTitle className="hidden">Menu</SheetTitle>
-                <SiteSidebar categories={categories} />
+                <SiteSidebar
+                  categories={categories}
+                  maxDiscount={maxDiscount}
+                  onNavigate={closeMenu}
+                />
               </div>
             </SheetContent>
           </Sheet>
         </div>
 
         {/*------------- LOGO ------------- */}
-        {logo}
+        <Link
+          href="/"
+          className="mx-2 flex justify-self-center px-2 focus:outline-none"
+          aria-label="LSB Shop — Inicio"
+        >
+          <Image
+            src="/images/logo.png"
+            alt="LSB Shop"
+            width={260}
+            height={88}
+            priority
+            className="h-7 w-auto object-contain dark:invert"
+          />
+        </Link>
 
         {/*------------- NAV ------------- */}
-        <nav className="justify-self-end h-full flex items-center gap-3 text-sm">
-          <div
-            className={
-              hideHeader
-                ? "hidden"
-                : "hidden sm:flex items-center gap-1 border-b border-neutral-500"
-            }
-          >
-            <IoSearch className="size-[20px]" />
-            <input
-              type="search"
-              placeholder="Buscar"
-              className="px-1 outline-none w-[200px]"
-            />
+        <nav className="justify-self-end h-full flex items-center gap-1 text-sm">
+          <div className="flex items-center">
+            <SearchSheet open={searchOpen} onOpenChange={setSearchOpen} />
           </div>
 
-          <div className="flex gap-1 relative items-center h-full">
-            {/* WRAPPER para Hover en Desktop */}
-            <div
-              className={
-                hideHeader ? "hidden" : "relative flex items-center h-full"
-              }
-              onMouseEnter={() => {
-                if (user) setAccountMenuOpen(true);
-              }}
-              onMouseLeave={() => setAccountMenuOpen(false)}
+          {/* WRAPPER para Hover en Desktop */}
+          <div
+            className="relative flex items-center h-full"
+            onMouseEnter={() => {
+              if (user) setAccountMenuOpen(true);
+            }}
+            onMouseLeave={() => setAccountMenuOpen(false)}
+          >
+            <Button
+              type="button"
+              variant={"ghost"}
+              className={`${
+                showTooltip ? "tip-bottom" : ""
+              } hover:cursor-pointer relative z-20`}
+              data-tip={accountTooltip}
+              aria-label={user ? "Mi cuenta" : "Iniciar sesión"}
+              onClick={handleAccountClick}
+              size={"icon-lg"}
             >
-              <Button
-                type="button"
-                variant={"ghost"}
-                className={`${
-                  showTooltip ? "tip-bottom" : ""
-                } hover:cursor-pointer relative z-20`}
-                data-tip={accountTooltip}
-                aria-label={user ? "Mi cuenta" : "Iniciar sesión"}
-                onClick={handleAccountClick}
-                size={"icon-lg"}
-              >
-                {userInitial ? (
-                  <span className="flex h-[24px] pt-[0.5px] w-[24px] items-center justify-center rounded-full border-2 border-foreground text-[12px] font-semibold bg-background">
-                    {userInitial}
-                    {userLastName}
-                  </span>
-                ) : (
-                  <FaRegUser className="size-[1.375rem]" aria-hidden="true" />
-                )}
-              </Button>
+              {userInitial ? (
+                <span className="flex size-6 items-center justify-center rounded-full border-2 border-foreground text-sm font-bold bg-background">
+                  {userInitial}
+                </span>
+              ) : (
+                <FaRegUser className="size-6" aria-hidden="true" />
+              )}
+            </Button>
 
-              {/* MENÚ FLOTANTE */}
-              {user && accountMenuOpen && (
-                <div className="hidden sm:block absolute right-0 top-[calc(100%-20px)] pt-4 w-72 z-[100] animate-in fade-in zoom-in-95 duration-200">
-                  <div className="rounded-xs border bg-popover shadow-xl overflow-hidden px-2">
-                    {/* Cabecera del menú */}
-                    <div className="p-4 border-b flex items-center gap-3">
-                      <div className="flex-1 overflow-hidden">
-                        <p className="text-sm font-semibold truncate text-foreground">
-                          {user.name || "Usuario"}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {user.email}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Opciones de navegación */}
-                    <div className="space-y-1 py-2">
-                      <Link
-                        href="/account"
-                        className="flex items-center gap-2 p-2.5 text-sm font-medium rounded-xs hover:bg-neutral-100 active:bg-neutral-100 transition-colors text-foreground hover:text-foreground"
-                        onClick={() => setAccountMenuOpen(false)}
-                      >
-                        <FaUser className="size-4 text-foreground" />
-                        Mi cuenta
-                      </Link>
-                      <Link
-                        href="/account/orders"
-                        className="flex items-center gap-2 p-2.5 text-sm font-medium rounded-xs hover:bg-neutral-100 active:bg-neutral-100 transition-colors text-foreground hover:text-foreground"
-                        onClick={() => setAccountMenuOpen(false)}
-                      >
-                        <FaBoxOpen className="size-4 text-foreground" />
-                        Mis pedidos
-                      </Link>
-                      <Link
-                        href="/account/addresses"
-                        className="flex items-center gap-2 p-2.5 text-sm font-medium rounded-xs hover:bg-neutral-100 active:bg-neutral-100 transition-colors text-foreground hover:text-foreground"
-                        onClick={() => setAccountMenuOpen(false)}
-                      >
-                        <FaMapLocationDot className="size-4 text-foreground" />
-                        Mis Direcciones
-                      </Link>
-                    </div>
-
-                    {/* Footer acciones */}
-                    <div className="py-2 border-t">
-                      <button
-                        type="button"
-                        onClick={handleSignOut}
-                        className="flex w-full hover:cursor-pointer items-center gap-3 p-2.5 text-sm font-medium rounded-xs text-red-600 hover:bg-red-50 active:bg-red-50 transition-colors"
-                      >
-                        <FaSignOutAlt className="size-4" />
-                        Cerrar sesión
-                      </button>
+            {/* MENÚ FLOTANTE */}
+            {user && accountMenuOpen && (
+              <div className="hidden sm:block absolute -right-20 top-[calc(100%-4px)] w-72 z-[100] animate-in fade-in zoom-in-95 duration-200">
+                <div className="rounded-xs border bg-popover shadow-xl overflow-hidden px-2">
+                  {/* Cabecera del menú */}
+                  <div className="p-4 border-b flex items-center gap-3">
+                    <div className="flex-1 overflow-hidden">
+                      <p className="text-sm font-semibold truncate text-foreground">
+                        {user.name || "Usuario"}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {user.email}
+                      </p>
                     </div>
                   </div>
+
+                  {/* Opciones de navegación */}
+                  <div className="space-y-1 py-2">
+                    <Link
+                      href="/account"
+                      className="flex items-center gap-2 p-2.5 text-sm font-medium rounded-xs hover:bg-neutral-100 active:bg-neutral-100 transition-colors text-foreground hover:text-foreground"
+                      onClick={() => setAccountMenuOpen(false)}
+                    >
+                      <FaUser className="size-4 text-foreground" />
+                      Mi cuenta
+                    </Link>
+                    <Link
+                      href="/account/orders"
+                      className="flex items-center gap-2 p-2.5 text-sm font-medium rounded-xs hover:bg-neutral-100 active:bg-neutral-100 transition-colors text-foreground hover:text-foreground"
+                      onClick={() => setAccountMenuOpen(false)}
+                    >
+                      <FaBoxOpen className="size-4 text-foreground" />
+                      Mis pedidos
+                    </Link>
+                    <Link
+                      href="/account/addresses"
+                      className="flex items-center gap-2 p-2.5 text-sm font-medium rounded-xs hover:bg-neutral-100 active:bg-neutral-100 transition-colors text-foreground hover:text-foreground"
+                      onClick={() => setAccountMenuOpen(false)}
+                    >
+                      <FaMapLocationDot className="size-4 text-foreground" />
+                      Mis Direcciones
+                    </Link>
+                  </div>
+
+                  {/* Footer acciones */}
+                  <div className="py-2 border-t">
+                    <button
+                      type="button"
+                      onClick={handleSignOut}
+                      className="flex w-full hover:cursor-pointer items-center gap-3 p-2.5 text-sm font-medium rounded-xs text-red-600 hover:bg-red-50 active:bg-red-50 transition-colors"
+                    >
+                      <FaSignOutAlt className="size-4" />
+                      Cerrar sesión
+                    </button>
+                  </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
+          </div>
 
-            <div>
-              <Link
-                href={favoritosUrl}
-                className="relative tip-bottom items-center rounded-xs p-2.5 hover:bg-neutral-100 active:bg-neutral-100 transition-colors text-foreground"
-                data-tip="Favoritos"
-                aria-label="Favoritos"
-              >
-                <FaRegHeart className="size-5 text-foreground" />
-              </Link>
-            </div>
-
-            <div
-              style={isCartPage ? { pointerEvents: "none" } : undefined}
-              aria-disabled={isCartPage}
-              aria-hidden={isCartPage}
-              className={isCartPage ? "hidden" : ""}
+          <div className="hidden sm:flex">
+            <Link
+              href={favoritosUrl}
+              className="relative tip-bottom items-center rounded-xs p-2.5 hover:bg-neutral-100 active:bg-neutral-100 transition-colors text-foreground"
+              data-tip="Favoritos"
+              aria-label="Favoritos"
             >
-              <CartButtonWithSheet />
-            </div>
+              <FaRegHeart className="size-5 text-foreground" />
+            </Link>
+          </div>
+
+          <div
+            style={isCartPage ? { pointerEvents: "none" } : undefined}
+            aria-disabled={isCartPage}
+            aria-hidden={isCartPage}
+            className={isCartPage ? "hidden" : ""}
+          >
+            <CartButtonWithSheet />
           </div>
 
           {isAdmin && (
             <Button asChild variant={"default"} className="text-base">
-              <Link href="/admin" className="px-4 text-base">
+              <Link href="/admin" className="px-4 text-base ml-1">
                 Admin
               </Link>
             </Button>

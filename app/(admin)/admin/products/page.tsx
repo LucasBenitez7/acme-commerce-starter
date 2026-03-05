@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { FaPlus } from "react-icons/fa6";
 
-import { PaginationNav } from "@/components/catalog/PaginationNav";
+import { PaginationNav } from "@/components/catalog/grid/PaginationNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 
 import { getAdminProducts, getMaxPrice } from "@/lib/products/queries";
@@ -21,6 +21,7 @@ type Props = {
     max?: string;
     q?: string;
     page?: string;
+    on_sale?: string;
   }>;
 };
 
@@ -45,6 +46,7 @@ export default async function AdminProductsPage({ searchParams }: Props) {
 
   const minCents = parseCents(sp.min);
   const maxCents = parseCents(sp.max);
+  const onSale = sp.on_sale === "true";
 
   // Queries
   const [productsData, globalMaxPrice] = await Promise.all([
@@ -56,6 +58,7 @@ export default async function AdminProductsPage({ searchParams }: Props) {
       status,
       minPrice: minCents,
       maxPrice: maxCents,
+      onSale,
     }),
     getMaxPrice(),
   ]);
@@ -68,11 +71,11 @@ export default async function AdminProductsPage({ searchParams }: Props) {
   return (
     <div className="space-y-4">
       <div className="flex sm:flex-row sm:items-center justify-between gap-4 border-b pb-2">
-        <h1 className="text-2xl font-bold tracking-tight">Productos</h1>
+        <h1 className="text-2xl lg:text-3xl font-semibold">Productos</h1>
 
         <Link
           href="/admin/products/new"
-          className="flex items-center font-medium gap-2 bg-foreground text-background py-2 px-3 rounded-xs text-sm"
+          className="flex items-center font-medium gap-2 bg-foreground text-background py-2 px-3 rounded-xs text-sm hover:bg-foreground/80 transition-colors"
         >
           <FaPlus className="size-4" /> Añadir producto
         </Link>
@@ -104,13 +107,13 @@ export default async function AdminProductsPage({ searchParams }: Props) {
       </div>
 
       <Card>
-        <CardHeader className="p-4 border-b flex flex-col sm:flex-row sm:items-center items-start justify-between gap-3 sm:gap-4">
-          <CardTitle className="text-lg text-left font-semibold">
+        <CardHeader className="p-4 border-b flex flex-col md:flex-row md:items-center items-start justify-between gap-2 md:gap-5">
+          <CardTitle className="flex items-center gap-1 text-lg font-semibold w-fit">
             {isArchivedView ? "Papelera" : "Total"}{" "}
             <span className="text-base">({totalCount})</span>
           </CardTitle>
 
-          <div className="w-full sm:w-auto">
+          <div className="w-full">
             <ProductListToolbar
               categories={allCategories}
               globalMaxPrice={globalMaxPrice}

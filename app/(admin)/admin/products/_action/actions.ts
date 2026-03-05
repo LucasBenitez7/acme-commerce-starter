@@ -43,8 +43,10 @@ export async function upsertProductAction(
       name: formData.get("name"),
       description: formData.get("description"),
       priceCents: Number(formData.get("priceCents")),
+      compareAtPrice: Number(formData.get("compareAtPrice")) || null,
       categoryId: formData.get("categoryId"),
       isArchived: formData.get("isArchived") === "true",
+      sortOrder: Number(formData.get("sortOrder")) || null,
       slug: formData.get("slug") || undefined,
       images: safeJsonParse(String(formData.get("imagesJson")), []),
       variants: safeJsonParse(String(formData.get("variantsJson")), []),
@@ -76,6 +78,10 @@ export async function upsertProductAction(
 
   revalidatePath("/admin/products");
   revalidatePath("/catalogo");
+  revalidatePath("/cat", "layout");
+  revalidatePath("/product", "layout");
+  revalidatePath("/novedades");
+  revalidatePath("/rebajas");
   redirect("/admin/products");
 }
 
@@ -93,6 +99,10 @@ export async function toggleProductArchive(
 
     revalidatePath("/admin/products");
     revalidatePath("/catalogo");
+    revalidatePath("/cat", "layout");
+    revalidatePath("/product", "layout");
+    revalidatePath("/novedades");
+    revalidatePath("/rebajas");
 
     return { success: true };
   } catch (error) {
@@ -118,10 +128,50 @@ export async function deleteProductAction(productId: string) {
       };
     }
 
+    // 1. Obtener las imágenes del producto antes de borrarlo
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      include: { images: true },
+    });
+
+    if (!product) {
+      return { error: "Producto no encontrado" };
+    }
+
+    // 2. Borrar el producto (las imágenes se borran automáticamente por onDelete: Cascade)
     await prisma.product.delete({ where: { id: productId } });
+
+    // 3. Borrar imágenes de Cloudinary (en segundo plano, no bloqueante)
+    if (product.images.length > 0) {
+      const imageUrls = product.images.map((img) => img.url);
+      // Importar dinámicamente para evitar errores si no está configurado
+      import("@/lib/cloudinary/utils")
+        .then(({ deleteImagesFromCloudinary }) => {
+          deleteImagesFromCloudinary(imageUrls).then((result) => {
+            if (result.deleted > 0) {
+              console.log(
+                `✓ Borradas ${result.deleted} imágenes de Cloudinary para producto ${productId}`,
+              );
+            }
+            if (result.errors.length > 0) {
+              console.warn(
+                "Errores al borrar algunas imágenes:",
+                result.errors,
+              );
+            }
+          });
+        })
+        .catch((err) => {
+          console.warn("No se pudieron borrar imágenes de Cloudinary:", err);
+        });
+    }
 
     revalidatePath("/admin/products");
     revalidatePath("/catalogo");
+    revalidatePath("/cat", "layout");
+    revalidatePath("/product", "layout");
+    revalidatePath("/novedades");
+    revalidatePath("/rebajas");
 
     return { success: true };
   } catch (error: any) {

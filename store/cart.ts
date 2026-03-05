@@ -12,6 +12,7 @@ export type CartItem = {
   size: string;
   quantity: number;
   maxStock: number;
+  compareAtPrice?: number;
 };
 
 type RemovedItemEntry = {
@@ -33,6 +34,8 @@ interface CartState {
   closeCart: () => void;
   toggleCart: () => void;
   getTotalPrice: () => number;
+  getOriginalTotalPrice: () => number;
+  getSavings: () => number;
   getTotalItems: () => number;
   dismissLastRemovedItem: () => void;
   syncMaxStock: (variantId: string, newMaxStock: number) => void;
@@ -133,6 +136,21 @@ export const useCartStore = create<CartState>()(
           (total, item) => total + item.price * item.quantity,
           0,
         );
+      },
+      getOriginalTotalPrice: () => {
+        return get().items.reduce((total, item) => {
+          const originalPrice =
+            item.compareAtPrice && item.compareAtPrice > item.price
+              ? item.compareAtPrice
+              : item.price;
+          return total + originalPrice * item.quantity;
+        }, 0);
+      },
+      getSavings: () => {
+        const state = get();
+        const originalTotal = state.getOriginalTotalPrice();
+        const finalTotal = state.getTotalPrice();
+        return originalTotal - finalTotal;
       },
       getTotalItems: () => {
         return get().items.reduce((total, item) => total + item.quantity, 0);

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { FaPlus } from "react-icons/fa6";
 
-import { PaginationNav } from "@/components/catalog/PaginationNav";
+import { PaginationNav } from "@/components/catalog/grid/PaginationNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { getAdminCategories } from "@/lib/categories/queries";
@@ -36,7 +36,7 @@ export default async function AdminCategoriesPage({ searchParams }: Props) {
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-2">
-        <h1 className="text-2xl font-semibold">Categorías</h1>
+        <h1 className="text-2xl lg:text-3xl font-semibold">Categorías</h1>
         <Link
           href="/admin/categories/new"
           className="flex items-center font-medium gap-2 bg-foreground text-white hover:bg-foreground/80 transition-colors py-2 px-3 rounded-xs text-sm"
@@ -46,12 +46,12 @@ export default async function AdminCategoriesPage({ searchParams }: Props) {
       </div>
 
       <Card>
-        <CardHeader className="p-4 border-b flex flex-col sm:flex-row sm:items-center items-start justify-between gap-3 sm:gap-4">
-          <CardTitle className="text-lg font-semibold">
+        <CardHeader className="p-4 border-b flex flex-col md:flex-row md:items-center items-start justify-between gap-2 md:gap-5">
+          <CardTitle className="flex items-center gap-1 text-lg font-semibold w-fit">
             Total <span className="text-base">({totalCount})</span>
           </CardTitle>
 
-          <div className="w-full sm:w-auto">
+          <div className="w-full">
             <CategoryListToolbar />
           </div>
         </CardHeader>
