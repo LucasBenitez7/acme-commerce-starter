@@ -14,11 +14,13 @@
   <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" /></a>
   <a href="https://stripe.com"><img src="https://img.shields.io/badge/Stripe-Payments-635BFF?style=for-the-badge&logo=stripe&logoColor=white" alt="Stripe" /></a>
   <a href="https://www.prisma.io"><img src="https://img.shields.io/badge/Prisma-ORM-2D3748?style=for-the-badge&logo=prisma&logoColor=white" alt="Prisma" /></a>
+  <a href="https://vitest.dev"><img src="https://img.shields.io/badge/Vitest-Unit_Tests-6E9F18?style=for-the-badge&logo=vitest&logoColor=white" alt="Vitest" /></a>
+  <a href="https://playwright.dev"><img src="https://img.shields.io/badge/Playwright-E2E-45ba4b?style=for-the-badge&logo=playwright&logoColor=white" alt="Playwright" /></a>
   <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="MIT License" />
 </p>
 
 <p align="center">
-  Plataforma de comercio electrónico lista para producción con catálogo de productos, carrito, checkout completo, pagos con Stripe, panel de administración y sistema de cuentas de usuario.
+  Plataforma de comercio electrónico lista para producción con catálogo de productos, carrito, checkout completo, pagos con Stripe, panel de administración, sistema de cuentas de usuario y suite de tests completa (unit + E2E).
 </p>
 
 ---
@@ -31,7 +33,9 @@
 - [🚀 Instalación y puesta en marcha](#-instalación-y-puesta-en-marcha)
 - [⚙️ Variables de entorno](#️-variables-de-entorno)
 - [🗄️ Base de datos](#️-base-de-datos)
-- [🧪 Scripts disponibles](#-scripts-disponibles)
+- [🧪 Testing](#-testing)
+- [📜 Scripts disponibles](#-scripts-disponibles)
+- [🤖 CI/CD](#-cicd)
 - [🗂️ Estructura del proyecto](#️-estructura-del-proyecto)
 - [☁️ Despliegue](#️-despliegue)
 - [📄 Licencia](#-licencia)
@@ -64,6 +68,7 @@
 - Seguimiento de estado de pedidos en tiempo real
 - Sistema de devoluciones
 - Acceso para invitados mediante OTP por email
+- Expiración automática de pedidos pendientes (cron job)
 
 ### 🔧 Panel de Administración
 
@@ -78,24 +83,32 @@
 - Confirmación y actualización de pedidos
 - Plantillas con **React Email** + **Resend**
 
+### 🧪 Testing
+
+- **Tests unitarios e integración** con Vitest + Testing Library + coverage con v8
+- **Tests E2E** con Playwright: autenticación, carrito, checkout, admin, devoluciones
+- **CI completo** en GitHub Actions con 3 etapas: lint/typecheck → tests → E2E
+
 ---
 
 ## 🧱 Stack tecnológico
 
-| Categoría         | Tecnología                                                                                                                        |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Framework**     | [Next.js 15](https://nextjs.org) (App Router + Turbopack)                                                                         |
-| **UI**            | [React 19](https://react.dev), TypeScript 5                                                                                       |
-| **Estilos**       | [Tailwind CSS v4](https://tailwindcss.com), [Radix UI](https://www.radix-ui.com), [Framer Motion](https://www.framer.com/motion/) |
-| **Base de datos** | PostgreSQL + [Prisma ORM](https://www.prisma.io)                                                                                  |
-| **Auth**          | [NextAuth.js v5](https://authjs.dev) + Prisma Adapter                                                                             |
-| **Pagos**         | [Stripe](https://stripe.com)                                                                                                      |
-| **Imágenes**      | [Cloudinary](https://cloudinary.com)                                                                                              |
-| **Emails**        | [Resend](https://resend.com) + React Email                                                                                        |
-| **Estado global** | [Zustand](https://zustand-demo.pmnd.rs)                                                                                           |
-| **Formularios**   | [React Hook Form](https://react-hook-form.com) + [Zod](https://zod.dev)                                                           |
-| **Carrusel**      | [Embla Carousel](https://www.embla-carousel.com)                                                                                  |
-| **Linting**       | ESLint 9, Prettier, Husky + lint-staged                                                                                           |
+| Categoría           | Tecnología                                                                                                                        |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Framework**       | [Next.js 15](https://nextjs.org) (App Router + Turbopack)                                                                         |
+| **UI**              | [React 19](https://react.dev), TypeScript 5                                                                                       |
+| **Estilos**         | [Tailwind CSS v4](https://tailwindcss.com), [Radix UI](https://www.radix-ui.com), [Framer Motion](https://www.framer.com/motion/) |
+| **Base de datos**   | PostgreSQL + [Prisma ORM](https://www.prisma.io)                                                                                  |
+| **Auth**            | [NextAuth.js v5](https://authjs.dev) + Prisma Adapter                                                                             |
+| **Pagos**           | [Stripe](https://stripe.com)                                                                                                      |
+| **Imágenes**        | [Cloudinary](https://cloudinary.com)                                                                                              |
+| **Emails**          | [Resend](https://resend.com) + React Email                                                                                        |
+| **Estado global**   | [Zustand](https://zustand-demo.pmnd.rs)                                                                                           |
+| **Formularios**     | [React Hook Form](https://react-hook-form.com) + [Zod](https://zod.dev)                                                           |
+| **Carrusel**        | [Embla Carousel](https://www.embla-carousel.com)                                                                                  |
+| **Tests unitarios** | [Vitest](https://vitest.dev) + [Testing Library](https://testing-library.com) + [MSW](https://mswjs.io)                           |
+| **Tests E2E**       | [Playwright](https://playwright.dev)                                                                                              |
+| **Linting**         | ESLint 9, Prettier, Husky + lint-staged                                                                                           |
 
 ---
 
@@ -103,9 +116,10 @@
 
 Antes de empezar, asegúrate de tener instalado:
 
-- **Node.js** `v18+` (recomendado `v20+`) — [descargar](https://nodejs.org)
+- **Node.js** `v22+` — [descargar](https://nodejs.org)
 - **pnpm** `v10+` — gestor de paquetes
-- **PostgreSQL** — local o un servicio cloud como [Neon](https://neon.tech) o [Supabase](https://supabase.com)
+- **Docker Desktop** — para la base de datos local y los tests
+- **PostgreSQL** — local (via Docker) o servicio cloud como [Neon](https://neon.tech) o [Supabase](https://supabase.com)
 - Una cuenta de **Stripe** (modo test para desarrollo)
 - Una cuenta de **Cloudinary** (plan gratuito suficiente para empezar)
 - Una cuenta de **Resend** (plan gratuito suficiente para empezar)
@@ -132,6 +146,8 @@ cd acme-commerce-starter
 pnpm install
 ```
 
+> El `postinstall` ejecuta `prisma generate` automáticamente.
+
 ### 3. Configurar variables de entorno
 
 ```bash
@@ -143,9 +159,6 @@ Edita `.env.local` con tus credenciales. Consulta la sección [⚙️ Variables 
 ### 4. Configurar la base de datos
 
 ```bash
-# Generar el cliente de Prisma
-pnpm db:generate
-
 # Ejecutar migraciones (crea las tablas en tu BD)
 pnpm db:migrate
 
@@ -182,13 +195,14 @@ La aplicación estará disponible en **[http://localhost:3000](http://localhost:
 | ------------------------------ | --------------------------------------------------- | --------- |
 | `NEXT_PUBLIC_SITE_URL`         | URL pública del sitio (ej: `http://localhost:3000`) | ✅ Sí     |
 | `NEXT_PUBLIC_DEFAULT_CURRENCY` | Moneda por defecto (ej: `EUR`, `USD`)               | ✅ Sí     |
-| `APP_ENV`                      | Entorno (`development` o `production`)              | ✅ Sí     |
+| `APP_ENV`                      | Entorno (`development`, `test` o `production`)      | ✅ Sí     |
 
 ### Autenticación (NextAuth.js)
 
 | Variable             | Descripción                                       | Requerido      |
 | -------------------- | ------------------------------------------------- | -------------- |
 | `AUTH_SECRET`        | Secreto para NextAuth (`openssl rand -base64 32`) | ✅ Sí          |
+| `AUTH_URL`           | URL base de la app para NextAuth                  | ✅ Sí          |
 | `ADMIN_EMAILS`       | Emails con acceso admin, separados por coma       | ⚠️ Recomendado |
 | `AUTH_GITHUB_ID`     | Client ID de tu GitHub OAuth App                  | ➕ Opcional    |
 | `AUTH_GITHUB_SECRET` | Client Secret de tu GitHub OAuth App              | ➕ Opcional    |
@@ -214,6 +228,7 @@ La aplicación estará disponible en **[http://localhost:3000](http://localhost:
 | -------------------------------------- | -------------------------------------- | --------- |
 | `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`    | Cloud name de tu cuenta Cloudinary     | ✅ Sí     |
 | `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` | Upload preset (modo unsigned)          | ✅ Sí     |
+| `NEXT_PUBLIC_CLOUDINARY_API_KEY`       | API Key pública de Cloudinary          | ✅ Sí     |
 | `CLOUDINARY_API_KEY`                   | API Key de Cloudinary (server-side)    | ✅ Sí     |
 | `CLOUDINARY_API_SECRET`                | API Secret de Cloudinary (server-side) | ✅ Sí     |
 
@@ -224,7 +239,7 @@ La aplicación estará disponible en **[http://localhost:3000](http://localhost:
 | `DATABASE_URL` | Connection string de PostgreSQL            | ✅ Sí            |
 | `CRON_SECRET`  | Secreto para autorizar cron jobs de Vercel | ⚠️ En producción |
 
-> Ver `.env.example` para la lista completa de variables con valores de ejemplo.
+> Ver `.env.example` para la lista completa con valores de ejemplo.
 
 ---
 
@@ -239,8 +254,14 @@ pnpm db:migrate
 # Aplicar migraciones en producción (sin prompt)
 pnpm db:deploy
 
+# Regenerar el cliente de Prisma tras cambios de schema
+pnpm db:generate
+
 # Abrir Prisma Studio — interfaz visual para explorar/editar datos
 pnpm db:studio
+
+# Poblar la BD con datos iniciales (categorías, tallas, colores, etc.)
+pnpm db:seed
 
 # Resetear la BD y volver a aplicar el seed (¡elimina todos los datos!)
 pnpm db:reset
@@ -256,22 +277,201 @@ pnpm db:reset
 
 ---
 
-## 🧪 Scripts disponibles
+## 🧪 Testing
 
-| Script             | Descripción                             |
-| ------------------ | --------------------------------------- |
-| `pnpm dev`         | Servidor de desarrollo con Turbopack    |
-| `pnpm build`       | Build de producción                     |
-| `pnpm start`       | Servidor de producción (requiere build) |
-| `pnpm lint`        | Análisis estático con ESLint            |
-| `pnpm typecheck`   | Verificación de tipos con TypeScript    |
-| `pnpm format`      | Formateo de código con Prettier         |
-| `pnpm db:generate` | Regenerar el cliente de Prisma          |
-| `pnpm db:migrate`  | Crear y ejecutar migraciones            |
-| `pnpm db:deploy`   | Aplicar migraciones en producción       |
-| `pnpm db:seed`     | Poblar la BD con datos iniciales        |
-| `pnpm db:studio`   | Abrir Prisma Studio                     |
-| `pnpm db:reset`    | Resetear BD + volver a aplicar seed     |
+El proyecto cuenta con una suite de tests completa dividida en dos niveles.
+
+### Tests unitarios e integración (Vitest)
+
+Usa **Vitest** con **jsdom** como entorno, **Testing Library** para render de componentes y **MSW** para mockear peticiones HTTP.
+
+```bash
+# Ejecutar todos los tests una sola vez
+pnpm test:run
+
+# Modo watch (re-ejecuta al guardar)
+pnpm test:watch
+
+# Con UI interactiva en el navegador
+pnpm test:ui
+
+# Generar reporte de cobertura (texto + JSON + HTML)
+pnpm test:coverage
+```
+
+El reporte de cobertura se genera en la carpeta `coverage/`. Abre `coverage/index.html` en el navegador para verlo en detalle.
+
+La configuración excluye automáticamente `node_modules`, `.next`, `e2e`, `prisma` y archivos de configuración del análisis de cobertura.
+
+### Tests E2E (Playwright)
+
+Los tests E2E arrancan la aplicación con Next.js y validan flujos reales contra una base de datos de test aislada.
+
+**Flujos cubiertos:**
+
+- `auth.spec.ts` — Registro, login, logout y acceso protegido
+- `cart-checkout.spec.ts` — Añadir al carrito y proceso de checkout (usuario autenticado)
+- `admin-product.spec.ts` — CRUD completo de productos en el panel admin
+- `admin-orders.spec.ts` — Gestión de pedidos en el panel admin
+- `returns.spec.ts` — Solicitud y gestión de devoluciones
+
+**Proyectos de Playwright configurados:**
+
+- `setup` — Autenticación guardada en storage state (usuario y admin)
+- `chromium` — Tests públicos sin autenticación
+- `chromium-user` — Tests con sesión de usuario normal
+- `chromium-admin` — Tests con sesión de administrador
+
+#### Puesta en marcha de los tests E2E
+
+**1. Crear el archivo de entorno para E2E:**
+
+```bash
+cp .env.e2e.example .env.e2e
+```
+
+Edita `.env.e2e` con las credenciales de los usuarios de prueba (`E2E_ADMIN_EMAIL`, `E2E_ADMIN_PASSWORD`, etc.).
+
+**2. Levantar la base de datos de test (Docker):**
+
+```bash
+# Levanta PostgreSQL en el puerto 5434 (aislado de desarrollo)
+pnpm db:e2e:up
+```
+
+**3. Aplicar migraciones y seed de datos E2E:**
+
+```bash
+pnpm db:e2e:migrate
+pnpm db:e2e:seed
+```
+
+O en un solo comando:
+
+```bash
+pnpm test:e2e:prepare
+```
+
+**4. Instalar los navegadores de Playwright (solo la primera vez):**
+
+```bash
+pnpm playwright install chromium
+```
+
+**5. Ejecutar los tests:**
+
+```bash
+# Modo headless (terminal)
+pnpm test:e2e
+
+# Con UI interactiva de Playwright
+pnpm test:e2e:ui
+
+# Modo debug (paso a paso)
+pnpm test:e2e:debug
+```
+
+> El servidor Next.js se levanta automáticamente antes de correr los tests y se apaga al terminar.
+
+#### Entorno de base de datos para tests
+
+El archivo `docker-compose.test.yml` levanta un contenedor PostgreSQL **efímero** en el puerto `5434` (sin volumen persistente, arranca limpio en cada ejecución):
+
+```bash
+# Levantar
+pnpm db:e2e:up
+
+# Apagar y eliminar contenedor
+pnpm db:e2e:down
+
+# Resetear datos E2E sin apagar el contenedor
+pnpm db:e2e:reset
+```
+
+---
+
+## 📜 Scripts disponibles
+
+### Desarrollo
+
+| Script           | Descripción                             |
+| ---------------- | --------------------------------------- |
+| `pnpm dev`       | Servidor de desarrollo con Turbopack    |
+| `pnpm build`     | Build de producción                     |
+| `pnpm start`     | Servidor de producción (requiere build) |
+| `pnpm lint`      | Análisis estático con ESLint            |
+| `pnpm typecheck` | Verificación de tipos con TypeScript    |
+| `pnpm format`    | Formateo de código con Prettier         |
+
+### Base de datos
+
+| Script             | Descripción                                    |
+| ------------------ | ---------------------------------------------- |
+| `pnpm db:generate` | Regenerar el cliente de Prisma                 |
+| `pnpm db:migrate`  | Crear y ejecutar migraciones (desarrollo)      |
+| `pnpm db:deploy`   | Aplicar migraciones en producción (sin prompt) |
+| `pnpm db:seed`     | Poblar la BD con datos iniciales               |
+| `pnpm db:studio`   | Abrir Prisma Studio                            |
+| `pnpm db:reset`    | Resetear BD + volver a aplicar seed            |
+
+### Tests unitarios
+
+| Script               | Descripción                                         |
+| -------------------- | --------------------------------------------------- |
+| `pnpm test:run`      | Ejecutar todos los tests una vez                    |
+| `pnpm test:watch`    | Modo watch (re-ejecuta al guardar)                  |
+| `pnpm test:ui`       | Interfaz visual de Vitest en el navegador           |
+| `pnpm test:coverage` | Tests con reporte de cobertura (HTML + JSON + text) |
+
+### Tests E2E
+
+| Script                  | Descripción                                          |
+| ----------------------- | ---------------------------------------------------- |
+| `pnpm test:e2e`         | Ejecutar todos los tests E2E (headless)              |
+| `pnpm test:e2e:ui`      | Interfaz visual de Playwright                        |
+| `pnpm test:e2e:debug`   | Modo debug paso a paso                               |
+| `pnpm test:e2e:prepare` | Levantar BD test + migraciones + seed (todo en uno)  |
+| `pnpm db:e2e:up`        | Levantar contenedor PostgreSQL de test (puerto 5434) |
+| `pnpm db:e2e:down`      | Apagar y eliminar el contenedor de test              |
+| `pnpm db:e2e:migrate`   | Aplicar migraciones sobre la BD de test              |
+| `pnpm db:e2e:seed`      | Seed de datos para E2E                               |
+| `pnpm db:e2e:reset`     | Resetear datos E2E sin apagar el contenedor          |
+
+---
+
+## 🤖 CI/CD
+
+El pipeline de **GitHub Actions** (`.github/workflows/ci.yml`) se ejecuta en cada push y PR con 3 etapas secuenciales:
+
+```
+Lint & Typecheck → Unit & Integration Tests → E2E Tests
+```
+
+### Etapa 1 — Lint & Typecheck
+
+- ESLint sobre todo el código
+- TypeScript `tsc --noEmit`
+
+### Etapa 2 — Unit & Integration Tests
+
+- Levanta PostgreSQL 16 como servicio
+- Ejecuta migraciones sobre la BD de test
+- Corre `pnpm test:coverage`
+- Sube el reporte de cobertura como artefacto de GitHub Actions
+
+### Etapa 3 — E2E Tests
+
+- Solo se ejecuta en las ramas `main` y `development`
+- Levanta PostgreSQL 16, aplica migraciones y seed E2E
+- Hace build de producción de Next.js
+- Corre `pnpm test:e2e` con Playwright (Chromium)
+- Sube el reporte de Playwright como artefacto
+
+> Los secretos necesarios para CI se configuran en **Settings → Secrets and variables → Actions** del repositorio.
+
+### Cron Job — Expirar pedidos
+
+El workflow `.github/workflows/cron.yml` llama al endpoint `/api/cron/expire-orders` diariamente a las 00:00 UTC para marcar como expirados los pedidos pendientes de pago.
 
 ---
 
@@ -308,8 +508,24 @@ acme-commerce-starter/
 ├── prisma/
 │   ├── schema.prisma           # Modelos de la base de datos
 │   ├── migrations/             # Historial de migraciones
-│   └── seed.ts                 # Script de datos iniciales
+│   ├── seed.ts                 # Seed de desarrollo
+│   └── seed.e2e.ts             # Seed específico para tests E2E
 │
+├── __tests__/                  # Tests unitarios e integración (Vitest)
+├── e2e/                        # Tests end-to-end (Playwright)
+│   ├── auth.setup.ts           # Setup de autenticación compartida
+│   ├── auth.spec.ts            # Tests de registro y login
+│   ├── cart-checkout.spec.ts   # Tests de carrito y checkout
+│   ├── admin-product.spec.ts   # Tests de gestión de productos
+│   ├── admin-orders.spec.ts    # Tests de gestión de pedidos
+│   └── returns.spec.ts         # Tests de devoluciones
+│
+├── vitest.config.ts            # Configuración de Vitest
+├── playwright.config.ts        # Configuración de Playwright
+├── docker-compose.yml          # Servicios de desarrollo
+├── docker-compose.test.yml     # PostgreSQL aislado para tests (puerto 5434)
+├── .env.example                # Plantilla de variables de entorno
+├── .env.e2e.example            # Plantilla de variables para E2E
 └── public/                     # Assets estáticos
 ```
 
@@ -347,7 +563,7 @@ Si usas Vercel Cron, el endpoint `/api/cron/expire-orders` requiere el siguiente
 Authorization: Bearer <CRON_SECRET>
 ```
 
-Configura el cron en `vercel.json` (ya incluido en el repositorio).
+Configura el cron en `vercel.json` (ya incluido en el repositorio). El job se ejecuta diariamente a las 00:00 UTC.
 
 ---
 
@@ -358,5 +574,5 @@ Distribuido bajo la licencia **MIT**. Consulta el archivo [LICENSE](./LICENSE) p
 ---
 
 <p align="center">
-  Realizado con Next.js, Stripe y Prisma
+  Realizado con Next.js, Stripe, Prisma, Vitest y Playwright
 </p>
