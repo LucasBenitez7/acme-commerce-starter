@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FaArrowLeft, FaCircleCheck, FaClipboardList } from "react-icons/fa6";
@@ -78,9 +77,6 @@ export default async function GuestOrderPage({ params }: Props) {
               <span className="sm:inline">Volver</span>
             </Link>
           </Button>
-          <h1 className="text-xl font-bold tracking-tight sm:hidden">
-            Pedido Nº {order.id.toUpperCase()}
-          </h1>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-end gap-2 w-full sm:w-auto">

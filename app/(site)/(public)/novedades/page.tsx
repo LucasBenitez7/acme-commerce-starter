@@ -42,7 +42,7 @@ export default async function NovedadesPage({
       getPublicProducts({
         page: 1,
         limit: PER_PAGE,
-        sort: sort || { createdAt: "desc" },
+        sort: { createdAt: "desc" },
         sizes,
         colors,
         minPrice,
