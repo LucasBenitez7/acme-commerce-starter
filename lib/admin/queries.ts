@@ -82,6 +82,14 @@ export async function getDashboardStats() {
     },
   });
 
+  const preparingOrdersCount = await prisma.order.count({
+    where: {
+      paymentStatus: "PAID",
+      fulfillmentStatus: "PREPARING",
+      isCancelled: false,
+    },
+  });
+
   let grossRevenue = 0;
   let totalRefunds = 0;
   let returnedItemsCount = 0;
@@ -106,6 +114,7 @@ export async function getDashboardStats() {
     paidOrders,
     pendingOrders,
     pendingReturnsCount,
+    preparingOrdersCount,
     totalUsers,
     returnedItemsCount,
 
