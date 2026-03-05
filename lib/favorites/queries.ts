@@ -36,7 +36,6 @@ export async function getUserFavorites(): Promise<FavoriteProductItem[]> {
           images: {
             orderBy: [{ sort: "asc" }, { id: "asc" }],
             select: { url: true, color: true },
-            take: 1,
           },
           variants: {
             where: { isActive: true },

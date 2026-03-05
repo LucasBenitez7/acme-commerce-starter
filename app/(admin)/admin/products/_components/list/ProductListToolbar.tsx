@@ -43,6 +43,8 @@ export function ProductListToolbar({ categories, globalMaxPrice }: Props) {
     handleSortChange,
     handleCategoryToggle,
     handleOnSaleToggle: toggleOnSale,
+    handleOutOfStockToggle,
+    outOfStock,
     applyPriceFilter,
     clearPriceFilter,
   } = useProductFilters({ globalMaxPrice });
@@ -89,6 +91,16 @@ export function ProductListToolbar({ categories, globalMaxPrice }: Props) {
               >
                 <span className="text-sm">En Oferta</span>
                 {onSale && <FaCheck className="size-4" />}
+              </div>
+
+              <div
+                onClick={handleOutOfStockToggle}
+                className={cn(
+                  "flex items-center justify-between gap-2 py-2 px-3 rounded-xs cursor-pointer font-medium  hover:bg-neutral-100 transition-colors",
+                )}
+              >
+                <span className="text-sm">Variantes sin stock</span>
+                {outOfStock && <FaCheck className="size-4" />}
               </div>
 
               <div

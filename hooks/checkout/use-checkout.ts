@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -35,14 +35,22 @@ export function useCheckout(savedAddresses: UserAddress[]) {
     orderId: string;
   } | null>(null);
 
+  const isSubmittingRef = useRef(false);
+  const stripeDataRef = useRef<{
+    clientSecret: string;
+    orderId: string;
+  } | null>(null);
+  useEffect(() => {
+    stripeDataRef.current = stripeData;
+  }, [stripeData]);
+
   useEffect(() => {
     const savedSession = localStorage.getItem("checkout_session");
     if (savedSession) {
       try {
         const parsed = JSON.parse(savedSession);
         const now = new Date().getTime();
-        if (now - parsed.timestamp < 3600000) {
-        } else {
+        if (now - parsed.timestamp >= 3600000) {
           localStorage.removeItem("checkout_session");
         }
       } catch (e) {
@@ -78,7 +86,9 @@ export function useCheckout(savedAddresses: UserAddress[]) {
     }
   }, [selectedAddressId, shippingType, savedAddresses, setValue]);
 
-  const handleConfirmAddress = async () => {
+  const handleConfirmAddress = useCallback(async () => {
+    if (isSubmittingRef.current || stripeDataRef.current) return;
+    isSubmittingRef.current = true;
     let isValid = false;
 
     if (shippingType === "home") {
@@ -100,10 +110,23 @@ export function useCheckout(savedAddresses: UserAddress[]) {
       return;
     }
 
+    if (items.length === 0) {
+      toast.error("Tu carrito está vacío.");
+      return;
+    }
+
     setIsPending(true);
 
     const currentData = getValues();
     currentData.paymentMethod = "card";
+
+    const freshCartItems = items.map((item) => ({
+      productId: item.productId,
+      variantId: item.variantId,
+      quantity: item.quantity,
+      priceCents: Math.round(item.price * 100),
+    }));
+    currentData.cartItems = freshCartItems;
 
     const formData = new FormData();
     Object.entries(currentData).forEach(([key, val]) => {
@@ -113,18 +136,27 @@ export function useCheckout(savedAddresses: UserAddress[]) {
     });
     formData.append("cartItems", JSON.stringify(currentData.cartItems));
 
-    let orderIdToRecycle = stripeData?.orderId;
+    const cartFingerprint = JSON.stringify(
+      [...currentData.cartItems].sort((a, b) =>
+        a.variantId.localeCompare(b.variantId),
+      ),
+    );
 
-    if (!orderIdToRecycle) {
-      const savedSession = localStorage.getItem("checkout_session");
-      if (savedSession) {
-        try {
-          const parsed = JSON.parse(savedSession);
-          if (items.length > 0) {
-            orderIdToRecycle = parsed.orderId;
-          }
-        } catch (e) {}
-      }
+    let orderIdToRecycle: string | undefined = undefined;
+
+    const savedSession = localStorage.getItem("checkout_session");
+    if (savedSession) {
+      try {
+        const parsed = JSON.parse(savedSession);
+        const sessionFingerprint = parsed.cartFingerprint ?? null;
+        const cartUnchanged = sessionFingerprint === cartFingerprint;
+
+        if (items.length > 0 && cartUnchanged) {
+          orderIdToRecycle = parsed.orderId;
+        } else if (!cartUnchanged) {
+          localStorage.removeItem("checkout_session");
+        }
+      } catch (e) {}
     }
 
     if (orderIdToRecycle) {
@@ -152,6 +184,7 @@ export function useCheckout(savedAddresses: UserAddress[]) {
           JSON.stringify({
             orderId: res.orderId,
             timestamp: new Date().getTime(),
+            cartFingerprint,
           }),
         );
 
@@ -162,11 +195,15 @@ export function useCheckout(savedAddresses: UserAddress[]) {
       toast.error("Error al iniciar el pago.");
     } finally {
       setIsPending(false);
+      isSubmittingRef.current = false;
     }
-  };
+  }, [items, shippingType, trigger, getValues, setValue]);
 
   const handleChangeAddress = () => {
     setIsAddressConfirmed(false);
+    setStripeData(null);
+    isSubmittingRef.current = false;
+    stripeDataRef.current = null;
   };
 
   const autoConfirmAttempted = useRef(false);

@@ -87,7 +87,7 @@ export function AdminHeader({ user }: Props) {
               className="w-full sm:w-[340px] p-0 outline-none border-r"
             >
               <SheetTitle className="hidden">Admin Menu</SheetTitle>
-              <AdminSidebar />
+              <AdminSidebar onClose={closeMenu} />
             </SheetContent>
           </Sheet>
         </div>

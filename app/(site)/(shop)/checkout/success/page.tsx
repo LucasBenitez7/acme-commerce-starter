@@ -42,10 +42,12 @@ export default async function SuccessPage({ searchParams }: Props) {
   }
 
   if (!order.userId) {
-    if (
+    const hasPaid = order.paymentStatus === "PAID";
+    const intentMatches =
       order.stripePaymentIntentId &&
-      payment_intent !== order.stripePaymentIntentId
-    ) {
+      payment_intent === order.stripePaymentIntentId;
+
+    if (!hasPaid && !intentMatches) {
       redirect("/");
     }
   }

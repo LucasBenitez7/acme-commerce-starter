@@ -113,6 +113,7 @@ type GetAdminProductsParams = {
   minPrice?: number;
   maxPrice?: number;
   onSale?: boolean;
+  outOfStock?: boolean;
 };
 
 export async function getAdminProducts({
@@ -125,6 +126,7 @@ export async function getAdminProducts({
   minPrice,
   maxPrice,
   onSale,
+  outOfStock,
 }: GetAdminProductsParams) {
   const skip = (page - 1) * limit;
   const isArchived = status === "archived";
@@ -165,6 +167,12 @@ export async function getAdminProducts({
         orderBy = { name: "desc" };
         break;
     }
+  }
+
+  if (outOfStock) {
+    where.variants = {
+      some: { stock: 0 },
+    };
   }
 
   // Para orden por ventas necesitamos traer más resultados y ordenar en memoria
