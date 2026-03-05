@@ -22,6 +22,7 @@ type Props = {
     q?: string;
     page?: string;
     on_sale?: string;
+    stock?: string;
   }>;
 };
 
@@ -47,6 +48,7 @@ export default async function AdminProductsPage({ searchParams }: Props) {
   const minCents = parseCents(sp.min);
   const maxCents = parseCents(sp.max);
   const onSale = sp.on_sale === "true";
+  const outOfStock = sp.stock === "out";
 
   // Queries
   const [productsData, globalMaxPrice] = await Promise.all([
@@ -59,6 +61,7 @@ export default async function AdminProductsPage({ searchParams }: Props) {
       minPrice: minCents,
       maxPrice: maxCents,
       onSale,
+      outOfStock,
     }),
     getMaxPrice(),
   ]);

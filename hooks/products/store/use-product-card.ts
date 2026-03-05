@@ -174,7 +174,7 @@ export function useProductCard(item: PublicProductListItem) {
       name: item.name,
       price: variantToAdd.priceCents ?? item.priceCents,
       compareAtPrice: item.compareAtPrice ?? undefined,
-      image: displayImage,
+      image: allImages[0]?.url || item.thumbnail || "",
       color: variantToAdd.color,
       size: variantToAdd.size,
       quantity: 1,

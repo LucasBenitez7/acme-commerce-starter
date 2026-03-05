@@ -31,7 +31,11 @@ const NAV_ITEMS = [
   },
 ];
 
-export function AdminSidebar() {
+type Props = {
+  onClose?: () => void;
+};
+
+export function AdminSidebar({ onClose }: Props) {
   const pathname = usePathname();
 
   async function handleSignOut() {
@@ -52,6 +56,7 @@ export function AdminSidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onClose}
               className={cn(
                 "flex items-center gap-3 px-2 py-2 text-sm font-medium rounded-xs transition-colors",
                 isActive
@@ -71,7 +76,7 @@ export function AdminSidebar() {
             className="text-left justify-start flex w-full pl-2"
             asChild
           >
-            <Link href="/catalogo">
+            <Link href="/catalogo" onClick={onClose}>
               <FaStore className="size-4 mr-2" />
               Volver a la tienda
             </Link>

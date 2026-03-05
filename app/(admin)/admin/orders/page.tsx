@@ -4,6 +4,7 @@ import { PaginationNav } from "@/components/catalog/grid/PaginationNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { getPendingReturnsCount } from "@/lib/admin/queries";
+import { prisma } from "@/lib/db";
 import { ORDER_TABS } from "@/lib/orders/constants";
 import { getAdminOrders } from "@/lib/orders/queries";
 import { cn } from "@/lib/utils";
@@ -38,17 +39,25 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
     ?.split(",")
     .filter(Boolean) as FulfillmentStatus[];
 
-  const [ordersResult, pendingReturnsCount] = await Promise.all([
-    getAdminOrders({
-      page,
-      statusTab: sp.status,
-      paymentFilter,
-      fulfillmentFilter,
-      sort: sp.sort,
-      query: sp.query,
-    }),
-    getPendingReturnsCount(),
-  ]);
+  const [ordersResult, pendingReturnsCount, preparingOrdersCount] =
+    await Promise.all([
+      getAdminOrders({
+        page,
+        statusTab: sp.status,
+        paymentFilter,
+        fulfillmentFilter,
+        sort: sp.sort,
+        query: sp.query,
+      }),
+      getPendingReturnsCount(),
+      prisma.order.count({
+        where: {
+          paymentStatus: "PAID",
+          fulfillmentStatus: "PREPARING",
+          isCancelled: false,
+        },
+      }),
+    ]);
 
   const { orders, total, totalPages } = ordersResult;
   const isReturnsTab = sp.status === "RETURNS";
@@ -67,10 +76,13 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
           const isActive =
             sp.status === tab.value || (!sp.status && !tab.value);
           const isReturnsTabItem = tab.value === "RETURNS";
+          const isActiveTab = tab.value === "ACTIVE";
           const label =
             isReturnsTabItem && pendingReturnsCount > 0
               ? `${tab.label} (${pendingReturnsCount})`
-              : tab.label;
+              : isActiveTab && preparingOrdersCount > 0
+                ? `${tab.label} (${preparingOrdersCount})`
+                : tab.label;
           return (
             <Link
               key={tab.label}

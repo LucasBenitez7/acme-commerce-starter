@@ -28,6 +28,12 @@ export function useProductFilters({
   const hasActiveFilters =
     activeCats.length > 0 || hasPriceFilter || hasQuery || onSale;
 
+  const outOfStock = searchParams.get("stock") === "out";
+
+  const handleOutOfStockToggle = () => {
+    updateParams({ stock: !outOfStock ? "out" : null });
+  };
+
   // --- 2. LÓGICA URL ---
   const updateParams = useCallback(
     (updates: Record<string, string | null>) => {
@@ -117,6 +123,8 @@ export function useProductFilters({
     activeSort,
     activeCats,
     onSale,
+    outOfStock,
+    handleOutOfStockToggle,
     hasActiveFilters,
     hasPriceFilter,
     handleSortChange,

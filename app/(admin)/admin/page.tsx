@@ -178,7 +178,7 @@ export default async function AdminPage() {
           >
             <CardHeader className="px-4 flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-base font-medium text-orange-700">
-                Agotados
+                Variantes activas sin stock
               </CardTitle>
               <FaTriangleExclamation className="size-4 text-orange-500" />
             </CardHeader>
@@ -186,9 +186,14 @@ export default async function AdminPage() {
               <div className="text-2xl font-bold text-orange-700">
                 {stats.outOfStockVariants}
               </div>
-              <p className="text-xs text-orange-600/80 font-medium">
-                Variantes activas sin stock
-              </p>
+              {stats.outOfStockVariants > 0 && (
+                <Link
+                  href="/admin/products?stock=out"
+                  className="inline-block mt-2 text-xs font-semibold text-orange-700 hover:text-orange-800 underline underline-offset-2"
+                >
+                  Ver productos →
+                </Link>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -216,6 +221,14 @@ export default async function AdminPage() {
                 )}
                 {stats.pendingOrders === 0 && "Todos procesados"}
               </p>
+              {stats.preparingOrdersCount > 0 && (
+                <Link
+                  href="/admin/orders?status=ACTIVE"
+                  className="inline-block mt-1 text-xs font-semibold text-blue-700 hover:text-blue-800 underline underline-offset-2"
+                >
+                  {stats.preparingOrdersCount} pendientes de envío →
+                </Link>
+              )}
             </CardContent>
           </Card>
 
