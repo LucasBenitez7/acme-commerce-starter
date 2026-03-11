@@ -4,6 +4,8 @@ import { FaPlus } from "react-icons/fa6";
 import { PaginationNav } from "@/components/catalog/grid/PaginationNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 
+import { canWriteAdmin } from "@/lib/admin/roles";
+import { auth } from "@/lib/auth";
 import { getAdminProducts, getMaxPrice } from "@/lib/products/queries";
 import { cn } from "@/lib/utils";
 
@@ -32,7 +34,8 @@ const tabs = [
 ];
 
 export default async function AdminProductsPage({ searchParams }: Props) {
-  const sp = await searchParams;
+  const [sp, session] = await Promise.all([searchParams, auth()]);
+  const canWrite = canWriteAdmin(session?.user?.role);
 
   const page = Number(sp.page) || 1;
   const query = sp.q?.trim();
@@ -76,12 +79,14 @@ export default async function AdminProductsPage({ searchParams }: Props) {
       <div className="flex sm:flex-row sm:items-center justify-between gap-4 border-b pb-2">
         <h1 className="text-2xl lg:text-3xl font-semibold">Productos</h1>
 
-        <Link
-          href="/admin/products/new"
-          className="flex items-center font-medium gap-2 bg-foreground text-background py-2 px-3 rounded-xs text-sm hover:bg-foreground/80 transition-colors"
-        >
-          <FaPlus className="size-4" /> Añadir producto
-        </Link>
+        {canWrite && (
+          <Link
+            href="/admin/products/new"
+            className="flex items-center font-medium gap-2 bg-foreground text-background py-2 px-3 rounded-xs text-sm hover:bg-foreground/80 transition-colors"
+          >
+            <FaPlus className="size-4" /> Añadir producto
+          </Link>
+        )}
       </div>
 
       {/* TABS DE FILTRO RÁPIDO */}

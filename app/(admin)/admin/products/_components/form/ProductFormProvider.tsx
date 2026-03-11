@@ -18,9 +18,10 @@ type ProductWithId = ProductFormValues & { id: string };
 type Props = {
   children: ReactNode;
   product?: Partial<ProductWithId> & { id?: string };
+  readOnly?: boolean;
 };
 
-export function ProductFormProvider({ children, product }: Props) {
+export function ProductFormProvider({ children, product, readOnly }: Props) {
   const router = useRouter();
   const { isPending, onSubmit } = useProductSubmit(product?.id);
 
@@ -106,24 +107,26 @@ export function ProductFormProvider({ children, product }: Props) {
       >
         {children}
 
-        <div className="flex items-center lg:justify-end my-6 pb-6 border-b gap-3">
-          <Button
-            variant="outline"
-            type="button"
-            onClick={() => router.back()}
-            className="py-3 lg:flex-0 flex-1"
-            disabled={isPending}
-          >
-            Cancelar
-          </Button>
-          <Button
-            type="submit"
-            disabled={isPending}
-            className="bg-black text-white py-3 lg:flex-0 flex-1"
-          >
-            {isPending ? "Guardando..." : "Guardar Producto"}
-          </Button>
-        </div>
+        {!readOnly && (
+          <div className="flex items-center lg:justify-end my-6 pb-6 border-b gap-3">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => router.back()}
+              className="py-3 lg:flex-0 flex-1"
+              disabled={isPending}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              disabled={isPending}
+              className="bg-black text-white py-3 lg:flex-0 flex-1"
+            >
+              {isPending ? "Guardando..." : "Guardar Producto"}
+            </Button>
+          </div>
+        )}
       </form>
     </FormProvider>
   );

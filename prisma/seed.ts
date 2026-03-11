@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 import {
   INITIAL_CATEGORIES,
@@ -55,6 +56,28 @@ async function main() {
       update: { hex: color.hex },
       create: { name: color.name, hex: color.hex },
     });
+  }
+
+  // 2.5 USUARIO DEMO (opcional, para entrevistas/demos)
+  const demoEmail = process.env.DEMO_EMAIL;
+  const demoPassword = process.env.DEMO_PASSWORD;
+  if (demoEmail && demoPassword) {
+    console.log("👤 Creando usuario demo (solo lectura)...");
+    const demoHash = await bcrypt.hash(demoPassword, 10);
+    await prisma.user.upsert({
+      where: { email: demoEmail.toLowerCase().trim() },
+      update: { passwordHash: demoHash, role: "demo" },
+      create: {
+        email: demoEmail.toLowerCase().trim(),
+        name: "Demo",
+        firstName: "Demo",
+        lastName: "User",
+        passwordHash: demoHash,
+        emailVerified: new Date(),
+        role: "demo",
+      },
+    });
+    console.log(`   ✓ demo@... → rol demo (solo lectura)`);
   }
 
   // 3. CONFIGURACIÓN DE TIENDA DEFAULT

@@ -57,7 +57,7 @@ export function Header({
 
   const hideHeader = HIDE_HEADER_ON.includes(pathname);
   const isCartPage = pathname === "/cart" || pathname === "/checkout/success";
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || user?.role === "demo";
 
   if (hideHeader) return null;
 
