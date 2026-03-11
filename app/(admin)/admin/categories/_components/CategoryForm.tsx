@@ -27,6 +27,7 @@ type Props = {
     mobileImage?: string | null;
   };
   existingCategories?: { id: string; name: string; sort: number }[];
+  readOnly?: boolean;
 };
 
 const INITIAL_STATE: CategoryFormState = {
@@ -34,7 +35,11 @@ const INITIAL_STATE: CategoryFormState = {
   errors: {},
 };
 
-export function CategoryForm({ category, existingCategories = [] }: Props) {
+export function CategoryForm({
+  category,
+  existingCategories = [],
+  readOnly,
+}: Props) {
   const [imageUrl, setImageUrl] = useState<string | null>(
     category?.image || null,
   );
@@ -194,24 +199,26 @@ export function CategoryForm({ category, existingCategories = [] }: Props) {
           />
         </div>
 
-        <div className="flex items-center justify-end gap-3">
-          <Button
-            variant="outline"
-            asChild
-            type="button"
-            className="p-3 px-6 flex-1 lg:flex-0"
-          >
-            <Link href="/admin/categories">Cancelar</Link>
-          </Button>
-          <Button
-            type="submit"
-            variant={"default"}
-            disabled={isPending}
-            className="p-3 px-6 flex-1 lg:flex-0"
-          >
-            {isPending ? "Guardando..." : isEditing ? "Guardar" : "Crear"}
-          </Button>
-        </div>
+        {!readOnly && (
+          <div className="flex items-center justify-end gap-3">
+            <Button
+              variant="outline"
+              asChild
+              type="button"
+              className="p-3 px-6 flex-1 lg:flex-0"
+            >
+              <Link href="/admin/categories">Cancelar</Link>
+            </Button>
+            <Button
+              type="submit"
+              variant={"default"}
+              disabled={isPending}
+              className="p-3 px-6 flex-1 lg:flex-0"
+            >
+              {isPending ? "Guardando..." : isEditing ? "Guardar" : "Crear"}
+            </Button>
+          </div>
+        )}
       </form>
     </div>
   );

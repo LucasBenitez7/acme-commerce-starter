@@ -27,7 +27,10 @@ export default async function AdminUsersPage({ searchParams }: Props) {
   const sp = await searchParams;
   const page = Number(sp.page) || 1;
   const query = sp.q || "";
-  const role = sp.role === "admin" || sp.role === "user" ? sp.role : undefined;
+  const role =
+    sp.role === "admin" || sp.role === "user" || sp.role === "demo"
+      ? sp.role
+      : undefined;
 
   const sort = sp.sort || "createdAt-desc";
 

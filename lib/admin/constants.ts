@@ -1,6 +1,7 @@
 export const USER_ROLES = [
   { label: "Clientes", value: "user" },
   { label: "Administradores", value: "admin" },
+  { label: "Demo (solo lectura)", value: "demo" },
 ];
 
 export const USER_SORT_OPTIONS = [

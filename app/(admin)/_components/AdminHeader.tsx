@@ -27,9 +27,10 @@ type AdminUser = {
 
 type Props = {
   user?: AdminUser;
+  isReadOnly?: boolean;
 };
 
-export function AdminHeader({ user }: Props) {
+export function AdminHeader({ user, isReadOnly }: Props) {
   const [open, setOpen] = useState(false);
 
   const closeMenu = useCallback(() => {
@@ -106,7 +107,12 @@ export function AdminHeader({ user }: Props) {
           />
         </Link>
 
-        <div className="hidden sm:flex items-center shrink-0 justify-self-end md:pr-2">
+        <div className="hidden sm:flex items-center shrink-0 justify-self-end md:pr-2 gap-2">
+          {isReadOnly && (
+            <span className="text-xs font-medium px-2 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+              Modo solo lectura
+            </span>
+          )}
           <h1 className="flex items-center gap-2 text-lg font-semibold">
             <FaUserShield className="size-5" />
             {getAdminName()}

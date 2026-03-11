@@ -13,6 +13,8 @@ import { OrderTracker } from "@/components/order/OrderTracker";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+import { canWriteAdmin } from "@/lib/admin/roles";
+import { auth } from "@/lib/auth";
 import { parseCurrency } from "@/lib/currency";
 import { FULFILLMENT_STATUS_CONFIG } from "@/lib/orders/constants";
 import { getAdminOrderById } from "@/lib/orders/queries";
@@ -33,7 +35,8 @@ type Props = {
 
 export default async function AdminOrderDetailPage({ params }: Props) {
   const { id } = await params;
-  const order = await getAdminOrderById(id);
+  const [order, session] = await Promise.all([getAdminOrderById(id), auth()]);
+  const canWrite = canWriteAdmin(session?.user?.role);
 
   if (!order) notFound();
 
@@ -97,7 +100,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
             </Button>
           )}
 
-          {!order.isCancelled && hasReturnRequest && (
+          {canWrite && !order.isCancelled && hasReturnRequest && (
             <>
               <Button
                 asChild
@@ -154,12 +157,14 @@ export default async function AdminOrderDetailPage({ params }: Props) {
             </div>
 
             <div className="flex items-center gap-2">
-              <AdminFulfillmentActions
-                orderId={order.id}
-                currentStatus={order.fulfillmentStatus}
-                isCancelled={order.isCancelled}
-                paymentStatus={order.paymentStatus}
-              />
+              {canWrite && (
+                <AdminFulfillmentActions
+                  orderId={order.id}
+                  currentStatus={order.fulfillmentStatus}
+                  isCancelled={order.isCancelled}
+                  paymentStatus={order.paymentStatus}
+                />
+              )}
             </div>
           </CardTitle>
         </CardHeader>

@@ -1,11 +1,19 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { FaArrowLeft } from "react-icons/fa6";
 
+import { canWriteAdmin } from "@/lib/admin/roles";
+import { auth } from "@/lib/auth";
 import { getCategoryOrderList } from "@/lib/categories/queries";
 
 import { CategoryForm } from "../_components/CategoryForm";
 
 export default async function NewCategoryPage() {
+  const session = await auth();
+  if (!canWriteAdmin(session?.user?.role)) {
+    redirect("/admin/categories");
+  }
+
   const orderList = await getCategoryOrderList();
 
   return (
