@@ -3,6 +3,7 @@ import { Suspense } from "react";
 
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
 
+import { canAccessAdmin } from "@/lib/admin/roles";
 import { auth } from "@/lib/auth";
 
 import { AdminHeader } from "./_components/AdminHeader";
@@ -25,7 +26,7 @@ export default async function AdminLayout({
     redirect("/auth/login?redirectTo=/admin");
   }
 
-  if (session.user.role !== "admin") {
+  if (!canAccessAdmin(session.user.role)) {
     redirect("/");
   }
 
@@ -35,7 +36,10 @@ export default async function AdminLayout({
         <ScrollToTop />
       </Suspense>
 
-      <AdminHeader user={session.user} />
+      <AdminHeader
+        user={session.user}
+        isReadOnly={session.user.role === "demo"}
+      />
 
       <main className="flex-1 p-4 pb-10 sm:pt-4 sm:px-6 overflow-y-auto">
         {children}

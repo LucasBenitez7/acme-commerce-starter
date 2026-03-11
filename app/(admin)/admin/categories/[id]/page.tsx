@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FaArrowLeft } from "react-icons/fa6";
 
+import { canWriteAdmin } from "@/lib/admin/roles";
+import { auth } from "@/lib/auth";
 import {
   getCategoryForEdit,
   getCategoryOrderList,
@@ -17,9 +19,10 @@ interface Props {
 export default async function EditCategoryPage({ params }: Props) {
   const { id } = await params;
 
-  const [category, orderList] = await Promise.all([
+  const [category, orderList, session] = await Promise.all([
     getCategoryForEdit(id),
     getCategoryOrderList(),
+    auth(),
   ]);
 
   if (!category) {
@@ -27,6 +30,7 @@ export default async function EditCategoryPage({ params }: Props) {
   }
 
   const hasProducts = category._count.products > 0;
+  const canWrite = canWriteAdmin(session?.user?.role);
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 py-2">
@@ -44,10 +48,16 @@ export default async function EditCategoryPage({ params }: Props) {
           </h1>
         </div>
 
-        <DeleteCategoryButton id={category.id} hasProducts={hasProducts} />
+        {canWrite && (
+          <DeleteCategoryButton id={category.id} hasProducts={hasProducts} />
+        )}
       </div>
 
-      <CategoryForm category={category} existingCategories={orderList} />
+      <CategoryForm
+        category={category}
+        existingCategories={orderList}
+        readOnly={!canWrite}
+      />
     </div>
   );
 }

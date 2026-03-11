@@ -1,11 +1,19 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { FaArrowLeft } from "react-icons/fa6";
 
+import { canWriteAdmin } from "@/lib/admin/roles";
+import { auth } from "@/lib/auth";
 import { getProductFormDependencies } from "@/lib/products/service";
 
 import { ProductForm } from "../_components/form/ProductForm";
 
 export default async function NewProductPage() {
+  const session = await auth();
+  if (!canWriteAdmin(session?.user?.role)) {
+    redirect("/admin/products");
+  }
+
   const props = await getProductFormDependencies();
 
   return (

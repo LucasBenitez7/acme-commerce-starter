@@ -1,3 +1,5 @@
+import { canAccessAdmin } from "@/lib/admin/roles";
+
 import type { NextAuthConfig } from "next-auth";
 
 export const authConfig = {
@@ -15,7 +17,7 @@ export const authConfig = {
 
       if (isOnAdmin) {
         if (!isLoggedIn) return false;
-        if (auth?.user?.role !== "admin") {
+        if (!canAccessAdmin(auth?.user?.role)) {
           return Response.redirect(new URL("/", nextUrl));
         }
         return true;

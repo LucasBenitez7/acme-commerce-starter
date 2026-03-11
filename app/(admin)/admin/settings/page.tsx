@@ -1,3 +1,5 @@
+import { canWriteAdmin } from "@/lib/admin/roles";
+import { auth } from "@/lib/auth";
 import { getStoreConfig } from "@/lib/settings/service";
 
 import { SettingsForm } from "./_components/SettingsForm";
@@ -10,7 +12,8 @@ export const metadata: Metadata = {
 };
 
 export default async function SettingsPage() {
-  const config = await getStoreConfig();
+  const [config, session] = await Promise.all([getStoreConfig(), auth()]);
+  const canWrite = canWriteAdmin(session?.user?.role);
 
   return (
     <div className="max-w-7xl mx-auto space-y-4">
@@ -22,7 +25,7 @@ export default async function SettingsPage() {
         </p>
       </div>
 
-      <SettingsForm initialData={config} />
+      <SettingsForm initialData={config} readOnly={!canWrite} />
     </div>
   );
 }

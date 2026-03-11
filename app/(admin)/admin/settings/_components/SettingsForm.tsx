@@ -29,9 +29,10 @@ import type { StoreConfig } from "@prisma/client";
 
 interface Props {
   initialData: StoreConfig | null;
+  readOnly?: boolean;
 }
 
-export function SettingsForm({ initialData }: Props) {
+export function SettingsForm({ initialData, readOnly }: Props) {
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<StoreConfigFormValues>({
@@ -221,30 +222,32 @@ export function SettingsForm({ initialData }: Props) {
             </div>
           </div>
 
-          <div className="flex justify-end pt-4 sticky bottom-4 gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={isPending}
-              onClick={() => {
-                form.reset();
-                toast.info("Cambios descartados");
-              }}
-              className="w-full sm:w-auto px-5 h-11"
-              size="lg"
-            >
-              Cancelar
-            </Button>
+          {!readOnly && (
+            <div className="flex justify-end pt-4 sticky bottom-4 gap-4">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isPending}
+                onClick={() => {
+                  form.reset();
+                  toast.info("Cambios descartados");
+                }}
+                className="w-full sm:w-auto px-5 h-11"
+                size="lg"
+              >
+                Cancelar
+              </Button>
 
-            <Button
-              type="submit"
-              disabled={isPending}
-              className="w-full sm:w-auto px-5 h-11"
-              size="lg"
-            >
-              {isPending ? <>Guardando...</> : <>Guardar Cambios</>}
-            </Button>
-          </div>
+              <Button
+                type="submit"
+                disabled={isPending}
+                className="w-full sm:w-auto px-5 h-11"
+                size="lg"
+              >
+                {isPending ? <>Guardando...</> : <>Guardar Cambios</>}
+              </Button>
+            </div>
+          )}
         </form>
       </Form>
     </div>

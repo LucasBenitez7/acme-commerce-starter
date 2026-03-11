@@ -11,12 +11,13 @@ type ProductWithId = ProductFormValues & { id: string };
 type Props = {
   categories: { id: string; name: string }[];
   product?: Partial<ProductWithId> & { id?: string };
+  readOnly?: boolean;
 };
 
-export function ProductForm({ categories, product }: Props) {
+export function ProductForm({ categories, product, readOnly }: Props) {
   return (
     <div>
-      <ProductFormProvider product={product}>
+      <ProductFormProvider product={product} readOnly={readOnly}>
         <GeneralSection categories={categories} />
 
         <VariantsSection />
@@ -24,7 +25,7 @@ export function ProductForm({ categories, product }: Props) {
         <ImagesSection />
       </ProductFormProvider>
 
-      {product?.id && product.name && (
+      {!readOnly && product?.id && product.name && (
         <DangerZone
           productId={product.id}
           productName={product.name}

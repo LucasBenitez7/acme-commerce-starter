@@ -4,6 +4,8 @@ import { FaPlus } from "react-icons/fa6";
 import { PaginationNav } from "@/components/catalog/grid/PaginationNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+import { canWriteAdmin } from "@/lib/admin/roles";
+import { auth } from "@/lib/auth";
 import { getAdminCategories } from "@/lib/categories/queries";
 
 import { CategoryListToolbar } from "./_components/CategoryListToolbar";
@@ -22,7 +24,9 @@ interface Props {
 }
 
 export default async function AdminCategoriesPage({ searchParams }: Props) {
-  const sp = await searchParams;
+  const [sp, session] = await Promise.all([searchParams, auth()]);
+  const canWrite = canWriteAdmin(session?.user?.role);
+
   const page = Number(sp.page) || 1;
 
   const { categories, totalCount, totalPages } = await getAdminCategories({
@@ -37,12 +41,14 @@ export default async function AdminCategoriesPage({ searchParams }: Props) {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-2">
         <h1 className="text-2xl lg:text-3xl font-semibold">Categorías</h1>
-        <Link
-          href="/admin/categories/new"
-          className="flex items-center font-medium gap-2 bg-foreground text-white hover:bg-foreground/80 transition-colors py-2 px-3 rounded-xs text-sm"
-        >
-          <FaPlus className="size-4" /> Añadir Categoría
-        </Link>
+        {canWrite && (
+          <Link
+            href="/admin/categories/new"
+            className="flex items-center font-medium gap-2 bg-foreground text-white hover:bg-foreground/80 transition-colors py-2 px-3 rounded-xs text-sm"
+          >
+            <FaPlus className="size-4" /> Añadir Categoría
+          </Link>
+        )}
       </div>
 
       <Card>

@@ -9,6 +9,8 @@ import {
   FaLayerGroup,
 } from "react-icons/fa6";
 
+import { canWriteAdmin } from "@/lib/admin/roles";
+import { auth } from "@/lib/auth";
 import {
   getProductForEdit,
   getProductSalesAndReturns,
@@ -27,12 +29,15 @@ export default async function EditProductPage({
 }) {
   const { id } = await params;
 
-  const [product, formDeps, salesStats] = await Promise.all([
+  const [product, formDeps, salesStats, session] = await Promise.all([
     getProductForEdit(id),
     getProductFormDependencies(),
     getProductSalesAndReturns(id),
+    auth(),
   ]);
   if (!product) notFound();
+
+  const canWrite = canWriteAdmin(session?.user?.role);
 
   const totalStock = product.variants.reduce((acc, v) => acc + v.stock, 0);
   const totalVariants = product.variants.length;
@@ -61,13 +66,13 @@ export default async function EditProductPage({
           </h1>
         </div>
 
-        {product.isArchived ? (
+        {canWrite && product.isArchived ? (
           <ArchiveButton
             productId={id}
             productName={product.name}
             isArchived={product.isArchived}
           />
-        ) : (
+        ) : !product.isArchived ? (
           <Link
             href={`/product/${product.slug}`}
             target="_blank"
@@ -78,7 +83,7 @@ export default async function EditProductPage({
               <FaArrowUpRightFromSquare className="size-3.5 inline-block mb-1 ml-2" />
             </span>
           </Link>
-        )}
+        ) : null}
       </div>
 
       {/* --- STATS --- */}
@@ -113,7 +118,7 @@ export default async function EditProductPage({
       </div>
 
       {/* --- FORMULARIO --- */}
-      <ProductForm product={product} {...formDeps} />
+      <ProductForm product={product} {...formDeps} readOnly={!canWrite} />
     </div>
   );
 }
