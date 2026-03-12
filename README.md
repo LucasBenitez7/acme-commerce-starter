@@ -5,7 +5,7 @@
 </h1>
 
 <p align="center">
-  <strong>E-commerce moderno y completo construido con Next.js 15, Stripe y Prisma</strong>
+  <strong>Full stack e-commerce platform built with Next.js 15, Stripe and Prisma</strong>
 </p>
 
 <p align="center">
@@ -16,563 +16,346 @@
   <a href="https://www.prisma.io"><img src="https://img.shields.io/badge/Prisma-ORM-2D3748?style=for-the-badge&logo=prisma&logoColor=white" alt="Prisma" /></a>
   <a href="https://vitest.dev"><img src="https://img.shields.io/badge/Vitest-Unit_Tests-6E9F18?style=for-the-badge&logo=vitest&logoColor=white" alt="Vitest" /></a>
   <a href="https://playwright.dev"><img src="https://img.shields.io/badge/Playwright-E2E-45ba4b?style=for-the-badge&logo=playwright&logoColor=white" alt="Playwright" /></a>
+  <a href="https://github.com/LucasBenitez7/acme-commerce-starter/actions"><img src="https://img.shields.io/github/actions/workflow/status/LucasBenitez7/acme-commerce-starter/ci.yml?branch=main&style=for-the-badge&label=CI&logo=github" alt="CI" /></a>
   <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="MIT License" />
 </p>
 
 <p align="center">
-  Plataforma de comercio electrónico lista para producción con catálogo de productos, carrito, checkout completo, pagos con Stripe, panel de administración, sistema de cuentas de usuario y suite de tests completa (unit + E2E).
+  Production-ready e-commerce platform with product catalog, cart, full checkout, Stripe payments, admin panel, user accounts, and a complete test suite (unit + E2E).
 </p>
 
 ---
 
-## Tabla de contenidos
+## 🚀 Live Demo
 
-- [✨ Características](#-características)
-- [🧱 Stack tecnológico](#-stack-tecnológico)
-- [📋 Requisitos previos](#-requisitos-previos)
-- [🚀 Instalación y puesta en marcha](#-instalación-y-puesta-en-marcha)
-- [⚙️ Variables de entorno](#️-variables-de-entorno)
-- [🗄️ Base de datos](#️-base-de-datos)
-- [🧪 Testing](#-testing)
-- [📜 Scripts disponibles](#-scripts-disponibles)
-- [🤖 CI/CD](#-cicd)
-- [🗂️ Estructura del proyecto](#️-estructura-del-proyecto)
-- [☁️ Despliegue](#️-despliegue)
-- [📄 Licencia](#-licencia)
+**🌐 [shop.lsbstack.com](https://shop.lsbstack.com)**
+
+> Payments run in **Stripe test mode** — no real charges. Use the test card `4242 4242 4242 4242` with any future date and any CVC.
+
+### Demo credentials
+
+| Role      | Email                 | Password           |
+| --------- | --------------------- | ------------------ |
+| **Admin** | `demoadmin123@dm.com` | `demoadmin.123xyz` |
+
+⚠️ The demo account has read-only access to the admin panel —
+products, orders, users and settings are visible but cannot be
+created, edited or deleted. This protects the live data.
 
 ---
 
-## ✨ Características
+## 💡 What this project demonstrates
 
-### 🛒 Tienda
+This is a production-grade application solving real engineering challenges — not a tutorial clone.
 
-- Catálogo de productos con categorías, filtros (talla, color, precio) y búsqueda en tiempo real
-- Páginas de detalle de producto con galería de imágenes y selección de variantes
-- Carrito persistente con actualización de cantidades
-- Checkout completo para usuarios registrados e invitados
+- **Full authentication flow** — NextAuth.js v5 with credentials, GitHub OAuth, email OTP for guest orders, email verification, password reset, and role-based route protection (user / admin)
+- **Real payment integration** — Stripe Payment Intents + Webhooks for async order confirmation, failed payment handling, and automatic order expiration via cron jobs
+- **Complete test suite** — Vitest + Testing Library (unit/integration), Playwright E2E with isolated test database and shared auth state, MSW for HTTP mocking, coverage with v8
+- **Production CI/CD** — GitHub Actions pipeline: lint → typecheck → unit tests → E2E tests, with coverage reports and Playwright artifacts uploaded on each run
+- **Admin panel** — full CRUD for products, categories, orders, and users; image management with Cloudinary; store configuration (hero banner, sales prices, featured products)
+- **Transactional emails** — welcome, email verification, password reset, order confirmation and updates — built with React Email + Resend
+- **Real deployment** — Vercel with preview deployments, Neon (serverless PostgreSQL), Cloudinary for media, Resend for email, Stripe webhooks configured in production
 
-### 💳 Pagos
+---
 
-- Integración nativa con **Stripe** (tarjetas de crédito/débito)
-- Webhooks para confirmación automática de pedidos
-- Manejo de pagos fallidos y reintentos
+## 🧱 Tech stack
 
-### 👤 Usuarios & Cuentas
+| Category       | Technology                                                                                                                        |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Framework**  | [Next.js 15](https://nextjs.org) (App Router + Turbopack)                                                                         |
+| **UI**         | [React 19](https://react.dev), TypeScript 5                                                                                       |
+| **Styling**    | [Tailwind CSS v4](https://tailwindcss.com), [Radix UI](https://www.radix-ui.com), [Framer Motion](https://www.framer.com/motion/) |
+| **Database**   | PostgreSQL + [Prisma ORM](https://www.prisma.io)                                                                                  |
+| **Auth**       | [NextAuth.js v5](https://authjs.dev) + Prisma Adapter                                                                             |
+| **Payments**   | [Stripe](https://stripe.com)                                                                                                      |
+| **Images**     | [Cloudinary](https://cloudinary.com)                                                                                              |
+| **Emails**     | [Resend](https://resend.com) + React Email                                                                                        |
+| **State**      | [Zustand](https://zustand-demo.pmnd.rs)                                                                                           |
+| **Forms**      | [React Hook Form](https://react-hook-form.com) + [Zod](https://zod.dev)                                                           |
+| **Unit tests** | [Vitest](https://vitest.dev) + [Testing Library](https://testing-library.com) + [MSW](https://mswjs.io)                           |
+| **E2E tests**  | [Playwright](https://playwright.dev)                                                                                              |
+| **Linting**    | ESLint 9, Prettier, Husky + lint-staged                                                                                           |
 
-- Registro, login y login social (GitHub)
-- Verificación de email y recuperación de contraseña
-- Panel de cuenta: perfil, direcciones, historial de pedidos, favoritos y seguridad
+---
 
-### 📦 Pedidos
+## ✨ Features
 
-- Seguimiento de estado de pedidos en tiempo real
-- Sistema de devoluciones
-- Acceso para invitados mediante OTP por email
-- Expiración automática de pedidos pendientes (cron job)
+### 🛒 Store
 
-### 🔧 Panel de Administración
+- Product catalog with categories, filters (size, color, price) and real-time search
+- Product detail pages with image gallery and variant selection
+- Persistent cart with quantity updates
+- Full checkout for registered users and guests
 
-- Gestión completa de productos y categorías (CRUD)
-- Gestión de pedidos y usuarios
-- Configuración de tienda: hero banner, precios de rebajas, featured products
-- Subida de imágenes con Cloudinary
+### 💳 Payments
 
-### 📧 Emails Transaccionales
+- Native **Stripe** integration (credit/debit cards)
+- Webhooks for automatic order confirmation
+- Failed payment handling and retries
 
-- Verificación de cuenta, bienvenida, reset de contraseña
-- Confirmación y actualización de pedidos
-- Plantillas con **React Email** + **Resend**
+### 👤 Users & Accounts
+
+- Registration, login and social login (GitHub)
+- Email verification and password recovery
+- Account panel: profile, addresses, order history, favorites, and security
+
+### 📦 Orders
+
+- Real-time order status tracking
+- Returns system
+- Guest access via email OTP
+- Automatic expiration of pending orders (cron job)
+
+### 🔧 Admin Panel
+
+- Full product and category management (CRUD)
+- Order and user management
+- Store configuration: hero banner, sale prices, featured products
+- Image uploads with Cloudinary
+
+### 📧 Transactional Emails
+
+- Account verification, welcome, password reset
+- Order confirmation and updates
+- Templates built with **React Email** + **Resend**
 
 ### 🧪 Testing
 
-- **Tests unitarios e integración** con Vitest + Testing Library + coverage con v8
-- **Tests E2E** con Playwright: autenticación, carrito, checkout, admin, devoluciones
-- **CI completo** en GitHub Actions con 3 etapas: lint/typecheck → tests → E2E
+- **Unit & integration tests** with Vitest + Testing Library + v8 coverage
+- **E2E tests** with Playwright: auth, cart, checkout, admin, returns
+- **Full CI** with GitHub Actions — 3 stages: lint/typecheck → tests → E2E
 
 ---
 
-## 🧱 Stack tecnológico
+## 📋 Prerequisites
 
-| Categoría           | Tecnología                                                                                                                        |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Framework**       | [Next.js 15](https://nextjs.org) (App Router + Turbopack)                                                                         |
-| **UI**              | [React 19](https://react.dev), TypeScript 5                                                                                       |
-| **Estilos**         | [Tailwind CSS v4](https://tailwindcss.com), [Radix UI](https://www.radix-ui.com), [Framer Motion](https://www.framer.com/motion/) |
-| **Base de datos**   | PostgreSQL + [Prisma ORM](https://www.prisma.io)                                                                                  |
-| **Auth**            | [NextAuth.js v5](https://authjs.dev) + Prisma Adapter                                                                             |
-| **Pagos**           | [Stripe](https://stripe.com)                                                                                                      |
-| **Imágenes**        | [Cloudinary](https://cloudinary.com)                                                                                              |
-| **Emails**          | [Resend](https://resend.com) + React Email                                                                                        |
-| **Estado global**   | [Zustand](https://zustand-demo.pmnd.rs)                                                                                           |
-| **Formularios**     | [React Hook Form](https://react-hook-form.com) + [Zod](https://zod.dev)                                                           |
-| **Carrusel**        | [Embla Carousel](https://www.embla-carousel.com)                                                                                  |
-| **Tests unitarios** | [Vitest](https://vitest.dev) + [Testing Library](https://testing-library.com) + [MSW](https://mswjs.io)                           |
-| **Tests E2E**       | [Playwright](https://playwright.dev)                                                                                              |
-| **Linting**         | ESLint 9, Prettier, Husky + lint-staged                                                                                           |
-
----
-
-## 📋 Requisitos previos
-
-Antes de empezar, asegúrate de tener instalado:
-
-- **Node.js** `v22+` — [descargar](https://nodejs.org)
-- **pnpm** `v10+` — gestor de paquetes
-- **Docker Desktop** — para la base de datos local y los tests
-- **PostgreSQL** — local (via Docker) o servicio cloud como [Neon](https://neon.tech) o [Supabase](https://supabase.com)
-- Una cuenta de **Stripe** (modo test para desarrollo)
-- Una cuenta de **Cloudinary** (plan gratuito suficiente para empezar)
-- Una cuenta de **Resend** (plan gratuito suficiente para empezar)
+- **Node.js** `v22+`
+- **pnpm** `v10+`
+- **Docker Desktop** — for local database and tests
+- A **Stripe** account (test mode for development)
+- A **Cloudinary** account (free plan is enough)
+- A **Resend** account (free plan is enough)
 
 ```bash
-# Instalar pnpm si no lo tienes
 npm install -g pnpm
 ```
 
 ---
 
-## 🚀 Instalación y puesta en marcha
+## 🚀 Getting started
 
-### 1. Clonar el repositorio
+### 1. Clone the repository
 
 ```bash
-git clone https://github.com/tu-usuario/acme-commerce-starter.git
+git clone https://github.com/LucasBenitez7/acme-commerce-starter.git
 cd acme-commerce-starter
 ```
 
-### 2. Instalar dependencias
+### 2. Install dependencies
 
 ```bash
 pnpm install
 ```
 
-> El `postinstall` ejecuta `prisma generate` automáticamente.
+> `postinstall` runs `prisma generate` automatically.
 
-### 3. Configurar variables de entorno
+### 3. Set up environment variables
 
 ```bash
 cp .env.example .env.local
 ```
 
-Edita `.env.local` con tus credenciales. Consulta la sección [⚙️ Variables de entorno](#️-variables-de-entorno) para ver qué necesitas.
+Edit `.env.local` with your credentials. See [⚙️ Environment variables](#️-environment-variables) for details.
 
-### 4. Configurar la base de datos
+### 4. Set up the database
 
 ```bash
-# Ejecutar migraciones (crea las tablas en tu BD)
 pnpm db:migrate
-
-# (Opcional pero recomendado) Poblar con datos iniciales
-# Incluye: categorías, tallas, colores y configuración de tienda
-pnpm db:seed
+pnpm db:seed  # optional but recommended
 ```
 
-### 5. Configurar Stripe Webhook (desarrollo local)
-
-Para recibir eventos de Stripe en local, usa el CLI de Stripe:
+### 5. Set up Stripe Webhook (local development)
 
 ```bash
 stripe listen --forward-to localhost:3000/api/webhooks/stripe
 ```
 
-> 💡 Stripe CLI te mostrará en consola el `STRIPE_WEBHOOK_SECRET` que debes pegar en tu `.env.local`.
+> Stripe CLI will print the `STRIPE_WEBHOOK_SECRET` — paste it into your `.env.local`.
 
-### 6. Arrancar el servidor de desarrollo
+### 6. Start the dev server
 
 ```bash
 pnpm dev
 ```
 
-La aplicación estará disponible en **[http://localhost:3000](http://localhost:3000)**
+Available at **[http://localhost:3000](http://localhost:3000)**
 
 ---
 
-## ⚙️ Variables de entorno
+## ⚙️ Environment variables
 
-### Aplicación
+### App
 
-| Variable                       | Descripción                                         | Requerido |
-| ------------------------------ | --------------------------------------------------- | --------- |
-| `NEXT_PUBLIC_SITE_URL`         | URL pública del sitio (ej: `http://localhost:3000`) | ✅ Sí     |
-| `NEXT_PUBLIC_DEFAULT_CURRENCY` | Moneda por defecto (ej: `EUR`, `USD`)               | ✅ Sí     |
-| `APP_ENV`                      | Entorno (`development`, `test` o `production`)      | ✅ Sí     |
+| Variable                       | Description                                       | Required |
+| ------------------------------ | ------------------------------------------------- | -------- |
+| `NEXT_PUBLIC_SITE_URL`         | Public site URL                                   | ✅       |
+| `NEXT_PUBLIC_DEFAULT_CURRENCY` | Default currency (`EUR`, `USD`)                   | ✅       |
+| `APP_ENV`                      | Environment (`development`, `test`, `production`) | ✅       |
 
-### Autenticación (NextAuth.js)
+### Auth (NextAuth.js)
 
-| Variable             | Descripción                                       | Requerido      |
-| -------------------- | ------------------------------------------------- | -------------- |
-| `AUTH_SECRET`        | Secreto para NextAuth (`openssl rand -base64 32`) | ✅ Sí          |
-| `AUTH_URL`           | URL base de la app para NextAuth                  | ✅ Sí          |
-| `ADMIN_EMAILS`       | Emails con acceso admin, separados por coma       | ⚠️ Recomendado |
-| `AUTH_GITHUB_ID`     | Client ID de tu GitHub OAuth App                  | ➕ Opcional    |
-| `AUTH_GITHUB_SECRET` | Client Secret de tu GitHub OAuth App              | ➕ Opcional    |
+| Variable             | Description                                 | Required |
+| -------------------- | ------------------------------------------- | -------- |
+| `AUTH_SECRET`        | NextAuth secret (`openssl rand -base64 32`) | ✅       |
+| `AUTH_URL`           | App base URL for NextAuth                   | ✅       |
+| `ADMIN_EMAILS`       | Comma-separated admin emails                | ⚠️       |
+| `AUTH_GITHUB_ID`     | GitHub OAuth App Client ID                  | ➕       |
+| `AUTH_GITHUB_SECRET` | GitHub OAuth App Client Secret              | ➕       |
 
-### Pagos (Stripe)
+### Payments (Stripe)
 
-| Variable                             | Descripción                        | Requerido |
-| ------------------------------------ | ---------------------------------- | --------- |
-| `STRIPE_SECRET_KEY`                  | Clave secreta de Stripe (`sk_...`) | ✅ Sí     |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Clave pública de Stripe (`pk_...`) | ✅ Sí     |
-| `STRIPE_WEBHOOK_SECRET`              | Secreto del webhook (`whsec_...`)  | ✅ Sí     |
+| Variable                             | Description                       | Required |
+| ------------------------------------ | --------------------------------- | -------- |
+| `STRIPE_SECRET_KEY`                  | Stripe secret key (`sk_...`)      | ✅       |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key (`pk_...`) | ✅       |
+| `STRIPE_WEBHOOK_SECRET`              | Webhook secret (`whsec_...`)      | ✅       |
 
 ### Emails (Resend)
 
-| Variable         | Descripción                                    | Requerido |
-| ---------------- | ---------------------------------------------- | --------- |
-| `RESEND_API_KEY` | API key de Resend (`re_...`)                   | ✅ Sí     |
-| `EMAIL_FROM`     | Remitente (ej: `Acme <noreply@tudominio.com>`) | ✅ Sí     |
+| Variable         | Description               | Required |
+| ---------------- | ------------------------- | -------- |
+| `RESEND_API_KEY` | Resend API key (`re_...`) | ✅       |
+| `EMAIL_FROM`     | Sender address            | ✅       |
 
-### Imágenes (Cloudinary)
+### Images (Cloudinary)
 
-| Variable                               | Descripción                            | Requerido |
-| -------------------------------------- | -------------------------------------- | --------- |
-| `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`    | Cloud name de tu cuenta Cloudinary     | ✅ Sí     |
-| `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` | Upload preset (modo unsigned)          | ✅ Sí     |
-| `NEXT_PUBLIC_CLOUDINARY_API_KEY`       | API Key pública de Cloudinary          | ✅ Sí     |
-| `CLOUDINARY_API_KEY`                   | API Key de Cloudinary (server-side)    | ✅ Sí     |
-| `CLOUDINARY_API_SECRET`                | API Secret de Cloudinary (server-side) | ✅ Sí     |
+| Variable                               | Description                    | Required |
+| -------------------------------------- | ------------------------------ | -------- |
+| `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`    | Cloudinary cloud name          | ✅       |
+| `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` | Upload preset (unsigned)       | ✅       |
+| `NEXT_PUBLIC_CLOUDINARY_API_KEY`       | Cloudinary public API key      | ✅       |
+| `CLOUDINARY_API_KEY`                   | Cloudinary server-side API key | ✅       |
+| `CLOUDINARY_API_SECRET`                | Cloudinary API secret          | ✅       |
 
-### Otros
+### Other
 
-| Variable       | Descripción                                | Requerido        |
-| -------------- | ------------------------------------------ | ---------------- |
-| `DATABASE_URL` | Connection string de PostgreSQL            | ✅ Sí            |
-| `CRON_SECRET`  | Secreto para autorizar cron jobs de Vercel | ⚠️ En producción |
-
-> Ver `.env.example` para la lista completa con valores de ejemplo.
+| Variable       | Description                  | Required      |
+| -------------- | ---------------------------- | ------------- |
+| `DATABASE_URL` | PostgreSQL connection string | ✅            |
+| `CRON_SECRET`  | Secret for Vercel cron jobs  | ⚠️ Production |
 
 ---
 
-## 🗄️ Base de datos
-
-### Comandos disponibles
+## 🗄️ Database
 
 ```bash
-# Crear y ejecutar una nueva migración (desarrollo)
-pnpm db:migrate
-
-# Aplicar migraciones en producción (sin prompt)
-pnpm db:deploy
-
-# Regenerar el cliente de Prisma tras cambios de schema
-pnpm db:generate
-
-# Abrir Prisma Studio — interfaz visual para explorar/editar datos
-pnpm db:studio
-
-# Poblar la BD con datos iniciales (categorías, tallas, colores, etc.)
-pnpm db:seed
-
-# Resetear la BD y volver a aplicar el seed (¡elimina todos los datos!)
-pnpm db:reset
+pnpm db:migrate    # create and run migrations (dev)
+pnpm db:deploy     # apply migrations in production
+pnpm db:generate   # regenerate Prisma client
+pnpm db:studio     # open Prisma Studio
+pnpm db:seed       # seed initial data
+pnpm db:reset      # reset DB and re-seed
 ```
-
-### Servicios cloud recomendados
-
-| Servicio                                               | Plan gratuito | Descripción                            |
-| ------------------------------------------------------ | ------------- | -------------------------------------- |
-| [Neon](https://neon.tech)                              | ✅            | PostgreSQL serverless con autoescalado |
-| [Supabase](https://supabase.com)                       | ✅            | PostgreSQL + storage + auth integrado  |
-| [Vercel Postgres](https://vercel.com/storage/postgres) | ✅            | Integración nativa con Vercel          |
 
 ---
 
 ## 🧪 Testing
 
-El proyecto cuenta con una suite de tests completa dividida en dos niveles.
-
-### Tests unitarios e integración (Vitest)
-
-Usa **Vitest** con **jsdom** como entorno, **Testing Library** para render de componentes y **MSW** para mockear peticiones HTTP.
+### Unit & integration tests (Vitest)
 
 ```bash
-# Ejecutar todos los tests una sola vez
-pnpm test:run
-
-# Modo watch (re-ejecuta al guardar)
-pnpm test:watch
-
-# Con UI interactiva en el navegador
-pnpm test:ui
-
-# Generar reporte de cobertura (texto + JSON + HTML)
-pnpm test:coverage
+pnpm test:run       # run all tests once
+pnpm test:watch     # watch mode
+pnpm test:ui        # interactive UI in browser
+pnpm test:coverage  # coverage report (HTML + JSON + text)
 ```
 
-El reporte de cobertura se genera en la carpeta `coverage/`. Abre `coverage/index.html` en el navegador para verlo en detalle.
+### E2E tests (Playwright)
 
-La configuración excluye automáticamente `node_modules`, `.next`, `e2e`, `prisma` y archivos de configuración del análisis de cobertura.
-
-### Tests E2E (Playwright)
-
-Los tests E2E arrancan la aplicación con Next.js y validan flujos reales contra una base de datos de test aislada.
-
-**Flujos cubiertos:**
-
-- `auth.spec.ts` — Registro, login, logout y acceso protegido
-- `cart-checkout.spec.ts` — Añadir al carrito y proceso de checkout (usuario autenticado)
-- `admin-product.spec.ts` — CRUD completo de productos en el panel admin
-- `admin-orders.spec.ts` — Gestión de pedidos en el panel admin
-- `returns.spec.ts` — Solicitud y gestión de devoluciones
-
-**Proyectos de Playwright configurados:**
-
-- `setup` — Autenticación guardada en storage state (usuario y admin)
-- `chromium` — Tests públicos sin autenticación
-- `chromium-user` — Tests con sesión de usuario normal
-- `chromium-admin` — Tests con sesión de administrador
-
-#### Puesta en marcha de los tests E2E
-
-**1. Crear el archivo de entorno para E2E:**
+**Flows covered:** auth · cart & checkout · admin product CRUD · admin orders · returns
 
 ```bash
+# 1. Copy E2E env file and fill credentials
 cp .env.e2e.example .env.e2e
-```
 
-Edita `.env.e2e` con las credenciales de los usuarios de prueba (`E2E_ADMIN_EMAIL`, `E2E_ADMIN_PASSWORD`, etc.).
-
-**2. Levantar la base de datos de test (Docker):**
-
-```bash
-# Levanta PostgreSQL en el puerto 5434 (aislado de desarrollo)
-pnpm db:e2e:up
-```
-
-**3. Aplicar migraciones y seed de datos E2E:**
-
-```bash
-pnpm db:e2e:migrate
-pnpm db:e2e:seed
-```
-
-O en un solo comando:
-
-```bash
+# 2. Start test database + migrations + seed
 pnpm test:e2e:prepare
-```
 
-**4. Instalar los navegadores de Playwright (solo la primera vez):**
-
-```bash
+# 3. Install browsers (first time only)
 pnpm playwright install chromium
+
+# 4. Run tests
+pnpm test:e2e          # headless
+pnpm test:e2e:ui       # interactive UI
+pnpm test:e2e:debug    # step-by-step debug
 ```
-
-**5. Ejecutar los tests:**
-
-```bash
-# Modo headless (terminal)
-pnpm test:e2e
-
-# Con UI interactiva de Playwright
-pnpm test:e2e:ui
-
-# Modo debug (paso a paso)
-pnpm test:e2e:debug
-```
-
-> El servidor Next.js se levanta automáticamente antes de correr los tests y se apaga al terminar.
-
-#### Entorno de base de datos para tests
-
-El archivo `docker-compose.test.yml` levanta un contenedor PostgreSQL **efímero** en el puerto `5434` (sin volumen persistente, arranca limpio en cada ejecución):
-
-```bash
-# Levantar
-pnpm db:e2e:up
-
-# Apagar y eliminar contenedor
-pnpm db:e2e:down
-
-# Resetear datos E2E sin apagar el contenedor
-pnpm db:e2e:reset
-```
-
----
-
-## 📜 Scripts disponibles
-
-### Desarrollo
-
-| Script           | Descripción                             |
-| ---------------- | --------------------------------------- |
-| `pnpm dev`       | Servidor de desarrollo con Turbopack    |
-| `pnpm build`     | Build de producción                     |
-| `pnpm start`     | Servidor de producción (requiere build) |
-| `pnpm lint`      | Análisis estático con ESLint            |
-| `pnpm typecheck` | Verificación de tipos con TypeScript    |
-| `pnpm format`    | Formateo de código con Prettier         |
-
-### Base de datos
-
-| Script             | Descripción                                    |
-| ------------------ | ---------------------------------------------- |
-| `pnpm db:generate` | Regenerar el cliente de Prisma                 |
-| `pnpm db:migrate`  | Crear y ejecutar migraciones (desarrollo)      |
-| `pnpm db:deploy`   | Aplicar migraciones en producción (sin prompt) |
-| `pnpm db:seed`     | Poblar la BD con datos iniciales               |
-| `pnpm db:studio`   | Abrir Prisma Studio                            |
-| `pnpm db:reset`    | Resetear BD + volver a aplicar seed            |
-
-### Tests unitarios
-
-| Script               | Descripción                                         |
-| -------------------- | --------------------------------------------------- |
-| `pnpm test:run`      | Ejecutar todos los tests una vez                    |
-| `pnpm test:watch`    | Modo watch (re-ejecuta al guardar)                  |
-| `pnpm test:ui`       | Interfaz visual de Vitest en el navegador           |
-| `pnpm test:coverage` | Tests con reporte de cobertura (HTML + JSON + text) |
-
-### Tests E2E
-
-| Script                  | Descripción                                          |
-| ----------------------- | ---------------------------------------------------- |
-| `pnpm test:e2e`         | Ejecutar todos los tests E2E (headless)              |
-| `pnpm test:e2e:ui`      | Interfaz visual de Playwright                        |
-| `pnpm test:e2e:debug`   | Modo debug paso a paso                               |
-| `pnpm test:e2e:prepare` | Levantar BD test + migraciones + seed (todo en uno)  |
-| `pnpm db:e2e:up`        | Levantar contenedor PostgreSQL de test (puerto 5434) |
-| `pnpm db:e2e:down`      | Apagar y eliminar el contenedor de test              |
-| `pnpm db:e2e:migrate`   | Aplicar migraciones sobre la BD de test              |
-| `pnpm db:e2e:seed`      | Seed de datos para E2E                               |
-| `pnpm db:e2e:reset`     | Resetear datos E2E sin apagar el contenedor          |
 
 ---
 
 ## 🤖 CI/CD
 
-El pipeline de **GitHub Actions** (`.github/workflows/ci.yml`) se ejecuta en cada push y PR con 3 etapas secuenciales:
+GitHub Actions pipeline runs on every push and PR:
 
 ```
 Lint & Typecheck → Unit & Integration Tests → E2E Tests
 ```
 
-### Etapa 1 — Lint & Typecheck
-
-- ESLint sobre todo el código
-- TypeScript `tsc --noEmit`
-
-### Etapa 2 — Unit & Integration Tests
-
-- Levanta PostgreSQL 16 como servicio
-- Ejecuta migraciones sobre la BD de test
-- Corre `pnpm test:coverage`
-- Sube el reporte de cobertura como artefacto de GitHub Actions
-
-### Etapa 3 — E2E Tests
-
-- Solo se ejecuta en las ramas `main` y `development`
-- Levanta PostgreSQL 16, aplica migraciones y seed E2E
-- Hace build de producción de Next.js
-- Corre `pnpm test:e2e` con Playwright (Chromium)
-- Sube el reporte de Playwright como artefacto
-
-> Los secretos necesarios para CI se configuran en **Settings → Secrets and variables → Actions** del repositorio.
-
-### Cron Job — Expirar pedidos
-
-El workflow `.github/workflows/cron.yml` llama al endpoint `/api/cron/expire-orders` diariamente a las 00:00 UTC para marcar como expirados los pedidos pendientes de pago.
+- **Stage 1** — ESLint + TypeScript `tsc --noEmit`
+- **Stage 2** — PostgreSQL service + migrations + `pnpm test:coverage` + coverage artifact upload
+- **Stage 3** — PostgreSQL + E2E seed + Next.js production build + Playwright (Chromium) + report artifact upload. Runs only on `main` and `development` branches.
 
 ---
 
-## 🗂️ Estructura del proyecto
+## 🗂️ Project structure
 
 ```
 acme-commerce-starter/
 ├── app/
-│   ├── (admin)/                # Panel de administración (protegido)
-│   │   └── admin/              # Productos, categorías, pedidos, usuarios, settings
-│   ├── (auth)/                 # Flujos de autenticación
-│   │   └── auth/               # Login, registro, forgot/reset password
-│   ├── (site)/                 # Sitio público
-│   │   ├── (public)/           # Home, catálogo, detalle de producto, páginas estáticas
-│   │   ├── (shop)/             # Carrito, checkout, tracking de pedidos
-│   │   └── (account)/          # Panel de cuenta de usuario
-│   └── api/                    # API Routes (webhooks Stripe, cron jobs, auth)
-│
-├── components/                 # Componentes React reutilizables
-│   ├── admin/                  # Componentes exclusivos del panel admin
-│   ├── auth/                   # Formularios y UI de autenticación
-│   ├── shop/                   # Componentes de la tienda (carrito, checkout...)
-│   └── ui/                     # Componentes base (botones, modales, inputs...)
-│
-├── lib/                        # Lógica de negocio y utilidades
-│   ├── actions/                # Server Actions de Next.js
-│   ├── services/               # Servicios externos (Stripe, Cloudinary, Resend)
-│   └── schemas/                # Esquemas de validación con Zod
-│
-├── hooks/                      # Custom React Hooks
-├── store/                      # Estado global con Zustand
-├── types/                      # Tipos TypeScript globales
-│
+│   ├── (admin)/          # Admin panel (protected)
+│   ├── (auth)/           # Auth flows
+│   ├── (site)/
+│   │   ├── (public)/     # Home, catalog, product detail
+│   │   ├── (shop)/       # Cart, checkout, order tracking
+│   │   └── (account)/    # User account panel
+│   └── api/              # API routes (Stripe webhooks, cron, auth)
+├── components/           # Reusable React components
+├── lib/
+│   ├── actions/          # Next.js Server Actions
+│   ├── services/         # External services (Stripe, Cloudinary, Resend)
+│   └── schemas/          # Zod validation schemas
+├── hooks/                # Custom React hooks
+├── store/                # Zustand global state
 ├── prisma/
-│   ├── schema.prisma           # Modelos de la base de datos
-│   ├── migrations/             # Historial de migraciones
-│   ├── seed.ts                 # Seed de desarrollo
-│   └── seed.e2e.ts             # Seed específico para tests E2E
-│
-├── __tests__/                  # Tests unitarios e integración (Vitest)
-├── e2e/                        # Tests end-to-end (Playwright)
-│   ├── auth.setup.ts           # Setup de autenticación compartida
-│   ├── auth.spec.ts            # Tests de registro y login
-│   ├── cart-checkout.spec.ts   # Tests de carrito y checkout
-│   ├── admin-product.spec.ts   # Tests de gestión de productos
-│   ├── admin-orders.spec.ts    # Tests de gestión de pedidos
-│   └── returns.spec.ts         # Tests de devoluciones
-│
-├── vitest.config.ts            # Configuración de Vitest
-├── playwright.config.ts        # Configuración de Playwright
-├── docker-compose.yml          # Servicios de desarrollo
-├── docker-compose.test.yml     # PostgreSQL aislado para tests (puerto 5434)
-├── .env.example                # Plantilla de variables de entorno
-├── .env.e2e.example            # Plantilla de variables para E2E
-└── public/                     # Assets estáticos
+│   ├── schema.prisma
+│   ├── migrations/
+│   ├── seed.ts
+│   └── seed.e2e.ts
+├── __tests__/            # Vitest unit & integration tests
+└── e2e/                  # Playwright E2E tests
 ```
 
 ---
 
-## ☁️ Despliegue
+## ☁️ Deployment
 
-### Vercel (recomendado)
+### Vercel (recommended)
 
-1. Haz push de tu repositorio a GitHub.
-2. Conecta el repo en [Vercel](https://vercel.com) y haz clic en **Deploy**.
-3. Añade todas las variables de entorno en el dashboard de Vercel.
-4. El script `vercel-build` ejecuta `prisma migrate deploy` y `next build` automáticamente.
+1. Push to GitHub and connect the repo in [Vercel](https://vercel.com)
+2. Add all environment variables in the Vercel dashboard
+3. `vercel-build` runs `prisma migrate deploy` + `next build` automatically
 
-> **⚠️ Importante:** Si usas streaming o Server-Sent Events, asegúrate de tener habilitado **Fluid Compute** en Vercel.
+### Stripe Webhook (production)
 
-### Configurar Webhook de Stripe en producción
-
-En tu [dashboard de Stripe](https://dashboard.stripe.com/webhooks), añade un endpoint apuntando a:
+Add a webhook endpoint in your [Stripe dashboard](https://dashboard.stripe.com/webhooks):
 
 ```
-https://tu-dominio.com/api/webhooks/stripe
+https://your-domain.com/api/webhooks/stripe
 ```
 
-Eventos requeridos:
-
-- `payment_intent.succeeded`
-- `payment_intent.payment_failed`
-
-### Cron Jobs (expirar pedidos pendientes)
-
-Si usas Vercel Cron, el endpoint `/api/cron/expire-orders` requiere el siguiente header de autorización:
-
-```
-Authorization: Bearer <CRON_SECRET>
-```
-
-Configura el cron en `vercel.json` (ya incluido en el repositorio). El job se ejecuta diariamente a las 00:00 UTC.
+Required events: `payment_intent.succeeded` · `payment_intent.payment_failed`
 
 ---
 
-## 📄 Licencia
+## 📄 License
 
-Distribuido bajo la licencia **MIT**. Consulta el archivo [LICENSE](./LICENSE) para más información.
-
----
-
-<p align="center">
-  Realizado con Next.js, Stripe, Prisma, Vitest y Playwright
-</p>
+Distributed under the **MIT** License.
