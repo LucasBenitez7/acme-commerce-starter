@@ -13,7 +13,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+import { maskEmailForDemo } from "@/lib/admin/mask-email";
 import { getAdminUserDetails } from "@/lib/admin/queries";
+import { isDemoRole } from "@/lib/admin/roles";
+import { auth } from "@/lib/auth";
 
 import { RecentOrdersTable } from "./_components/RecentOrdersTable";
 import { UserAddressesCard } from "./_components/UserAddressesCard";
@@ -25,11 +28,13 @@ type Props = {
 
 export default async function AdminUserDetailPage({ params }: Props) {
   const { id } = await params;
-  const data = await getAdminUserDetails(id);
+  const [data, session] = await Promise.all([getAdminUserDetails(id), auth()]);
 
   if (!data) return notFound();
 
   const { user, stats } = data;
+  const maskEmails = isDemoRole(session?.user?.role);
+  const emailDisplay = maskEmails ? maskEmailForDemo(user.email) : user.email;
 
   return (
     <div className="space-y-4 animate-in fade-in duration-500">
@@ -78,12 +83,18 @@ export default async function AdminUserDetailPage({ params }: Props) {
                 <div className="w-full space-y-3 text-sm text-left border-t pt-4">
                   <div className="flex items-center gap-3 text-foreground">
                     <FaEnvelope className="size-4" />
-                    <Link
-                      href={`mailto:${user.email}`}
-                      className="text-blue-500 hover:underline block underline-offset-4 text-sm font-medium"
-                    >
-                      {user.email}
-                    </Link>
+                    {maskEmails ? (
+                      <span className="text-sm font-medium text-muted-foreground">
+                        {emailDisplay}
+                      </span>
+                    ) : (
+                      <Link
+                        href={`mailto:${user.email}`}
+                        className="text-blue-500 hover:underline block underline-offset-4 text-sm font-medium"
+                      >
+                        {emailDisplay}
+                      </Link>
+                    )}
                   </div>
 
                   {user.phone && (
@@ -142,7 +153,11 @@ export default async function AdminUserDetailPage({ params }: Props) {
                 </CardTitle>
 
                 <Link
-                  href={`/admin/orders?query=${user.email}`}
+                  href={
+                    maskEmails
+                      ? `/admin/orders?userId=${user.id}`
+                      : `/admin/orders?query=${encodeURIComponent(user.email ?? "")}`
+                  }
                   className="text-sm fx-underline-anim font-medium"
                 >
                   Ver todos los pedidos &rarr;

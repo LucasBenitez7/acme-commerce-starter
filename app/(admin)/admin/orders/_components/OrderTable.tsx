@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import { maskEmailForDemo } from "@/lib/admin/mask-email";
 import { formatCurrency } from "@/lib/currency";
 import { getReturnStatusBadge } from "@/lib/orders/utils";
 import { cn } from "@/lib/utils";
@@ -22,9 +23,14 @@ import type { AdminOrderListItem } from "@/lib/orders/types";
 interface OrderTableProps {
   orders: AdminOrderListItem[];
   showRefunds?: boolean;
+  maskEmails?: boolean;
 }
 
-export function OrderTable({ orders, showRefunds }: OrderTableProps) {
+export function OrderTable({
+  orders,
+  showRefunds,
+  maskEmails,
+}: OrderTableProps) {
   const searchParams = useSearchParams();
   const query = searchParams.get("query");
 
@@ -100,7 +106,11 @@ export function OrderTable({ orders, showRefunds }: OrderTableProps) {
                       {order.guestInfo.lastName}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      {order.user?.email || order.guestInfo.email}
+                      {maskEmails
+                        ? maskEmailForDemo(
+                            order.user?.email || order.guestInfo.email,
+                          )
+                        : order.user?.email || order.guestInfo.email}
                     </span>
                   </div>
                 </TableCell>

@@ -144,6 +144,7 @@ export type GetOrdersParams = {
 
   sort?: string;
   query?: string;
+  userId?: string;
 
   statusTab?: string;
   paymentFilter?: PaymentStatus[];

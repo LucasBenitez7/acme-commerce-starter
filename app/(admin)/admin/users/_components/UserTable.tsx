@@ -13,6 +13,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import { maskEmailForDemo } from "@/lib/admin/mask-email";
+
 import type { User } from "@prisma/client";
 
 type AdminUserListItem = User & {
@@ -23,9 +25,11 @@ type AdminUserListItem = User & {
 
 interface UserTableProps {
   users: AdminUserListItem[];
+  /** Rol demo: no mostrar correos completos ni enlaces mailto. */
+  maskEmails?: boolean;
 }
 
-export function UserTable({ users }: UserTableProps) {
+export function UserTable({ users, maskEmails }: UserTableProps) {
   const searchParams = useSearchParams();
   const query = searchParams.get("q");
 
@@ -74,12 +78,18 @@ export function UserTable({ users }: UserTableProps) {
               </TableCell>
 
               <TableCell className="py-3 text-left">
-                <Link
-                  href={`mailto:${user.email}`}
-                  className="text-blue-500 hover:underline block underline-offset-4 text-xs"
-                >
-                  {user.email}
-                </Link>
+                {maskEmails ? (
+                  <span className="text-muted-foreground text-xs">
+                    {maskEmailForDemo(user.email)}
+                  </span>
+                ) : (
+                  <Link
+                    href={`mailto:${user.email}`}
+                    className="text-blue-500 hover:underline block underline-offset-4 text-xs"
+                  >
+                    {user.email}
+                  </Link>
+                )}
               </TableCell>
 
               <TableCell className="py-3 text-left text-xs font-medium">

@@ -4,6 +4,8 @@ import { PaginationNav } from "@/components/catalog/grid/PaginationNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { getPendingReturnsCount } from "@/lib/admin/queries";
+import { isDemoRole } from "@/lib/admin/roles";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { ORDER_TABS } from "@/lib/orders/constants";
 import { getAdminOrders } from "@/lib/orders/queries";
@@ -24,11 +26,15 @@ type Props = {
     sort?: string;
     query?: string;
     page?: string;
+    userId?: string;
   }>;
 };
 
 export default async function AdminOrdersPage({ searchParams }: Props) {
   const sp = await searchParams;
+  const session = await auth();
+  const maskEmails = isDemoRole(session?.user?.role);
+
   const page = Number(sp.page) || 1;
 
   const paymentFilter = sp.payment_filter
@@ -48,6 +54,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
         fulfillmentFilter,
         sort: sp.sort,
         query: sp.query,
+        userId: sp.userId,
       }),
       getPendingReturnsCount(),
       prisma.order.count({
@@ -116,7 +123,11 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
         </CardHeader>
 
         <CardContent className="p-0">
-          <OrderTable orders={orders} showRefunds={isReturnsTab} />
+          <OrderTable
+            orders={orders}
+            showRefunds={isReturnsTab}
+            maskEmails={maskEmails}
+          />
 
           {totalPages > 1 && (
             <div className="py-4 flex justify-end px-4 border-t">

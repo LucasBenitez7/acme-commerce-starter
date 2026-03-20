@@ -19,15 +19,21 @@ export async function getAdminOrders({
   fulfillmentFilter,
   sort,
   query,
+  userId,
 }: GetOrdersParams) {
   const skip = (page - 1) * limit;
 
   const where: Prisma.OrderWhereInput = {};
 
   const hasPaymentFilter = paymentFilter && paymentFilter.length > 0;
+  const hasSearchContext = Boolean(query || userId);
 
-  if (!statusTab && !hasPaymentFilter && !query) {
+  if (!statusTab && !hasPaymentFilter && !hasSearchContext) {
     where.paymentStatus = { not: "PENDING" };
+  }
+
+  if (userId) {
+    where.userId = userId;
   }
 
   if (query) {

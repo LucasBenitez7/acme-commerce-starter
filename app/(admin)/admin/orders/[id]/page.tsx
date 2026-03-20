@@ -13,7 +13,8 @@ import { OrderTracker } from "@/components/order/OrderTracker";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { canWriteAdmin } from "@/lib/admin/roles";
+import { maskEmailForDemo } from "@/lib/admin/mask-email";
+import { canWriteAdmin, isDemoRole } from "@/lib/admin/roles";
 import { auth } from "@/lib/auth";
 import { parseCurrency } from "@/lib/currency";
 import { FULFILLMENT_STATUS_CONFIG } from "@/lib/orders/constants";
@@ -37,6 +38,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
   const { id } = await params;
   const [order, session] = await Promise.all([getAdminOrderById(id), auth()]);
   const canWrite = canWriteAdmin(session?.user?.role);
+  const maskEmails = isDemoRole(session?.user?.role);
 
   if (!order) notFound();
 
@@ -185,7 +187,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
           }
           contact={{
             name: contactName,
-            email: order.email,
+            email: maskEmails ? maskEmailForDemo(order.email) : order.email,
             phone: order.phone || "",
           }}
           shippingInfo={shippingDetails}
