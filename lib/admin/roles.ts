@@ -8,3 +8,7 @@ export function canAccessAdmin(role: string | undefined): boolean {
 export function canWriteAdmin(role: string | undefined): boolean {
   return role === "admin";
 }
+
+export function isDemoRole(role: string | undefined): boolean {
+  return role === "demo";
+}

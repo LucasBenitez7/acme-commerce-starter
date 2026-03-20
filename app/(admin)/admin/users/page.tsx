@@ -4,6 +4,8 @@ import { PaginationNav } from "@/components/catalog/grid/PaginationNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { getAdminUsers } from "@/lib/admin/queries";
+import { isDemoRole } from "@/lib/admin/roles";
+import { auth } from "@/lib/auth";
 
 import { UserListToolbar } from "./_components/UserListToolbar";
 import { UserTable } from "./_components/UserTable";
@@ -25,6 +27,9 @@ type Props = {
 
 export default async function AdminUsersPage({ searchParams }: Props) {
   const sp = await searchParams;
+  const session = await auth();
+  const maskEmails = isDemoRole(session?.user?.role);
+
   const page = Number(sp.page) || 1;
   const query = sp.q || "";
   const role =
@@ -61,7 +66,7 @@ export default async function AdminUsersPage({ searchParams }: Props) {
         </CardHeader>
 
         <CardContent className="p-0">
-          <UserTable users={users} />
+          <UserTable users={users} maskEmails={maskEmails} />
 
           {totalPages > 1 && (
             <div className="py-4 flex justify-end px-4 border-t">
